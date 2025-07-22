@@ -1,0 +1,34 @@
+From node:20-alpine as build
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install -g @angular/cli
+
+RUN npm install
+
+# RUN npm ci
+
+COPY . .
+
+RUN npm run build -- --output-path=./dist/agentspace-reservations --configuration=production 
+
+FROM nginx:alpine
+
+
+RUN rm -rf /usr/share/nginx/html
+RUN rm -rf /usr/share/nginx/html/*
+
+COPY --from=build /app/dist/agentspace-reservations/browser /usr/share/nginx/html
+
+RUN rm -rf /etc/nginx/conf.d/default.conf
+RUN rm -rf /etc/nginx/conf.d/angular.conf
+
+COPY nginx.conf /etc/nginx/conf.d/angular.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
+
+
