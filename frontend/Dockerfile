@@ -12,7 +12,7 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build -- --output-path=./dist/agentspace-reservations --configuration=production 
+RUN npm run build -- --output-path=./dist/frontend --configuration=production 
 
 FROM nginx:alpine
 
@@ -20,7 +20,7 @@ FROM nginx:alpine
 RUN rm -rf /usr/share/nginx/html
 RUN rm -rf /usr/share/nginx/html/*
 
-COPY --from=build /app/dist/agentspace-reservations/browser /usr/share/nginx/html
+COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
 
 RUN rm -rf /etc/nginx/conf.d/default.conf
 RUN rm -rf /etc/nginx/conf.d/angular.conf
