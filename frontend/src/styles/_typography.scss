@@ -1,0 +1,29 @@
+@use "variables" as *;
+
+@mixin heading-xl {
+  font-family: "Roboto", sans-serif;
+  font-size: $font-size-xl;
+  font-weight: 500;
+  line-height: 150%;
+}
+
+@mixin heading-lg {
+  font-family: "Roboto", sans-serif;
+  font-size: $font-size-lg;
+  font-weight: 500;
+  line-height: normal;
+}
+
+@mixin body-md {
+  font-family: "Roboto", sans-serif;
+  font-size: $font-size-md;
+  font-weight: 500;
+  line-height: 1.5rem;
+}
+
+@mixin gradient-text {
+  background: $gradient-lexine;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

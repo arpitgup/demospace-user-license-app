@@ -1,36 +1,21 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/typography' as *;
+@use '../../../styles/mixins' as *;
+
 .landing-content {
-    display: flex;
+    @include flex-center;
     flex-direction: column;
-    align-items: center;
 
     .welcome-title {
-        font-family: "Roboto", sans-serif;
-        font-size: 3rem;
-        font-weight: 500;
-        line-height: 150.7%;
-        text-align: center;
-        margin: 5.19rem 0 0;
-        padding: 0;
-
-        background: var(--Lexine-ask,
-                linear-gradient(90deg,
-                    rgba(66, 133, 244, 0.95) 7.88%,
-                    #7051ca 83.78%,
-                    rgba(188, 18, 4, 0.88) 152.54%));
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        @include heading-xl;
+        @include gradient-text;
+        margin-top: $spacing-lg;
     }
 
     .welcome-subtitle {
-        font-family: "Roboto", sans-serif;
-        font-size: 2.5rem;
-        font-weight: 500;
-        color: var(--black, #161a1d);
-        text-align: center;
-        line-height: normal;
-        margin-top: 1.88rem;
-        margin-bottom: 2rem;
+        @include heading-lg;
+        color: $color-black;
+        margin: $spacing-md 0;
     }
 
     .reservation-table-container {
