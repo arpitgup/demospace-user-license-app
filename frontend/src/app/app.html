@@ -1,2 +1,8 @@
-<h1>Hello, {{ title() }}</h1>
-<router-outlet />
+<app-header></app-header>
+
+<!-- Page content from routing -->
+<main class="page-content">
+    <router-outlet></router-outlet>
+</main>
+
+<app-footer></app-footer>

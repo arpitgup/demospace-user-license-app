@@ -1,0 +1,90 @@
+.landing-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .welcome-title {
+        font-family: "Roboto", sans-serif;
+        font-size: 3rem;
+        font-weight: 500;
+        line-height: 150.7%;
+        text-align: center;
+        margin: 5.19rem 0 0;
+        padding: 0;
+
+        background: var(--Lexine-ask,
+                linear-gradient(90deg,
+                    rgba(66, 133, 244, 0.95) 7.88%,
+                    #7051ca 83.78%,
+                    rgba(188, 18, 4, 0.88) 152.54%));
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .welcome-subtitle {
+        font-family: "Roboto", sans-serif;
+        font-size: 2.5rem;
+        font-weight: 500;
+        color: var(--black, #161a1d);
+        text-align: center;
+        line-height: normal;
+        margin-top: 1.88rem;
+        margin-bottom: 2rem;
+    }
+
+    .reservation-table-container {
+        width: 100.375rem;
+        height: 32.25rem;
+        flex-shrink: 0;
+        border: 1px solid #ccc;
+        background: #ecf3fe;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 5.19rem auto 0;
+
+        ::ng-deep .reservation-tabs {
+            .mat-mdc-tab {
+                flex: 0 0 19.60569rem !important;
+                width: 19.60569rem !important;
+                min-width: 19.60569rem !important;
+                max-width: 19.60569rem !important;
+                justify-content: center !important;
+
+                text-transform: none;
+                font-family: "Roboto", sans-serif;
+                font-size: 1.5rem;
+                font-style: normal;
+                font-weight: 500;
+                line-height: 1.5rem;
+                color: #161a1d;
+                flex-shrink: 0;
+
+                // Inactive label
+                .mdc-tab__text-label {
+                    color: #161a1d !important;
+                }
+
+                // Active tab label
+                &.mdc-tab--active {
+                    .mdc-tab__text-label {
+                        color: var(--blue, #4285F4) !important;
+                    }
+                }
+            }
+
+            // Active Tab Indicator
+            .mdc-tab-indicator__content--underline {
+                border-color: var(--blue, #4285F4) !important;
+                border-width: 2px;
+                width: 100% !important;
+            }
+        }
+
+
+        .show-past-checkbox {
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+    }
+}

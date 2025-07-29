@@ -1,0 +1,28 @@
+.app-header {
+  width: 100%;
+
+  .header-toolbar {
+    display: flex;
+    justify-content: space-between;
+
+    .logo {
+      display: flex;
+      align-items: center;
+      font-weight: 600;
+      font-size: 18px;
+
+      mat-icon {
+        margin-right: 8px;
+      }
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    button {
+      font-weight: 500;
+      margin-left: 12px;
+    }
+  }
+}

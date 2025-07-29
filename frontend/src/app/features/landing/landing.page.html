@@ -1,0 +1,27 @@
+<section class="landing-content">
+  <h1 class="welcome-title">Hey, Alex</h1>
+  <span class="welcome-subtitle">
+    Welcome to Agentspace License Reservation System
+  </span>
+
+  <div class="reservation-table-container">
+    <mat-tab-group class="reservation-tabs">
+      <!-- Tab 1: Your Reservations -->
+      <mat-tab label="Your Reservation">
+        <div class="tab-content">
+          <mat-checkbox class="show-past-checkbox"
+            >Show Past Reservations</mat-checkbox
+          >
+          <app-reservation-table />
+        </div>
+      </mat-tab>
+
+      <!-- Tab 2: Book Reservation -->
+      <mat-tab label="Book Reservation">
+        <div class="tab-content">
+          <p>Booking-related content will go here.</p>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</section>

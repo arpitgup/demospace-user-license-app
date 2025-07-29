@@ -1,0 +1,17 @@
+.app-footer {
+    width: 100%;
+
+    .footer-toolbar {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+
+        .spacer {
+            flex: 1;
+        }
+
+        mat-icon {
+            cursor: pointer;
+        }
+    }
+}
