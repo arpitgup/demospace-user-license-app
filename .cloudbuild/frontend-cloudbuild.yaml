@@ -10,7 +10,8 @@ steps:
     - '${_SERVICE_NAME}'
     - '--project=${PROJECT_ID}'
     - '--region=us-central1'
-    - '--platform=managed'    
+    - '--platform=managed'
+    - '--ingress=internal-and-cloud-load-balancing'
     - '--image=gcr.io/${PROJECT_ID}/license-reservation-frontend-prod:$SHORT_SHA'
     - '--port=80'
 options:
