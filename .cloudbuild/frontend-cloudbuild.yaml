@@ -1,6 +1,6 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/${PROJECT_ID}/license-reservation-frontend-prod:$SHORT_SHA', 'Frontend' ]
+  args: ['build', '-t', 'gcr.io/${PROJECT_ID}/license-reservation-frontend-prod:$SHORT_SHA', 'frontend' ]
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'gcr.io/${PROJECT_ID}/license-reservation-frontend-prod:$SHORT_SHA']
 - name: 'gcr.io/cloud-builders/gcloud'

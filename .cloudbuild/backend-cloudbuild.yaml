@@ -1,13 +1,13 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/${PROJECT_ID}/license-reservation-backend-prod:${SHORT_SHA}', 'Backend']
+  args: ['build', '-t', 'gcr.io/${PROJECT_ID}/license-reservation-backend-prod:${SHORT_SHA}', 'backend']
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'gcr.io/${PROJECT_ID}/license-reservation-backend-prod:${SHORT_SHA}']
 - name: 'gcr.io/cloud-builders/gcloud'
   args:
     - 'app'
     - 'deploy'
-    - 'Backend/app_prod.yaml'
+    - 'backend/app_prod.yaml'
     - '--version=${SHORT_SHA}'
     - '--project=${PROJECT_ID}'
     - '--image-url=gcr.io/${PROJECT_ID}/license-reservation-backend-prod:${SHORT_SHA}'
