@@ -23,9 +23,7 @@ triggers:
   disabled: true
   substitutions:
     _PROJECT_ID: sys-36807655692543323281329778
-    _REGISTRY_ID: license-reservation-app-Prod
     _SERVICE_NAME: license-reservation-app-Prod
-    _INGRESS_RULE: internal-and-cloud-load-balancing
 - name: reservationApp-gis-dev-backend
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/backend-cloudbuild.yaml
@@ -49,7 +47,5 @@ triggers:
   ignoredFiles:
   disabled:
   substitutions:
-    _PROJECT_ID: sys-36807655692543323281329778
-    _REGISTRY_ID: license-reservation-app-dev
-    _SERVICE_NAME: license-reservation-app-dev
-    _INGRESS_RULE: all
+    _PROJECT_ID: sys-36807655692543323281329778    
+    _SERVICE_NAME: license-reservation-app-dev    
