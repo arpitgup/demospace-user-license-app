@@ -6,7 +6,7 @@ triggers:
   ignoredGitRefs: 
   includedGitRefs: ^main$
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
-  includedFiles: Backend/*
+  includedFiles: backend/*
   ignoredFiles: 
   disabled: true
   substitutions:
@@ -18,7 +18,7 @@ triggers:
   ignoredGitRefs:
   includedGitRefs: ^main$
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
-  includedFiles: Frontend/*
+  includedFiles: frontend/*
   ignoredFiles:
   disabled: true
   substitutions:
@@ -33,7 +33,7 @@ triggers:
   ignoredGitRefs: 
   includedGitRefs: ^develop$
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
-  includedFiles: Backend/*
+  includedFiles: backend/*
   ignoredFiles: 
   disabled: true
   substitutions:
@@ -45,7 +45,7 @@ triggers:
   ignoredGitRefs:
   includedGitRefs: ^develop$
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
-  includedFiles: Frontend/*
+  includedFiles: frontend/*
   ignoredFiles:
   disabled:
   substitutions:
