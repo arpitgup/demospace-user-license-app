@@ -1,5 +1,5 @@
 triggers:
-- name: reservationApp-GIS-Prod-backend
+- name: reservationApp-gis-Prod-backend
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/backend-cloudbuild.yaml
   eventType: push
@@ -11,7 +11,7 @@ triggers:
   disabled: true
   substitutions:
     _PROJECT_ID: sys-36807655692543323281329778
-- name: reservationApp-GIS-Prod-frontend
+- name: reservationApp-gis-Prod-frontend
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/frontend-cloudbuild.yaml
   eventType: push
@@ -26,7 +26,7 @@ triggers:
     _REGISTRY_ID: license-reservation-app-Prod
     _SERVICE_NAME: license-reservation-app-Prod
     _INGRESS_RULE: internal-and-cloud-load-balancing
-- name: reservationApp-GIS-dev-backend
+- name: reservationApp-gis-dev-backend
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/backend-cloudbuild.yaml
   eventType: push
@@ -38,7 +38,7 @@ triggers:
   disabled: true
   substitutions:
     _PROJECT_ID: sys-36807655692543323281329778
-- name: reservationApp-GIS-dev-frontend
+- name: reservationApp-gis-dev-frontend
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/frontend-cloudbuild.yaml
   eventType: push
