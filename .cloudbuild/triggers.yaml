@@ -36,7 +36,7 @@ triggers:
   disabled: true
   substitutions:
     _PROJECT_ID: sys-36807655692543323281329778
-- name: reservationApp-gis-frontend-prod
+- name: reservationApp-gis-frontend-dev
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/frontend-cloudbuild.yaml
   eventType: push
