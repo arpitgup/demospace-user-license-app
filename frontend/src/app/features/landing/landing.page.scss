@@ -1,75 +1,82 @@
-@use '../../../styles/variables' as *;
-@use '../../../styles/typography' as *;
-@use '../../../styles/mixins' as *;
+@use "../../../styles/variables" as *;
+@use "../../../styles/typography" as *;
+@use "../../../styles/mixins" as *;
 
 .landing-content {
-    @include flex-center;
-    flex-direction: column;
+  @include flex-center;
+  flex-direction: column;
 
-    .welcome-title {
-        @include heading-xl;
-        @include gradient-text;
-        margin-top: $spacing-lg;
-    }
+  .welcome-title {
+    @include heading-xl;
+    @include gradient-text;
+    margin-top: $spacing-lg;
+  }
 
-    .welcome-subtitle {
-        @include heading-lg;
-        color: $color-black;
-        margin: $spacing-md 0;
-    }
+  .welcome-subtitle {
+    @include heading-lg;
+    color: $color-black;
+    margin: $spacing-md 0;
+  }
 
-    .reservation-table-container {
-        width: 100.375rem;
-        height: 32.25rem;
+  .reservation-table-container {
+    width: 100.375rem;
+    height: 32.25rem;
+    flex-shrink: 0;
+    border: 1px solid #ccc;
+    background: #ecf3fe;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 5.19rem auto 0;
+
+    ::ng-deep .reservation-tabs {
+      .mat-mdc-tab {
+        flex: 0 0 19.60569rem !important;
+        width: 19.60569rem !important;
+        min-width: 19.60569rem !important;
+        max-width: 19.60569rem !important;
+        justify-content: center !important;
+
+        text-transform: none;
+        font-family: "Roboto", sans-serif;
+        font-size: 1.5rem;
+        font-style: normal;
+        font-weight: 500;
+        line-height: 1.5rem;
+        color: #161a1d;
         flex-shrink: 0;
-        border: 1px solid #ccc;
-        background: #ecf3fe;
-        border-radius: 8px;
-        padding: 1rem;
-        margin: 5.19rem auto 0;
 
-        ::ng-deep .reservation-tabs {
-            .mat-mdc-tab {
-                flex: 0 0 19.60569rem !important;
-                width: 19.60569rem !important;
-                min-width: 19.60569rem !important;
-                max-width: 19.60569rem !important;
-                justify-content: center !important;
-
-                text-transform: none;
-                font-family: "Roboto", sans-serif;
-                font-size: 1.5rem;
-                font-style: normal;
-                font-weight: 500;
-                line-height: 1.5rem;
-                color: #161a1d;
-                flex-shrink: 0;
-
-                // Inactive label
-                .mdc-tab__text-label {
-                    color: #161a1d !important;
-                }
-
-                // Active tab label
-                &.mdc-tab--active {
-                    .mdc-tab__text-label {
-                        color: var(--blue, #4285F4) !important;
-                    }
-                }
-            }
-
-            // Active Tab Indicator
-            .mdc-tab-indicator__content--underline {
-                border-color: var(--blue, #4285F4) !important;
-                border-width: 2px;
-                width: 100% !important;
-            }
+        // Inactive label
+        .mdc-tab__text-label {
+          color: #161a1d !important;
         }
 
-
-        .show-past-checkbox {
-            margin-bottom: 0.5rem;
-            display: block;
+        // Active tab label
+        &.mdc-tab--active {
+          .mdc-tab__text-label {
+            color: var(--blue, #4285f4) !important;
+          }
         }
+      }
+
+      // Active Tab Indicator
+      .mdc-tab-indicator__content--underline {
+        border-color: var(--blue, #4285f4) !important;
+        border-width: 2px;
+        width: 100% !important;
+      }
     }
+
+    .card-container {
+      display: flex;
+      gap: 2.5rem;
+      margin-top: 3.37rem;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 3.37rem;
+    }
+    .show-past-checkbox {
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+  }
 }

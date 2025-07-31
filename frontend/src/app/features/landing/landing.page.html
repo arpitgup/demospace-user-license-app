@@ -19,7 +19,14 @@
       <!-- Tab 2: Book Reservation -->
       <mat-tab label="Book Reservation">
         <div class="tab-content">
-          <p>Booking-related content will go here.</p>
+          <div class="card-container">
+            @for( searchOption of searchOptionCards; track searchOption.id){
+            <app-search-option-card
+              [searchOption]="searchOption"
+              (onSelected)="onCardSelected($event)"
+            ></app-search-option-card>
+            }
+          </div>
         </div>
       </mat-tab>
     </mat-tab-group>
