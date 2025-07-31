@@ -11,6 +11,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ReservationService } from '../../core/services/reservation.service';
 import { Reservation } from '../../core/models/reservation.model';
 import { Observable, of } from 'rxjs';
+import { LANDING_PAGE_CONSTANTS } from './landing.constant';
 
 @Component({
   selector: 'app-landing-page',
@@ -30,6 +31,7 @@ import { Observable, of } from 'rxjs';
 })
 export class LandingPage implements OnInit {
   private reservationService = inject(ReservationService);
+  public readonly landingPageConstants = LANDING_PAGE_CONSTANTS;
 
   reservations$!: Observable<Reservation[]>;
   private allReservations: Reservation[] = [];

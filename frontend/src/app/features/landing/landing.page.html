@@ -1,30 +1,28 @@
 <section class="landing-content">
-  <h1 class="welcome-title">Hey, Alex</h1>
-  <span class="welcome-subtitle">
-    Welcome to Agentspace License Reservation System
-  </span>
+  <!-- UPDATED: Use landingPageConstants for text -->
+  <h1 class="welcome-title">{{ landingPageConstants.WELCOME_GREETING }}</h1>
+  <span class="welcome-subtitle">{{ landingPageConstants.WELCOME_SUBTITLE }}</span>
 
   <div class="reservation-table-container">
     <mat-tab-group class="reservation-tabs">
       <!-- Tab 1: Your Reservations -->
-      <mat-tab label="Your Reservation">
+      <mat-tab [label]="landingPageConstants.YOUR_RESERVATION_TAB_LABEL">
         <div class="tab-content">
           <div class="show-past-checkbox-wrapper">
             <mat-checkbox class="show-past-checkbox" (change)="onShowPastChange($event.checked)">
-              Show Past Reservations
+              {{ landingPageConstants.SHOW_PAST_CHECKBOX_LABEL }}
             </mat-checkbox>
           </div>
           <div class="table-scroll-wrapper">
             <app-reservation-table [data]="reservations$ | async"></app-reservation-table>
           </div>
-
         </div>
       </mat-tab>
 
       <!-- Tab 2: Book Reservation -->
-      <mat-tab label="Book Reservation">
+      <mat-tab [label]="landingPageConstants.BOOK_RESERVATION_TAB_LABEL">
         <div class="tab-content">
-          <p>Booking-related content will go here.</p>
+          <p>{{ landingPageConstants.BOOKING_CONTENT_PLACEHOLDER }}</p>
         </div>
       </mat-tab>
     </mat-tab-group>

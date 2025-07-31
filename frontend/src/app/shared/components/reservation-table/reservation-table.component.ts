@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { Reservation } from '../../../core/models/reservation.model';
+import { RESERVATION_TABLE_CONSTANTS } from './reservation-table.constant';
 
 @Component({
   selector: 'app-reservation-table',
@@ -28,6 +29,8 @@ export class ReservationTableComponent implements AfterViewInit {
   }
 
   private now = new Date('2025-07-31T11:49:00Z');
+
+  public readonly reservationTableConstants = RESERVATION_TABLE_CONSTANTS;
 
   displayedColumns = ['date', 'applications', 'status', 'action'];
   dataSource = new MatTableDataSource<Reservation>([]);
