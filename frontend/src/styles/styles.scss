@@ -5,7 +5,6 @@
 @use './mixins' as *;
 @use './typography' as *;
 
-
 html {
   @include mat.theme((
     color: (

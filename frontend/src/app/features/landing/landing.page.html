@@ -9,10 +9,15 @@
       <!-- Tab 1: Your Reservations -->
       <mat-tab label="Your Reservation">
         <div class="tab-content">
-          <mat-checkbox class="show-past-checkbox"
-            >Show Past Reservations</mat-checkbox
-          >
-          <app-reservation-table />
+          <div class="show-past-checkbox-wrapper">
+            <mat-checkbox class="show-past-checkbox" (change)="onShowPastChange($event.checked)">
+              Show Past Reservations
+            </mat-checkbox>
+          </div>
+          <div class="table-scroll-wrapper">
+            <app-reservation-table [data]="reservations$ | async"></app-reservation-table>
+          </div>
+
         </div>
       </mat-tab>
 
