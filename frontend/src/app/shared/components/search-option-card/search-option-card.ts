@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { SearchOptionCard } from '../../../utilities/interfaces/search_option_card';
+import { SearchOptionCard } from '../../../../utilities/interfaces/search_option_card';
 
 @Component({
   selector: 'app-search-option-card',
@@ -9,10 +9,10 @@ import { SearchOptionCard } from '../../../utilities/interfaces/search_option_ca
   styleUrl: './search-option-card.scss',
 })
 export class SearchOptionCardComponent {
-  @Input() searchOption!: SearchOptionCard;
-  @Output() onSelected = new EventEmitter<number>();
+  @Input() searchOption?: SearchOptionCard;
+  @Output() onSelected = new EventEmitter<SearchOptionCard>();
 
-  onCardSelected(id: number) {
-    this.onSelected.emit(id);
+  onCardSelected(searchOptionCard?: SearchOptionCard) {
+    this.onSelected.emit(searchOptionCard);
   }
 }
