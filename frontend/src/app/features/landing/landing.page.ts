@@ -12,6 +12,9 @@ import { ReservationService } from '../../core/services/reservation.service';
 import { Reservation } from '../../core/models/reservation.model';
 import { Observable, of } from 'rxjs';
 import { LANDING_PAGE_CONSTANTS } from './landing.constant';
+import { SearchOptionCardComponent } from '../../shared/components/search-option-card/search-option-card';
+import { SearchOptionCard } from '../../../utilities/interfaces/search_option_card';
+import { SearchType } from './landing.enums';
 
 @Component({
   selector: 'app-landing-page',
@@ -24,6 +27,7 @@ import { LANDING_PAGE_CONSTANTS } from './landing.constant';
     MatTabsModule,
     MatCheckboxModule,
     ReservationTableComponent,
+    SearchOptionCardComponent,
   ],
   host: {
     class: 'landing-page-container',
@@ -72,5 +76,31 @@ export class LandingPage implements OnInit {
     }
 
     this.reservations$ = of(filteredData);
+  }
+
+  searchOptionCards: SearchOptionCard[] = [
+    {
+      id: 1,
+      icon: 'assets/svgs/date_icon.svg',
+      title: 'Search by Date',
+      description: 'Reservations must be made 24 hours in advance.',
+      isSelected: false,
+      searchType: SearchType.ByDate,
+    },
+    {
+      id: 2,
+      icon: 'assets/svgs/application_icon.svg',
+      title: 'Search by Application',
+      description: 'Reservations must be made 24 hours in advance.',
+      isSelected: false,
+      searchType: SearchType.ByApplication,
+    },
+  ];
+
+  onCardSelected(searchOption?: SearchOptionCard) {
+    this.searchOptionCards = this.searchOptionCards.map((card) => ({
+      ...card,
+      isSelected: card.id === searchOption?.id,
+    }));
   }
 }

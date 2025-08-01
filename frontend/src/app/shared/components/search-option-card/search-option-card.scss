@@ -1,0 +1,58 @@
+@use "../../../../styles/variables" as *;
+
+.search-option-card {
+  border-radius: 1.5rem;
+  cursor: pointer;
+  background: #4285f410;
+  padding-left: 8.94rem;
+  padding-right: 8.94rem;
+  display: inline-block;
+  width: fit-content;
+  height: fit-content;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  text-align: center;
+  padding-top: 3.25rem;
+  padding-bottom: 1.69rem;
+
+  .logo {
+    width: 5rem;
+    height: 5rem;
+    flex-shrink: 0;
+    aspect-ratio: 1/1;
+    object-fit: fill;
+  }
+
+  .card-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    .logo-title {
+      margin-top: 1.13rem;
+      color: $color-black;
+      font-family: Roboto;
+      font-size: 1.875rem;
+      font-style: normal;
+      font-weight: 500;
+      line-height: normal;
+    }
+    .logo-desc {
+      margin-top: 0.56rem;
+      color: rgba(0, 0, 0, 0.5);
+      font-family: Roboto;
+      font-size: 0.75rem;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 1rem;
+    }
+  }
+}
+
+.search-option-card.selected {
+  border: 2px solid $color-blue;
+  background: #edf3fe;
+  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+}

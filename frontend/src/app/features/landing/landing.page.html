@@ -22,7 +22,14 @@
       <!-- Tab 2: Book Reservation -->
       <mat-tab [label]="landingPageConstants.BOOK_RESERVATION_TAB_LABEL">
         <div class="tab-content">
-          <p>{{ landingPageConstants.BOOKING_CONTENT_PLACEHOLDER }}</p>
+          <div class="card-container">
+            @for( searchOption of searchOptionCards; track searchOption.id){
+            <app-search-option-card
+              [searchOption]="searchOption"
+              (onSelected)="onCardSelected($event)"
+            ></app-search-option-card>
+            }
+          </div>
         </div>
       </mat-tab>
     </mat-tab-group>
