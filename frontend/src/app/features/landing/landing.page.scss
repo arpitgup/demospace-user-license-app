@@ -94,5 +94,13 @@
             overflow-y: auto;
             position: relative;
         }
+
+         .card-container {
+            display: flex;
+            gap: 2.5rem;
+            margin-top: 3.37rem;
+            justify-content: center;
+            margin-bottom: 3.37rem;
+          }
     }
 }
