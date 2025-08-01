@@ -91,9 +91,9 @@
     </div>
 
     <mat-paginator
-      [pageSizeOptions]="[5]"
+      [pageSizeOptions]="pageSizeOptions"
       showFirstLastButtons
-      aria-label="Select page of reservations"
+      [attr.aria-label]="reservationTableConstants.PAGINATOR_ARIA_LABEL"
     >
     </mat-paginator>
   </ng-container>
