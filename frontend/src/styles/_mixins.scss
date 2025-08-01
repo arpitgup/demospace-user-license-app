@@ -1,0 +1,13 @@
+// Center content with Flex
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+// Fixed size block
+@mixin fixed-size($w, $h) {
+  width: $w;
+  height: $h;
+  flex-shrink: 0;
+}

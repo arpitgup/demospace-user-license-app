@@ -1,0 +1,35 @@
+// Color System
+$color-blue: #4285f4;
+$color-purple: #7051ca;
+$color-red: #bc1204;
+$color-red-cancel: #ea4335;
+$color-black: #161a1d;
+$color-gray: #ccc;
+$color-white: #ffffff;
+$color-text-muted: #6c757d;
+
+// Background Colors
+$color-bg-light: #ecf3fe;
+$color-bg-lighter: #f6f9fe;
+$color-bg-table-row: #f5f9ff;
+
+// Gradients
+$gradient-lexine: linear-gradient(
+  90deg,
+  rgba(66, 133, 244, 0.95) 7.88%,
+  #7051ca 83.78%,
+  rgba(188, 18, 4, 0.88) 152.54%
+);
+
+// Font sizes
+$font-size-xl: 3rem;
+$font-size-lg: 2.5rem;
+$font-size-md: 1.5rem;
+$font-size-sm: 1.125rem;
+$font-size-xs: 1rem;
+
+// Spacing
+$spacing-xs: 0.5rem;
+$spacing-sm: 1rem;
+$spacing-md: 2rem;
+$spacing-lg: 5rem;

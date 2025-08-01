@@ -1,0 +1,89 @@
+<div class="table-container">
+  <!-- Display this message when there is no data. -->
+  <div
+    *ngIf="!dataSource.data || dataSource.data.length === 0"
+    class="empty-data-message"
+  >
+    <mat-icon class="empty-data-icon">info_outline</mat-icon>
+    <span>{{ reservationTableConstants.NO_RESERVATIONS_MSG }}</span>
+  </div>
+
+  <!-- Display the table only when there is data. -->
+  <table
+    mat-table
+    [dataSource]="dataSource"
+    matSort
+    class="reservation-table"
+    *ngIf="dataSource.data && dataSource.data.length > 0"
+  >
+    <!-- Reservation Date Column -->
+    <ng-container matColumnDef="date">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{ reservationTableConstants.DATE_HEADER }}
+      </th>
+      <td mat-cell *matCellDef="let row">
+        {{ formatDateRange(row.startDate, row.endDate) }}
+      </td>
+    </ng-container>
+
+    <!-- Applications Column -->
+    <ng-container matColumnDef="applications">
+      <th mat-header-cell *matHeaderCellDef>
+        {{ reservationTableConstants.APPLICATIONS_HEADER }}
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <div class="app-chip-list">
+          <div
+            class="app-chip-wrapper"
+            *ngFor="let app of getApplications(row)"
+          >
+            <span class="app-chip-text">{{ app }}</span>
+          </div>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Status Column -->
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{ reservationTableConstants.STATUS_HEADER }}
+      </th>
+      <td mat-cell *matCellDef="let row">{{ getStatus(row) }}</td>
+    </ng-container>
+
+    <!-- Action Column -->
+    <ng-container matColumnDef="action">
+      <th mat-header-cell *matHeaderCellDef>
+        {{ reservationTableConstants.ACTION_HEADER }}
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <div class="action-cell">
+          <button mat-stroked-button color="primary" class="view-button">
+            <mat-icon>visibility</mat-icon>
+            {{ reservationTableConstants.VIEW_BUTTON }}
+          </button>
+
+          <!-- Allow canceling for 'Upcoming' or 'Current' reservations -->
+          <button
+            *ngIf="
+              getStatus(row) === 'Upcoming' || getStatus(row) === 'Current'
+            "
+            mat-stroked-button
+            class="cancel-button"
+          >
+            <mat-icon>close</mat-icon>
+            {{ reservationTableConstants.CANCEL_BUTTON }}
+          </button>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Header and Row Declarations -->
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr
+      class="table-row"
+      mat-row
+      *matRowDef="let row; columns: displayedColumns"
+    ></tr>
+  </table>
+</div>
