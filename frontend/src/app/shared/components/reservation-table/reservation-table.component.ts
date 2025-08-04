@@ -1,11 +1,19 @@
-import { Component, ChangeDetectionStrategy, ViewChild, AfterViewInit, Input, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  ViewChild,
+  AfterViewInit,
+  Input,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { CommonModule } from '@angular/common';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+
 import { Reservation } from '../../../core/models/reservation.model';
-import { RESERVATION_TABLE_CONSTANTS } from './reservation-table.constant';
+import { RESERVATION_TABLE_CONSTANTS, ReservationStatus } from './reservation-table.constant';
 
 @Component({
   selector: 'app-reservation-table',
@@ -17,29 +25,34 @@ import { RESERVATION_TABLE_CONSTANTS } from './reservation-table.constant';
     MatTableModule,
     MatSortModule,
     MatIconModule,
-    MatButtonModule
+    MatButtonModule,
+    MatPaginatorModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReservationTableComponent implements AfterViewInit {
-  @Input() set data(reservations: Reservation[] | null) {
-    if (reservations) {
-      this.dataSource.data = reservations;
-    }
-  }
-
-  private now = new Date('2025-07-31T11:49:00Z');
-
   public readonly reservationTableConstants = RESERVATION_TABLE_CONSTANTS;
+  public readonly pageSizeOptions: number[] = [5];
 
-  displayedColumns = ['date', 'applications', 'status', 'action'];
+  displayedColumns: string[] = ['date', 'applications', 'status', 'action'];
   dataSource = new MatTableDataSource<Reservation>([]);
 
   @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+
+  @Input() set data(reservations: Reservation[] | null) {
+    if (reservations) {
+      this.dataSource.data = reservations;
+
+      if (this.dataSource.paginator) {
+        this.dataSource.paginator.firstPage();
+      }
+    }
+  }
 
   ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
-
     this.dataSource.sortingDataAccessor = (item, property) => {
       switch (property) {
         case 'date':
@@ -52,35 +65,42 @@ export class ReservationTableComponent implements AfterViewInit {
     };
   }
 
-  /**
-   * Formats a date range string for display.
-   */
   formatDateRange(start: string, end: string): string {
-    const startDate = new Date(start).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const endDate = new Date(end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const startDate = new Date(start).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+    const endDate = new Date(end).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
     return `${startDate} to ${endDate}`;
   }
 
-  /**
-   * Derives the application list from a reservation.
-   */
   getApplications(reservation: Reservation): string[] {
-    return [reservation.primaryApplicationId, ...reservation.additionalApplicationIds];
+    return [
+      reservation.primaryApplicationId,
+      ...reservation.additionalApplicationIds,
+    ];
   }
 
   /**
    * Determines the reservation status based on the current time.
+   * Now returns a type-safe enum member.
    */
-  getStatus(reservation: Reservation): 'Past' | 'Current' | 'Upcoming' {
+  getStatus(reservation: Reservation): ReservationStatus {
+    const now = new Date();
     const startDate = new Date(reservation.startDate);
     const endDate = new Date(reservation.endDate);
 
-    if (endDate < this.now) {
-      return 'Past';
-    } else if (startDate <= this.now && endDate >= this.now) {
-      return 'Current';
+    if (endDate < now) {
+      return ReservationStatus.PAST;
+    } else if (startDate <= now && endDate >= now) {
+      return ReservationStatus.CURRENT;
     } else {
-      return 'Upcoming';
+      return ReservationStatus.UPCOMING;
     }
   }
 }

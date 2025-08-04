@@ -6,4 +6,12 @@ export const RESERVATION_TABLE_CONSTANTS = {
   ACTION_HEADER: 'Action',
   VIEW_BUTTON: 'View',
   CANCEL_BUTTON: 'Cancel',
+  PAGINATOR_ARIA_LABEL: 'Select page of reservations',
 };
+
+
+export enum ReservationStatus {
+  PAST = 'Past',
+  CURRENT = 'Current',
+  UPCOMING = 'Upcoming',
+}
