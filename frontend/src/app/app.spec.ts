@@ -1,25 +1,43 @@
-import { provideZonelessChangeDetection } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
-import { App } from './app';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Component } from '@angular/core';
 
-describe('App', () => {
+import { App } from './app';
+import { FooterComponent } from './shared/components/footer/footer.component';
+import { HeaderComponent } from './shared/components/header/ header.component';
+@Component({ selector: 'app-header', template: '' })
+class MockHeaderComponent {}
+
+@Component({ selector: 'app-footer', template: '' })
+class MockFooterComponent {}
+
+describe('App Component', () => {
+  let component: App;
+  let fixture: ComponentFixture<App>;
+  let compiled: HTMLElement;
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideZonelessChangeDetection()]
-    }).compileComponents();
-  });
+    })
+      .overrideComponent(App, {
+        remove: { imports: [HeaderComponent, FooterComponent] },
+        add: { imports: [MockHeaderComponent, MockFooterComponent] },
+      })
+      .compileComponents();
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(App);
+    fixture = TestBed.createComponent(App);
+    component = fixture.componentInstance;
+    compiled = fixture.nativeElement;
     fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, agentspace-reservations');
+  });
+
+  it('should create the app component', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should render the header, router-outlet, and footer', () => {
+    expect(compiled.querySelector('app-header')).not.toBeNull();
+    expect(compiled.querySelector('router-outlet')).not.toBeNull();
+    expect(compiled.querySelector('app-footer')).not.toBeNull();
   });
 });
