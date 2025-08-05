@@ -1,8 +1,9 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .common.constants import ALLOWED_ORIGINS
 from .routers import admin, applications, availability, config, licenses, reservations
+from .utils.dependencies import get_user_email
 
 
 app = FastAPI()
@@ -18,9 +19,19 @@ app.add_middleware(
 )
 
 
-app.include_router(admin.router, tags=["Admin"])
-app.include_router(applications.router, tags=["Applications"])
-app.include_router(availability.router, tags=["Availability"])
-app.include_router(config.router, tags=["Application Configuration"])
+app.include_router(admin.router, tags=["Admin"], dependencies=[Depends(get_user_email)])
+app.include_router(
+    applications.router, tags=["Applications"], dependencies=[Depends(get_user_email)]
+)
+app.include_router(
+    availability.router, tags=["Availability"], dependencies=[Depends(get_user_email)]
+)
+app.include_router(
+    config.router,
+    tags=["Application Configuration"],
+    dependencies=[Depends(get_user_email)],
+)
 app.include_router(licenses.router, tags=["License Management"])
-app.include_router(reservations.router, tags=["Reservations"])
+app.include_router(
+    reservations.router, tags=["Reservations"], dependencies=[Depends(get_user_email)]
+)

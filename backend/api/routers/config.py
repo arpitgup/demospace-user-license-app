@@ -12,7 +12,7 @@ router = APIRouter()
 
 # TODO: Add test
 @router.post("/config", response_model=List[ConfigOut])
-def set_config(
+def set_app_config(
     req: UpdateAppConfigRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),

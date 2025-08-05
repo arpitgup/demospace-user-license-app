@@ -19,14 +19,12 @@ from ..utils.logging import logger
 router = APIRouter()
 
 
-@router.get(
-    "/admin/reservations", response_model=List[ReservationOut], tags=["Reservations"]
-)
-def get_user_reservations(
+@router.get("/admin/reservations", response_model=List[ReservationOut])
+def get_all_reservations(
     db: Session = Depends(get_db), user_email: str = Depends(get_user_email)
 ):
     """
-    Retrieves all reservations made by a specific user.
+    Retrieves all reservations.
     """
     # TODO: check for admin user
     logger.info(f"Admin User {user_email}: Fetching all reservations")

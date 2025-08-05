@@ -20,7 +20,6 @@ def get_secret_password():
     project_id = GCP_PROJECT_ID
     secret_name = DB_PASSWORD_SECRET_NAME
     secret_version_name = f"projects/{project_id}/secrets/{secret_name}/versions/latest"
-    logger.info(secret_version_name)
     try:
         client = SecretManagerServiceClient()
         response = client.access_secret_version(name=secret_version_name)
