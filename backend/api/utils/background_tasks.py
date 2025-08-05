@@ -1,0 +1,139 @@
+import asyncio
+import json
+import os
+
+from datetime import datetime, timezone
+from google.cloud import tasks_v2
+from google.protobuf import timestamp_pb2
+
+from ..common.constants import GCP_PROJECT_ID, GCP_LOCATION, RESERVATION_TASKS_QUEUE
+from ..common.models import Reservation
+from .dependencies import SessionLocal, refresh_app_config
+from .logging import logger
+
+
+# TODO: Update this URL
+SERVICE_URL = os.getenv("CLOUD_RUN_BASE_URL")
+
+
+async def schedule_provisioning_task(
+    client: tasks_v2.CloudTasksAsyncClient, reservation_id: int, run_at: datetime
+):
+    """Helper function to create a provisioning task for a reservation."""
+    timestamp = timestamp_pb2.Timestamp()
+    timestamp.FromDatetime(run_at.astimezone(timezone.utc))
+    payload = json.dumps({"reservationId": reservation_id})
+    task = tasks_v2.Task(
+        http_request=tasks_v2.HttpRequest(
+            http_method=tasks_v2.HttpMethod.POST,
+            url=f"{SERVICE_URL}/license/provision",
+            headers={"Content-Type": "application/json"},
+            body=payload.encode(),
+        ),
+        schedule_time=timestamp,
+    )
+    response = await client.create_task(
+        request=tasks_v2.CreateTaskRequest(
+            parent=client.queue_path(
+                GCP_PROJECT_ID, GCP_LOCATION, RESERVATION_TASKS_QUEUE
+            ),
+            task=task,
+        )
+    )
+    logger.info(
+        f"Provisioning task scheduled for reservation {reservation_id}: {response.name}"
+    )
+    return response
+
+
+async def schedule_deprovisioning_task(
+    client: tasks_v2.CloudTasksAsyncClient, reservation_id: int, run_at: datetime
+):
+    """Helper function to create a deprovisioning task for a reservation."""
+    timestamp = timestamp_pb2.Timestamp()
+    timestamp.FromDatetime(run_at.astimezone(timezone.utc))
+    payload = json.dumps({"reservationId": reservation_id})
+    task = tasks_v2.Task(
+        http_request=tasks_v2.HttpRequest(
+            http_method=tasks_v2.HttpMethod.POST,
+            url=f"{SERVICE_URL}/license/deprovision",
+            headers={"Content-Type": "application/json"},
+            body=payload.encode(),
+        ),
+        schedule_time=timestamp,
+    )
+    response = await client.create_task(
+        request=tasks_v2.CreateTaskRequest(
+            parent=client.queue_path(
+                GCP_PROJECT_ID, GCP_LOCATION, RESERVATION_TASKS_QUEUE
+            ),
+            task=task,
+        )
+    )
+    logger.info(
+        f"Deprovisioning task scheduled for reservation {reservation_id}: {response.name}"
+    )
+    return response
+
+
+async def schedule_reservation_tasks(
+    reservation_id: int, start_time: datetime, end_time: datetime
+):
+    """Schedules license provisioning and deprovisioning tasks for a reservation."""
+    client = tasks_v2.CloudTasksAsyncClient()
+
+    try:
+        provisioning_task_response, deprovisioning_task_response = await asyncio.gather(
+            schedule_provisioning_task(
+                client=client, reservation_id=reservation_id, run_at=start_time
+            ),
+            schedule_deprovisioning_task(
+                client=client, reservation_id=reservation_id, run_at=end_time
+            ),
+        )
+
+        with SessionLocal() as db:
+            reservation = (
+                db.query(Reservation).filter(Reservation.id == reservation_id).first()
+            )
+            if reservation:
+                reservation.provisioning_task_id = provisioning_task_response.name
+                reservation.deprovisioning_task_id = deprovisioning_task_response.name
+                db.commit()
+                logger.info(f"Updated reservation {reservation_id} with task IDs.")
+
+    except Exception as e:
+        logger.error(
+            f"Error occurred while scheduling tasks for reservation {reservation_id}: {e}"
+        )
+        raise e
+
+
+async def delete_reservation_tasks(reservation_id: int):
+    """Deletes all scheduled tasks for a reservation."""
+    client = tasks_v2.CloudTasksAsyncClient()
+
+    with SessionLocal() as db:
+        reservation = (
+            db.query(Reservation).filter(Reservation.id == reservation_id).first()
+        )
+        if reservation.provisioning_task_id:
+            try:
+                await client.delete_task(name=reservation.provisioning_task_id)
+                logger.info(
+                    f"Deleted provisioning task for reservation {reservation_id}."
+                )
+            except Exception as e:
+                logger.error(
+                    f"Failed to delete provisioning task for reservation {reservation_id}: {e}"
+                )
+        if reservation.deprovisioning_task_id:
+            try:
+                await client.delete_task(name=reservation.deprovisioning_task_id)
+                logger.info(
+                    f"Deleted deprovisioning task for reservation {reservation_id}."
+                )
+            except Exception as e:
+                logger.error(
+                    f"Failed to delete deprovisioning task for reservation {reservation_id}: {e}"
+                )
