@@ -6,3 +6,4 @@ httpx
 google-auth
 google-cloud-secret-manager
 google-cloud-tasks
+psycopg2-binary

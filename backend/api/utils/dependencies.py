@@ -1,20 +1,26 @@
-import os
-
 from fastapi import Header, HTTPException
 from google.cloud.secretmanager_v1 import SecretManagerServiceClient
 from sqlalchemy import create_engine, URL
 from sqlalchemy.orm import sessionmaker
 
-from ..common.constants import DB_PASSWORD_SECRET_NAME, GCP_PROJECT_ID
+from ..common.constants import (
+    GCP_PROJECT_ID,
+    DB_HOST,
+    DB_NAME,
+    DB_PORT,
+    DB_USER,
+    DB_PASSWORD_SECRET_NAME,
+)
 from ..common.models import AppConfig
 from ..utils.logging import logger
 
 
 def get_secret_password():
     """Retrieves the database password from Secret Manager."""
-    project_id = os.getenv("GCP_PROJECT_ID")
-    secret_name = os.getenv("DB_PASSWORD_SECRET_NAME")
+    project_id = GCP_PROJECT_ID
+    secret_name = DB_PASSWORD_SECRET_NAME
     secret_version_name = f"projects/{project_id}/secrets/{secret_name}/versions/latest"
+    logger.info(secret_version_name)
     try:
         client = SecretManagerServiceClient()
         response = client.access_secret_version(name=secret_version_name)
@@ -26,21 +32,15 @@ def get_secret_password():
 
 
 def setup_database_session():
-    db_user = os.environ.get("DB_USER")
-    db_password = get_secret_password()
-    db_host = os.environ.get("DB_HOST")
-    db_port = os.environ.get("DB_PORT", 5432)
-    db_name = os.environ.get("DB_NAME")
-
     db_url = URL.create(
         drivername="postgresql+psycopg2",
-        username=db_user,
-        password=db_password,
-        host=db_host,
-        port=db_port,
-        database=db_name,
+        username=DB_USER,
+        password=get_secret_password(),
+        host=DB_HOST,
+        port=DB_PORT,
+        database=DB_NAME,
     )
-    engine = create_engine(db_url, connect_args={"check_same_thread": False})
+    engine = create_engine(db_url)
     session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     return session
 

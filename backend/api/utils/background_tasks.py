@@ -6,14 +6,19 @@ from datetime import datetime, timezone
 from google.cloud import tasks_v2
 from google.protobuf import timestamp_pb2
 
-from ..common.constants import GCP_PROJECT_ID, GCP_LOCATION, RESERVATION_TASKS_QUEUE
+from ..common.constants import (
+    GCP_PROJECT_ID,
+    GCP_LOCATION,
+    LICENSE_ALLOCATION_QUEUE,
+    LICENSE_REVOCATION_QUEUE,
+    LICENSE_MANAGEMENT_API_ENDPOINT,
+)
 from ..common.models import Reservation
 from .dependencies import SessionLocal, refresh_app_config
 from .logging import logger
 
 
-# TODO: Update this URL
-SERVICE_URL = os.getenv("CLOUD_RUN_BASE_URL")
+SERVICE_URL = LICENSE_MANAGEMENT_API_ENDPOINT
 
 
 async def schedule_provisioning_task(
@@ -35,7 +40,7 @@ async def schedule_provisioning_task(
     response = await client.create_task(
         request=tasks_v2.CreateTaskRequest(
             parent=client.queue_path(
-                GCP_PROJECT_ID, GCP_LOCATION, RESERVATION_TASKS_QUEUE
+                GCP_PROJECT_ID, GCP_LOCATION, LICENSE_ALLOCATION_QUEUE
             ),
             task=task,
         )
@@ -65,7 +70,7 @@ async def schedule_deprovisioning_task(
     response = await client.create_task(
         request=tasks_v2.CreateTaskRequest(
             parent=client.queue_path(
-                GCP_PROJECT_ID, GCP_LOCATION, RESERVATION_TASKS_QUEUE
+                GCP_PROJECT_ID, GCP_LOCATION, LICENSE_REVOCATION_QUEUE
             ),
             task=task,
         )
