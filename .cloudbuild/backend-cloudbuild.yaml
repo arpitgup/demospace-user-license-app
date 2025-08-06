@@ -10,11 +10,12 @@ steps:
     [
       'run',
       'deploy',
-      '${SERVICE_NAME}',
+      '${_SERVICE_NAME}',
       '--image=gcr.io/${PROJECT_ID}/license-reservation-frontend-dev:$SHORT_SHA',
       '--project=${PROJECT_ID}',
       '--region=us-central1',
       '--platform=managed',
+      '--vpc-connector=${_VPC_CONNECTOR}',
       '--set-env-vars=GCP_PROJECT_ID=${_GCP_PROJECT_ID},GCP_LOCATION=${_GCP_LOCATION},LICENSE_ALLOCATION_QUEUE=${_LICENSE_ALLOCATION_QUEUE},LICENSE_REVOCATION_QUEUE=${_LICENSE_REVOCATION_QUEUE},DB_USER=${_DB_USER},DB_HOST=${_DB_HOST},DB_PORT=${_DB_PORT},DB_NAME=${_DB_NAME},DB_PASSWORD_SECRET_NAME=${_DB_PASSWORD_SECRET_NAME}'
     ]
 
@@ -24,7 +25,7 @@ substitutions:
   _LICENSE_ALLOCATION_QUEUE: 'license-allocation-queue'
   _LICENSE_REVOCATION_QUEUE: 'license-revocation-queue'
   _DB_USER: 'postgres'
-  _DB_HOST: '34.56.221.154'
+  _DB_HOST: '10.20.163.4'
   _DB_PORT: 5432
   _DB_NAME: license-reservation-db
   _DB_PASSWORD_SECRET_NAME: license-reservation-db-password
