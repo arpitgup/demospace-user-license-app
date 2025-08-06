@@ -1,11 +1,41 @@
 <section class="landing-content">
-  <!-- UPDATED: Use landingPageConstants for text -->
   <h1 class="welcome-title">{{ landingPageConstants.WELCOME_GREETING }}</h1>
   <span class="welcome-subtitle">{{ landingPageConstants.WELCOME_SUBTITLE }}</span>
 
   <div class="reservation-table-container">
     <mat-tab-group class="reservation-tabs">
-      <!-- Tab 1: Your Reservations -->
+
+      <!-- Tab 1: Book Reservation -->
+      <mat-tab [label]="landingPageConstants.BOOK_RESERVATION_TAB_LABEL">
+        <div class="tab-content book-reservation-content">
+          
+          <!-- Show Search Options if nothing is selected -->
+          <ng-container>
+            <div class="card-container">
+              <app-search-option-card
+                *ngFor="let searchOption of searchOptionCards"
+                [searchOption]="searchOption"
+                (onSelected)="onCardSelected($event)"
+              ></app-search-option-card>
+            </div>
+          </ng-container>
+
+          <!-- Show Search By Date component if that option is selected -->
+          <ng-container *ngIf="selectedSearchType === SearchType.ByDate">
+            <div>
+               <app-search-by-date></app-search-by-date>
+            </div>
+          </ng-container>
+          
+          <!-- Placeholder for Search By Application -->
+          <ng-container *ngIf="selectedSearchType === SearchType.ByApplication">
+            <p>Search by Application form will go here.</p>
+          </ng-container>
+
+        </div>
+      </mat-tab>
+
+      <!-- Tab 2: Your Reservations -->
       <mat-tab [label]="landingPageConstants.YOUR_RESERVATION_TAB_LABEL">
         <div class="tab-content">
           <div class="show-past-checkbox-wrapper">
@@ -19,19 +49,6 @@
         </div>
       </mat-tab>
 
-      <!-- Tab 2: Book Reservation -->
-      <mat-tab [label]="landingPageConstants.BOOK_RESERVATION_TAB_LABEL">
-        <div class="tab-content">
-          <div class="card-container">
-            @for( searchOption of searchOptionCards; track searchOption.id){
-            <app-search-option-card
-              [searchOption]="searchOption"
-              (onSelected)="onCardSelected($event)"
-            ></app-search-option-card>
-            }
-          </div>
-        </div>
-      </mat-tab>
     </mat-tab-group>
   </div>
 </section>

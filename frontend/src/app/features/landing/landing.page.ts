@@ -11,10 +11,12 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ReservationService } from '../../core/services/reservation.service';
 import { Reservation } from '../../core/models/reservation.model';
 import { Observable, of } from 'rxjs';
-import { LANDING_PAGE_CONSTANTS } from './landing.constant';
-import { SearchOptionCardComponent } from '../../shared/components/search-option-card/search-option-card';
 import { SearchOptionCard } from '../../../utilities/interfaces/search_option_card';
 import { SearchType } from './landing.enums';
+import { SearchByDateComponent } from '../search-by-date/search-by-date.component';
+import { SearchOptionCardComponent } from '../../shared/components/search-option-card/search-option-card';
+import { LANDING_PAGE_CONSTANTS } from './landing.constant';
+
 
 @Component({
   selector: 'app-landing-page',
@@ -28,6 +30,7 @@ import { SearchType } from './landing.enums';
     MatCheckboxModule,
     ReservationTableComponent,
     SearchOptionCardComponent,
+    SearchByDateComponent,
   ],
   host: {
     class: 'landing-page-container',
@@ -36,10 +39,13 @@ import { SearchType } from './landing.enums';
 export class LandingPage implements OnInit {
   private reservationService = inject(ReservationService);
   public readonly landingPageConstants = LANDING_PAGE_CONSTANTS;
+  public readonly SearchType = SearchType;
 
   reservations$!: Observable<Reservation[]>;
   private allReservations: Reservation[] = [];
   private now = new Date();
+
+  selectedSearchType: SearchType | null = null;
 
   ngOnInit(): void {
     this.reservationService.getReservations().subscribe((data) => {
@@ -48,18 +54,10 @@ export class LandingPage implements OnInit {
     });
   }
 
-  /**
-   * Handles the change event from the 'Show Past Reservations' checkbox.
-   * @param checked The new state of the checkbox.
-   */
   onShowPastChange(checked: boolean): void {
     this.updateFilteredReservations(checked);
   }
 
-  /**
-   * Updates the reservations$ observable based on the filter state.
-   * @param showPast If true, shows only past reservations. If false, shows current and upcoming.
-   */
   private updateFilteredReservations(showPast: boolean): void {
     let filteredData: Reservation[];
 
@@ -97,7 +95,12 @@ export class LandingPage implements OnInit {
     },
   ];
 
-  onCardSelected(searchOption?: SearchOptionCard) {
+  /**
+   * Handles the selection of a search card.
+   * @param searchOption The card data object, which could be undefined.
+   */
+  onCardSelected(searchOption?: SearchOptionCard): void {
+    this.selectedSearchType = searchOption?.searchType ?? null;
     this.searchOptionCards = this.searchOptionCards.map((card) => ({
       ...card,
       isSelected: card.id === searchOption?.id,

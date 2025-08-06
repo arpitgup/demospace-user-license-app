@@ -1,0 +1,58 @@
+<mat-card class="search-by-date-container">
+
+    <div class="main-title">
+        <div>Select Date & Application</div>
+    </div>
+
+    <div class="main-content">
+        <div class="content-header">
+            Select Date Range
+        </div>
+        <div class="content-header-note">
+            * Maximum reservation time is 48 hours.
+        </div>
+
+        <div class="calendar-info-details">
+            <div class="calendar-info-item">
+                <span class="calendar-color available"></span>
+                <span class="calendar-info-text">Available Dates</span>
+            </div>
+            <div class="calendar-info-item">
+                <span class="calendar-color not-available"></span>
+                <span class="calendar-info-text">Dates Not Available </span>
+            </div>
+        </div>
+
+        <div class="date-time-container">
+            <div class="date-time-wrapper">
+                <mat-form-field appearance="outline" class="date-field">
+                    <mat-label>Start Date</mat-label>
+                    <input matInput [matDatepicker]="picker" [matDatepickerFilter]="dateFilter"
+                        placeholder="MM/DD/YYYY" />
+                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-datepicker #picker [dateClass]="dateClass"></mat-datepicker>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="time-field">
+                    <mat-label>Start Time</mat-label>
+                    <mat-select [(ngModel)]="selectedStartTime" (selectionChange)="onStartTimeChange()">
+                        <mat-option *ngFor="let time of timeSlots" [value]="time">
+                            {{ time }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <div class="end-time-wrapper">
+                <mat-form-field appearance="outline" class="time-field">
+                    <mat-label>End Time</mat-label>
+                    <mat-select [disabled]="!selectedStartTime">
+                        <mat-option *ngFor="let time of endTimeSlots" [value]="time">
+                            {{ time }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+        </div>
+    </div>
+</mat-card>
