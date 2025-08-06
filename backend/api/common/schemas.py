@@ -104,3 +104,7 @@ class CreateReservationRequest(CamelModel):
 
 class UpdateAppConfigRequest(CamelModel):
     configs: List[ConfigOut]
+
+
+class LicenseActionRequest(CamelModel):
+    reservation_id: int

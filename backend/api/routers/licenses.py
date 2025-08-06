@@ -5,7 +5,7 @@ from ..common.models import (
     Reservation,
     ReservationStatus,
 )
-from ..common.schemas import ReservationOut
+from ..common.schemas import ReservationOut, LicenseActionRequest
 from ..utils.dependencies import get_db
 from ..utils.logging import logger
 
@@ -13,14 +13,16 @@ from ..utils.logging import logger
 router = APIRouter()
 
 
-#TODO: Add test
+# TODO: Add test
 @router.post(
-    "/reservations/{reservation_id}/licenses/provision",
+    "/licenses/provision",
     response_model=ReservationOut,
 )
-def provision_licenses(reservation_id: int, db: Session = Depends(get_db)):
+def provision_licenses(req: LicenseActionRequest, db: Session = Depends(get_db)):
     """Provisions licenses for a reservation."""
-    reservation = db.query(Reservation).filter(Reservation.id == reservation_id).first()
+    reservation = (
+        db.query(Reservation).filter(Reservation.id == req.reservation_id).first()
+    )
     if not reservation:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Reservation not found."
@@ -38,14 +40,16 @@ def provision_licenses(reservation_id: int, db: Session = Depends(get_db)):
     return reservation
 
 
-#TODO: Add test
+# TODO: Add test
 @router.post(
-    "/reservations/{reservation_id}/licenses/deprovision",
+    "/licenses/deprovision",
     response_model=ReservationOut,
 )
-def deprovision_licenses(reservation_id: int, db: Session = Depends(get_db)):
+def deprovision_licenses(req: LicenseActionRequest, db: Session = Depends(get_db)):
     """De-provisions licenses for a reservation."""
-    reservation = db.query(Reservation).filter(Reservation.id == reservation_id).first()
+    reservation = (
+        db.query(Reservation).filter(Reservation.id == req.reservation_id).first()
+    )
     if not reservation:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Reservation not found."
