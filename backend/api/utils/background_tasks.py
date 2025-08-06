@@ -18,9 +18,6 @@ from .dependencies import SessionLocal, refresh_app_config
 from .logging import logger
 
 
-SERVICE_URL = LICENSE_MANAGEMENT_API_ENDPOINT
-
-
 async def schedule_provisioning_task(
     client: tasks_v2.CloudTasksAsyncClient, reservation_id: int, run_at: datetime
 ):
@@ -31,7 +28,7 @@ async def schedule_provisioning_task(
     task = tasks_v2.Task(
         http_request=tasks_v2.HttpRequest(
             http_method=tasks_v2.HttpMethod.POST,
-            url=f"{SERVICE_URL}/license/provision",
+            url=f"{LICENSE_MANAGEMENT_API_ENDPOINT}/licenses/provision",
             headers={"Content-Type": "application/json"},
             body=payload.encode(),
         ),
@@ -61,7 +58,7 @@ async def schedule_deprovisioning_task(
     task = tasks_v2.Task(
         http_request=tasks_v2.HttpRequest(
             http_method=tasks_v2.HttpMethod.POST,
-            url=f"{SERVICE_URL}/license/deprovision",
+            url=f"{LICENSE_MANAGEMENT_API_ENDPOINT}/licenses/provision",
             headers={"Content-Type": "application/json"},
             body=payload.encode(),
         ),
@@ -115,7 +112,7 @@ async def schedule_reservation_tasks(
 
 
 async def delete_reservation_tasks(reservation_id: int):
-    """Deletes all scheduled tasks for a reservation."""
+    """Deletes all license allocation and revocation tasks for a reservation."""
     client = tasks_v2.CloudTasksAsyncClient()
 
     with SessionLocal() as db:
