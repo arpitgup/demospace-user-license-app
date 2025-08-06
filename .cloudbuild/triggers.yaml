@@ -31,11 +31,13 @@ triggers:
   ignoredGitRefs: 
   includedGitRefs: ^develop$
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
-  includedFiles: backend/*
+  includedFiles: backend/api/*
   ignoredFiles: 
   disabled: true
   substitutions:
     _PROJECT_ID: sys-36807655692543323281329778
+    _SERVICE_NAME: license-reservation-backend-dev
+    _VPC_CONNECTOR: cloud-run-vpc-connector
 - name: reservationApp-gis-frontend-dev
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/frontend-cloudbuild.yaml
