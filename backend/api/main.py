@@ -2,6 +2,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .common.constants import ALLOWED_ORIGINS
+from .middlewares.user_validation import UserValidationMiddleware
 from .routers import admin, applications, availability, config, licenses, reservations
 from .utils.dependencies import get_user_email
 
@@ -17,6 +18,7 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all standard methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
 )
+# app.add_middleware(UserValidationMiddleware)
 
 
 app.include_router(admin.router, tags=["Admin"], dependencies=[Depends(get_user_email)])
