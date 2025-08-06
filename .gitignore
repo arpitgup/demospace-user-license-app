@@ -2,3 +2,5 @@ __pycache__
 .pytest.cache
 test.db
 .venv
+.vscode
+.env
