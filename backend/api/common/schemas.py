@@ -1,8 +1,15 @@
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic.alias_generators import to_camel
 from typing import List
-from datetime import datetime
+from datetime import datetime, timezone
 from .enums import ReservationStatus
+
+
+def convert_to_utc(v: datetime) -> datetime:
+    """Convert a datetime to UTC."""
+    if v.tzinfo is None:
+        raise ValueError("Datetime must be timezone-aware.")
+    return v.astimezone(timezone.utc)
 
 
 class CamelModel(BaseModel):
@@ -59,6 +66,8 @@ class AvailabilityByApplicationRequest(CamelModel):
     duration_hours: int = Field(gt=0)
     get_next_slots: bool = True
 
+    _convert_to_utc = field_validator("start_time")(convert_to_utc)
+
 
 class AvailabilityByApplicationResponse(CamelModel):
     requested_slot_available: bool
@@ -74,6 +83,8 @@ class AvailabilityByDateRequest(CamelModel):
         if self.start_time >= self.end_time:
             raise ValueError("Start time must be before end time.")
         return self
+
+    _convert_to_utc = field_validator("start_time", "end_time")(convert_to_utc)
 
 
 class AvailabilityByDateResponse(CamelModel):
@@ -100,6 +111,8 @@ class CreateReservationRequest(CamelModel):
         if self.start_time >= self.end_time:
             raise ValueError("Start time must be before end time.")
         return self
+
+    _convert_to_utc = field_validator("start_time", "end_time")(convert_to_utc)
 
 
 class UpdateAppConfigRequest(CamelModel):
