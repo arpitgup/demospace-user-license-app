@@ -29,7 +29,9 @@
 
           <!-- Placeholder for Search By Application -->
           <ng-container *ngIf="selectedSearchType === SearchType.ByApplication">
-            <p>Search by Application form will go here.</p>
+           <div class="search-content">
+            <app-search-application></app-search-application>
+          </div>
           </ng-container>
 
         </div>
@@ -49,22 +51,7 @@
         </div>
       </mat-tab>
 
-      <!-- Tab 2: Book Reservation -->
-      <mat-tab [label]="landingPageConstants.BOOK_RESERVATION_TAB_LABEL">
-        <div class="tab-content">
-          <div class="card-container">
-            @for( searchOption of searchOptionCards; track searchOption.id){
-            <app-search-option-card
-              [searchOption]="searchOption"
-              (onSelected)="onCardSelected($event)"
-            ></app-search-option-card>
-            }
-          </div>
-          <div class="search-content">
-            <app-search-application></app-search-application>
-          </div>
-        </div>
-      </mat-tab>
+   
     </mat-tab-group>
   </div>
 </section>

@@ -11,8 +11,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ReservationService } from '../../core/services/reservation.service';
 import { Reservation } from '../../core/models/reservation.model';
 import { Observable, of } from 'rxjs';
-import { LANDING_PAGE_CONSTANTS } from './landing.constant';
-import { SearchOptionCardComponent } from '../../shared/components/search-option-card/search-option-card';
 import { SearchOptionCard } from '../../../utilities/interfaces/search_option_card';
 import { SearchType } from './landing.enums';
 import { SearchByDateComponent } from '../search-by-date/search-by-date.component';
