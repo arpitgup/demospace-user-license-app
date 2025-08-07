@@ -38,15 +38,15 @@
 
           <mat-form-field appearance="outline" class="start-time-field">
             <mat-label>Start Time</mat-label>
-            <input
-              matInput
-              [matTimepicker]="minutesPicker"
+            <mat-select
               [(ngModel)]="selectedStartTime"
-              (ngModelChange)="onDateOrStartTimeChange()"
+              (selectionChange)="onDateOrStartTimeChange()"
               [disabled]="!selectedStartDate"
-            />
-            <mat-timepicker-toggle matIconSuffix [for]="minutesPicker" />
-            <mat-timepicker interval="60min" #minutesPicker />
+            >
+              <mat-option *ngFor="let time of startTimeSlots" [value]="time">
+                {{ time }}
+              </mat-option>
+            </mat-select>
           </mat-form-field>
         </div>
 
@@ -89,7 +89,6 @@
       </mat-card-actions>
     </mat-card-content>
 
-    <!-- Use a conditional block to show the results card or a loading spinner -->
     @if (isLoading) {
     <div class="loading-container">
       <mat-spinner diameter="50"></mat-spinner>
@@ -152,7 +151,7 @@
           mat-raised-button
           color="primary"
           class="confirm-btn"
-          [disabled]="selectedApps.length === 0"
+          [disabled]="getSelectedAvailableAppCount() === 0"
         >
           Confirm Reservation
         </button>
