@@ -15,6 +15,7 @@ import { LANDING_PAGE_CONSTANTS } from './landing.constant';
 import { SearchOptionCardComponent } from '../../shared/components/search-option-card/search-option-card';
 import { SearchOptionCard } from '../../../utilities/interfaces/search_option_card';
 import { SearchType } from './landing.enums';
+import { SearchApplicationComponent } from '../search-application/search-application';
 
 @Component({
   selector: 'app-landing-page',
@@ -28,6 +29,7 @@ import { SearchType } from './landing.enums';
     MatCheckboxModule,
     ReservationTableComponent,
     SearchOptionCardComponent,
+    SearchApplicationComponent
   ],
   host: {
     class: 'landing-page-container',

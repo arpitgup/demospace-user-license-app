@@ -94,12 +94,22 @@
             position: relative;
         }
 
-         .card-container {
-            display: flex;
-            gap: 2.5rem;
-            margin-top: 3.37rem;
-            justify-content: center;
-            margin-bottom: 3.37rem;
-          }
+    .card-container {
+      display: flex;
+      gap: 2.5rem;
+      margin-top: 3.37rem;
+      justify-content: center;
+      margin-bottom: 3.37rem;
+    }
+    .search-content {
+      max-width: 100%;
+      height: fill-content;
+      left: 0;
+      right: 0;
+      margin-left: 5.12rem;
+      padding-top: 2.81rem;
+      padding-bottom: 11.88rem;
+      border-radius: 1.5rem;
+      background: #ecf3fe;
     }
 }

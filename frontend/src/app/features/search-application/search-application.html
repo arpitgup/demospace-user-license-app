@@ -1,0 +1,173 @@
+<div class="card-content">
+  <span class="title">Select Application & Date </span>
+  <div class="cards-containers">
+    <ng-container>
+      <form [formGroup]="applicationForm" class="card">
+        <span class="sub-title">Select Application</span>
+        <div class="custom-form-field">
+          <mat-form-field appearance="outline" class="custom-drop-down-field">
+            <mat-label>Primary Application</mat-label>
+            <mat-select
+              class="custom-select"
+              formControlName="selectedApplication"
+            >
+              @for(option of options; track option.value){
+              <mat-option [value]="option.value">
+                {{ option.viewValue }}
+              </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <div class="invisible-field"></div>
+        </div>
+
+        <div class="custom-form-field">
+          <mat-form-field appearance="outline" class="custom-date-field">
+            <mat-label class="custom-label">Start Date</mat-label>
+            <input
+              matInput
+              [matDatepicker]="datePicker"
+              [min]="minDate"
+              [max]="maxDate"
+              readonly
+              formControlName="startDate"
+            />
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="datePicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #datePicker></mat-datepicker>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="custom-time-drop-down">
+            <mat-label class="custom-label">Start Time</mat-label>
+            <input
+              matInput
+              [matTimepicker]="picker"
+              [matTimepickerMin]="minAllowedTime"
+              [matTimepickerMax]="maxAllowedTime"
+              formControlName="startTime"
+              readonly
+            />
+            <mat-timepicker-toggle matIconSuffix [for]="picker" />
+            <mat-timepicker interval="1hour" #picker />
+          </mat-form-field>
+        </div>
+
+        <div class="custom-form-field">
+          <mat-form-field appearance="outline" class="custom-drop-down-field">
+            <mat-label class="custom-label">Select Duration</mat-label>
+            <mat-select
+              class="custom-select"
+              formControlName="selectedDuration"
+            >
+              @for(duration of durations; track duration.value){
+              <mat-option [value]="duration.value">
+                {{ duration.viewValue }}
+              </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <div class="invisible-field"></div>
+        </div>
+        <span class="duration-note"
+          >* Maximum reservation time is 48 hours.</span
+        >
+        <div class="sized-box"></div>
+
+        <div class="check-availability">
+          <button
+            matButton
+            class="check-availability-button"
+            (click)="checkAvailability()"
+            [disabled]="applicationForm.invalid"
+          >
+            Check Availability >
+          </button>
+        </div>
+      </form>
+      <div class="arrow-container">
+        <img
+          src="assets/svgs/ic_polygon.svg"
+          alt="arrow"
+          class="forward-icon"
+        />
+      </div>
+    </ng-container>
+
+    <mat-card class="card">
+      <ng-container>
+        <h3>
+          Requested application is already reserved at the selected date/time.
+          Here are some available alternatives:
+        </h3>
+        <mat-grid-list
+          cols="3"
+          rowHeight="1.6:1"
+          gutterSize="1.56rem"
+          class="custom-grid"
+        >
+          @for(item of items; track $index){
+          <mat-grid-tile class="grid-tile" [class.selected]="item.isSelected">
+            <p class="slot-time" [class.selected]="item.isSelected">
+              {{ item.date }}
+            </p>
+            <p class="slot-time" [class.selected]="item.isSelected">
+              {{ item.time }}
+            </p>
+          </mat-grid-tile>
+          }
+        </mat-grid-list>
+      </ng-container>
+
+      <ng-container>
+        <h3>Book the shorter time:</h3>
+
+        <h4>
+          Book the shorter time: Reserve the available slot from 8:00 AM to 2:00
+          PM (6 hours).
+        </h4>
+        <mat-grid-list
+          cols="3"
+          rowHeight="1.6:1"
+          gutterSize="1.56rem"
+          class="custom-grid"
+        >
+          @for(slot of slots; track $index){
+          <mat-grid-tile class="grid-tile">
+            <p class="slot-time">{{ slot.date }}</p>
+            <p class="slot-time">{{ slot.time }}</p>
+          </mat-grid-tile>
+          }
+        </mat-grid-list>
+      </ng-container>
+
+      <mat-divider class="custom-divider"></mat-divider>
+
+      <h2>Secondary Applications</h2>
+      <h5>
+        You have already selected 1 applications. You can now select two more.
+      </h5>
+
+      <div class="application-container">
+        @for(application of applications; track $index){
+        <div
+          class="application-item"
+          [class.selected]="application.isSelected"
+          (click)="onApplicationClicked(application)"
+        >
+          {{ application.name }}
+        </div>
+        }
+      </div>
+      <div class="sized-box"></div>
+      <div class="confirm-reservation">
+        <button matButton class="confirm-reservation-button">
+          Confirm Reservation
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </div>
+    </mat-card>
+  </div>
+</div>
