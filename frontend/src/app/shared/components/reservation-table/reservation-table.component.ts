@@ -13,7 +13,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 
 import { Reservation } from '../../../core/models/reservation.model';
-import { RESERVATION_TABLE_CONSTANTS, ReservationStatus } from './reservation-table.constant';
+import {
+  RESERVATION_TABLE_CONSTANTS,
+  ReservationStatus,
+} from './reservation-table.constant';
 
 @Component({
   selector: 'app-reservation-table',
@@ -65,18 +68,25 @@ export class ReservationTableComponent implements AfterViewInit {
     };
   }
 
+  /**
+   * Formats a date range into "YYYY-MM-DD to YYYY-MM-DD".
+   * @param start The start date string from the API.
+   * @param end The end date string from the API.
+   * @returns The formatted date range string.
+   */
   formatDateRange(start: string, end: string): string {
-    const startDate = new Date(start).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-    const endDate = new Date(end).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-    return `${startDate} to ${endDate}`;
+    const formatDateToYYYYMMDD_UTC = (date: Date): string => {
+      const year = date.getUTCFullYear();
+      const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+      const day = date.getUTCDate().toString().padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const formattedStartDate = formatDateToYYYYMMDD_UTC(startDate);
+    const formattedEndDate = formatDateToYYYYMMDD_UTC(endDate);
+    return `${formattedStartDate} to ${formattedEndDate}`;
   }
 
   getApplications(reservation: Reservation): string[] {
