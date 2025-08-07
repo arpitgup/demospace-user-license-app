@@ -6,9 +6,11 @@ from .enums import ReservationStatus
 
 
 def convert_to_utc(v: datetime) -> datetime:
-    """Convert a datetime to UTC."""
+    """Convert a datetime to UTC, assuming naive datetimes are UTC."""
     if v.tzinfo is None:
-        raise ValueError("Datetime must be timezone-aware.")
+        # If the datetime is naive, assume it's in UTC and attach timezone info.
+        return v.replace(tzinfo=timezone.utc)
+    # If it's timezone-aware, convert it to UTC.
     return v.astimezone(timezone.utc)
 
 
@@ -37,6 +39,8 @@ class AvailabilitySlot(CamelModel):
     end_time: datetime
     available_bots: List[AvailableBotInfo]
 
+    _convert_to_utc = field_validator("start_time", "end_time")(convert_to_utc)
+
 
 class BotOut(CamelModel):
     id: int
@@ -58,6 +62,8 @@ class ReservationOut(CamelModel):
     start_time: datetime
     end_time: datetime
     status: ReservationStatus
+
+    _convert_to_utc = field_validator("start_time", "end_time")(convert_to_utc)
 
 
 class AvailabilityByApplicationRequest(CamelModel):
