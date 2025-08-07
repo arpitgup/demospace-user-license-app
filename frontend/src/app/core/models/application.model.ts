@@ -3,6 +3,6 @@
  * Based on the GET /applications endpoint.
  */
 export interface Application {
-  applicationId: string;
+  id: number;
   name: string;
 }
