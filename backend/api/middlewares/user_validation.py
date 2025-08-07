@@ -8,6 +8,8 @@ from ..common.constants import X_GOOGLE_USER_EMAIL_HEADER
 
 class UserValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        if request.method == "OPTIONS":
+            return await call_next(request)
         # Skip user validation for the license endpoints
         if request.url.path.startswith("/licenses"):
             response = await call_next(request)

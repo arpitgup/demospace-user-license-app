@@ -16,7 +16,10 @@ from ..utils.logging import logger
 from .common import get_secret_value
 
 
-SCOPES = ["https://www.googleapis.com/auth/admin.directory.user.readonly"]
+SCOPES = [
+    'https://www.googleapis.com/auth/admin.directory.group',
+    'https://www.googleapis.com/auth/admin.directory.user',
+]
 service_account_info = get_secret_value(
     GCP_PROJECT_ID, ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME
 )
