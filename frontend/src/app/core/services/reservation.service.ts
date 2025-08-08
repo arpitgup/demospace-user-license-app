@@ -1,77 +1,57 @@
-import { inject, Injectable } from '@angular/core';
-import { delay, Observable, of } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
 import { Reservation } from '../models/reservation.model';
-import { Application } from '../models/application.model';
+import { Application } from '../models/reservation.model';
 import { AppConfig } from '../models/appConfig.model';
-import { MOCK_RESERVATIONS } from '../mocks/reservation.mock';
-import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class ReservationService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
 
   /**
-   * Fetches the current user's reservations.
-   * Corresponds to GET /users/me/reservations.
+   * API call to check application availability by date range.
+   * @param payload An object containing start and end times for the reservation.
+   * @returns An Observable of available applications.
    */
-  getReservations(): Observable<Reservation[]> {
-    return of(MOCK_RESERVATIONS);
-  }
-
-  /**
-   * Fetches a list of all SaaS applications available for reservation.
-   * Corresponds to GET /applications.
-   */
-  getApplications(): Observable<Application[]> {
+  checkAvailabilityByDate(payload: { startTime: string; endTime: string }): Observable<{ applications: Application[] }> {
     const mockApplications: Application[] = [
       { id: 1, name: 'ServiceNow' },
-      { id: 2, name: 'Office 365' },
-      { id: 3, name: 'SharePoint' },
-      { id: 4, name: 'Box' },
-      { id: 5, name: 'Confluence' },
-      { id: 6, name: 'Jira' },
+      { id: 2, name: 'Box' },
+      { id: 3, name: 'Confluence' },
+      { id: 4, name: 'Jira' },
+      { id: 5, name: 'Salesforce' },
     ];
-    return of(mockApplications).pipe(delay(200));
+    return of({ applications: mockApplications });
   }
 
   /**
-   * Fetches public configuration details for the frontend.
-   * Corresponds to GET /config.
+   * API call to get application configuration.
+   * @returns An Observable of the application configuration.
    */
   getConfig(): Observable<AppConfig> {
     const mockConfig: AppConfig = {
-      reservationBlockDays: 3,
-      leadTimeDays: 1,
+      reservationBlockDays: 2,
+      leadTimeDays: 1, // 24 hours
       calendarViewMonths: 3,
-      maxBookingLeadDays: 30,
+      maxBookingLeadDays: 30
     };
     return of(mockConfig);
   }
 
   /**
-   * Mocks the POST /availability/by-date endpoint.
-   * Now returns a list of applications that are available for the given time slot.
-   * @param payload An object with startTime and endTime as ISO strings.
-   * @returns An observable with an array of available Application objects.
+   * Fetches user reservations from the backend API.
+   * The 'x-google-user-email' header is now handled by the authInterceptor.
+   * @returns An Observable of the user's reservations.
    */
-  checkAvailabilityByDate(payload: {
-    startTime: string;
-    endTime: string;
-  }): Observable<{ applications: Application[] }> {
-    console.log(
-      'Mock API Call: checkAvailabilityByDate with payload:',
-      payload
-    );
-    const mockAvailableApps: Application[] = [
-      { id: 2, name: 'Jira' },
-      { id: 3, name: 'Slack' },
-      { id: 5, name: 'ServiceNow' },
-    ];
-
-    return of({ applications: mockAvailableApps }).pipe(delay(500));
+  getReservations(): Observable<Reservation[]> {
+    const headers = new HttpHeaders({
+      'accept': 'application/json'
+    });
+    return this.http.get<Reservation[]>(`${this.apiUrl}/admin/reservations`, { headers });
   }
 }

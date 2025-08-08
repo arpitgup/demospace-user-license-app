@@ -17,7 +17,6 @@ import { SearchByDateComponent } from '../search-by-date/search-by-date.componen
 import { SearchOptionCardComponent } from '../../shared/components/search-option-card/search-option-card';
 import { LANDING_PAGE_CONSTANTS } from './landing.constant';
 
-
 @Component({
   selector: 'app-landing-page',
   standalone: true,
@@ -63,12 +62,12 @@ export class LandingPage implements OnInit {
 
     if (showPast) {
       filteredData = this.allReservations.filter((res) => {
-        const endDate = new Date(res.endDate);
+        const endDate = new Date(res.endTime);
         return endDate < this.now;
       });
     } else {
       filteredData = this.allReservations.filter((res) => {
-        const endDate = new Date(res.endDate);
+        const endDate = new Date(res.endTime);
         return endDate >= this.now;
       });
     }
@@ -94,11 +93,11 @@ export class LandingPage implements OnInit {
       searchType: SearchType.ByApplication,
     },
   ];
-
   /**
    * Handles the selection of a search card.
    * @param searchOption The card data object, which could be undefined.
    */
+
   onCardSelected(searchOption?: SearchOptionCard): void {
     this.selectedSearchType = searchOption?.searchType ?? null;
     this.searchOptionCards = this.searchOptionCards.map((card) => ({

@@ -11,7 +11,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   const clonedReq = req.clone({
-    headers: req.headers.set('x-goog-authenticated-user-email', userEmail)
+    headers: req.headers.set('x-google-user-email', userEmail)
   });
 
   return next(clonedReq);
