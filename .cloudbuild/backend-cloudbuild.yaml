@@ -26,7 +26,7 @@ substitutions:
   _LICENSE_REVOCATION_QUEUE: 'license-revocation-queue'
   _DB_USER: 'postgres'
   _DB_HOST: '10.20.163.4'
-  _DB_PORT: 5432
+  _DB_PORT: '5432'
   _DB_NAME: 'license-reservation-db'
   _DB_PASSWORD_SECRET_NAME: 'license-reservation-db-password'
 
