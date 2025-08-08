@@ -10,7 +10,9 @@ from ..common.constants import (
     GCP_LOCATION,
     LICENSE_ALLOCATION_QUEUE,
     LICENSE_REVOCATION_QUEUE,
-    LICENSE_MANAGEMENT_API_ENDPOINT,
+    LICENSE_ALLOCATION_FUNCTION_ENDPOINT,
+    LICENSE_REVOCATION_FUNCTION_ENDPOINT,
+    LICENSE_ENDPOINTS_INVOKER_SERVICE_ACCOUNT,
 )
 from ..common.models import Reservation
 from .dependencies import SessionLocal
@@ -27,9 +29,12 @@ async def schedule_provisioning_task(
     task = tasks_v2.Task(
         http_request=tasks_v2.HttpRequest(
             http_method=tasks_v2.HttpMethod.POST,
-            url=f"{LICENSE_MANAGEMENT_API_ENDPOINT}/licenses/provision",
+            url=f"{LICENSE_ALLOCATION_FUNCTION_ENDPOINT}",
             headers={"Content-Type": "application/json"},
             body=payload.encode(),
+            oidc_token=tasks_v2.OidcToken(
+                service_account_email=LICENSE_ENDPOINTS_INVOKER_SERVICE_ACCOUNT
+            ),
         ),
         schedule_time=timestamp,
     )
@@ -57,9 +62,12 @@ async def schedule_deprovisioning_task(
     task = tasks_v2.Task(
         http_request=tasks_v2.HttpRequest(
             http_method=tasks_v2.HttpMethod.POST,
-            url=f"{LICENSE_MANAGEMENT_API_ENDPOINT}/licenses/provision",
+            url=f"{LICENSE_REVOCATION_FUNCTION_ENDPOINT}",
             headers={"Content-Type": "application/json"},
             body=payload.encode(),
+            oidc_token=tasks_v2.OidcToken(
+                service_account_email=LICENSE_ENDPOINTS_INVOKER_SERVICE_ACCOUNT
+            ),
         ),
         schedule_time=timestamp,
     )
