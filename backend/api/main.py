@@ -18,7 +18,7 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all standard methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
 )
-app.add_middleware(UserValidationMiddleware)
+# app.add_middleware(UserValidationMiddleware)
 
 
 app.include_router(admin.router, tags=["Admin"], dependencies=[Depends(get_user_email)])
