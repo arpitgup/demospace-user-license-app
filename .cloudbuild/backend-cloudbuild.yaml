@@ -11,7 +11,7 @@ steps:
       'run',
       'deploy',
       '${_SERVICE_NAME}',
-      '--image=gcr.io/${PROJECT_ID}/license-reservation-frontend-dev:$SHORT_SHA',
+      '--image=gcr.io/${PROJECT_ID}/license-reservation-backend-dev:$SHORT_SHA',
       '--project=${PROJECT_ID}',
       '--region=us-central1',
       '--platform=managed',
