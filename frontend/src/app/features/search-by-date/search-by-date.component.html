@@ -1,148 +1,147 @@
 <mat-card class="search-by-date-container">
-  <mat-card-title class="main-title">Select Date & Application</mat-card-title>
+<mat-card-title class="main-title">Select Date & Application</mat-card-title>
 
-  <div class="card-wrapper">
-    <mat-card-content class="main-content">
-      <h3 class="content-header">Select Date Range</h3>
-      <p class="content-header-note">* Maximum reservation time is 48 hours.</p>
+<div class="card-wrapper">
+  <mat-card-content class="main-content">
+    <h3 class="content-header">Select Date Range</h3>
+    <p class="content-header-note">* Maximum reservation time is 48 hours.</p>
 
-      <div class="calendar-info-details">
-        <div class="calendar-info-item">
-          <span class="calendar-color available"></span>
-          <span class="calendar-info-text">Available Dates</span>
-        </div>
-        <div class="calendar-info-item">
-          <span class="calendar-color not-available"></span>
-          <span class="calendar-info-text">Dates Not Available</span>
+    <div class="calendar-info-details" aria-hidden="true">
+      <div class="calendar-info-item">
+        <span class="calendar-color available"></span>
+        <span class="calendar-info-text">Available Dates</span>
+      </div>
+      <div class="calendar-info-item">
+        <span class="calendar-color not-available"></span>
+        <span class="calendar-info-text">Dates Not Available</span>
+      </div>
+    </div>
+
+    <form #dateForm="ngForm" (ngSubmit)="onCheckAvailability()" class="date-time-container" novalidate>
+      <div class="start-date-time-container">
+        <mat-form-field appearance="outline" class="start-date-field">
+          <mat-label>Start Date</mat-label>
+          <input
+            matInput
+            [matDatepicker]="picker"
+            [matDatepickerFilter]="dateFilter"
+            placeholder="MM/DD/YYYY"
+            aria-describedby="start-date-help"
+            [(ngModel)]="selectedStartDate"
+            name="startDate"
+            (dateChange)="onDateOrStartTimeChange()"
+          />
+          <mat-hint id="start-date-help">Earliest allowed is {{ minSelectableDay | date:'MMM d, y' }}</mat-hint>
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker [dateClass]="dateClass"></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="start-time-field">
+          <mat-label>Start Time</mat-label>
+          <input
+            matInput
+            [matTimepicker]="minutesPicker"
+            [(ngModel)]="selectedStartTime"
+            name="startTime"
+            (ngModelChange)="onDateOrStartTimeChange()"
+            [matTimepickerMin]="minTime" 
+            [matTimepickerMax]="maxTime"
+            [disabled]="!selectedStartDate"
+            aria-label="Start time"
+            readonly
+          />
+          <mat-timepicker-toggle matIconSuffix [for]="minutesPicker" />
+          <mat-timepicker interval="60min" #minutesPicker />
+        </mat-form-field>
+      </div>
+
+      <div class="end-date-time-container">
+        <mat-form-field appearance="outline" class="end-time-field">
+          <mat-label>End Time</mat-label>
+          <mat-select
+            [(ngModel)]="selectedEndTime"
+            name="endTime"
+            (selectionChange)="onEndTimeChange()"
+            [disabled]="!selectedStartTime"
+            aria-label="End time"
+          >
+            <mat-option *ngFor="let time of endTimeSlots" [value]="time">
+              {{ time }}
+            </mat-option>
+          </mat-select>
+          <mat-hint *ngIf="selectedEndTime">Selected duration: {{ selectedDurationHours }} hours</mat-hint>
+        </mat-form-field>
+
+        <div *ngIf="calculatedEndDate">
+          <mat-form-field appearance="outline" class="end-date-field">
+            <mat-label>End Date</mat-label>
+            <input matInput [value]="calculatedEndDate | date:'MM/dd/yyyy'" [disabled]="true" aria-readonly="true" />
+          </mat-form-field>
         </div>
       </div>
 
-      <div class="date-time-container">
-        <div class="start-date-time-container">
-          <mat-form-field appearance="outline" class="start-date-field">
-            <mat-label>Start Date</mat-label>
-            <input
-              matInput
-              [matDatepicker]="picker"
-              [matDatepickerFilter]="dateFilter"
-              placeholder="MM/DD/YYYY"
-              [(ngModel)]="selectedStartDate"
-              (dateChange)="onDateOrStartTimeChange()"
-            />
-            <mat-datepicker-toggle
-              matSuffix
-              [for]="picker"
-            ></mat-datepicker-toggle>
-            <mat-datepicker #picker [dateClass]="dateClass"></mat-datepicker>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="start-time-field">
-            <mat-label>Start Time</mat-label>
-            <mat-select
-              [(ngModel)]="selectedStartTime"
-              (selectionChange)="onDateOrStartTimeChange()"
-              [disabled]="!selectedStartDate"
-            >
-              <mat-option *ngFor="let time of startTimeSlots" [value]="time">
-                {{ time }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
-
-        <div class="end-date-time-container">
-          <mat-form-field appearance="outline" class="end-time-field">
-            <mat-label>End Time</mat-label>
-            <mat-select
-              [(ngModel)]="selectedEndTime"
-              (selectionChange)="onEndTimeChange()"
-              [disabled]="!selectedStartTime"
-            >
-              <mat-option *ngFor="let time of endTimeSlots" [value]="time">
-                {{ time }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <div *ngIf="calculatedEndDate">
-            <mat-form-field appearance="outline" class="end-date-field">
-              <mat-label>End Date</mat-label>
-              <input
-                matInput
-                [value]="calculatedEndDate | date : 'MM/dd/yyyy'"
-                [disabled]="true"
-              />
-            </mat-form-field>
-          </div>
-        </div>
-      </div>
       <mat-card-actions class="actions-container">
         <button
           mat-flat-button
           color="primary"
           class="check-availability-button"
           [disabled]="isCheckAvailabilityDisabled()"
-          (click)="onCheckAvailability()"
+          type="submit"
         >
           Check Availability
         </button>
       </mat-card-actions>
-    </mat-card-content>
+    </form>
+  </mat-card-content>
 
-    @if (isLoading) {
-    <div class="loading-container">
+  @if (isLoading) {
+    <div class="loading-container" role="status" aria-live="polite">
       <mat-spinner diameter="50"></mat-spinner>
       <p>Checking availability...</p>
     </div>
-    } @else if (showResultsCard) {
+  } @else if (showResultsCard) {
     <mat-card class="availability-results-container">
       <mat-card-title>Available Applications by Selected Date</mat-card-title>
       <mat-card-subtitle>
-        * You may select up to <strong>THREE</strong> applications from the list
-        below.
+        * You may select up to <strong>THREE</strong> applications from the list below.
       </mat-card-subtitle>
 
       <div class="pill-container">
         @if (availableApplications.length > 0) {
-        <mat-button-toggle-group multiple class="pill-group">
-          <mat-button-toggle
-            *ngFor="let app of availableApplications"
-            [value]="app"
-            class="app-toggle"
-            [checked]="isSelected(app)"
-            [disabled]="!isSelected(app) && selectedApps.length >= 3"
-            (click)="toggleSelection(app)"
+          <mat-button-toggle-group
+            class="pill-group"
+            multiple
+            [value]="selectedApps"
+            (change)="onToggleGroupChange($event)"
+            aria-label="Select up to three applications"
           >
-            {{ app.name }}
-          </mat-button-toggle>
-        </mat-button-toggle-group>
+            <mat-button-toggle
+              *ngFor="let app of availableApplications; trackBy: trackByAppId"
+              [value]="app"
+              class="app-toggle"
+              [disabled]="!isSelected(app) && selectedApps.length >= 3"
+              [checked]="isSelected(app)"
+            >
+              {{ app.name }}
+            </mat-button-toggle>
+          </mat-button-toggle-group>
         } @else {
-        <p class="no-apps-message">
-          No applications available for the selected date range.
-        </p>
+          <p class="no-apps-message">No applications available for the selected date range.</p>
         }
       </div>
 
       <div class="horizontal-line">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="623"
-          height="2"
-          viewBox="0 0 623 2"
-          fill="none"
-        >
+        <svg xmlns="http://www.w3.org/2000/svg" width="623" height="2" viewBox="0 0 623 2" fill="none" aria-hidden="true">
           <path d="M0 1H623" stroke="black" stroke-opacity="0.2" />
         </svg>
       </div>
 
       <div class="license-info">
         <p>License will be available {{ availableDate }} at 8:00 AM, IST</p>
-        <p>
-          License access will be revoked {{ availableDate }} at 6:00 PM, IST
-        </p>
+        <p>License access will be revoked {{ availableDate }} at 6:00 PM, IST</p>
       </div>
 
-      <div class="selected-app-info">
+      <div class="selected-app-info" aria-live="polite">
         Selected Application : {{ selectedAppNames }}
       </div>
 
@@ -157,6 +156,6 @@
         </button>
       </div>
     </mat-card>
-    }
-  </div>
+  }
+</div>
 </mat-card>

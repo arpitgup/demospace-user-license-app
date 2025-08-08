@@ -1,14 +1,19 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { delay, Observable, of } from 'rxjs';
 import { Reservation } from '../models/reservation.model';
 import { Application } from '../models/application.model';
 import { AppConfig } from '../models/appConfig.model';
 import { MOCK_RESERVATIONS } from '../mocks/reservation.mock';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ReservationService {
+  private http = inject(HttpClient);
+  private apiUrl = environment.apiUrl;
+
   /**
    * Fetches the current user's reservations.
    * Corresponds to GET /users/me/reservations.
@@ -47,7 +52,7 @@ export class ReservationService {
     return of(mockConfig);
   }
 
-   /**
+  /**
    * Mocks the POST /availability/by-date endpoint.
    * Now returns a list of applications that are available for the given time slot.
    * @param payload An object with startTime and endTime as ISO strings.
@@ -57,9 +62,10 @@ export class ReservationService {
     startTime: string;
     endTime: string;
   }): Observable<{ applications: Application[] }> {
-    console.log('Mock API Call: checkAvailabilityByDate with payload:', payload);
-
-    // Simulate a response where 3 applications are available for the selected slot.
+    console.log(
+      'Mock API Call: checkAvailabilityByDate with payload:',
+      payload
+    );
     const mockAvailableApps: Application[] = [
       { id: 2, name: 'Jira' },
       { id: 3, name: 'Slack' },
