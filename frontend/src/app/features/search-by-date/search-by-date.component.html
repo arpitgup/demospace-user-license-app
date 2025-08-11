@@ -31,7 +31,6 @@
                             name="startDate"
                             (dateChange)="onDateOrStartTimeChange()"
                         />
-                        <mat-hint id="start-date-help">Earliest allowed is {{ minSelectableDay | date:'MMM d, y' }}</mat-hint>
                         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                         <mat-datepicker #picker [dateClass]="dateClass"></mat-datepicker>
                     </mat-form-field>
@@ -69,7 +68,6 @@
                                 {{ time }}
                             </mat-option>
                         </mat-select>
-                        <mat-hint *ngIf="selectedEndTime">Selected duration: {{ selectedDurationHours }} hours</mat-hint>
                     </mat-form-field>
 
                     <div *ngIf="calculatedEndDate">

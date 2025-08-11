@@ -74,7 +74,7 @@ export class SearchByDateComponent implements OnInit {
     // Configuration
     private readonly TIME_SLOT_START_HOUR = 8;
     private readonly TIME_SLOT_END_HOUR = 23;
-    private readonly TIME_SLOT_INCREMENT = 1;
+    private readonly TIME_SLOT_INCREMENT = 2;
     private readonly MIN_DURATION = 2;
     private readonly MAX_DURATION = 48;
 
@@ -307,8 +307,6 @@ export class SearchByDateComponent implements OnInit {
     dateClass = (date: Date): string => {
         const dateString = this.formatDate(date);
         if (this.dailyAvailability[dateString] === 0) return 'date-unavailable';
-        if (this.minSelectableDay && date < this.minSelectableDay) return 'date-unavailable';
-        if (this.maxSelectableDate && date > this.maxSelectableDate) return 'date-unavailable';
 
         for (const reservation of this.userReservations) {
             const reservationStartDay = new Date(reservation.startTime);
