@@ -44,7 +44,7 @@
             </mat-checkbox>
           </div>
           <div class="table-scroll-wrapper">
-            <app-reservation-table [data]="reservations$ | async"></app-reservation-table>
+            <app-reservation-table [data]="reservations$ | async" (cancelReservation)="handleCancelReservation($event)"></app-reservation-table>
           </div>
         </div>
       </mat-tab>

@@ -105,4 +105,31 @@ export class LandingPage implements OnInit {
       isSelected: card.id === searchOption?.id,
     }));
   }
+
+  /**
+   * Fetches the full list of reservations from the service.
+   */
+  fetchReservations(): void {
+    this.reservationService.getReservations().subscribe((data) => {
+      this.allReservations = data;
+      this.updateFilteredReservations(false);
+    });
+  }
+
+  handleCancelReservation(reservation: Reservation): void {
+    if (!confirm('Are you sure you want to cancel this reservation?')) {
+      return;
+    }
+
+    this.reservationService.cancelReservation(reservation.id).subscribe({
+      next: () => {
+        alert(`Reservation ${reservation.id} cancelled successfully.`);
+        this.fetchReservations();
+      },
+      error: (err) => {
+        console.error('Failed to cancel reservation:', err);
+      },
+    });
+  }
+
 }

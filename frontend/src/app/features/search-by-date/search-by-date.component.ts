@@ -268,7 +268,6 @@ export class SearchByDateComponent implements OnInit {
   }
 
   isCheckAvailabilityDisabled(): boolean {
-    console.log('form error : ', this.form.errors);
     return this.isLoading || this.form.invalid || !this.calculatedEndDate;
   }
 
@@ -454,7 +453,12 @@ export class SearchByDateComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to create reservation:', err);
-        alert('There was an error creating your reservation. Please try again.');
+        if (err.error.detail) {
+          alert(err.error.detail);
+        } else {
+          alert('There was an error creating your reservation. Please try again.');
+        }
+        
       },
     });
   }

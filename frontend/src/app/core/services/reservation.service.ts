@@ -75,4 +75,17 @@ export class ReservationService {
   createReservation(payload: NewReservation): Observable<Reservation> {
     return this.http.post<Reservation>(`${this.apiUrl}/reservations`, payload);
   }
+
+  /**
+   * Cancels an existing reservation.
+   * Corresponds to POST /reservations/{id}/cancel.
+   * @param reservationId The ID of the reservation to cancel.
+   * @returns An Observable of the updated Reservation object.
+   */
+  cancelReservation(reservationId: number): Observable<Reservation> {
+    return this.http.post<Reservation>(
+      `${this.apiUrl}/reservations/${reservationId}/cancel`,
+      {}
+    );
+  }
 }

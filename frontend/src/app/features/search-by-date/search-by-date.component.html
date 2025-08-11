@@ -151,6 +151,7 @@
             class="app-toggle"
             [disabled]="!isSelected(app) && selectedApps.length >= 3"
             [checked]="isSelected(app)"
+            [disableRipple]="true"
           >
             {{ app.name }}
           </mat-button-toggle>

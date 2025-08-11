@@ -4,6 +4,8 @@ import {
   ViewChild,
   AfterViewInit,
   Input,
+  EventEmitter,
+  Output,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -34,6 +36,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReservationTableComponent implements AfterViewInit {
+  @Output() cancelReservation = new EventEmitter<Reservation>();
   public readonly reservationTableConstants = RESERVATION_TABLE_CONSTANTS;
   public readonly pageSizeOptions: number[] = [5];
 
@@ -106,5 +109,13 @@ export class ReservationTableComponent implements AfterViewInit {
     } else {
       return ReservationStatus.UPCOMING;
     }
+  }
+
+  /**
+   * Emits the reservation object to the parent component for cancellation.
+   * @param reservation The reservation to be cancelled.
+   */
+  onCancel(reservation: Reservation): void {
+    this.cancelReservation.emit(reservation);
   }
 }
