@@ -4,5 +4,5 @@
  */
 export const environment = {
   production: false,
-  apiUrl: 'http://0.0.0.0:8000'
+  apiUrl: 'https://license-reservation-backend-385039775654.us-central1.run.app'
 };

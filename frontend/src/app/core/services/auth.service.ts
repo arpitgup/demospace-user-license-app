@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class AuthService {
-  private userEmail = 'alex@google.com';
+  private userEmail = 'tushank@1987984870407.altostrat.com';
 
   /**
    * Returns the authenticated user's email.
