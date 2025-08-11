@@ -7,3 +7,5 @@ google-auth
 google-cloud-secret-manager
 google-cloud-tasks
 psycopg2-binary
+google-api-python-client
+cachetools

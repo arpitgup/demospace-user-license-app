@@ -1,6 +1,5 @@
 import asyncio
 import json
-import os
 
 from datetime import datetime, timezone
 from google.cloud import tasks_v2
@@ -11,14 +10,13 @@ from ..common.constants import (
     GCP_LOCATION,
     LICENSE_ALLOCATION_QUEUE,
     LICENSE_REVOCATION_QUEUE,
-    LICENSE_MANAGEMENT_API_ENDPOINT,
+    LICENSE_ALLOCATION_FUNCTION_ENDPOINT,
+    LICENSE_REVOCATION_FUNCTION_ENDPOINT,
+    LICENSE_ENDPOINTS_INVOKER_SERVICE_ACCOUNT,
 )
 from ..common.models import Reservation
-from .dependencies import SessionLocal, refresh_app_config
+from .dependencies import SessionLocal
 from .logging import logger
-
-
-SERVICE_URL = LICENSE_MANAGEMENT_API_ENDPOINT
 
 
 async def schedule_provisioning_task(
@@ -31,9 +29,12 @@ async def schedule_provisioning_task(
     task = tasks_v2.Task(
         http_request=tasks_v2.HttpRequest(
             http_method=tasks_v2.HttpMethod.POST,
-            url=f"{SERVICE_URL}/license/provision",
+            url=f"{LICENSE_ALLOCATION_FUNCTION_ENDPOINT}",
             headers={"Content-Type": "application/json"},
             body=payload.encode(),
+            oidc_token=tasks_v2.OidcToken(
+                service_account_email=LICENSE_ENDPOINTS_INVOKER_SERVICE_ACCOUNT
+            ),
         ),
         schedule_time=timestamp,
     )
@@ -46,7 +47,7 @@ async def schedule_provisioning_task(
         )
     )
     logger.info(
-        f"Provisioning task scheduled for reservation {reservation_id}: {response.name}"
+        f"License provisioning task scheduled for reservation {reservation_id}: {response.name}"
     )
     return response
 
@@ -61,9 +62,12 @@ async def schedule_deprovisioning_task(
     task = tasks_v2.Task(
         http_request=tasks_v2.HttpRequest(
             http_method=tasks_v2.HttpMethod.POST,
-            url=f"{SERVICE_URL}/license/deprovision",
+            url=f"{LICENSE_REVOCATION_FUNCTION_ENDPOINT}",
             headers={"Content-Type": "application/json"},
             body=payload.encode(),
+            oidc_token=tasks_v2.OidcToken(
+                service_account_email=LICENSE_ENDPOINTS_INVOKER_SERVICE_ACCOUNT
+            ),
         ),
         schedule_time=timestamp,
     )
@@ -76,7 +80,7 @@ async def schedule_deprovisioning_task(
         )
     )
     logger.info(
-        f"Deprovisioning task scheduled for reservation {reservation_id}: {response.name}"
+        f"License de-provisioning task scheduled for reservation {reservation_id}: {response.name}"
     )
     return response
 
@@ -115,7 +119,7 @@ async def schedule_reservation_tasks(
 
 
 async def delete_reservation_tasks(reservation_id: int):
-    """Deletes all scheduled tasks for a reservation."""
+    """Deletes license allocation and revocation tasks for a reservation."""
     client = tasks_v2.CloudTasksAsyncClient()
 
     with SessionLocal() as db:
@@ -126,19 +130,19 @@ async def delete_reservation_tasks(reservation_id: int):
             try:
                 await client.delete_task(name=reservation.provisioning_task_id)
                 logger.info(
-                    f"Deleted provisioning task for reservation {reservation_id}."
+                    f"Deleted license provisioning task for reservation {reservation_id}."
                 )
             except Exception as e:
                 logger.error(
-                    f"Failed to delete provisioning task for reservation {reservation_id}: {e}"
+                    f"Failed to delete license provisioning task for reservation {reservation_id}: {e}"
                 )
         if reservation.deprovisioning_task_id:
             try:
                 await client.delete_task(name=reservation.deprovisioning_task_id)
                 logger.info(
-                    f"Deleted deprovisioning task for reservation {reservation_id}."
+                    f"Deleted license deprovisioning task for reservation {reservation_id}."
                 )
             except Exception as e:
                 logger.error(
-                    f"Failed to delete deprovisioning task for reservation {reservation_id}: {e}"
+                    f"Failed to delete license deprovisioning task for reservation {reservation_id}: {e}"
                 )

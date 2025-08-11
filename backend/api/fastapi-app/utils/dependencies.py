@@ -56,11 +56,11 @@ def get_db():
         db.close()
 
 
-async def get_user_email(x_google_user_email: str = Header(...)):
+async def get_user_email(x_demo_user_email: str = Header(...)):
     """Dependency to get the custom user email header."""
-    if not x_google_user_email:
-        raise HTTPException(status_code=400, detail="Missing X-Google-User-Email")
-    return x_google_user_email
+    if not x_demo_user_email:
+        raise HTTPException(status_code=400, detail="Missing X-Demo-User-Email")
+    return x_demo_user_email
 
 
 app_config = {}
