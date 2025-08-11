@@ -29,7 +29,7 @@ import { MatTimepickerModule } from '@angular/material/timepicker';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ReservationService } from '../../core/services/reservation.service';
-import { Reservation, Application } from '../../core/models/reservation.model';
+import { Reservation, Application, NewReservation } from '../../core/models/reservation.model';
 import { AppConfig } from '../../core/models/appConfig.model';
 import { forkJoin, tap } from 'rxjs';
 
@@ -103,11 +103,7 @@ export class SearchByDateComponent implements OnInit {
   // Data for validation
   appConfig: AppConfig | null = null;
   userReservations: Reservation[] = [];
-  dailyAvailability: DailyAvailabilityMap = {
-    '2025-08-20': 20,
-    '2025-08-23': 0,
-    '2025-09-01': 30,
-  };
+  dailyAvailability: DailyAvailabilityMap = {};
 
   isLoading = false;
   showResultsCard = false;
@@ -244,6 +240,7 @@ export class SearchByDateComponent implements OnInit {
 
     this.reservationService.checkAvailabilityByDate(payload).subscribe({
       next: (response) => {
+        console.log({ response })
         this.availableApplications = response.applications;
         this.selectedApps = [];
         this.availableDate = startDateTime.toLocaleDateString('en-US', {
@@ -430,6 +427,37 @@ export class SearchByDateComponent implements OnInit {
     }
     return '';
   };
+
+  /**
+   * Called when the 'Confirm Reservation' button is clicked.
+   * Constructs the payload and calls the service to create the reservation.
+   */
+  onConfirmReservation(): void {
+    if (this.selectedApps.length === 0) {
+      return;
+    }
+
+    const primaryApp = this.selectedApps[0];
+    const secondaryApps = this.selectedApps.slice(1);
+
+    const payload: NewReservation = {
+      primaryApplicationId: primaryApp.id,
+      secondaryApplicationIds: secondaryApps.map(app => app.id),
+      startTime: this.getStartDateTime().toISOString(),
+      endTime: this.calculatedEndDate!.toISOString(),
+    };
+
+    this.reservationService.createReservation(payload).subscribe({
+      next: (newReservation) => {
+        console.log({ payload,newReservation });
+        alert(`Reservation successfully created with ID: ${newReservation.id}`);
+      },
+      error: (err) => {
+        console.error('Failed to create reservation:', err);
+        alert('There was an error creating your reservation. Please try again.');
+      },
+    });
+  }
 
   private dateTimeComboValidator() {
     const MIN = this.MIN_DURATION;

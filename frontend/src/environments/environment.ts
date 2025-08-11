@@ -4,5 +4,6 @@
  */
 export const environment = {
   production: false,
-  apiUrl: 'https://license-reservation-backend-385039775654.us-central1.run.app'
+  apiUrl: 'https://license-reservation-backend-385039775654.us-central1.run.app',
+  emailId: 'tushank@1987984870407.altostrat.com',
 };

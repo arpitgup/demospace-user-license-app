@@ -192,6 +192,7 @@
           color="primary"
           class="confirm-btn"
           [disabled]="getSelectedAvailableAppCount() === 0"
+          (click)="onConfirmReservation()"
         >
           Confirm Reservation
         </button>
