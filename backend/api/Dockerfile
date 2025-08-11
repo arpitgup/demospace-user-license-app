@@ -3,24 +3,24 @@ FROM python:3.12-slim
 # Set the working directory in the container
 WORKDIR /app
 
-# Create a non-root user to run the application
-RUN adduser --disabled-password --gecos "" myuser && \
-    chown -R myuser:myuser /app
-
-# Switch to the non-root user
-USER myuser
-
 # Copy the dependencies file to the working directory
 COPY requirements.txt .
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Create a non-root user to run the application
+RUN adduser --disabled-password --gecos "" myuser && \
+    chown -R myuser:myuser /app
+
 # Copy the rest of the application's code to the working directory
 COPY . .
+
+# Switch to the non-root user
+USER myuser
 
 # Expose port 8080 to the outside world
 EXPOSE 8080
 
 # Command to run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "fastapi-app.main:app", "--host", "0.0.0.0", "--port", "8080"]
