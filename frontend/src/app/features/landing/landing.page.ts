@@ -47,10 +47,7 @@ export class LandingPage implements OnInit {
   selectedSearchType: SearchType | null = null;
 
   ngOnInit(): void {
-    this.reservationService.getReservations().subscribe((data) => {
-      this.allReservations = data;
-      this.updateFilteredReservations(false);
-    });
+    this.fetchReservations();
   }
 
   onShowPastChange(checked: boolean): void {
