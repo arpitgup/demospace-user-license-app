@@ -181,7 +181,6 @@ def get_availability_by_application(
         )
 
     # If no bots are available, find the next N available slots
-    # logger.info(f"No bots available for app {req.application_id} at the requested time. Searching for next slots.")
     next_slots = []
 
     search_start_time = req.start_time + timedelta(hours=ROLLING_WINDOW_HOURS)

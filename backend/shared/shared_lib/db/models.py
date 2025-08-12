@@ -75,7 +75,7 @@ class BotApplication(Base):
 
 class Reservation(Base):
     __tablename__ = "reservations"
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    id = Column(BigInteger().with_variant(Integer, "sqlite"), primary_key=True, autoincrement=True)
     user_email = Column(String, nullable=False, index=True)
     bot_id = Column(Integer, ForeignKey("bots.id"), index=True)
     primary_application_id = Column(Integer, ForeignKey("applications.id"))

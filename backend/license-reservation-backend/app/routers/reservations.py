@@ -12,6 +12,7 @@ from shared_lib.db.models import (
     Reservation,
     ReservationStatus,
 )
+from datetime import timezone
 
 from ..common.schemas import (
     CreateReservationRequest,
@@ -129,8 +130,8 @@ def make_reservation(
         background_tasks.add_task(
             schedule_reservation_tasks,
             new_reservation.id,
-            new_reservation.start_time,
-            new_reservation.end_time,
+            new_reservation.start_time.replace(tzinfo=timezone.utc),
+            new_reservation.end_time.replace(tzinfo=timezone.utc),
         )
 
     except IntegrityError as e:
