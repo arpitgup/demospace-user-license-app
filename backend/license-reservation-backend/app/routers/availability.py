@@ -9,9 +9,13 @@ from shared_lib.db.models import (
     Reservation,
     ReservationStatus,
 )
-from shared_lib.dependencies import get_db
+from shared_lib.dependencies import get_db, get_app_config
 
-from ..common.constants import ROLLING_WINDOW_HOURS, MAX_LEAD_DAYS, MAX_SLOTS_TO_FIND
+from ..common.constants import (
+    ROLLING_WINDOW_HOURS,
+    RESERVATION_LEAD_DAYS,
+    MAX_SLOTS_TO_FIND,
+)
 from ..common.schemas import (
     ApplicationOut,
     AvailableBotInfo,
@@ -122,7 +126,9 @@ def get_bot_availability_in_slot(
     response_model=AvailabilityByApplicationResponse,
 )
 def get_availability_by_application(
-    req: AvailabilityByApplicationRequest, db: Session = Depends(get_db)
+    req: AvailabilityByApplicationRequest,
+    db: Session = Depends(get_db),
+    app_config=Depends(get_app_config),
 ):
     """
     Finds available bots and the applications they can serve for a given application and time.
@@ -183,10 +189,14 @@ def get_availability_by_application(
     # If no bots are available, find the next N available slots
     next_slots = []
 
-    search_start_time = req.start_time + timedelta(hours=ROLLING_WINDOW_HOURS)
-    max_end_time = req.start_time + timedelta(days=MAX_LEAD_DAYS)
+    rolling_window_hours = app_config[ROLLING_WINDOW_HOURS]
+    reservation_lead_days = app_config[RESERVATION_LEAD_DAYS]
+    max_slots = app_config[MAX_SLOTS_TO_FIND]
 
-    while len(next_slots) < MAX_SLOTS_TO_FIND and search_start_time < max_end_time:
+    search_start_time = req.start_time + timedelta(hours=rolling_window_hours)
+    max_end_time = req.start_time + timedelta(days=reservation_lead_days)
+
+    while len(next_slots) < max_slots and search_start_time < max_end_time:
         potential_start = search_start_time
         potential_end = potential_start + timedelta(hours=req.duration_hours)
 
@@ -217,7 +227,7 @@ def get_availability_by_application(
                 )
             )
 
-        search_start_time += timedelta(hours=ROLLING_WINDOW_HOURS)
+        search_start_time += timedelta(hours=rolling_window_hours)
 
     return AvailabilityByApplicationResponse(
         requested_slot_available=False, next_available_slots=next_slots

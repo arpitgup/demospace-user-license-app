@@ -10,29 +10,35 @@ from ..common.schemas import ConfigOut, UpdateAppConfigRequest
 router = APIRouter()
 
 
-# TODO: Add test
 @router.post("/config", response_model=List[ConfigOut])
 def set_app_config(
     req: UpdateAppConfigRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
-    config_keys = [config["key"] for config in req.configs]
+    config_keys = [config.key for config in req.configs]
     configs = db.query(AppConfig).filter(AppConfig.key.in_(config_keys)).all()
     config_map = {config.key: config for config in configs}
     for config in req.configs:
-        key = config["key"]
+        key = config.key
         if key in config_map:
-            config_map[key].value = config["value"]
-            config_map[key].description = config.get("description")
+            config_map[key].value = str(config.value)
+            config_map[key].description = config.description
     db.commit()
-    db.refresh(configs)
+    if configs:
+        db.refresh(configs[0])  # Refresh one to ensure the session is updated
     background_tasks.add_task(refresh_app_config)
     return configs
 
 
-# TODO: Add test
 @router.get("/config")
 def get_app_config(db: Session = Depends(get_db)):
     configs = db.query(AppConfig).all()
-    return {config.key: config for config in configs}
+    config_map = {}
+    for config in configs:
+        value = config.value
+        if value.isdigit():
+            config_map[config.key] = int(value)
+        else:
+            config_map[config.key] = value
+    return config_map

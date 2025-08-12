@@ -27,8 +27,13 @@ def get_app_config():
     """Dependency to fetch application configuration from database."""
     global app_config
     if not app_config:
+        app_config = {}
         with SessionLocal() as db:
             configs = db.query(AppConfig).all()
+            for config in configs:
+                app_config[config.key] = (
+                    int(config.value) if config.value.isdigit() else config.value
+                )
             app_config = {config.key: config.value for config in configs}
     return app_config
 

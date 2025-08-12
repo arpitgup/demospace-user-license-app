@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic.alias_generators import to_camel
-from typing import List
+from typing import List, Optional
 from datetime import datetime, timezone
 from shared_lib.enums import ReservationStatus
 
@@ -51,7 +51,7 @@ class BotOut(CamelModel):
 class ConfigOut(CamelModel):
     key: str
     value: str
-    description: str
+    description: Optional[str] = None
 
 
 class ReservationOut(CamelModel):

@@ -31,7 +31,7 @@ class AppConfig(Base):
     __tablename__ = "app_config"
     id = Column(Integer, primary_key=True)
     key = Column(String, unique=True, index=True)
-    value = Column(Boolean)
+    value = Column(String)
     description = Column(String)
 
 
