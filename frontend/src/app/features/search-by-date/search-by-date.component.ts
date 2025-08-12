@@ -29,9 +29,10 @@ import { MatTimepickerModule } from '@angular/material/timepicker';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ReservationService } from '../../core/services/reservation.service';
-import { Reservation, Application, NewReservation } from '../../core/models/reservation.model';
+import { Reservation, NewReservation } from '../../core/models/reservation.model';
 import { AppConfig } from '../../core/models/appConfig.model';
 import { forkJoin, tap } from 'rxjs';
+import { Application } from '../../core/models/application.model';
 
 type DailyAvailabilityMap = { [date: string]: number };
 

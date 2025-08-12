@@ -1,17 +1,26 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { BehaviorSubject, finalize, forkJoin, Observable, of, tap } from 'rxjs';
 import { NewReservation, Reservation } from '../models/reservation.model';
-import { Application } from '../models/reservation.model';
+
 import { AppConfig } from '../models/appConfig.model';
 import { environment } from '../../../environments/environment';
+import { AvailabilityByApplicationRequest } from '../models/availabilityByApplicationRequest.model';
+import { AvalaibilityByApplication } from '../models/availabilityByApplication.model';
+import { MakeReservationRequest } from '../models/makeReservationRequest.model';
+import { MakeReservationResponse } from '../models/makeReservationResponse.model';
+import { LoaderService } from './loader.service';
+import { Application } from '../models/application.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ReservationService {
   private http = inject(HttpClient);
+  private loader = inject(LoaderService);
   private apiUrl = environment.apiUrl;
+  private applicationSubject = new BehaviorSubject<Application[]>([]);
+  public applications$ = this.applicationSubject.asObservable();
 
   /**
    * API call to check application availability for a given time range.
@@ -27,17 +36,10 @@ export class ReservationService {
       `${this.apiUrl}/availability/by-date`,
       payload
     );
+  }
+
   getApplications(): Observable<Application[]> {
-    // const mockApplications: Application[] = [
-    //   { id: 1, name: 'ServiceNow' },
-    //   { id: 2, name: 'Office 365' },
-    //   { id: 3, name: 'SharePoint' },
-    //   { id: 4, name: 'Box' },
-    //   { id: 5, name: 'Confluence' },
-    //   { id: 6, name: 'Jira' },
-    // ];
-    // return of(mockApplications).pipe(delay(200));
-    return this.http.get<Application[]>(this.applicationApiUrl).pipe(
+    return this.http.get<Application[]>(`${this.apiUrl}/applications`).pipe(
       tap((applications) => {
         this.applicationSubject.next(applications);
       })
@@ -53,11 +55,11 @@ export class ReservationService {
   }> {
     return forkJoin({
       slotsAvailableData: this.http.post<AvalaibilityByApplication>(
-        this.availabilityByApplicationUrl,
+        `${this.apiUrl}/availability/by-application`,
         data
       ),
       noSlotsAvailableData: this.http.post<AvalaibilityByApplication>(
-        this.availabilityByApplicationUrl,
+        `${this.apiUrl}/availability/by-application`,
         noSlotsAvailableRequest
       ),
     });
@@ -96,9 +98,6 @@ export class ReservationService {
    * Corresponds to the GET /applications endpoint. [cite: 34, 48]
    * @returns An Observable array of Application objects. [cite: 36, 38]
    */
-  getApplications(): Observable<Application[]> {
-    return this.http.get<Application[]>(`${this.apiUrl}/applications`);
-  }
 
   /**
    * Creates a new reservation.
@@ -128,7 +127,7 @@ export class ReservationService {
   ): Observable<MakeReservationResponse> {
     this.loader.show();
     return this.http
-      .post<MakeReservationResponse>(this.makeReservationApiUrl, data)
+      .post<MakeReservationResponse>(`${this.apiUrl}/reservations`, data)
       .pipe(finalize(() => this.loader.hide()));
   }
 }

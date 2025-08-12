@@ -1,13 +1,11 @@
+import { Application } from "./application.model";
+
 export interface Bot {
   id: number;
   name: string;
   email: string;
 }
 
-export interface Application {
-  id: number;
-  name: string;
-}
 
 export interface Reservation {
   id: number;
