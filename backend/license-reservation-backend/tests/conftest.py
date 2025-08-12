@@ -7,14 +7,13 @@ from sqlalchemy.orm import sessionmaker
 from unittest.mock import patch, MagicMock
 
 from shared_lib.db.models import (
+    AppConfig,
     Base,
     Application,
     Bot,
     BotApplication,
-    Reservation,
-    ReservationStatus,
 )
-from shared_lib.dependencies import get_db, get_user_email
+from shared_lib.dependencies import get_db, get_user_email, get_app_config
 
 
 TEST_USER = "test-user@example.com"
@@ -113,6 +112,16 @@ def app(db_session):
     def override_get_user_email():
         return TEST_USER
 
+    def override_get_app_config():
+        return {
+            "maxReservationApplications": 3,
+            "maxCalendarDays": 30,
+            "maxSlotsToFind": 3,
+            "rollingWindowHours": 1,
+            "reservationLeadDays": 7,
+            "unavailableReservationDays": 7,
+        }
+
     with patch(
         "shared_lib.utils.get_secret_value",
         return_value=json.dumps(dummy_service_account_info),
@@ -134,6 +143,7 @@ def app(db_session):
         fastapi_app.middleware_stack = fastapi_app.build_middleware_stack()
         fastapi_app.dependency_overrides[get_db] = override_get_db
         fastapi_app.dependency_overrides[get_user_email] = override_get_user_email
+        fastapi_app.dependency_overrides[get_app_config] = override_get_app_config
 
         yield fastapi_app
 
