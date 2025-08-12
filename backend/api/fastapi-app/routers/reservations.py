@@ -112,6 +112,7 @@ def make_reservation(
     new_reservation = Reservation(
         user_email=user_email,
         bot_id=suitable_bot.id,
+        primary_application_id=req.primary_application_id,
         start_time=req.start_time,
         end_time=req.end_time,
         status=ReservationStatus.PENDING,
@@ -161,6 +162,7 @@ def cancel_reservation(
     reservation_id: int,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
 ):
     """
     Cancels a specific reservation by its ID.
@@ -169,6 +171,11 @@ def cancel_reservation(
     if not reservation:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Reservation not found."
+        )
+    if user_email != reservation.user_email:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You cannot cancel a reservation made by others.",
         )
     if reservation.status in [ReservationStatus.CANCELLED, ReservationStatus.COMPLETED]:
         raise HTTPException(

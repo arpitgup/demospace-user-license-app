@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private userEmail = 'alex@google.com';
+  private userEmail = environment.emailId;
 
   /**
    * Returns the authenticated user's email.

@@ -1,8 +1,17 @@
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic.alias_generators import to_camel
 from typing import List
-from datetime import datetime
+from datetime import datetime, timezone
 from .enums import ReservationStatus
+
+
+def convert_to_utc(v: datetime) -> datetime:
+    """Convert a datetime to UTC, assuming naive datetimes are UTC."""
+    if v.tzinfo is None:
+        # If the datetime is naive, assume it's in UTC and attach timezone info.
+        return v.replace(tzinfo=timezone.utc)
+    # If it's timezone-aware, convert it to UTC.
+    return v.astimezone(timezone.utc)
 
 
 class CamelModel(BaseModel):
@@ -30,6 +39,8 @@ class AvailabilitySlot(CamelModel):
     end_time: datetime
     available_bots: List[AvailableBotInfo]
 
+    _convert_to_utc = field_validator("start_time", "end_time")(convert_to_utc)
+
 
 class BotOut(CamelModel):
     id: int
@@ -52,12 +63,16 @@ class ReservationOut(CamelModel):
     end_time: datetime
     status: ReservationStatus
 
+    _convert_to_utc = field_validator("start_time", "end_time")(convert_to_utc)
+
 
 class AvailabilityByApplicationRequest(CamelModel):
     application_id: int
     start_time: datetime
     duration_hours: int = Field(gt=0)
     get_next_slots: bool = True
+
+    _convert_to_utc = field_validator("start_time")(convert_to_utc)
 
 
 class AvailabilityByApplicationResponse(CamelModel):
@@ -74,6 +89,8 @@ class AvailabilityByDateRequest(CamelModel):
         if self.start_time >= self.end_time:
             raise ValueError("Start time must be before end time.")
         return self
+
+    _convert_to_utc = field_validator("start_time", "end_time")(convert_to_utc)
 
 
 class AvailabilityByDateResponse(CamelModel):
@@ -100,6 +117,8 @@ class CreateReservationRequest(CamelModel):
         if self.start_time >= self.end_time:
             raise ValueError("Start time must be before end time.")
         return self
+
+    _convert_to_utc = field_validator("start_time", "end_time")(convert_to_utc)
 
 
 class UpdateAppConfigRequest(CamelModel):

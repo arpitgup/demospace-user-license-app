@@ -6,7 +6,7 @@
       <h3 class="content-header">Select Date Range</h3>
       <p class="content-header-note">* Maximum reservation time is 48 hours.</p>
 
-      <div class="calendar-info-details">
+      <div class="calendar-info-details" aria-hidden="true">
         <div class="calendar-info-item">
           <span class="calendar-color available"></span>
           <span class="calendar-info-text">Available Dates</span>
@@ -17,8 +17,14 @@
         </div>
       </div>
 
-      <div class="date-time-container">
+      <form
+        class="date-time-container"
+        [formGroup]="form"
+        (ngSubmit)="onCheckAvailability()"
+        novalidate
+      >
         <div class="start-date-time-container">
+          <!-- Start Date -->
           <mat-form-field appearance="outline" class="start-date-field">
             <mat-label>Start Date</mat-label>
             <input
@@ -26,37 +32,63 @@
               [matDatepicker]="picker"
               [matDatepickerFilter]="dateFilter"
               placeholder="MM/DD/YYYY"
-              [(ngModel)]="selectedStartDate"
-              (dateChange)="onDateOrStartTimeChange()"
+              aria-describedby="start-date-help"
+              formControlName="startDate"
             />
             <mat-datepicker-toggle
               matSuffix
               [for]="picker"
             ></mat-datepicker-toggle>
             <mat-datepicker #picker [dateClass]="dateClass"></mat-datepicker>
+
+            <mat-error *ngIf="startDateCtrl.hasError('required')">
+              Start date is required.
+            </mat-error>
+            <mat-error
+              *ngIf="form.hasError('dateTimeInvalid') && startDateCtrl.touched"
+            >
+              Please fix the date/time selection.
+            </mat-error>
           </mat-form-field>
 
+          <!-- Start Time (disabled until start date chosen) -->
           <mat-form-field appearance="outline" class="start-time-field">
             <mat-label>Start Time</mat-label>
-            <mat-select
-              [(ngModel)]="selectedStartTime"
-              (selectionChange)="onDateOrStartTimeChange()"
-              [disabled]="!selectedStartDate"
+            <input
+              matInput
+              [matTimepicker]="minutesPicker"
+              formControlName="startTime"
+              [matTimepickerMin]="minTime"
+              [matTimepickerMax]="maxTime"
+              [readonly]="true"
+              aria-label="Start time"
+            />
+            <mat-timepicker-toggle
+              matIconSuffix
+              [for]="minutesPicker"
+            ></mat-timepicker-toggle>
+            <mat-timepicker interval="60min" #minutesPicker></mat-timepicker>
+
+            <mat-error *ngIf="startTimeCtrl.hasError('required')">
+              Start time is required.
+            </mat-error>
+            <mat-error
+              *ngIf="form.hasError('dateTimeInvalid') && startTimeCtrl.touched"
             >
-              <mat-option *ngFor="let time of startTimeSlots" [value]="time">
-                {{ time }}
-              </mat-option>
-            </mat-select>
+              Please fix the date/time selection.
+            </mat-error>
           </mat-form-field>
         </div>
 
         <div class="end-date-time-container">
+          <!-- End Time (disabled until start time chosen) -->
           <mat-form-field appearance="outline" class="end-time-field">
             <mat-label>End Time</mat-label>
             <mat-select
-              [(ngModel)]="selectedEndTime"
+              formControlName="endTime"
               (selectionChange)="onEndTimeChange()"
-              [disabled]="!selectedStartTime"
+              [disabled]="endTimeCtrl.disabled"
+              aria-label="End time"
             >
               <mat-option *ngFor="let time of endTimeSlots" [value]="time">
                 {{ time }}
@@ -71,26 +103,28 @@
                 matInput
                 [value]="calculatedEndDate | date : 'MM/dd/yyyy'"
                 [disabled]="true"
+                aria-readonly="true"
               />
             </mat-form-field>
           </div>
         </div>
-      </div>
-      <mat-card-actions class="actions-container">
-        <button
-          mat-flat-button
-          color="primary"
-          class="check-availability-button"
-          [disabled]="isCheckAvailabilityDisabled()"
-          (click)="onCheckAvailability()"
-        >
-          Check Availability
-        </button>
-      </mat-card-actions>
+
+        <mat-card-actions class="actions-container">
+          <button
+            mat-flat-button
+            color="primary"
+            class="check-availability-button"
+            [disabled]="isCheckAvailabilityDisabled()"
+            type="submit"
+          >
+            Check Availability
+          </button>
+        </mat-card-actions>
+      </form>
     </mat-card-content>
 
     @if (isLoading) {
-    <div class="loading-container">
+    <div class="loading-container" role="status" aria-live="polite">
       <mat-spinner diameter="50"></mat-spinner>
       <p>Checking availability...</p>
     </div>
@@ -104,14 +138,20 @@
 
       <div class="pill-container">
         @if (availableApplications.length > 0) {
-        <mat-button-toggle-group multiple class="pill-group">
+        <mat-button-toggle-group
+          class="pill-group"
+          multiple
+          [value]="selectedApps"
+          (change)="onToggleGroupChange($event)"
+          aria-label="Select up to three applications"
+        >
           <mat-button-toggle
-            *ngFor="let app of availableApplications"
+            *ngFor="let app of availableApplications; trackBy: trackByAppId"
             [value]="app"
             class="app-toggle"
-            [checked]="isSelected(app)"
             [disabled]="!isSelected(app) && selectedApps.length >= 3"
-            (click)="toggleSelection(app)"
+            [checked]="isSelected(app)"
+            [disableRipple]="true"
           >
             {{ app.name }}
           </mat-button-toggle>
@@ -130,6 +170,7 @@
           height="2"
           viewBox="0 0 623 2"
           fill="none"
+          aria-hidden="true"
         >
           <path d="M0 1H623" stroke="black" stroke-opacity="0.2" />
         </svg>
@@ -142,7 +183,7 @@
         </p>
       </div>
 
-      <div class="selected-app-info">
+      <div class="selected-app-info" aria-live="polite">
         Selected Application : {{ selectedAppNames }}
       </div>
 
@@ -152,6 +193,7 @@
           color="primary"
           class="confirm-btn"
           [disabled]="getSelectedAvailableAppCount() === 0"
+          (click)="onConfirmReservation()"
         >
           Confirm Reservation
         </button>

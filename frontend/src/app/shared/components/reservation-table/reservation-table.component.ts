@@ -4,6 +4,8 @@ import {
   ViewChild,
   AfterViewInit,
   Input,
+  EventEmitter,
+  Output,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -34,6 +36,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReservationTableComponent implements AfterViewInit {
+  @Output() cancelReservation = new EventEmitter<Reservation>();
   public readonly reservationTableConstants = RESERVATION_TABLE_CONSTANTS;
   public readonly pageSizeOptions: number[] = [5];
 
@@ -59,7 +62,7 @@ export class ReservationTableComponent implements AfterViewInit {
     this.dataSource.sortingDataAccessor = (item, property) => {
       switch (property) {
         case 'date':
-          return new Date(item.startDate).getTime();
+          return new Date(item.startTime).getTime();
         case 'status':
           return this.getStatus(item);
         default:
@@ -89,28 +92,30 @@ export class ReservationTableComponent implements AfterViewInit {
     return `${formattedStartDate} to ${formattedEndDate}`;
   }
 
-  getApplications(reservation: Reservation): string[] {
-    return [
-      reservation.primaryApplicationId,
-      ...reservation.additionalApplicationIds,
-    ];
-  }
-
   /**
    * Determines the reservation status based on the current time.
-   * Now returns a type-safe enum member.
+   * @param reservation The reservation object.
+   * @returns The determined reservation status.
    */
   getStatus(reservation: Reservation): ReservationStatus {
     const now = new Date();
-    const startDate = new Date(reservation.startDate);
-    const endDate = new Date(reservation.endDate);
+    const startTime = new Date(reservation.startTime);
+    const endTime = new Date(reservation.endTime);
 
-    if (endDate < now) {
+    if (endTime < now) {
       return ReservationStatus.PAST;
-    } else if (startDate <= now && endDate >= now) {
+    } else if (startTime <= now && endTime >= now) {
       return ReservationStatus.CURRENT;
     } else {
       return ReservationStatus.UPCOMING;
     }
+  }
+
+  /**
+   * Emits the reservation object to the parent component for cancellation.
+   * @param reservation The reservation to be cancelled.
+   */
+  onCancel(reservation: Reservation): void {
+    this.cancelReservation.emit(reservation);
   }
 }

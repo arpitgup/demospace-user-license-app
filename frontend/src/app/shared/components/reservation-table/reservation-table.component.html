@@ -1,4 +1,3 @@
-<!-- The main component wrapper -->
 <div class="table-component-wrapper">
   <!-- Display this message when there is no data. -->
   <div
@@ -23,8 +22,9 @@
           <th mat-header-cell *matHeaderCellDef mat-sort-header>
             {{ reservationTableConstants.DATE_HEADER }}
           </th>
+
           <td mat-cell *matCellDef="let row">
-            {{ formatDateRange(row.startDate, row.endDate) }}
+            {{ formatDateRange(row.startTime, row.endTime) }}
           </td>
         </ng-container>
 
@@ -33,13 +33,14 @@
           <th mat-header-cell *matHeaderCellDef>
             {{ reservationTableConstants.APPLICATIONS_HEADER }}
           </th>
+
           <td mat-cell *matCellDef="let row">
             <div class="app-chip-list">
               <div
                 class="app-chip-wrapper"
-                *ngFor="let app of getApplications(row)"
+                *ngFor="let app of row.applications"
               >
-                <span class="app-chip-text">{{ app }}</span>
+                <span class="app-chip-text">{{ app.name }}</span>
               </div>
             </div>
           </td>
@@ -50,6 +51,7 @@
           <th mat-header-cell *matHeaderCellDef mat-sort-header>
             {{ reservationTableConstants.STATUS_HEADER }}
           </th>
+
           <td mat-cell *matCellDef="let row">{{ getStatus(row) }}</td>
         </ng-container>
 
@@ -58,6 +60,7 @@
           <th mat-header-cell *matHeaderCellDef>
             {{ reservationTableConstants.ACTION_HEADER }}
           </th>
+
           <td mat-cell *matCellDef="let row">
             <div class="action-cell">
               <button mat-stroked-button color="primary" class="view-button">
@@ -72,6 +75,7 @@
                 "
                 mat-stroked-button
                 class="cancel-button"
+                (click)="onCancel(row)"
               >
                 <mat-icon>close</mat-icon>
                 {{ reservationTableConstants.CANCEL_BUTTON }}
@@ -89,7 +93,6 @@
         ></tr>
       </table>
     </div>
-
     <mat-paginator
       [pageSizeOptions]="pageSizeOptions"
       showFirstLastButtons

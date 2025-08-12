@@ -50,10 +50,7 @@ export class LandingPage implements OnInit {
   selectedSearchType: SearchType | null = null;
 
   ngOnInit(): void {
-    this.reservationService.getReservations().subscribe((data) => {
-      this.allReservations = data;
-      this.updateFilteredReservations(false);
-    });
+    this.fetchReservations();
     this.loadApplications();
   }
   loadApplications() {
@@ -69,12 +66,12 @@ export class LandingPage implements OnInit {
 
     if (showPast) {
       filteredData = this.allReservations.filter((res) => {
-        const endDate = new Date(res.endDate);
+        const endDate = new Date(res.endTime);
         return endDate < this.now;
       });
     } else {
       filteredData = this.allReservations.filter((res) => {
-        const endDate = new Date(res.endDate);
+        const endDate = new Date(res.endTime);
         return endDate >= this.now;
       });
     }
@@ -100,11 +97,11 @@ export class LandingPage implements OnInit {
       searchType: SearchType.ByApplication,
     },
   ];
-
   /**
    * Handles the selection of a search card.
    * @param searchOption The card data object, which could be undefined.
    */
+
   onCardSelected(searchOption?: SearchOptionCard): void {
     this.selectedSearchType = searchOption?.searchType ?? null;
     this.searchOptionCards = this.searchOptionCards.map((card) => ({
@@ -112,4 +109,31 @@ export class LandingPage implements OnInit {
       isSelected: card.id === searchOption?.id,
     }));
   }
+
+  /**
+   * Fetches the full list of reservations from the service.
+   */
+  fetchReservations(): void {
+    this.reservationService.getReservations().subscribe((data) => {
+      this.allReservations = data;
+      this.updateFilteredReservations(false);
+    });
+  }
+
+  handleCancelReservation(reservation: Reservation): void {
+    if (!confirm('Are you sure you want to cancel this reservation?')) {
+      return;
+    }
+
+    this.reservationService.cancelReservation(reservation.id).subscribe({
+      next: () => {
+        alert(`Reservation ${reservation.id} cancelled successfully.`);
+        this.fetchReservations();
+      },
+      error: (err) => {
+        console.error('Failed to cancel reservation:', err);
+      },
+    });
+  }
+
 }
