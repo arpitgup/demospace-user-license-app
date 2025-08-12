@@ -34,7 +34,6 @@ def get_app_config():
                 app_config[config.key] = (
                     int(config.value) if config.value.isdigit() else config.value
                 )
-            app_config = {config.key: config.value for config in configs}
     return app_config
 
 
