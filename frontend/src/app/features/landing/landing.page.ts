@@ -32,7 +32,7 @@ import { SearchApplicationComponent } from '../search-application/search-applica
     ReservationTableComponent,
     SearchOptionCardComponent,
     SearchByDateComponent,
-    SearchApplicationComponent
+    SearchApplicationComponent,
   ],
   host: {
     class: 'landing-page-container',
@@ -54,6 +54,10 @@ export class LandingPage implements OnInit {
       this.allReservations = data;
       this.updateFilteredReservations(false);
     });
+    this.loadApplications();
+  }
+  loadApplications() {
+    this.reservationService.getApplications().subscribe();
   }
 
   onShowPastChange(checked: boolean): void {

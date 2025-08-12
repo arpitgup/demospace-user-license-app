@@ -5,4 +5,6 @@
 export interface Application {
   id: number;
   name: string;
+  isSelected: boolean;
+  isEnabled: boolean;
 }

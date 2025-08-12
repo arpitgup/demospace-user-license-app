@@ -1,5 +1,6 @@
 <div class="card-content">
   <span class="title">Select Application & Date </span>
+  @if(applications$ | async; as applications){
   <div class="cards-containers">
     <ng-container>
       <form [formGroup]="applicationForm" class="card">
@@ -11,9 +12,9 @@
               class="custom-select"
               formControlName="selectedApplication"
             >
-              @for(option of options; track option.value){
-              <mat-option [value]="option.value">
-                {{ option.viewValue }}
+              @for(application of applications; track application.id){
+              <mat-option [value]="application.id">
+                {{ application.name }}
               </mat-option>
               }
             </mat-select>
@@ -81,7 +82,7 @@
             matButton
             class="check-availability-button"
             (click)="checkAvailability()"
-            [disabled]="applicationForm.invalid"
+            [disabled]="applicationForm.invalid || isCheckAvailabilityLoading || isCheckAvailableDisabled"
           >
             Check Availability >
           </button>
@@ -96,37 +97,53 @@
       </div>
     </ng-container>
 
+    @if(isCheckAvailabilityLoading===true){
     <mat-card class="card">
+      <app-search-by-application-loader></app-search-by-application-loader>
+    </mat-card>
+
+    }@else if(availabilityApplication!=null){
+    <mat-card class="card">
+      @if((availabilityApplication.nextAvailableSlots?.length ?? 0) > 1){
       <ng-container>
         <h3>
           Requested application is already reserved at the selected date/time.
           Here are some available alternatives:
         </h3>
+
         <mat-grid-list
           cols="3"
           rowHeight="1.6:1"
           gutterSize="1.56rem"
           class="custom-grid"
         >
-          @for(item of items; track $index){
-          <mat-grid-tile class="grid-tile" [class.selected]="item.isSelected">
-            <p class="slot-time" [class.selected]="item.isSelected">
-              {{ item.date }}
+          @for(availableSlots of availabilityApplication!.nextAvailableSlots;
+          track $index){
+          <mat-grid-tile
+            class="grid-tile"
+            [class.selected]="availableSlots.isSelected"
+            (click)="onNextAvailableSlotClicked(availableSlots)"
+          >
+            <p class="slot-time" [class.selected]="availableSlots.isSelected">
+              {{ availableSlots.startTime | date : "MMMM d" }}
             </p>
-            <p class="slot-time" [class.selected]="item.isSelected">
-              {{ item.time }}
+            <p class="slot-time" [class.selected]="availableSlots.isSelected">
+              {{ availableSlots.startTime | date : "h a" }} -
+              {{ availableSlots.endTime | date : "h a" }}
             </p>
           </mat-grid-tile>
           }
         </mat-grid-list>
+        <mat-divider class="custom-divider"></mat-divider>
       </ng-container>
-
+      } @if(lessDurationSlotsList!.length > 0) {
       <ng-container>
         <h3>Book the shorter time:</h3>
-
         <h4>
-          Book the shorter time: Reserve the available slot from 8:00 AM to 2:00
-          PM (6 hours).
+          Book the shorter time: Reserve the available slot from
+          {{ lessDurationSlotsList![0].startTime ?? "" | date : "h a" }}
+          to
+          {{ lessDurationSlotsList![0].endTime ?? "" | date : "h a" }}
         </h4>
         <mat-grid-list
           cols="3"
@@ -134,40 +151,77 @@
           gutterSize="1.56rem"
           class="custom-grid"
         >
-          @for(slot of slots; track $index){
-          <mat-grid-tile class="grid-tile">
-            <p class="slot-time">{{ slot.date }}</p>
-            <p class="slot-time">{{ slot.time }}</p>
+          @for(slot of lessDurationSlotsList!; track $index){
+          <mat-grid-tile
+            class="grid-tile"
+            [class.selected]="slot.isSelected"
+            (click)="onNextAvailableSlotClicked(slot)"
+          >
+            <p class="slot-time" [class.selected]="slot.isSelected">
+              {{ slot.startTime | date : "MMMM d" }}
+            </p>
+            <p class="slot-time" [class.selected]="slot.isSelected">
+              {{ slot.startTime | date : "h a" }} -
+              {{ slot.endTime | date : "h a" }}
+            </p>
           </mat-grid-tile>
           }
         </mat-grid-list>
+        <mat-divider class="custom-divider"></mat-divider>
       </ng-container>
-
-      <mat-divider class="custom-divider"></mat-divider>
-
+      } @if(secondaryApplications.length>0){
       <h2>Secondary Applications</h2>
       <h5>
         You have already selected 1 applications. You can now select two more.
       </h5>
-
       <div class="application-container">
-        @for(application of applications; track $index){
+        @for(secondaryApplication of secondaryApplications; track
+        secondaryApplication.id){
         <div
           class="application-item"
-          [class.selected]="application.isSelected"
-          (click)="onApplicationClicked(application)"
+          [class.selected]="secondaryApplication.isSelected"
+          (click)="onApplicationClicked(secondaryApplication)"
         >
-          {{ application.name }}
+          <span class="tick-icon">&#10003;</span>
+          <span class="secondary-text">{{ secondaryApplication.name }}</span>
         </div>
         }
       </div>
+      <mat-divider class="custom-divider"></mat-divider>
+      <div class="booking-details">
+        <p class="booking-details-title">
+          License will be available
+          <span>{{
+            nextTimeSlot!.startTime! | date : "MMMM d 'at' h:mm a z"
+          }}</span>
+        </p>
+        <div class="booking-sized-box"></div>
+        <p class="booking-details-title">
+          License access will be revoked<span>{{
+            nextTimeSlot!.endTime! | date : "MMMM d 'at' h:mm a z"
+          }}</span>
+        </p>
+        <div class="booking-sized-box"></div>
+        <p class="booking-details-title">
+          Selected Application : <span></span>
+        </p>
+      </div>
       <div class="sized-box"></div>
       <div class="confirm-reservation">
-        <button matButton class="confirm-reservation-button">
+        <button
+          matButton
+          class="confirm-reservation-button"
+          (click)="showConfirmationDialog()"
+        >
           Confirm Reservation
           <mat-icon>arrow_forward</mat-icon>
         </button>
       </div>
+      }
     </mat-card>
+    }@else{
+    <div class="invisible-mat-card"></div>
+    > }
   </div>
+  }
 </div>

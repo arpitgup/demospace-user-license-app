@@ -1,0 +1,115 @@
+h2 {
+  display: flex;
+  color: rgba(22, 26, 29, 0.9);
+  font-family: Roboto;
+  font-size: 2.25rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 128.7%;
+  justify-content: center;
+  margin-top: 0rem;
+  margin-left: 2rem;
+  margin-right: 2rem;
+  margin-top: 3rem;
+}
+
+.close-button {
+  background: transparent;
+  width: 4rem;
+  height: 4rem;
+  display: flex;
+  justify-content: end;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  position: absolute;
+  right: 0;
+  margin-right: 1.5rem;
+  margin-top: 1rem;
+}
+.close-button mat-icon {
+  width: 2rem;
+  height: 2rem;
+  color: #5c5f6199;
+}
+mat-dialog-content {
+  margin-top: 1.56;
+  display: flex;
+  flex-direction: column;
+  margin-left: 2.56rem;
+  margin-right: 2.56rem;
+  justify-content: center;
+  text-align: center;
+}
+
+
+p{
+    margin: 0;
+    padding: 0;
+}
+.booking-details {
+  color: rgba(22, 26, 29, 0.7);
+  text-align: center;
+  font-family: Roboto;
+  font-size: 1.25rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 2.5rem; /* 200% */
+}
+.application-details {
+  color: rgba(22, 26, 29, 0.7);
+  font-family: Roboto;
+  font-size: 1.25rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 2.5rem;
+ 
+}
+.dialog-actions {
+  justify-content: center;
+      margin-top: 1rem;
+    margin-bottom: 2rem;
+  .cancel-button {
+    display: flex;
+    padding: 1rem 3rem;
+    justify-content: center;
+    align-items: center;
+    gap: 0.625rem;
+    flex-shrink: 0;
+    border-radius: 1.875rem;
+    border: 1px solid rgba(22, 26, 29, 0.8);
+    background: #fff;
+    color: rgba(22, 26, 29, 0.8);
+    font-family: Roboto;
+    font-size: 1.125rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 1.5rem; /* 133.333% */
+    letter-spacing: 0.025rem;
+    margin-right: 0.3rem;
+    cursor: pointer;
+  }
+  .confirm-button {
+    display: flex;
+    padding: 1rem 3rem;
+    justify-content: center;
+    align-items: center;
+    gap: 0.625rem;
+    flex-shrink: 0;
+    border-radius: 1.875rem;
+    background: #4285f4;
+    color: #fff;
+    font-family: Roboto;
+    font-size: 1.125rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 1.5rem; /* 133.333% */
+    letter-spacing: 0.025rem;
+    margin-left: 0.3rem;
+    cursor: pointer;
+  }
+  .confirm-button mat-mdc-outlined-button{
+    border: none !important;
+  }
+}
+
