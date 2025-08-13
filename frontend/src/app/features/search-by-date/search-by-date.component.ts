@@ -14,6 +14,7 @@ import {
   Validators,
   AbstractControl,
   FormGroup,
+  ValidationErrors,
 } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -453,16 +454,6 @@ export class SearchByDateComponent implements OnInit {
     ) {
       const end = new Date(start.getTime() + d * 3600_000);
 
-      const dayOffset = Math.floor(
-        (new Date(end.getFullYear(), end.getMonth(), end.getDate()).getTime() -
-          new Date(
-            start.getFullYear(),
-            start.getMonth(),
-            start.getDate()
-          ).getTime()) /
-          86_400_000
-      );
-
       const endHour = end.getHours();
       const label = `${this.formatTime12h(endHour)} (${d} hrs)`;
 
@@ -610,7 +601,7 @@ export class SearchByDateComponent implements OnInit {
 
       if (!startDate || !startTime || !endTimeLabel) return null;
 
-      const errors: Record<string, true> = {};
+      const errors: ValidationErrors = {};
       const duration = this.parseDurationFromEndTime(endTimeLabel);
 
       if (isNaN(duration)) {
@@ -641,8 +632,8 @@ export class SearchByDateComponent implements OnInit {
       ? { required: true }
       : null;
     const startKeys = ['noValidStartTimeOptions'];
-    const startCombo = startKeys.reduce<Record<string, true>>((acc, k) => {
-      if ((gErr as any)[k]) acc[k] = true;
+    const startCombo = startKeys.reduce<ValidationErrors>((acc, k) => {
+      if ((gErr as Record<string, true>)[k]) acc[k] = true;
       return acc;
     }, {});
     const startErrs = this.mergeErrors(startDateRequired, startCombo);
@@ -661,8 +652,8 @@ export class SearchByDateComponent implements OnInit {
       'overlapsExisting',
       'noValidEndTimeOptions',
     ];
-    const endCombo = endKeys.reduce<Record<string, true>>((acc, k) => {
-      if ((gErr as any)[k]) acc[k] = true;
+    const endCombo = endKeys.reduce<ValidationErrors>((acc, k) => {
+      if ((gErr as Record<string, true>)[k]) acc[k] = true;
       return acc;
     }, {});
     const endErrs = this.mergeErrors(endRequired, endCombo);
@@ -672,9 +663,9 @@ export class SearchByDateComponent implements OnInit {
   }
 
   private mergeErrors(
-    ...errObjs: Array<Record<string, any> | null | undefined>
-  ) {
-    const merged: Record<string, any> = {};
+    ...errObjs: Array<ValidationErrors | null | undefined>
+  ): ValidationErrors | null {
+    const merged: ValidationErrors = {};
     for (const e of errObjs) if (e) Object.assign(merged, e);
     return Object.keys(merged).length ? merged : null;
   }

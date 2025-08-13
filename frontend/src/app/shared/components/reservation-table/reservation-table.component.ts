@@ -71,7 +71,8 @@ export class ReservationTableComponent implements AfterViewInit {
         case 'status':
           return this.getStatus(item);
         default:
-          return (item as any)[property];
+          const value = item[property as keyof Reservation];
+          return typeof value === 'string' || typeof value === 'number' ? value : String(value);
       }
     };
   }
@@ -155,7 +156,7 @@ export class ReservationTableComponent implements AfterViewInit {
   showConfirmationDialog(reservation: Reservation) {
     console.log({ reservation });
     const selectedAppNames = reservation.applications.map(app => app.name).join(', ')
-      const dialogRef = this.confirmationDialog.open(ConfirmationDialog, {
+    const dialogRef = this.confirmationDialog.open(ConfirmationDialog, {
         width: '43.5rem',
         data: {
           title: 'Are You Sure ?',

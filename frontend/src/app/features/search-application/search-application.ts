@@ -3,7 +3,7 @@ import {
   ChangeDetectorRef,
   Component,
   inject,
-  OnInit,
+  OnInit, OnDestroy,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -21,7 +21,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTimepickerModule } from '@angular/material/timepicker';
-import { map, Observable, Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { ReservationService } from '../../core/services/reservation.service';
 import { Application } from '../../core/models/application.model';
 import { AsyncPipe, DatePipe } from '@angular/common';
@@ -57,7 +57,7 @@ import { MatDialog } from '@angular/material/dialog';
   templateUrl: './search-application.html',
   styleUrl: './search-application.scss',
 })
-export class SearchApplicationComponent implements OnInit {
+export class SearchApplicationComponent implements OnInit, OnDestroy {
   private reservationService = inject(ReservationService);
   private confirmationDialog = inject(MatDialog);
   private cdr = inject(ChangeDetectorRef);
