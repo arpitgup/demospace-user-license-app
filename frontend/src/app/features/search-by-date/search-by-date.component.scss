@@ -152,6 +152,13 @@
           }
         }
       }
+
+      .side-arrow-container {
+        position: absolute;
+        right: 51%;
+        top: 52%;
+        align-items: center;
+      }
     }
 
     .actions-container {
@@ -347,12 +354,10 @@
           width: 18.25rem;
           border-radius: 2.5625rem;
 
-          background: linear-gradient(
-            90deg,
-            rgba(66, 133, 244, 0.95) 7.88%,
-            #7051ca 83.78%,
-            rgba(188, 18, 4, 0.88) 152.54%
-          );
+          background: linear-gradient(90deg,
+              rgba(66, 133, 244, 0.95) 7.88%,
+              #7051ca 83.78%,
+              rgba(188, 18, 4, 0.88) 152.54%);
 
           color: white;
           font-family: Roboto;

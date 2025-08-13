@@ -37,6 +37,7 @@ import { AppConfig } from '../../core/models/appConfig.model';
 import { forkJoin, tap } from 'rxjs';
 import { ReservationApiStatus } from '../landing/landing.enums';
 import { Application } from '../../core/models/application.model';
+import { SearchByApplicationLoader } from "../../loaders/search-by-date-loader/search-by-date-loader";
 
 type DailyAvailabilityMap = { [date: string]: number };
 type NormalizedReservation = { start: Date; end: Date };
@@ -58,7 +59,8 @@ type NormalizedReservation = { start: Date; end: Date };
     MatButtonToggleModule,
     MatProgressSpinnerModule,
     MatTimepickerModule,
-  ],
+    SearchByApplicationLoader
+],
   templateUrl: './search-by-date.component.html',
   styleUrls: ['./search-by-date.component.scss'],
   encapsulation: ViewEncapsulation.None,
