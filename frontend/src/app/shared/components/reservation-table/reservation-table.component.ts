@@ -19,6 +19,7 @@ import {
   RESERVATION_TABLE_CONSTANTS,
   ReservationStatus,
 } from './reservation-table.constant';
+import { ReservationApiStatus } from '../../../features/landing/landing.enums';
 
 @Component({
   selector: 'app-reservation-table',
@@ -78,18 +79,47 @@ export class ReservationTableComponent implements AfterViewInit {
    * @returns The formatted date range string.
    */
   formatDateRange(start: string, end: string): string {
-    const formatDateToYYYYMMDD_UTC = (date: Date): string => {
-      const year = date.getUTCFullYear();
-      const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-      const day = date.getUTCDate().toString().padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-
     const startDate = new Date(start);
     const endDate = new Date(end);
-    const formattedStartDate = formatDateToYYYYMMDD_UTC(startDate);
-    const formattedEndDate = formatDateToYYYYMMDD_UTC(endDate);
-    return `${formattedStartDate} to ${formattedEndDate}`;
+
+    const isSameDay =
+      startDate.getUTCFullYear() === endDate.getUTCFullYear() &&
+      startDate.getUTCMonth() === endDate.getUTCMonth() &&
+      startDate.getUTCDate() === endDate.getUTCDate();
+
+    const formatDate = (date: Date, showDate: boolean): string => {
+      const options: Intl.DateTimeFormatOptions = showDate
+        ? {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+          }
+        : {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+          };
+
+      return date.toLocaleString('en-US', options);
+    };
+
+    if (isSameDay) {
+      const formattedStartDate = formatDate(startDate, true);
+      const formattedEndTime = formatDate(endDate, false);
+      const formattedStartTimeWithoutDate = formattedStartDate
+        .split(',')[1]
+        .trim();
+      return `${
+        formattedStartDate.split(',')[0]
+      }, ${formattedStartTimeWithoutDate} – ${formattedEndTime}`;
+    } else {
+      const formattedStartDate = formatDate(startDate, true);
+      const formattedEndDate = formatDate(endDate, true);
+      return `${formattedStartDate} – ${formattedEndDate}`;
+    }
   }
 
   /**
@@ -98,13 +128,12 @@ export class ReservationTableComponent implements AfterViewInit {
    * @returns The determined reservation status.
    */
   getStatus(reservation: Reservation): ReservationStatus {
-    const now = new Date();
-    const startTime = new Date(reservation.startTime);
-    const endTime = new Date(reservation.endTime);
-
-    if (endTime < now) {
+    if (
+      reservation.status === ReservationApiStatus.COMPLETED ||
+      reservation.status === ReservationApiStatus.CANCELLED
+    ) {
       return ReservationStatus.PAST;
-    } else if (startTime <= now && endTime >= now) {
+    } else if (reservation.status === ReservationApiStatus.ACTIVE) {
       return ReservationStatus.CURRENT;
     } else {
       return ReservationStatus.UPCOMING;

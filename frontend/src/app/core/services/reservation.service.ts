@@ -36,7 +36,7 @@ export class ReservationService {
   getConfig(): Observable<AppConfig> {
     const mockConfig: AppConfig = {
       reservationBlockDays: 2,
-      leadTimeDays: 1, // 24 hours
+      leadTimeDays: 1,
       calendarViewMonths: 3,
       maxBookingLeadDays: 30,
     };
@@ -52,7 +52,7 @@ export class ReservationService {
     const headers = new HttpHeaders({
       accept: 'application/json',
     });
-    return this.http.get<Reservation[]>(`${this.apiUrl}/admin/reservations`, {
+    return this.http.get<Reservation[]>(`${this.apiUrl}/reservations`, {
       headers,
     });
   }
