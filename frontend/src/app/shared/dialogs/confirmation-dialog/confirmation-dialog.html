@@ -6,13 +6,13 @@
 <mat-dialog-content>
   <p class="booking-details">{{ data.message }}</p>
   <p class="application-details">{{ data.applications }}</p>
-  <p class="booking-details"> {{ data.licenseTitle}} <span class="application-details">{{data.startDateTime ?? "" | date : "MMMM d, y" }}</span> at
+  <p class="booking-details"> {{ data.licenseTitle}} <span class="application-details">{{data.startDateTime | date : "MMMM d, y" }}</span> at
     <span class="application-details">{{
-      data.startDateTime ?? "" | date : "h a z"
+      data.startDateTime | date : "h a z"
     }}</span>
     till
     <span class="application-details">{{
-      data.endDateTime ?? "" | date : "MMMM d, y h a z"
+      data.endDateTime | date : "MMMM d, y h a z"
     }}</span>
   </p>
 </mat-dialog-content>

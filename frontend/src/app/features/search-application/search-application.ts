@@ -52,7 +52,6 @@ import { MatDialog } from '@angular/material/dialog';
     AsyncPipe,
     DatePipe,
     SearchByApplicationLoader,
-    ConfirmationDialog,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './search-application.html',
