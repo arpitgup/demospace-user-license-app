@@ -10,10 +10,10 @@
             <mat-label>Primary Application</mat-label>
             <mat-select
               class="custom-select"
-              formControlName="selectedApplication"
+              formControlName="primaryApplication"
             >
               @for(application of applications; track application.id){
-              <mat-option [value]="application.id">
+              <mat-option [value]="application">
                 {{ application.name }}
               </mat-option>
               }
@@ -82,7 +82,11 @@
             matButton
             class="check-availability-button"
             (click)="checkAvailability()"
-            [disabled]="applicationForm.invalid || isCheckAvailabilityLoading || isCheckAvailableDisabled"
+            [disabled]="
+              applicationForm.invalid ||
+              isCheckAvailabilityLoading ||
+              isCheckAvailableDisabled
+            "
           >
             Check Availability >
           </button>
@@ -124,9 +128,17 @@
             [class.selected]="availableSlots.isSelected"
             (click)="onNextAvailableSlotClicked(availableSlots)"
           >
+            @if(availableSlots.isSameDay===true){
             <p class="slot-time" [class.selected]="availableSlots.isSelected">
               {{ availableSlots.startTime | date : "MMMM d" }}
             </p>
+            }@else {
+            <p class="slot-time" [class.selected]="availableSlots.isSelected">
+              {{ availableSlots.startTime | date : "MMM d" }} -
+              {{ availableSlots.endTime | date : "MMM d" }}
+            </p>
+            }
+
             <p class="slot-time" [class.selected]="availableSlots.isSelected">
               {{ availableSlots.startTime | date : "h a" }} -
               {{ availableSlots.endTime | date : "h a" }}
@@ -157,9 +169,16 @@
             [class.selected]="slot.isSelected"
             (click)="onNextAvailableSlotClicked(slot)"
           >
+            @if(slot.isSameDay===true){
             <p class="slot-time" [class.selected]="slot.isSelected">
               {{ slot.startTime | date : "MMMM d" }}
             </p>
+            }@else {
+            <p class="slot-time" [class.selected]="slot.isSelected">
+              {{ slot.startTime | date : "MMM d" }} -
+              {{ slot.endTime | date : "MMM d" }}
+            </p>
+            }
             <p class="slot-time" [class.selected]="slot.isSelected">
               {{ slot.startTime | date : "h a" }} -
               {{ slot.endTime | date : "h a" }}
@@ -192,19 +211,27 @@
         <p class="booking-details-title">
           License will be available
           <span>{{
-            nextTimeSlot!.startTime! | date : "MMMM d 'at' h:mm a z"
+            selectedTimeSlot!.startTime! | date : "MMMM d 'at' h:mm a z"
           }}</span>
         </p>
         <div class="booking-sized-box"></div>
         <p class="booking-details-title">
           License access will be revoked<span>{{
-            nextTimeSlot!.endTime! | date : "MMMM d 'at' h:mm a z"
+            selectedTimeSlot!.endTime! | date : "MMMM d 'at' h:mm a z"
           }}</span>
         </p>
         <div class="booking-sized-box"></div>
+        @if(selectedApplicationList!=null&&selectedApplicationList!.length===1){
         <p class="booking-details-title">
-          Selected Application : <span></span>
+          Selected Application :
+          <span>{{ selectedApplicationList!.join(", ") }}</span>
         </p>
+        }@else if(selectedApplicationList!=null){
+        <p class="booking-details-title">
+          Selected Applications :
+          <span>{{ selectedApplicationList!.join(", ") }}</span>
+        </p>
+        }
       </div>
       <div class="sized-box"></div>
       <div class="confirm-reservation">

@@ -1,7 +1,7 @@
 
 export interface MakeReservationRequest{
     primaryApplicationId?:number;
-    secondaryApplicationsIds:number[];
+    secondaryApplicationIds:number[];
     startTime?:string;
     endTime?:string;
 }

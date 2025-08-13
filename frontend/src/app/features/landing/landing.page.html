@@ -30,7 +30,9 @@
           <!-- Placeholder for Search By Application -->
           <ng-container *ngIf="selectedSearchType === SearchType.ByApplication">
             <div class="search-content">
-              <app-search-application></app-search-application>
+              <app-search-application
+                (onBookingSuccess)="onBookingSuccess()"
+              ></app-search-application>
             </div>
           </ng-container>
         </div>
@@ -48,7 +50,10 @@
             </mat-checkbox>
           </div>
           <div class="table-scroll-wrapper">
-            <app-reservation-table [data]="reservations$ | async" (cancelReservation)="handleCancelReservation($event)"></app-reservation-table>
+            <app-reservation-table
+              [data]="reservations$ | async"
+              (cancelReservation)="handleCancelReservation($event)"
+            ></app-reservation-table>
           </div>
         </div>
       </mat-tab>

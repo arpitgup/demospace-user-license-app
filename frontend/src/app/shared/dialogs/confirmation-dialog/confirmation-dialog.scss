@@ -61,7 +61,7 @@ p{
   font-family: Roboto;
   font-size: 1.25rem;
   font-style: normal;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 2.5rem;
  
 }
@@ -87,6 +87,7 @@ p{
     line-height: 1.5rem; /* 133.333% */
     letter-spacing: 0.025rem;
     margin-right: 0.3rem;
+    border: none;
     cursor: pointer;
   }
   .confirm-button {
@@ -106,10 +107,8 @@ p{
     line-height: 1.5rem; /* 133.333% */
     letter-spacing: 0.025rem;
     margin-left: 0.3rem;
+    border: none;
     cursor: pointer;
-  }
-  .confirm-button mat-mdc-outlined-button{
-    border: none !important;
   }
 }
 

@@ -11,6 +11,7 @@ export interface NextAvailableSlots {
   availableBots?: AvailableBots[];
   isSelected?: boolean;
   isLessDurationSlots?:boolean;
+  isSameDay?:boolean;
 }
 
 export interface AvailableBots {

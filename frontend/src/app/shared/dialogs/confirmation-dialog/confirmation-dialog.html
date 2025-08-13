@@ -6,7 +6,12 @@
 <mat-dialog-content>
   <p class="booking-details">{{ data.message }}</p>
   <p class="application-details">{{ data.applications }}</p>
-  <p class="booking-details"> {{ data.licenseTitle}} <span class="application-details">{{data.startDateTime | date : "MMMM d, y" }}</span> at
+  <p class="booking-details">
+    {{ data.licenseTitle }}
+    <span class="application-details">{{
+      data.startDateTime | date : "MMMM d, y"
+    }}</span>
+    at<br />
     <span class="application-details">{{
       data.startDateTime | date : "h a z"
     }}</span>

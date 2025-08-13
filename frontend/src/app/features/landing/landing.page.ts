@@ -3,10 +3,11 @@ import {
   ChangeDetectionStrategy,
   inject,
   OnInit,
+  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReservationTableComponent } from '../../shared/components/reservation-table/reservation-table.component';
-import { MatTabsModule } from '@angular/material/tabs';
+import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ReservationService } from '../../core/services/reservation.service';
 import { Reservation } from '../../core/models/reservation.model';
@@ -46,6 +47,7 @@ export class LandingPage implements OnInit {
   reservations$!: Observable<Reservation[]>;
   private allReservations: Reservation[] = [];
   private now = new Date();
+  @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
 
   selectedSearchType: SearchType | null = null;
 
@@ -66,11 +68,15 @@ export class LandingPage implements OnInit {
 
     if (showPast) {
       filteredData = this.allReservations.filter(
-        (res) => res.status === ReservationApiStatus.COMPLETED || res.status === ReservationApiStatus.CANCELLED
+        (res) =>
+          res.status === ReservationApiStatus.COMPLETED ||
+          res.status === ReservationApiStatus.CANCELLED
       );
     } else {
       filteredData = this.allReservations.filter(
-        (res) => res.status === ReservationApiStatus.PENDING || res.status === ReservationApiStatus.ACTIVE
+        (res) =>
+          res.status === ReservationApiStatus.PENDING ||
+          res.status === ReservationApiStatus.ACTIVE
       );
     }
     this.reservations$ = of(filteredData);
@@ -133,4 +139,8 @@ export class LandingPage implements OnInit {
     });
   }
 
+  onBookingSuccess(): void {
+    this.tabGroup.selectedIndex = 1;
+    this.fetchReservations();
+  }
 }
