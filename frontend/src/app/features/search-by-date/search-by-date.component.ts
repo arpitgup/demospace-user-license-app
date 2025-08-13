@@ -38,6 +38,8 @@ import { forkJoin, tap } from 'rxjs';
 import { ReservationApiStatus } from '../landing/landing.enums';
 import { Application } from '../../core/models/application.model';
 import { SearchByApplicationLoader } from "../../loaders/search-by-date-loader/search-by-date-loader";
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmationDialog } from '../../shared/dialogs/confirmation-dialog/confirmation-dialog';
 
 type DailyAvailabilityMap = { [date: string]: number };
 type NormalizedReservation = { start: Date; end: Date };
@@ -72,6 +74,7 @@ export class SearchByDateComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private fb = inject(FormBuilder);
   private destroyRef = inject(DestroyRef);
+  private confirmationDialog = inject(MatDialog);
 
   // ===== CONFIG =====
   private readonly SERVER_TIME_MODE: 'utc' | 'local-wall' = 'utc';
@@ -117,7 +120,8 @@ export class SearchByDateComponent implements OnInit {
 
   availableApplications: Application[] = [];
   selectedApps: Application[] = [];
-  availableDate = '';
+  availableDate: Date | null = null;
+  revokeDate: Date | null = null;
 
   appConfig: AppConfig | null = null;
   userReservations: Reservation[] = [];
@@ -490,6 +494,7 @@ export class SearchByDateComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
+
   onCheckAvailability(): void {
     if (this.isCheckAvailabilityDisabled()) return;
 
@@ -505,12 +510,11 @@ export class SearchByDateComponent implements OnInit {
 
     this.reservationService.checkAvailabilityByDate(payload).subscribe({
       next: (response) => {
+        console.log('checkAvailabilityByDate : ', { response });
         this.availableApplications = response.applications;
         this.selectedApps = [];
-        this.availableDate = startDateTime.toLocaleDateString('en-US', {
-          month: 'long',
-          day: 'numeric',
-        });
+        this.availableDate = startDateTime;
+        this.revokeDate = this.calculatedEndDate;
         this.isLoading = false;
         this.showResultsCard = true;
         this.cdr.markForCheck();
@@ -524,6 +528,28 @@ export class SearchByDateComponent implements OnInit {
       },
     });
   }
+
+  showConfirmationDialog() {
+    console.log({ revokeDate: this.revokeDate, availableDate: this.availableDate})
+      const dialogRef = this.confirmationDialog.open(ConfirmationDialog, {
+        width: '43.5rem',
+        data: {
+          title: 'Are You Sure ?',
+          message: 'Do you want to confirm the booking for',
+          applications: `${this.selectedAppNames}?`,
+          licenseTitle: 'The requested license(s) will be available on',
+          startDateTime: this.availableDate!.toISOString(),
+          endDateTime: this.revokeDate!.toISOString(),
+          confirmText: 'Confirm',
+          cancelText: 'Cancel',
+        },
+      });
+      dialogRef.afterClosed().subscribe((result) => {
+        if (result) {
+          this.onConfirmReservation();
+        }
+      });
+    }
 
   onToggleGroupChange(event: { value: Application[] }): void {
     const next = event?.value ?? [];

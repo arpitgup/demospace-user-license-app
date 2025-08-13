@@ -147,8 +147,8 @@
       </div>
 
       <div class="license-info">
-        <p>License will be available {{ availableDate }} at 8:00 AM, IST</p>
-        <p>License access will be revoked {{ availableDate }} at 6:00 PM, IST</p>
+        <p>License will be available {{ availableDate | date : "MMMM d 'at' h:mm a z" }}</p>
+        <p>License access will be revoked {{ revokeDate | date : "MMMM d 'at' h:mm a z" }}</p>
       </div>
 
       <div class="selected-app-info" aria-live="polite">
@@ -157,7 +157,7 @@
 
       <div class="confirmation-actions-container">
         <button mat-raised-button color="primary" class="confirm-btn" [disabled]="getSelectedAvailableAppCount() === 0"
-          (click)="onConfirmReservation()">
+          (click)="showConfirmationDialog()">
           Confirm Reservation
         </button>
       </div>
