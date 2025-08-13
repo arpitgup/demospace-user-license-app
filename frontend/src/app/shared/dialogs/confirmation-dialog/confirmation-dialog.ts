@@ -2,7 +2,6 @@ import { DatePipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
-  MatDialog,
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';

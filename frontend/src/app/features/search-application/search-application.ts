@@ -6,6 +6,7 @@ import {
   inject,
   OnInit,
   Output,
+  OnInit, OnDestroy,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -61,7 +62,7 @@ import { start } from 'repl';
   templateUrl: './search-application.html',
   styleUrl: './search-application.scss',
 })
-export class SearchApplicationComponent implements OnInit {
+export class SearchApplicationComponent implements OnInit, OnDestroy {
   private reservationService = inject(ReservationService);
   private confirmationDialog = inject(MatDialog);
   private cdr = inject(ChangeDetectorRef);

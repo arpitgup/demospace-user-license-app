@@ -14,6 +14,7 @@ import {
   Validators,
   AbstractControl,
   FormGroup,
+  ValidationErrors,
 } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -37,6 +38,9 @@ import { AppConfig } from '../../core/models/appConfig.model';
 import { forkJoin, tap } from 'rxjs';
 import { ReservationApiStatus } from '../landing/landing.enums';
 import { Application } from '../../core/models/application.model';
+import { SearchByApplicationLoader } from '../../loaders/search-by-date-loader/search-by-date-loader';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmationDialog } from '../../shared/dialogs/confirmation-dialog/confirmation-dialog';
 
 type DailyAvailabilityMap = { [date: string]: number };
 type NormalizedReservation = { start: Date; end: Date };
@@ -58,6 +62,7 @@ type NormalizedReservation = { start: Date; end: Date };
     MatButtonToggleModule,
     MatProgressSpinnerModule,
     MatTimepickerModule,
+    SearchByApplicationLoader,
   ],
   templateUrl: './search-by-date.component.html',
   styleUrls: ['./search-by-date.component.scss'],
@@ -70,6 +75,7 @@ export class SearchByDateComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private fb = inject(FormBuilder);
   private destroyRef = inject(DestroyRef);
+  private confirmationDialog = inject(MatDialog);
 
   // ===== CONFIG =====
   private readonly SERVER_TIME_MODE: 'utc' | 'local-wall' = 'utc';
@@ -115,7 +121,8 @@ export class SearchByDateComponent implements OnInit {
 
   availableApplications: Application[] = [];
   selectedApps: Application[] = [];
-  availableDate = '';
+  availableDate: Date | null = null;
+  revokeDate: Date | null = null;
 
   appConfig: AppConfig | null = null;
   userReservations: Reservation[] = [];
@@ -224,36 +231,38 @@ export class SearchByDateComponent implements OnInit {
   }
 
   private bootstrap(): void {
-  const config$ = this.reservationService
-    .getConfig()
-    .pipe(tap((cfg) => (this.appConfig = cfg)));
+    const config$ = this.reservationService
+      .getConfig()
+      .pipe(tap((cfg) => (this.appConfig = cfg)));
 
-  const reservations$ = this.reservationService.getReservations().pipe(
-    tap((res) => {
-      const filteredReservations = res.filter(
-        (r) => r.status === ReservationApiStatus.PENDING || r.status === ReservationApiStatus.ACTIVE
-      );
+    const reservations$ = this.reservationService.getReservations().pipe(
+      tap((res) => {
+        const filteredReservations = res.filter(
+          (r) =>
+            r.status === ReservationApiStatus.PENDING ||
+            r.status === ReservationApiStatus.ACTIVE
+        );
 
-      this.userReservations = filteredReservations;
+        this.userReservations = filteredReservations;
 
-      this.normalizedReservations = filteredReservations.map((r) => ({
-        start: this.normalizeServerTime(r.startTime),
-        end: this.normalizeServerTime(r.endTime),
-      }));
+        this.normalizedReservations = filteredReservations.map((r) => ({
+          start: this.normalizeServerTime(r.startTime),
+          end: this.normalizeServerTime(r.endTime),
+        }));
 
-      this.rebuildBlackoutDays();
-    })
-  );
+        this.rebuildBlackoutDays();
+      })
+    );
 
-  forkJoin({ config: config$, reservations: reservations$ }).subscribe(() => {
-    this.computeDateBounds();
-    this.updateTimepickerBounds();
-    this.buildEndTimeSlots();
-    this.calculateEndDate();
-    this.form.updateValueAndValidity({ emitEvent: false });
-    this.cdr.markForCheck();
-  });
-}
+    forkJoin({ config: config$, reservations: reservations$ }).subscribe(() => {
+      this.computeDateBounds();
+      this.updateTimepickerBounds();
+      this.buildEndTimeSlots();
+      this.calculateEndDate();
+      this.form.updateValueAndValidity({ emitEvent: false });
+      this.cdr.markForCheck();
+    });
+  }
 
   private normalizeServerTime(iso: string): Date {
     if (this.SERVER_TIME_MODE === 'utc') return new Date(iso);
@@ -347,10 +356,6 @@ export class SearchByDateComponent implements OnInit {
   dateClass = (date: Date): string =>
     this.hasFreeSlotOnDate(date) ? '' : 'date-unavailable';
 
-  /**
-   * Compute timepicker min/max AND auto-pick the first valid start for the selected day.
-   * Ensures invalid starts (like 08:00 when 08–10 is booked) are not selectable.
-   */
   private updateTimepickerBounds(): void {
     const selectedDate = this.startDateCtrl.value;
     if (!selectedDate) {
@@ -432,7 +437,6 @@ export class SearchByDateComponent implements OnInit {
     return false;
   }
 
-  // ===== END TIME (dropdown) =====
   private buildEndTimeSlots(): void {
     this.endTimeSlots = [];
     this.endConflictMap = {};
@@ -449,16 +453,6 @@ export class SearchByDateComponent implements OnInit {
       d += this.END_SLOT_INCREMENT
     ) {
       const end = new Date(start.getTime() + d * 3600_000);
-
-      const dayOffset = Math.floor(
-        (new Date(end.getFullYear(), end.getMonth(), end.getDate()).getTime() -
-          new Date(
-            start.getFullYear(),
-            start.getMonth(),
-            start.getDate()
-          ).getTime()) /
-          86_400_000
-      );
 
       const endHour = end.getHours();
       const label = `${this.formatTime12h(endHour)} (${d} hrs)`;
@@ -505,10 +499,8 @@ export class SearchByDateComponent implements OnInit {
       next: (response) => {
         this.availableApplications = response.applications;
         this.selectedApps = [];
-        this.availableDate = startDateTime.toLocaleDateString('en-US', {
-          month: 'long',
-          day: 'numeric',
-        });
+        this.availableDate = startDateTime;
+        this.revokeDate = this.calculatedEndDate;
         this.isLoading = false;
         this.showResultsCard = true;
         this.cdr.markForCheck();
@@ -520,6 +512,27 @@ export class SearchByDateComponent implements OnInit {
         this.showResultsCard = true;
         this.cdr.markForCheck();
       },
+    });
+  }
+
+  showConfirmationDialog() {
+    const dialogRef = this.confirmationDialog.open(ConfirmationDialog, {
+      width: '43.5rem',
+      data: {
+        title: 'Are You Sure ?',
+        message: 'Do you want to confirm the booking for',
+        applications: `${this.selectedAppNames}?`,
+        licenseTitle: 'The requested license(s) will be available on',
+        startDateTime: this.availableDate!.toISOString() ?? '',
+        endDateTime: this.revokeDate!.toISOString() ?? '',
+        confirmText: 'Confirm',
+        cancelText: 'Cancel',
+      },
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.onConfirmReservation();
+      }
     });
   }
 
@@ -558,6 +571,7 @@ export class SearchByDateComponent implements OnInit {
       next: (newReservation) => {
         alert(`Reservation successfully created with ID: ${newReservation.id}`);
         this.bootstrap();
+        this.resetForm();
       },
       error: (err) => {
         console.error('Failed to create reservation:', err);
@@ -570,7 +584,12 @@ export class SearchByDateComponent implements OnInit {
   }
 
   isCheckAvailabilityDisabled(): boolean {
-    return this.isLoading || this.form.invalid || !this.calculatedEndDate;
+    return (
+      this.isLoading ||
+      this.form.invalid ||
+      !this.calculatedEndDate ||
+      this.showResultsCard
+    );
   }
 
   private dateTimeComboValidator() {
@@ -582,7 +601,7 @@ export class SearchByDateComponent implements OnInit {
 
       if (!startDate || !startTime || !endTimeLabel) return null;
 
-      const errors: Record<string, true> = {};
+      const errors: ValidationErrors = {};
       const duration = this.parseDurationFromEndTime(endTimeLabel);
 
       if (isNaN(duration)) {
@@ -613,8 +632,8 @@ export class SearchByDateComponent implements OnInit {
       ? { required: true }
       : null;
     const startKeys = ['noValidStartTimeOptions'];
-    const startCombo = startKeys.reduce<Record<string, true>>((acc, k) => {
-      if ((gErr as any)[k]) acc[k] = true;
+    const startCombo = startKeys.reduce<ValidationErrors>((acc, k) => {
+      if ((gErr as Record<string, true>)[k]) acc[k] = true;
       return acc;
     }, {});
     const startErrs = this.mergeErrors(startDateRequired, startCombo);
@@ -633,8 +652,8 @@ export class SearchByDateComponent implements OnInit {
       'overlapsExisting',
       'noValidEndTimeOptions',
     ];
-    const endCombo = endKeys.reduce<Record<string, true>>((acc, k) => {
-      if ((gErr as any)[k]) acc[k] = true;
+    const endCombo = endKeys.reduce<ValidationErrors>((acc, k) => {
+      if ((gErr as Record<string, true>)[k]) acc[k] = true;
       return acc;
     }, {});
     const endErrs = this.mergeErrors(endRequired, endCombo);
@@ -644,9 +663,9 @@ export class SearchByDateComponent implements OnInit {
   }
 
   private mergeErrors(
-    ...errObjs: Array<Record<string, any> | null | undefined>
-  ) {
-    const merged: Record<string, any> = {};
+    ...errObjs: Array<ValidationErrors | null | undefined>
+  ): ValidationErrors | null {
+    const merged: ValidationErrors = {};
     for (const e of errObjs) if (e) Object.assign(merged, e);
     return Object.keys(merged).length ? merged : null;
   }
@@ -721,5 +740,21 @@ export class SearchByDateComponent implements OnInit {
       .trim();
     const m = s.match(/\((\d+)\s*hrs?\)/i);
     return m ? Number(m[1]) : NaN;
+  }
+
+  private resetForm(): void {
+    this.form.reset({
+      startDate: null,
+      startTime: { value: null, disabled: true },
+      endTime: { value: null, disabled: true }
+    });
+
+    this.endTimeSlots = [];
+    this.endConflictMap = {};
+    this.calculatedEndDate = null;
+    this.availableApplications = [];
+    this.selectedApps = [];
+    this.showResultsCard = false;
+    this.cdr.markForCheck();
   }
 }
