@@ -572,7 +572,7 @@ export class SearchByDateComponent implements OnInit {
   }
 
   isCheckAvailabilityDisabled(): boolean {
-    return this.isLoading || this.form.invalid || !this.calculatedEndDate;
+    return this.isLoading || this.form.invalid || !this.calculatedEndDate || this.showResultsCard;
   }
 
   private dateTimeComboValidator() {
