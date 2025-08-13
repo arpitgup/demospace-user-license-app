@@ -7,6 +7,8 @@ import {
   EventEmitter,
   Output,
   inject,
+  OnChanges,
+  SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -39,7 +41,7 @@ import { ConfirmationDialog } from '../../dialogs/confirmation-dialog/confirmati
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ReservationTableComponent implements AfterViewInit {
+export class ReservationTableComponent implements AfterViewInit, OnChanges {
   @Output() cancelReservation = new EventEmitter<Reservation>();
   public readonly reservationTableConstants = RESERVATION_TABLE_CONSTANTS;
   public readonly pageSizeOptions: number[] = [5];
@@ -49,20 +51,16 @@ export class ReservationTableComponent implements AfterViewInit {
   dataSource = new MatTableDataSource<Reservation>([]);
 
   @ViewChild(MatSort) sort!: MatSort;
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-
-  @Input() set data(reservations: Reservation[] | null) {
-    if (reservations) {
-      this.dataSource.data = reservations;
-
-      if (this.dataSource.paginator) {
-        this.dataSource.paginator.firstPage();
-      }
+  @ViewChild(MatPaginator) set paginator(value: MatPaginator) {
+    if (value) {
+      this.dataSource.paginator = value;
     }
   }
+  private _paginator!: MatPaginator;
+
+  @Input() data: Reservation[] | null = [];
 
   ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
     this.dataSource.sortingDataAccessor = (item, property) => {
       switch (property) {
@@ -77,6 +75,15 @@ export class ReservationTableComponent implements AfterViewInit {
             : String(value);
       }
     };
+  }
+  
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['data'] && this.data) {
+      this.dataSource.data = this.data;
+      if (this.dataSource.paginator) {
+        this.dataSource.paginator.firstPage();
+      }
+    }
   }
 
   /**
@@ -157,31 +164,29 @@ export class ReservationTableComponent implements AfterViewInit {
 
   showConfirmationDialog(reservation: Reservation) {
     console.log({ reservation });
-    const selectedAppNames = reservation.applications
-      .map((app) => app.name)
-      .join(', ');
+    const selectedAppNames = reservation.applications.map(app => app.name).join(', ')
     const dialogRef = this.confirmationDialog.open(ConfirmationDialog, {
-      width: 'auto',
-      minWidth: 'none',
-      maxWidth: 'none',
-      minHeight: 'none',
-      maxHeight: 'none',
-      disableClose: true,
-      data: {
-        title: 'Are You Sure ?',
-        message: 'Do you want to cancel the booking for',
-        applications: `${selectedAppNames}?`,
-        licenseTitle: 'Reservation: ',
-        startDateTime: reservation?.startTime ?? '',
-        endDateTime: reservation?.endTime ?? '',
-        confirmText: 'Confirm',
-        cancelText: 'Cancel',
-      },
-    });
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.onCancel(reservation);
-      }
-    });
-  }
+        width: 'auto',
+        minWidth: 'none',
+        maxWidth: 'none',
+        minHeight: 'none',
+        maxHeight: 'none',
+        disableClose: true,
+        data: {
+          title: 'Are You Sure ?',
+          message: 'Do you want to cancel the booking for',
+          applications: `${selectedAppNames}?`,
+          licenseTitle: 'Reservation: ',
+          startDateTime: reservation?.startTime ?? '',
+          endDateTime: reservation?.endTime ?? '',
+          confirmText: 'Confirm',
+          cancelText: 'Cancel',
+        },
+      });
+      dialogRef.afterClosed().subscribe((result) => {
+        if (result) {
+          this.onCancel(reservation);
+        }
+      });
+    }
 }
