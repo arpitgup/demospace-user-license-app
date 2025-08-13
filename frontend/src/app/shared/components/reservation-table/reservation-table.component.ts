@@ -72,7 +72,9 @@ export class ReservationTableComponent implements AfterViewInit {
           return this.getStatus(item);
         default:
           const value = item[property as keyof Reservation];
-          return typeof value === 'string' || typeof value === 'number' ? value : String(value);
+          return typeof value === 'string' || typeof value === 'number'
+            ? value
+            : String(value);
       }
     };
   }
@@ -155,24 +157,31 @@ export class ReservationTableComponent implements AfterViewInit {
 
   showConfirmationDialog(reservation: Reservation) {
     console.log({ reservation });
-    const selectedAppNames = reservation.applications.map(app => app.name).join(', ')
+    const selectedAppNames = reservation.applications
+      .map((app) => app.name)
+      .join(', ');
     const dialogRef = this.confirmationDialog.open(ConfirmationDialog, {
-        width: '43.5rem',
-        data: {
-          title: 'Are You Sure ?',
-          message: 'Do you want to cancel the booking for',
-          applications: `${selectedAppNames}?`,
-          licenseTitle: 'Reservation: ',
-          startDateTime: reservation?.startTime ?? '',
-          endDateTime: reservation?.endTime ?? '',
-          confirmText: 'Confirm',
-          cancelText: 'Cancel',
-        },
-      });
-      dialogRef.afterClosed().subscribe((result) => {
-        if (result) {
-          this.onCancel(reservation);
-        }
-      });
-    }
+      width: 'auto',
+      minWidth: 'none',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        title: 'Are You Sure ?',
+        message: 'Do you want to cancel the booking for',
+        applications: `${selectedAppNames}?`,
+        licenseTitle: 'Reservation: ',
+        startDateTime: reservation?.startTime ?? '',
+        endDateTime: reservation?.endTime ?? '',
+        confirmText: 'Confirm',
+        cancelText: 'Cancel',
+      },
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.onCancel(reservation);
+      }
+    });
+  }
 }

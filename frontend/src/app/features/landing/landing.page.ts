@@ -9,7 +9,11 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReservationTableComponent } from '../../shared/components/reservation-table/reservation-table.component';
-import { MatTabGroup, MatTabsModule, MatTabChangeEvent } from '@angular/material/tabs';
+import {
+  MatTabGroup,
+  MatTabsModule,
+  MatTabChangeEvent,
+} from '@angular/material/tabs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ReservationService } from '../../core/services/reservation.service';
 import { Reservation } from '../../core/models/reservation.model';
@@ -20,6 +24,8 @@ import { SearchOptionCardComponent } from '../../shared/components/search-option
 import { LANDING_PAGE_CONSTANTS } from './landing.constant';
 import { SearchApplicationComponent } from '../search-application/search-application';
 import { toObservable } from '@angular/core/rxjs-interop';
+import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-landing-page',
@@ -44,12 +50,13 @@ export class LandingPage implements OnInit {
   private readonly reservationService = inject(ReservationService);
   public readonly landingPageConstants = LANDING_PAGE_CONSTANTS;
   public readonly SearchType = SearchType;
+  private confirmationDialog = inject(MatDialog);
 
   private allReservations = signal<Reservation[]>([]);
   private reservationsFetched = signal(false);
   public selectedSearchType = signal<SearchType | null>(null);
   public showPastReservations = signal(false);
- @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
+  @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
 
   public filteredReservations = computed(() => {
     const showPast = this.showPastReservations();
@@ -107,18 +114,15 @@ export class LandingPage implements OnInit {
    */
   onTabChange(event: MatTabChangeEvent): void {
     if (event.index === 1) {
-      this.reservationService.getReservations().subscribe((data) => {
-        this.allReservations.set(data);
-        this.reservationsFetched.set(true);
-      });
+      this.fetchReservation();
     }
   }
 
   handleCancelReservation(reservation: Reservation): void {
-
     this.reservationService.cancelReservation(reservation.id).subscribe({
       next: () => {
         console.log(`Reservation ${reservation.id} cancelled successfully.`);
+        this.showSuccessDialog(reservation);
       },
       error: (err) => {
         console.error('Failed to cancel reservation:', err);
@@ -128,5 +132,33 @@ export class LandingPage implements OnInit {
 
   onBookingSuccess(): void {
     this.tabGroup.selectedIndex = 1;
+  }
+
+  fetchReservation() {
+    this.reservationService.getReservations().subscribe((data) => {
+      this.allReservations.set(data);
+      this.reservationsFetched.set(true);
+    });
+  }
+
+  showSuccessDialog(reservation: Reservation) {
+    const dialogRef = this.confirmationDialog.open(SuccessDialog, {
+      width: 'auto',
+      minWidth: 'none',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        title: 'Success',
+        message: `Reservation ${reservation.id} cancelled successfully.`,
+        confirmText: 'OK',
+      },
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.fetchReservation();
+      }
+    });
   }
 }
