@@ -1,5 +1,5 @@
 __pycache__
-.pytest.cache
+.pytest_cache
 test.db
 
 
@@ -37,6 +37,9 @@ nosetests.xml
 # Ignore configs for popular editors like VSCode and PyCharm
 .vscode/
 .env
+*.egg-info
+build
+cloud_functions
 .idea/
 
 # --- OS-specific files ---

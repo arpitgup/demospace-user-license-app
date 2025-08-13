@@ -5,7 +5,7 @@ CREATE TYPE reservation_status_enum AS ENUM ('PENDING', 'ACTIVE', 'COMPLETED', '
 CREATE TABLE app_config (
     id SERIAL PRIMARY KEY,
     key VARCHAR UNIQUE NOT NULL,
-    value BOOLEAN,
+    value VARCHAR NOT NULL,
     description VARCHAR
 );
 CREATE INDEX idx_app_config_key ON app_config (key);
