@@ -580,6 +580,7 @@ export class SearchByDateComponent implements OnInit {
       next: (newReservation) => {
         alert(`Reservation successfully created with ID: ${newReservation.id}`);
         this.bootstrap();
+        this.resetForm();
       },
       error: (err) => {
         console.error('Failed to create reservation:', err);
@@ -748,5 +749,21 @@ export class SearchByDateComponent implements OnInit {
       .trim();
     const m = s.match(/\((\d+)\s*hrs?\)/i);
     return m ? Number(m[1]) : NaN;
+  }
+
+  private resetForm(): void {
+    this.form.reset({
+      startDate: null,
+      startTime: { value: null, disabled: true },
+      endTime: { value: null, disabled: true }
+    });
+
+    this.endTimeSlots = [];
+    this.endConflictMap = {};
+    this.calculatedEndDate = null;
+    this.availableApplications = [];
+    this.selectedApps = [];
+    this.showResultsCard = false;
+    this.cdr.markForCheck();
   }
 }
