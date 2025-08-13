@@ -128,6 +128,5 @@ export class LandingPage implements OnInit {
 
   onBookingSuccess(): void {
     this.tabGroup.selectedIndex = 1;
-    this.fetchReservations();
   }
 }
