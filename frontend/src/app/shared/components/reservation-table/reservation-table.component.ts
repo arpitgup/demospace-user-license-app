@@ -6,6 +6,7 @@ import {
   Input,
   EventEmitter,
   Output,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -20,6 +21,8 @@ import {
   ReservationStatus,
 } from './reservation-table.constant';
 import { ReservationApiStatus } from '../../../features/landing/landing.enums';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmationDialog } from '../../dialogs/confirmation-dialog/confirmation-dialog';
 
 @Component({
   selector: 'app-reservation-table',
@@ -40,6 +43,7 @@ export class ReservationTableComponent implements AfterViewInit {
   @Output() cancelReservation = new EventEmitter<Reservation>();
   public readonly reservationTableConstants = RESERVATION_TABLE_CONSTANTS;
   public readonly pageSizeOptions: number[] = [5];
+  private confirmationDialog = inject(MatDialog);
 
   displayedColumns: string[] = ['date', 'applications', 'status', 'action'];
   dataSource = new MatTableDataSource<Reservation>([]);
@@ -147,4 +151,27 @@ export class ReservationTableComponent implements AfterViewInit {
   onCancel(reservation: Reservation): void {
     this.cancelReservation.emit(reservation);
   }
+
+  showConfirmationDialog(reservation: Reservation) {
+    console.log({ reservation });
+    const selectedAppNames = reservation.applications.map(app => app.name).join(', ')
+      const dialogRef = this.confirmationDialog.open(ConfirmationDialog, {
+        width: '43.5rem',
+        data: {
+          title: 'Are You Sure ?',
+          message: 'Do you want to cancel the booking for',
+          applications: `${selectedAppNames}?`,
+          licenseTitle: 'Reservation: ',
+          startDateTime: reservation?.startTime ?? '',
+          endDateTime: reservation?.endTime ?? '',
+          confirmText: 'Confirm',
+          cancelText: 'Cancel',
+        },
+      });
+      dialogRef.afterClosed().subscribe((result) => {
+        if (result) {
+          this.onCancel(reservation);
+        }
+      });
+    }
 }

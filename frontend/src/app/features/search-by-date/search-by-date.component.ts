@@ -37,7 +37,7 @@ import { AppConfig } from '../../core/models/appConfig.model';
 import { forkJoin, tap } from 'rxjs';
 import { ReservationApiStatus } from '../landing/landing.enums';
 import { Application } from '../../core/models/application.model';
-import { SearchByApplicationLoader } from "../../loaders/search-by-date-loader/search-by-date-loader";
+import { SearchByApplicationLoader } from '../../loaders/search-by-date-loader/search-by-date-loader';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialog } from '../../shared/dialogs/confirmation-dialog/confirmation-dialog';
 
@@ -61,8 +61,8 @@ type NormalizedReservation = { start: Date; end: Date };
     MatButtonToggleModule,
     MatProgressSpinnerModule,
     MatTimepickerModule,
-    SearchByApplicationLoader
-],
+    SearchByApplicationLoader,
+  ],
   templateUrl: './search-by-date.component.html',
   styleUrls: ['./search-by-date.component.scss'],
   encapsulation: ViewEncapsulation.None,
@@ -230,36 +230,38 @@ export class SearchByDateComponent implements OnInit {
   }
 
   private bootstrap(): void {
-  const config$ = this.reservationService
-    .getConfig()
-    .pipe(tap((cfg) => (this.appConfig = cfg)));
+    const config$ = this.reservationService
+      .getConfig()
+      .pipe(tap((cfg) => (this.appConfig = cfg)));
 
-  const reservations$ = this.reservationService.getReservations().pipe(
-    tap((res) => {
-      const filteredReservations = res.filter(
-        (r) => r.status === ReservationApiStatus.PENDING || r.status === ReservationApiStatus.ACTIVE
-      );
+    const reservations$ = this.reservationService.getReservations().pipe(
+      tap((res) => {
+        const filteredReservations = res.filter(
+          (r) =>
+            r.status === ReservationApiStatus.PENDING ||
+            r.status === ReservationApiStatus.ACTIVE
+        );
 
-      this.userReservations = filteredReservations;
+        this.userReservations = filteredReservations;
 
-      this.normalizedReservations = filteredReservations.map((r) => ({
-        start: this.normalizeServerTime(r.startTime),
-        end: this.normalizeServerTime(r.endTime),
-      }));
+        this.normalizedReservations = filteredReservations.map((r) => ({
+          start: this.normalizeServerTime(r.startTime),
+          end: this.normalizeServerTime(r.endTime),
+        }));
 
-      this.rebuildBlackoutDays();
-    })
-  );
+        this.rebuildBlackoutDays();
+      })
+    );
 
-  forkJoin({ config: config$, reservations: reservations$ }).subscribe(() => {
-    this.computeDateBounds();
-    this.updateTimepickerBounds();
-    this.buildEndTimeSlots();
-    this.calculateEndDate();
-    this.form.updateValueAndValidity({ emitEvent: false });
-    this.cdr.markForCheck();
-  });
-}
+    forkJoin({ config: config$, reservations: reservations$ }).subscribe(() => {
+      this.computeDateBounds();
+      this.updateTimepickerBounds();
+      this.buildEndTimeSlots();
+      this.calculateEndDate();
+      this.form.updateValueAndValidity({ emitEvent: false });
+      this.cdr.markForCheck();
+    });
+  }
 
   private normalizeServerTime(iso: string): Date {
     if (this.SERVER_TIME_MODE === 'utc') return new Date(iso);
@@ -353,10 +355,6 @@ export class SearchByDateComponent implements OnInit {
   dateClass = (date: Date): string =>
     this.hasFreeSlotOnDate(date) ? '' : 'date-unavailable';
 
-  /**
-   * Compute timepicker min/max AND auto-pick the first valid start for the selected day.
-   * Ensures invalid starts (like 08:00 when 08–10 is booked) are not selectable.
-   */
   private updateTimepickerBounds(): void {
     const selectedDate = this.startDateCtrl.value;
     if (!selectedDate) {
@@ -438,7 +436,6 @@ export class SearchByDateComponent implements OnInit {
     return false;
   }
 
-  // ===== END TIME (dropdown) =====
   private buildEndTimeSlots(): void {
     this.endTimeSlots = [];
     this.endConflictMap = {};
@@ -494,7 +491,6 @@ export class SearchByDateComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
-
   onCheckAvailability(): void {
     if (this.isCheckAvailabilityDisabled()) return;
 
@@ -529,25 +525,25 @@ export class SearchByDateComponent implements OnInit {
   }
 
   showConfirmationDialog() {
-      const dialogRef = this.confirmationDialog.open(ConfirmationDialog, {
-        width: '43.5rem',
-        data: {
-          title: 'Are You Sure ?',
-          message: 'Do you want to confirm the booking for',
-          applications: `${this.selectedAppNames}?`,
-          licenseTitle: 'The requested license(s) will be available on',
-          startDateTime: this.availableDate!.toISOString(),
-          endDateTime: this.revokeDate!.toISOString(),
-          confirmText: 'Confirm',
-          cancelText: 'Cancel',
-        },
-      });
-      dialogRef.afterClosed().subscribe((result) => {
-        if (result) {
-          this.onConfirmReservation();
-        }
-      });
-    }
+    const dialogRef = this.confirmationDialog.open(ConfirmationDialog, {
+      width: '43.5rem',
+      data: {
+        title: 'Are You Sure ?',
+        message: 'Do you want to confirm the booking for',
+        applications: `${this.selectedAppNames}?`,
+        licenseTitle: 'The requested license(s) will be available on',
+        startDateTime: this.availableDate!.toISOString() ?? '',
+        endDateTime: this.revokeDate!.toISOString() ?? '',
+        confirmText: 'Confirm',
+        cancelText: 'Cancel',
+      },
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.onConfirmReservation();
+      }
+    });
+  }
 
   onToggleGroupChange(event: { value: Application[] }): void {
     const next = event?.value ?? [];
@@ -596,7 +592,12 @@ export class SearchByDateComponent implements OnInit {
   }
 
   isCheckAvailabilityDisabled(): boolean {
-    return this.isLoading || this.form.invalid || !this.calculatedEndDate || this.showResultsCard;
+    return (
+      this.isLoading ||
+      this.form.invalid ||
+      !this.calculatedEndDate ||
+      this.showResultsCard
+    );
   }
 
   private dateTimeComboValidator() {
