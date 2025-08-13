@@ -510,7 +510,6 @@ export class SearchByDateComponent implements OnInit {
 
     this.reservationService.checkAvailabilityByDate(payload).subscribe({
       next: (response) => {
-        console.log('checkAvailabilityByDate : ', { response });
         this.availableApplications = response.applications;
         this.selectedApps = [];
         this.availableDate = startDateTime;
@@ -530,7 +529,6 @@ export class SearchByDateComponent implements OnInit {
   }
 
   showConfirmationDialog() {
-    console.log({ revokeDate: this.revokeDate, availableDate: this.availableDate})
       const dialogRef = this.confirmationDialog.open(ConfirmationDialog, {
         width: '43.5rem',
         data: {

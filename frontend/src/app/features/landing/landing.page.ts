@@ -113,7 +113,6 @@ export class LandingPage implements OnInit {
   }
 
   handleCancelReservation(reservation: Reservation): void {
-    console.log('Cancel reservation modal triggered');
 
     this.reservationService.cancelReservation(reservation.id).subscribe({
       next: () => {
