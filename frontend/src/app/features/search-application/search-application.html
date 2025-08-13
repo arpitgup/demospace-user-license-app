@@ -122,17 +122,19 @@
           class="custom-grid"
         >
           @for(availableSlots of availabilityApplication!.nextAvailableSlots;
-          track $index){
+          track $index){ @if(availableSlots.isLessDurationSlots!==true){
           <mat-grid-tile
             class="grid-tile"
             [class.selected]="availableSlots.isSelected"
             (click)="onNextAvailableSlotClicked(availableSlots)"
           >
             @if(availableSlots.isSameDay===true){
+
             <p class="slot-time" [class.selected]="availableSlots.isSelected">
               {{ availableSlots.startTime | date : "MMMM d" }}
             </p>
             }@else {
+
             <p class="slot-time" [class.selected]="availableSlots.isSelected">
               {{ availableSlots.startTime | date : "MMM d" }} -
               {{ availableSlots.endTime | date : "MMM d" }}
@@ -144,7 +146,7 @@
               {{ availableSlots.endTime | date : "h a" }}
             </p>
           </mat-grid-tile>
-          }
+          } }
         </mat-grid-list>
         <mat-divider class="custom-divider"></mat-divider>
       </ng-container>
@@ -233,7 +235,7 @@
         </p>
         }
       </div>
-      <div class="sized-box"></div>
+      <div class="sized-box-reservation"></div>
       <div class="confirm-reservation">
         <button
           matButton

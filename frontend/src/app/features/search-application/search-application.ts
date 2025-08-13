@@ -4,8 +4,9 @@ import {
   Component,
   EventEmitter,
   inject,
+  OnDestroy,
+  OnInit,
   Output,
-  OnInit, OnDestroy,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -23,7 +24,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTimepickerModule } from '@angular/material/timepicker';
-import { map, Observable, Subscription } from 'rxjs';
+import { map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { ReservationService } from '../../core/services/reservation.service';
 import { Application } from '../../core/models/application.model';
 import { AsyncPipe, DatePipe } from '@angular/common';
@@ -38,6 +39,7 @@ import { ConfirmationDialog } from '../../shared/dialogs/confirmation-dialog/con
 import { MatDialog } from '@angular/material/dialog';
 import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
 import { start } from 'repl';
+import { error } from 'console';
 
 @Component({
   selector: 'app-search-application',
@@ -69,7 +71,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   @Output() onBookingSuccess = new EventEmitter();
 
   applications$!: Observable<Application[]>;
-  availabilityApplication?: AvalaibilityByApplication | null;
+  availabilityApplication?: AvalaibilityByApplication | null = null;
   minDate: Date;
   maxDate: Date;
   minAllowedTime: string;
@@ -154,51 +156,73 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   }
 
   durations = [
-    { value: '2', viewValue: '2 Hours' },
-    { value: '4', viewValue: '4 Hours' },
-    { value: '8', viewValue: '8 Hours' },
-    { value: '12', viewValue: '12 Hours' },
-    { value: '24', viewValue: '24 Hours' },
-    { value: '48', viewValue: '48 Hours' },
+    { value: 2, viewValue: '2 Hours' },
+    { value: 4, viewValue: '4 Hours' },
+    { value: 8, viewValue: '8 Hours' },
+    { value: 12, viewValue: '12 Hours' },
+    { value: 24, viewValue: '24 Hours' },
+    { value: 48, viewValue: '48 Hours' },
   ];
 
   checkAvailability() {
     this.selectedPrimaryApplication =
       this.applicationForm.get('primaryApplication')?.value;
 
-    const index = this.durations.findIndex(
-      (item) =>
-        item.value === this.applicationForm.get('selectedDuration')?.value
-    );
-    const selectedIndex = index <= 0 ? 0 : index - 1;
+    const selectedDuration =
+      this.applicationForm.get('selectedDuration')?.value;
     const startDateTime: Date = this.applicationForm.get('startTime')?.value;
     const availabilityByApplicationRequest: AvailabilityByApplicationRequest = {
       applicationId: this.applicationForm.get('primaryApplication')?.value?.id,
       startTime: startDateTime.toISOString(),
-      durationHours: this.applicationForm.get('selectedDuration')?.value,
+      durationHours: selectedDuration,
       getNextSlots: true,
     };
-    const noApplicationAvailableRequest: AvailabilityByApplicationRequest = {
-      applicationId: this.applicationForm.get('primaryApplication')?.value?.id,
-      startTime: startDateTime.toISOString(),
-      durationHours: Number(this.durations[selectedIndex].value),
-      getNextSlots: false,
-    };
+
     this.isCheckAvailabilityLoading = true;
     this.isCheckAvailableDisabled = true;
     this.availabilityApplication = null;
     this.secondaryApplications = [];
     this.selectedTimeSlot = null;
-    this.subscription = this.reservationService
-      .checkAvailabilityByApplication(
-        availabilityByApplicationRequest,
-        noApplicationAvailableRequest
+    const selectedDurationIndex = this.durations.findIndex(
+      (item) => item.value === selectedDuration
+    );
+    const lessDurationList =
+      selectedDurationIndex > 0
+        ? this.durations
+            .slice(0, selectedDurationIndex)
+            .map((item) => item.value)
+        : [];
+    this.reservationService
+      ?.checkAvailabilityByApplication(availabilityByApplicationRequest)
+      .pipe(
+        switchMap((slotsAvailabilityResponse) => {
+          if (
+            slotsAvailabilityResponse.requestedSlotAvailable === false &&
+            lessDurationList.length > 1
+          ) {
+            return this.reservationService
+              .checkLessDurationSlotsApplication(
+                lessDurationList,
+                availabilityByApplicationRequest
+              )
+              .pipe(
+                map((lessDurationSlotsResponse) => ({
+                  slotsAvailableData: slotsAvailabilityResponse,
+                  lessDurationSlots: lessDurationSlotsResponse,
+                }))
+              );
+          }
+          return of({
+            slotsAvailableData: slotsAvailabilityResponse,
+            lessDurationSlots: null,
+          });
+        })
       )
       .subscribe({
         next: (res) => {
-          this.isCheckAvailabilityLoading = false;
+          console.log('/////////', res.slotsAvailableData);
+          console.log('/////////', res.lessDurationSlots);
           if ((res.slotsAvailableData.nextAvailableSlots?.length ?? 0) >= 1) {
-            this.checkSameDatesSlots(res.slotsAvailableData);
             if (res.slotsAvailableData?.requestedSlotAvailable === true) {
               this.selectedTimeSlot =
                 res.slotsAvailableData.nextAvailableSlots![0];
@@ -207,44 +231,39 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
               this.cdr.detectChanges();
               return;
             }
+
+            if ((res.lessDurationSlots?.nextAvailableSlots?.length ?? 0) >= 1) {
+              res.slotsAvailableData.nextAvailableSlots = [
+                ...res.slotsAvailableData!.nextAvailableSlots!,
+                ...res.lessDurationSlots!.nextAvailableSlots!.map((item) => ({
+                  ...item,
+                  isLessDurationSlots: true,
+                })),
+              ];
+            }
+
+            this.availabilityApplication = res.slotsAvailableData;
+            this.checkSameDatesSlots();
+            this.setSelectedApplicationsValue();
           }
-          if (
-            res.noSlotsAvailableData?.requestedSlotAvailable === false &&
-            (res.noSlotsAvailableData.nextAvailableSlots?.length ?? 0) >= 1
-          ) {
-            this.checkSameDatesSlots(res.noSlotsAvailableData);
-            res.slotsAvailableData.nextAvailableSlots = [
-              ...res.slotsAvailableData!.nextAvailableSlots!,
-              ...res.noSlotsAvailableData!.nextAvailableSlots!.map((item) => ({
-                ...item,
-                isLessDurationSlots: true,
-              })),
-            ];
-          }
-          this.availabilityApplication = res.slotsAvailableData;
-          this.setSelectedApplicationsValue();
+        },
+        complete: () => {
+          this.isCheckAvailabilityLoading = false;
           this.cdr.detectChanges();
         },
-        error: (err) => {
-          console.log('resSuccessNot===', err);
-          this.secondaryApplications = [];
-          this.availabilityApplication = null;
-          console.error(err);
+        error: (error) => {
+          console.log('/////////', error);
           this.isCheckAvailabilityLoading = false;
           this.isCheckAvailableDisabled = false;
           this.cdr.detectChanges();
         },
       });
   }
-  checkSameDatesSlots(slotsAvailableData: AvalaibilityByApplication) {
-    slotsAvailableData.nextAvailableSlots?.map((slots) => {
-      const startDate = new Date(slots.startTime ?? '');
-      const endDate = new Date(slots?.endTime ?? '');
-      const isSameDay =
-        startDate.getFullYear === endDate.getFullYear &&
-        startDate.getMonth === endDate.getMonth &&
-        startDate.getDate === endDate.getDate;
-      return { ...slots, isSameDay: isSameDay };
+  checkSameDatesSlots() {
+    this.availabilityApplication?.nextAvailableSlots?.forEach((slot) => {
+      const startDate = new Date(slot.startTime ?? '');
+      const endDate = new Date(slot?.endTime ?? '');
+       slot.isSameDay=(startDate.getDate() === endDate.getDate());
     });
   }
 

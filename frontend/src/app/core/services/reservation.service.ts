@@ -1,6 +1,18 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, finalize, forkJoin, Observable, of, tap } from 'rxjs';
+import {
+  BehaviorSubject,
+  concatMap,
+  defaultIfEmpty,
+  filter,
+  finalize,
+  forkJoin,
+  from,
+  Observable,
+  of,
+  take,
+  tap,
+} from 'rxjs';
 import { NewReservation, Reservation } from '../models/reservation.model';
 
 import { AppConfig } from '../models/appConfig.model';
@@ -47,22 +59,32 @@ export class ReservationService {
   }
 
   checkAvailabilityByApplication(
-    data: AvailabilityByApplicationRequest,
-    noSlotsAvailableRequest: AvailabilityByApplicationRequest
-  ): Observable<{
-    slotsAvailableData: AvalaibilityByApplication;
-    noSlotsAvailableData: AvalaibilityByApplication;
-  }> {
-    return forkJoin({
-      slotsAvailableData: this.http.post<AvalaibilityByApplication>(
-        `${this.apiUrl}/availability/by-application`,
-        data
+    data: AvailabilityByApplicationRequest
+  ): Observable<AvalaibilityByApplication> {
+    return this.http.post<AvalaibilityByApplication>(
+      `${this.apiUrl}/availability/by-application`,
+      data
+    );
+  }
+  checkLessDurationSlotsApplication(
+    duration: number[],
+    data: AvailabilityByApplicationRequest
+  ): Observable<AvalaibilityByApplication | null> {
+    return from([...duration].reverse()).pipe(
+      concatMap((durationValue) => {
+        const request = {
+          ...data,
+          getNextSlots: false,
+          durationHours: durationValue,
+        };
+        return this.checkAvailabilityByApplication(request);
+      }),
+      filter((res: AvalaibilityByApplication) =>
+        (res.nextAvailableSlots?.length ?? 0) >= 1 ? true : false
       ),
-      noSlotsAvailableData: this.http.post<AvalaibilityByApplication>(
-        `${this.apiUrl}/availability/by-application`,
-        noSlotsAvailableRequest
-      ),
-    });
+      take(1),
+      defaultIfEmpty(null)
+    );
   }
 
   /**
