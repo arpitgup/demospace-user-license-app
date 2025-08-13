@@ -36,6 +36,7 @@ import {
 import { AppConfig } from '../../core/models/appConfig.model';
 import { forkJoin, tap } from 'rxjs';
 import { ReservationApiStatus } from '../landing/landing.enums';
+import { Application } from '../../core/models/application.model';
 
 type DailyAvailabilityMap = { [date: string]: number };
 type NormalizedReservation = { start: Date; end: Date };
