@@ -6,6 +6,8 @@ import {
   OnInit,
   ChangeDetectorRef,
   DestroyRef,
+  EventEmitter,
+  Output,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -41,6 +43,7 @@ import { Application } from '../../core/models/application.model';
 import { SearchByApplicationLoader } from '../../loaders/search-by-date-loader/search-by-date-loader';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialog } from '../../shared/dialogs/confirmation-dialog/confirmation-dialog';
+import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
 
 type DailyAvailabilityMap = { [date: string]: number };
 type NormalizedReservation = { start: Date; end: Date };
@@ -76,6 +79,7 @@ export class SearchByDateComponent implements OnInit {
   private fb = inject(FormBuilder);
   private destroyRef = inject(DestroyRef);
   private confirmationDialog = inject(MatDialog);
+  @Output() onBookingSuccess = new EventEmitter();
 
   // ===== CONFIG =====
   private readonly SERVER_TIME_MODE: 'utc' | 'local-wall' = 'utc';
@@ -146,6 +150,7 @@ export class SearchByDateComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.resetForm();
     this.bootstrap();
     this.setupFormSubscriptions();
   }
@@ -517,7 +522,12 @@ export class SearchByDateComponent implements OnInit {
 
   showConfirmationDialog() {
     const dialogRef = this.confirmationDialog.open(ConfirmationDialog, {
-      width: '43.5rem',
+      width: 'auto',
+      minWidth: 'none',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
       data: {
         title: 'Are You Sure ?',
         message: 'Do you want to confirm the booking for',
@@ -535,6 +545,28 @@ export class SearchByDateComponent implements OnInit {
       }
     });
   }
+
+  showSuccessDialog() {
+      const dialogRef = this.confirmationDialog.open(SuccessDialog, {
+        width: 'auto',
+        minWidth: 'none',
+        maxWidth: 'none',
+        minHeight: 'none',
+        maxHeight: 'none',
+        disableClose: true,
+        data: {
+          title: 'Success',
+          message:
+            'A confirmation email has been sent to your inbox.<br> Please check your email for the booking details.<br> We’ll see you soon!',
+          confirmText: 'OK',
+        },
+      });
+      dialogRef.afterClosed().subscribe((result) => {
+        if (result) {
+          this.onBookingSuccess.emit();
+        }
+      });
+    }
 
   onToggleGroupChange(event: { value: Application[] }): void {
     const next = event?.value ?? [];
@@ -569,7 +601,8 @@ export class SearchByDateComponent implements OnInit {
 
     this.reservationService.createReservation(payload).subscribe({
       next: (newReservation) => {
-        alert(`Reservation successfully created with ID: ${newReservation.id}`);
+        console.log(`Reservation successfully created with ID: ${newReservation.id}`);
+        this.showSuccessDialog();
         this.bootstrap();
         this.resetForm();
       },
