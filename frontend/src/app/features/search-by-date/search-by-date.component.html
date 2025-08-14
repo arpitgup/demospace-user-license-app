@@ -17,23 +17,47 @@
         </div>
       </div>
 
-      <form class="date-time-container" [formGroup]="form" (ngSubmit)="onCheckAvailability()" novalidate>
+      <form
+        class="date-time-container"
+        [formGroup]="form"
+        (ngSubmit)="onCheckAvailability()"
+        novalidate
+      >
         <!-- Start date/time -->
         <div class="start-date-time-container">
           <!-- Start Date -->
           <mat-form-field appearance="outline" class="start-date-field">
             <mat-label>Start Date</mat-label>
-            <input matInput [matDatepicker]="picker" [matDatepickerFilter]="dateFilter" [min]="minSelectableDay"
-              [max]="maxSelectableDate" placeholder="MM/DD/YYYY" formControlName="startDate"
-              aria-describedby="start-date-help" />
-            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <input
+              matInput
+              [matDatepicker]="picker"
+              [matDatepickerFilter]="dateFilter"
+              [min]="minSelectableDay"
+              [max]="maxSelectableDate"
+              placeholder="MM/DD/YYYY"
+              formControlName="startDate"
+              aria-describedby="start-date-help"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="picker"
+            ></mat-datepicker-toggle>
             <mat-datepicker #picker [dateClass]="dateClass"></mat-datepicker>
 
-            <mat-error *ngIf="startDateCtrl.hasError('required')">Start date is required.</mat-error>
-            <mat-error *ngIf="form.hasError('noValidStartTimeOptions') && startDateCtrl.touched">
+            <mat-error *ngIf="startDateCtrl.hasError('required')"
+              >Start date is required.</mat-error
+            >
+            <mat-error
+              *ngIf="
+                form.hasError('noValidStartTimeOptions') &&
+                startDateCtrl.touched
+              "
+            >
               No valid start times remain for this date.
             </mat-error>
-            <mat-error *ngIf="form.hasError('dateTimeInvalid') && startDateCtrl.touched">
+            <mat-error
+              *ngIf="form.hasError('dateTimeInvalid') && startDateCtrl.touched"
+            >
               Please fix the date/time selection.
             </mat-error>
           </mat-form-field>
@@ -41,16 +65,32 @@
           <!-- Start Time (TIMEPICKER) -->
           <mat-form-field appearance="outline" class="start-time-field">
             <mat-label>Start Time</mat-label>
-            <input matInput [matTimepicker]="startPicker" formControlName="startTime" [readonly]="true"
-              [matTimepickerMin]="minTime" [matTimepickerMax]="maxTime" aria-label="Start time" />
-            <mat-timepicker-toggle matIconSuffix [for]="startPicker"></mat-timepicker-toggle>
+            <input
+              matInput
+              [matTimepicker]="startPicker"
+              formControlName="startTime"
+              [readonly]="true"
+              [matTimepickerMin]="minTime"
+              [matTimepickerMax]="maxTime"
+              aria-label="Start time"
+            />
+            <mat-timepicker-toggle
+              matIconSuffix
+              [for]="startPicker"
+            ></mat-timepicker-toggle>
             <mat-timepicker interval="60min" #startPicker></mat-timepicker>
 
-            <mat-error *ngIf="startTimeCtrl.hasError('required')">Start time is required.</mat-error>
-            <mat-error *ngIf="form.hasError('overlapsExisting') && startTimeCtrl.touched">
+            <mat-error *ngIf="startTimeCtrl.hasError('required')"
+              >Start time is required.</mat-error
+            >
+            <mat-error
+              *ngIf="form.hasError('overlapsExisting') && startTimeCtrl.touched"
+            >
               The selected time window overlaps an existing reservation.
             </mat-error>
-            <mat-error *ngIf="form.hasError('dateTimeInvalid') && startTimeCtrl.touched">
+            <mat-error
+              *ngIf="form.hasError('dateTimeInvalid') && startTimeCtrl.touched"
+            >
               Please fix the date/time selection.
             </mat-error>
           </mat-form-field>
@@ -61,25 +101,46 @@
           <!-- End Time -->
           <mat-form-field appearance="outline" class="end-time-field">
             <mat-label>End Time</mat-label>
-            <mat-select formControlName="endTime" (selectionChange)="onEndTimeChange()"
-              [disabled]="endTimeCtrl.disabled" aria-label="End time">
+            <mat-select
+              formControlName="endTime"
+              (selectionChange)="onEndTimeChange()"
+              [disabled]="endTimeCtrl.disabled"
+              aria-label="End time"
+            >
               <ng-container *ngFor="let time of endTimeSlots">
-                <mat-option *ngIf="!HIDE_CONFLICTING_END_SLOTS || !endConflictMap[time]" [value]="time"
+                <mat-option
+                  *ngIf="!HIDE_CONFLICTING_END_SLOTS || !endConflictMap[time]"
+                  [value]="time"
                   [disabled]="endConflictMap[time] === true"
-                  [title]="endConflictMap[time] ? 'Conflicts with an existing reservation' : ''">
+                  [title]="
+                    endConflictMap[time]
+                      ? 'Conflicts with an existing reservation'
+                      : ''
+                  "
+                >
                   {{ time }}
                 </mat-option>
               </ng-container>
             </mat-select>
 
-            <mat-error *ngIf="endTimeCtrl.hasError('required')">End time is required.</mat-error>
-            <mat-error *ngIf="form.hasError('overlapsExisting') && endTimeCtrl.touched">
+            <mat-error *ngIf="endTimeCtrl.hasError('required')"
+              >End time is required.</mat-error
+            >
+            <mat-error
+              *ngIf="form.hasError('overlapsExisting') && endTimeCtrl.touched"
+            >
               The selected time window overlaps an existing reservation.
             </mat-error>
-            <mat-error *ngIf="form.hasError('noValidEndTimeOptions') && endTimeCtrl.touched">
+            <mat-error
+              *ngIf="
+                form.hasError('noValidEndTimeOptions') && endTimeCtrl.touched
+              "
+            >
               No valid end-time options are available for the chosen start time.
             </mat-error>
-            <mat-error *ngIf="form.hasError('dateTimeInvalid') && endTimeCtrl.touched">
+            <mat-error
+              *ngIf="form.hasError('dateTimeInvalid') && endTimeCtrl.touched"
+            >
               Please fix the date/time selection.
             </mat-error>
           </mat-form-field>
@@ -88,24 +149,42 @@
           <div *ngIf="calculatedEndDate">
             <mat-form-field appearance="outline" class="end-date-field">
               <mat-label>End Date</mat-label>
-              <input matInput [value]="calculatedEndDate | date : 'MM/dd/yyyy'" [disabled]="true"
-                aria-readonly="true" />
+              <input
+                matInput
+                [value]="calculatedEndDate | date : 'MM/dd/yyyy'"
+                [disabled]="true"
+                aria-readonly="true"
+              />
             </mat-form-field>
           </div>
         </div>
 
         <!-- Submit -->
         <mat-card-actions class="actions-container">
-          <button mat-flat-button color="primary" class="check-availability-button"
-            [disabled]="isCheckAvailabilityDisabled()" type="submit">
+          <button
+            mat-flat-button
+            color="primary"
+            class="check-availability-button"
+            [disabled]="isCheckAvailabilityDisabled()"
+            type="submit"
+          >
             Check Availability >
           </button>
         </mat-card-actions>
       </form>
 
       <div class="side-arrow-container">
-        <svg xmlns="http://www.w3.org/2000/svg" width="59" height="93" viewBox="0 0 59 93" fill="none">
-          <path d="M59 46.5L0.500003 92.8324L0.500007 0.167638L59 46.5Z" fill="white" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="59"
+          height="93"
+          viewBox="0 0 59 93"
+          fill="none"
+        >
+          <path
+            d="M59 46.5L0.500003 92.8324L0.500007 0.167638L59 46.5Z"
+            fill="white"
+          />
         </svg>
       </div>
     </mat-card-content>
@@ -121,34 +200,59 @@
     <mat-card class="availability-results-container">
       <mat-card-title>Available Applications by Selected Date</mat-card-title>
       <mat-card-subtitle>
-        * You may select up to <strong>THREE</strong> applications from the list below.
+        * You may select up to <strong>THREE</strong> applications from the list
+        below.
       </mat-card-subtitle>
 
       <div class="pill-container">
         @if (availableApplications.length > 0) {
-        <mat-button-toggle-group class="pill-group" multiple [value]="selectedApps"
-          (change)="onToggleGroupChange($event)" aria-label="Select up to three applications">
-          <mat-button-toggle *ngFor="let app of availableApplications; trackBy: trackByAppId" [value]="app"
-            class="app-toggle" [disabled]="!isSelected(app) && selectedApps.length >= 3" [checked]="isSelected(app)"
-            [disableRipple]="true">
+        <mat-button-toggle-group
+          class="pill-group"
+          multiple
+          [value]="selectedApps"
+          (change)="onToggleGroupChange($event)"
+          aria-label="Select up to three applications"
+        >
+          <mat-button-toggle
+            *ngFor="let app of availableApplications; trackBy: trackByAppId"
+            [value]="app"
+            class="app-toggle"
+            [disabled]="!isSelected(app) && selectedApps.length >= 3"
+            [checked]="isSelected(app)"
+            [disableRipple]="true"
+          >
             {{ app.name }}
           </mat-button-toggle>
         </mat-button-toggle-group>
         } @else {
-        <p class="no-apps-message">No applications available for the selected date range.</p>
+        <p class="no-apps-message">
+          No applications available for the selected date range.
+        </p>
         }
       </div>
 
       <div class="horizontal-line">
-        <svg xmlns="http://www.w3.org/2000/svg" width="623" height="2" viewBox="0 0 623 2" fill="none"
-          aria-hidden="true">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="623"
+          height="2"
+          viewBox="0 0 623 2"
+          fill="none"
+          aria-hidden="true"
+        >
           <path d="M0 1H623" stroke="black" stroke-opacity="0.2" />
         </svg>
       </div>
 
       <div class="license-info">
-        <p>License will be available {{ availableDate | date : "MMMM d 'at' h:mm a z" }}</p>
-        <p>License access will be revoked {{ revokeDate | date : "MMMM d 'at' h:mm a z" }}</p>
+        <p>
+          License will be available
+          {{ availableDate | date : "MMMM d 'at' h:mm a z" }}
+        </p>
+        <p>
+          License access will be revoked
+          {{ revokeDate | date : "MMMM d 'at' h:mm a z" }}
+        </p>
       </div>
 
       <div class="selected-app-info" aria-live="polite">
@@ -156,8 +260,13 @@
       </div>
 
       <div class="confirmation-actions-container">
-        <button mat-raised-button color="primary" class="confirm-btn" [disabled]="getSelectedAvailableAppCount() === 0"
-          (click)="showConfirmationDialog()">
+        <button
+          mat-raised-button
+          color="primary"
+          class="confirm-btn"
+          [disabled]="getSelectedAvailableAppCount() === 0"
+          (click)="showConfirmationDialog()"
+        >
           Confirm Reservation
         </button>
       </div>

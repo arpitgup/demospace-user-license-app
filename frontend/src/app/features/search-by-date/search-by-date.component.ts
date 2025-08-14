@@ -79,7 +79,7 @@ export class SearchByDateComponent implements OnInit {
   private fb = inject(FormBuilder);
   private destroyRef = inject(DestroyRef);
   private confirmationDialog = inject(MatDialog);
-  @Output() onBookingSuccess = new EventEmitter();
+  @Output() bookingSuccess = new EventEmitter();
 
   // ===== CONFIG =====
   private readonly SERVER_TIME_MODE: 'utc' | 'local-wall' = 'utc';
@@ -547,26 +547,26 @@ export class SearchByDateComponent implements OnInit {
   }
 
   showSuccessDialog() {
-      const dialogRef = this.confirmationDialog.open(SuccessDialog, {
-        width: 'auto',
-        minWidth: 'none',
-        maxWidth: 'none',
-        minHeight: 'none',
-        maxHeight: 'none',
-        disableClose: true,
-        data: {
-          title: 'Success',
-          message:
-            'A confirmation email has been sent to your inbox.<br> Please check your email for the booking details.<br> We’ll see you soon!',
-          confirmText: 'OK',
-        },
-      });
-      dialogRef.afterClosed().subscribe((result) => {
-        if (result) {
-          this.onBookingSuccess.emit();
-        }
-      });
-    }
+    const dialogRef = this.confirmationDialog.open(SuccessDialog, {
+      width: 'auto',
+      minWidth: 'none',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        title: 'Success',
+        message:
+          'A confirmation email has been sent to your inbox.<br> Please check your email for the booking details.<br> We’ll see you soon!',
+        confirmText: 'OK',
+      },
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.bookingSuccess.emit();
+      }
+    });
+  }
 
   onToggleGroupChange(event: { value: Application[] }): void {
     const next = event?.value ?? [];
@@ -601,7 +601,9 @@ export class SearchByDateComponent implements OnInit {
 
     this.reservationService.createReservation(payload).subscribe({
       next: (newReservation) => {
-        console.log(`Reservation successfully created with ID: ${newReservation.id}`);
+        console.log(
+          `Reservation successfully created with ID: ${newReservation.id}`
+        );
         this.showSuccessDialog();
         this.bootstrap();
         this.resetForm();
@@ -779,7 +781,7 @@ export class SearchByDateComponent implements OnInit {
     this.form.reset({
       startDate: null,
       startTime: { value: null, disabled: true },
-      endTime: { value: null, disabled: true }
+      endTime: { value: null, disabled: true },
     });
 
     this.endTimeSlots = [];

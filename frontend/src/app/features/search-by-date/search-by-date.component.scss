@@ -281,7 +281,7 @@
               gap: 0.8125rem;
               flex-shrink: 0;
               border-radius: 1.5625rem;
-              background: #E6E6E6;
+              background: #e6e6e6;
 
               &:hover {
                 background-color: #e0e0e0;
@@ -355,10 +355,12 @@
           width: 18.25rem;
           border-radius: 2.5625rem;
 
-          background: linear-gradient(90deg,
-              rgba(66, 133, 244, 0.95) 7.88%,
-              #7051ca 83.78%,
-              rgba(188, 18, 4, 0.88) 152.54%);
+          background: linear-gradient(
+            90deg,
+            rgba(66, 133, 244, 0.95) 7.88%,
+            #7051ca 83.78%,
+            rgba(188, 18, 4, 0.88) 152.54%
+          );
 
           color: white;
           font-family: Roboto;

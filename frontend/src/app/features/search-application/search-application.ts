@@ -66,7 +66,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   private confirmationDialog = inject(MatDialog);
   private cdr = inject(ChangeDetectorRef);
   private subscription?: Subscription;
-  @Output() onBookingSuccess = new EventEmitter();
+  @Output() bookingSuccess = new EventEmitter();
 
   applications$!: Observable<Application[]>;
   availabilityApplication?: AvalaibilityByApplication | null;
@@ -421,7 +421,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.onBookingSuccess.emit();
+        this.bookingSuccess.emit();
       }
     });
   }

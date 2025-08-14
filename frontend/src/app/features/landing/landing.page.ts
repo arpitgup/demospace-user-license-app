@@ -130,7 +130,7 @@ export class LandingPage implements OnInit {
     });
   }
 
-  onBookingSuccess(): void {
+  bookingSuccess(): void {
     this.tabGroup.selectedIndex = 1;
   }
 

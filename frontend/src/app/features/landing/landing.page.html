@@ -26,11 +26,11 @@
           </div>
           @if (selectedSearchType() === SearchType.ByDate) {
           <div class="content-by-date">
-            <app-search-by-date (onBookingSuccess)="onBookingSuccess()"></app-search-by-date>
+            <app-search-by-date (bookingSuccess)="bookingSuccess()"></app-search-by-date>
           </div>
           } @if (selectedSearchType() === SearchType.ByApplication) {
           <div class="search-content">
-            <app-search-application (onBookingSuccess)="onBookingSuccess()"></app-search-application>
+            <app-search-application (bookingSuccess)="bookingSuccess()"></app-search-application>
           </div>
           }
         </div>
