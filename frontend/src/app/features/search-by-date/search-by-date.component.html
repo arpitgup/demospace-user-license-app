@@ -21,6 +21,7 @@
         class="date-time-container"
         [formGroup]="form"
         (ngSubmit)="onCheckAvailability()"
+        #formDir="ngForm"
         novalidate
       >
         <!-- Start date/time -->

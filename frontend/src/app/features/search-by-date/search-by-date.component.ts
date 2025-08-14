@@ -8,6 +8,7 @@ import {
   DestroyRef,
   EventEmitter,
   Output,
+  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -17,6 +18,7 @@ import {
   AbstractControl,
   FormGroup,
   ValidationErrors,
+  FormGroupDirective,
 } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -80,6 +82,7 @@ export class SearchByDateComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private confirmationDialog = inject(MatDialog);
   @Output() bookingSuccess = new EventEmitter();
+  @ViewChild(FormGroupDirective) private formDir?: FormGroupDirective;
 
   // ===== CONFIG =====
   private readonly SERVER_TIME_MODE: 'utc' | 'local-wall' = 'utc';
@@ -778,6 +781,7 @@ export class SearchByDateComponent implements OnInit {
   }
 
   private resetForm(): void {
+    this.formDir?.resetForm();
     this.form.reset({
       startDate: null,
       startTime: { value: null, disabled: true },
