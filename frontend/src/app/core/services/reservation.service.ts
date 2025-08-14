@@ -33,6 +33,8 @@ export class ReservationService {
   private apiUrl = environment.apiUrl;
   private applicationSubject = new BehaviorSubject<Application[]>([]);
   public applications$ = this.applicationSubject.asObservable();
+  private reservationSubject = new BehaviorSubject<Reservation[]>([]);
+  public reservation$ = this.reservationSubject.asObservable();
 
   /**
    * API call to check application availability for a given time range.
@@ -56,6 +58,21 @@ export class ReservationService {
         this.applicationSubject.next(applications);
       })
     );
+  }
+
+  getUserReservations(): Observable<Reservation[]> {
+    const headers = new HttpHeaders({
+      accept: 'application/json',
+    });
+    return this.http
+      .get<Reservation[]>(`${this.apiUrl}/reservations`, {
+        headers,
+      })
+      .pipe(
+        tap((reservations) => {
+          this.reservationSubject.next(reservations);
+        })
+      );
   }
 
   checkAvailabilityByApplication(

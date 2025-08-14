@@ -29,6 +29,7 @@
             <input
               matInput
               [matDatepicker]="datePicker"
+              [matDatepickerFilter]="dateFilter"
               [min]="minDate"
               [max]="maxDate"
               readonly
@@ -63,7 +64,10 @@
               formControlName="selectedDuration"
             >
               @for(duration of durations; track duration.value){
-              <mat-option [value]="duration.value">
+              <mat-option
+                [value]="duration.value"
+                [disabled]="duration.isDisabled"
+              >
                 {{ duration.viewValue }}
               </mat-option>
               }

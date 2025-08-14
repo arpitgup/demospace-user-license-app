@@ -9,7 +9,11 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReservationTableComponent } from '../../shared/components/reservation-table/reservation-table.component';
-import { MatTabGroup, MatTabsModule, MatTabChangeEvent } from '@angular/material/tabs';
+import {
+  MatTabGroup,
+  MatTabsModule,
+  MatTabChangeEvent,
+} from '@angular/material/tabs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ReservationService } from '../../core/services/reservation.service';
 import { Reservation } from '../../core/models/reservation.model';
@@ -49,7 +53,8 @@ export class LandingPage implements OnInit {
   private reservationsFetched = signal(false);
   public selectedSearchType = signal<SearchType | null>(null);
   public showPastReservations = signal(false);
- @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
+  @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
+  selectedIndex = 0;
 
   public filteredReservations = computed(() => {
     const showPast = this.showPastReservations();
@@ -91,6 +96,10 @@ export class LandingPage implements OnInit {
 
   ngOnInit(): void {
     this.reservationService.getApplications().subscribe();
+    this.callAllReservations();
+  }
+  callAllReservations() {
+    this.reservationService.getUserReservations().subscribe();;
   }
 
   onShowPastChange(checked: boolean): void {
@@ -106,6 +115,7 @@ export class LandingPage implements OnInit {
    * @param event The MatTabChangeEvent object.
    */
   onTabChange(event: MatTabChangeEvent): void {
+    this.selectedIndex = event.index;
     if (event.index === 1) {
       this.reservationService.getReservations().subscribe((data) => {
         this.allReservations.set(data);
@@ -115,10 +125,10 @@ export class LandingPage implements OnInit {
   }
 
   handleCancelReservation(reservation: Reservation): void {
-
     this.reservationService.cancelReservation(reservation.id).subscribe({
       next: () => {
         console.log(`Reservation ${reservation.id} cancelled successfully.`);
+          this.callAllReservations();
       },
       error: (err) => {
         console.error('Failed to cancel reservation:', err);

@@ -237,6 +237,7 @@ export class SearchByDateComponent implements OnInit {
 
     const reservations$ = this.reservationService.getReservations().pipe(
       tap((res) => {
+        console.log("//////////date",res);
         const filteredReservations = res.filter(
           (r) =>
             r.status === ReservationApiStatus.PENDING ||

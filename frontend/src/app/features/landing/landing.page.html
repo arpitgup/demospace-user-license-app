@@ -11,7 +11,8 @@
     >
       <!-- Tab 1: Book Reservation -->
       <mat-tab [label]="landingPageConstants.BOOK_RESERVATION_TAB_LABEL">
-        <div class="tab-content book-reservation-content">
+        @if(selectedIndex===0){
+ <div class="tab-content book-reservation-content">
           <div class="card-container">
             @for (searchOption of searchOptionCards; track searchOption.id) {
             <app-search-option-card
@@ -29,10 +30,13 @@
           </div>
           } @if (selectedSearchType() === SearchType.ByApplication) {
           <div class="search-content">
-            <app-search-application (onBookingSuccess)="onBookingSuccess()"></app-search-application>
+            <app-search-application
+              (onBookingSuccess)="onBookingSuccess()"
+            ></app-search-application>
           </div>
           }
         </div>
+        }
       </mat-tab>
 
       <!-- Tab 2: Your Reservations -->

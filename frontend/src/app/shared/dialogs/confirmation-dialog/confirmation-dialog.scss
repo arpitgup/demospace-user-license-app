@@ -42,10 +42,9 @@ mat-dialog-content {
   text-align: center;
 }
 
-
-p{
-    margin: 0;
-    padding: 0;
+p {
+  margin: 0;
+  padding: 0;
 }
 .booking-details {
   color: rgba(22, 26, 29, 0.7);
@@ -63,12 +62,11 @@ p{
   font-style: normal;
   font-weight: 500;
   line-height: 2.5rem;
- 
 }
 .dialog-actions {
   justify-content: center;
-      margin-top: 1rem;
-    margin-bottom: 2rem;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
   .cancel-button {
     display: flex;
     padding: 1rem 3rem;
@@ -110,4 +108,3 @@ p{
     cursor: pointer;
   }
 }
-

@@ -24,7 +24,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTimepickerModule } from '@angular/material/timepicker';
-import { map, Observable, of, Subscription, switchMap } from 'rxjs';
+import { map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { ReservationService } from '../../core/services/reservation.service';
 import { Application } from '../../core/models/application.model';
 import { AsyncPipe, DatePipe } from '@angular/common';
@@ -38,8 +38,11 @@ import { SearchByApplicationLoader } from '../../loaders/search-by-application-l
 import { ConfirmationDialog } from '../../shared/dialogs/confirmation-dialog/confirmation-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
-import { start } from 'repl';
-import { error } from 'console';
+
+import { ReservationApiStatus } from '../landing/landing.enums';
+import { Reservation } from '../../core/models/reservation.model';
+
+type NormalizedReservation = { start: Date; end: Date };
 
 @Component({
   selector: 'app-search-application',
@@ -71,6 +74,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   @Output() onBookingSuccess = new EventEmitter();
 
   applications$!: Observable<Application[]>;
+  reservations$!: Observable<Reservation[]>;
   availabilityApplication?: AvalaibilityByApplication | null = null;
   minDate: Date;
   maxDate: Date;
@@ -84,6 +88,8 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   isCheckAvailabilityLoading = false;
   isCheckAvailableDisabled = false;
   selectedApplicationList: string[] = [];
+  normalizedReservations: NormalizedReservation[] = [];
+  readonly BLOC_DAYS_LIMIT: number = 7;
 
   constructor(private fb: FormBuilder) {
     const today = new Date();
@@ -107,61 +113,36 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.applications$ = this.reservationService.applications$;
+    this.reservations$ = this.reservationService.reservation$;
+
+    this.reservations$.subscribe((res) => {
+      const filteredReservations = res.filter(
+        (r) =>
+          r.status === ReservationApiStatus.PENDING ||
+          r.status === ReservationApiStatus.ACTIVE
+      );
+
+      this.normalizedReservations = filteredReservations.map((r) => ({
+        start: new Date(r.startTime),
+        end: new Date(r.endTime),
+      }));
+    });
+
     this.applicationForm.valueChanges.subscribe(() => {
       this.isCheckAvailableDisabled = false;
     });
 
-    this.applicationForm
-      .get('startDate')
-      ?.valueChanges.subscribe((newValue) => {
-        const startDateTime = new Date(newValue as Date);
-        if (
-          newValue.getFullYear() === this.minDate.getFullYear() &&
-          newValue.getDate() === this.minDate.getDate() &&
-          this.minDate.getMonth() === newValue.getMonth()
-        ) {
-          this.minAllowedTime =
-            this.nextHour < 8
-              ? '08:00'
-              : this.nextHour.toString().padStart(2, '0') + ':00';
-          const selectedHour =
-            this.applicationForm.get('startTime')?.value?.getHours ?? 0;
-          if (selectedHour >= this.nextHour) {
-            startDateTime.setHours(selectedHour, 0, 0);
-          } else {
-            startDateTime.setHours(this.nextHour < 8 ? 8 : this.nextHour, 0, 0);
-          }
-
-          this.applicationForm.get('startTime')?.patchValue(startDateTime);
-        } else {
-          this.minAllowedTime = '00:00';
-          // if (
-          //   this.applicationForm.get('startTime')?.value?.getHours ??
-          //   0 != 0
-          // ) {
-          //   startDateTime.setHours(
-          //     this.applicationForm.get('startTime')?.value?.getHours ?? 0,
-          //     0,
-          //     0
-          //   );
-          // } else {
-
-          // }
-          startDateTime.setHours(8, 0, 0);
-          this.applicationForm.get('startTime')?.patchValue(startDateTime);
-        }
-        this.applicationForm.get('startTime')?.markAllAsTouched();
-        this.applicationForm.get('startTime')?.markAllAsDirty();
-      });
+    this.listenDateChanges();
+    this.listenTimeChanges();
   }
 
   durations = [
-    { value: 2, viewValue: '2 Hours' },
-    { value: 4, viewValue: '4 Hours' },
-    { value: 8, viewValue: '8 Hours' },
-    { value: 12, viewValue: '12 Hours' },
-    { value: 24, viewValue: '24 Hours' },
-    { value: 48, viewValue: '48 Hours' },
+    { value: 2, viewValue: '2 Hours', isDisabled: false },
+    { value: 4, viewValue: '4 Hours', isDisabled: false },
+    { value: 8, viewValue: '8 Hours', isDisabled: false },
+    { value: 12, viewValue: '12 Hours', isDisabled: false },
+    { value: 24, viewValue: '24 Hours', isDisabled: false },
+    { value: 48, viewValue: '48 Hours', isDisabled: false },
   ];
 
   checkAvailability() {
@@ -220,39 +201,32 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (res) => {
-          console.log('/////////', res.slotsAvailableData);
-          console.log('/////////', res.lessDurationSlots);
           if ((res.slotsAvailableData.nextAvailableSlots?.length ?? 0) >= 1) {
             if (res.slotsAvailableData?.requestedSlotAvailable === true) {
               this.selectedTimeSlot =
                 res.slotsAvailableData.nextAvailableSlots![0];
               this.checkSecondaryApplications(this.selectedTimeSlot!);
-              this.availabilityApplication = res.slotsAvailableData;
-              this.cdr.detectChanges();
-              return;
             }
-
-            if ((res.lessDurationSlots?.nextAvailableSlots?.length ?? 0) >= 1) {
-              res.slotsAvailableData.nextAvailableSlots = [
-                ...res.slotsAvailableData!.nextAvailableSlots!,
-                ...res.lessDurationSlots!.nextAvailableSlots!.map((item) => ({
-                  ...item,
-                  isLessDurationSlots: true,
-                })),
-              ];
-            }
-
-            this.availabilityApplication = res.slotsAvailableData;
-            this.checkSameDatesSlots();
-            this.setSelectedApplicationsValue();
           }
+          if ((res.lessDurationSlots?.nextAvailableSlots?.length ?? 0) >= 1) {
+            res.slotsAvailableData.nextAvailableSlots = [
+              ...res.slotsAvailableData!.nextAvailableSlots!,
+              ...res.lessDurationSlots!.nextAvailableSlots!.map((item) => ({
+                ...item,
+                isLessDurationSlots: true,
+              })),
+            ];
+          }
+
+          this.availabilityApplication = res.slotsAvailableData;
+          this.checkSameDatesSlots();
+          this.setSelectedApplicationsValue();
         },
         complete: () => {
           this.isCheckAvailabilityLoading = false;
           this.cdr.detectChanges();
         },
         error: (error) => {
-          console.log('/////////', error);
           this.isCheckAvailabilityLoading = false;
           this.isCheckAvailableDisabled = false;
           this.cdr.detectChanges();
@@ -263,7 +237,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     this.availabilityApplication?.nextAvailableSlots?.forEach((slot) => {
       const startDate = new Date(slot.startTime ?? '');
       const endDate = new Date(slot?.endTime ?? '');
-       slot.isSameDay=(startDate.getDate() === endDate.getDate());
+      slot.isSameDay = startDate.getDate() === endDate.getDate();
     });
   }
 
@@ -362,7 +336,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
       const selectedApplicationNames = this.secondaryApplications
         .filter((item) => item.isSelected === true)
         .map((item) => item.name);
-      console.log('selectedApplications====', selectedApplicationNames);
+
       this.selectedApplicationList.push(...selectedApplicationNames);
     }
   }
@@ -386,7 +360,6 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
           this.secondaryApplications = [];
           this.availabilityApplication = null;
           this.selectedTimeSlot = null;
-          console.error('error=====', err);
         },
       });
   }
@@ -449,5 +422,173 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
+  }
+
+  listenDateChanges() {
+    this.applicationForm
+      .get('startDate')
+      ?.valueChanges.subscribe((newValue) => {
+        const startDateTime = new Date(newValue as Date);
+        this.durations = this.durations.map((item) => ({
+          ...item,
+          isDisabled: false,
+        }));
+        const disableDatesStartEndTime =
+          this.isDateExistInDisableDateRanges(startDateTime);
+
+        if (disableDatesStartEndTime.endTime > 0) {
+          this.maxAllowedTime =
+            disableDatesStartEndTime.endTime.toString().padStart(2, '0') +
+            ':00';
+        }
+        if (
+          newValue.getFullYear() === this.minDate.getFullYear() &&
+          newValue.getDate() === this.minDate.getDate() &&
+          this.minDate.getMonth() === newValue.getMonth()
+        ) {
+          if (disableDatesStartEndTime.startTime > 0) {
+            this.minAllowedTime = disableDatesStartEndTime.startTime
+              .toString()
+              .padStart(2, '0');
+          } else {
+            this.minAllowedTime =
+              this.nextHour.toString().padStart(2, '0') + ':00';
+          }
+
+          const selectedHour =
+            this.applicationForm.get('startTime')?.value?.getHours ?? 0;
+          if (
+            selectedHour >= this.nextHour &&
+            selectedHour < disableDatesStartEndTime.endTime
+          ) {
+            startDateTime.setHours(selectedHour, 0, 0);
+          } else {
+            startDateTime.setHours(
+              this.nextHour < 8 && disableDatesStartEndTime.endTime > 8
+                ? 8
+                : this.nextHour,
+              0,
+              0
+            );
+          }
+          this.applicationForm.get('startTime')?.patchValue(startDateTime);
+        } else {
+          if (disableDatesStartEndTime.startTime > 0) {
+            this.minAllowedTime =
+              disableDatesStartEndTime.startTime.toString().padStart(2, '0') +
+              ':00';
+            startDateTime.setHours(disableDatesStartEndTime.startTime, 0, 0);
+          } else {
+            this.minAllowedTime = '00:00';
+            startDateTime.setHours(8, 0, 0);
+          }
+
+          // if (
+          //   this.applicationForm.get('startTime')?.value?.getHours ??
+          //   0 != 0
+          // ) {
+          //   startDateTime.setHours(
+          //     this.applicationForm.get('startTime')?.value?.getHours ?? 0,
+          //     0,
+          //     0
+          //   );
+          // } else {
+
+          // }
+
+          this.applicationForm.get('startTime')?.patchValue(startDateTime);
+        }
+        this.applicationForm.get('startTime')?.markAllAsTouched();
+        this.applicationForm.get('startTime')?.markAllAsDirty();
+      });
+  }
+
+  listenTimeChanges() {
+    this.applicationForm
+      .get('startTime')
+      ?.valueChanges.subscribe((newValue) => {
+        const maxHour =
+          new Date(`2025-01-01T${this.maxAllowedTime}:00`).getHours() + 2;
+        const selectedDateTime = new Date(newValue);
+        const selectedHours = selectedDateTime.getHours();
+        for (let slot of this.normalizedReservations) {
+          if (this.isSameDay(slot.start, selectedDateTime)) {
+            this.durations = this.durations.map((item) => ({
+              ...item,
+              isDisabled: selectedHours + item.value <= maxHour ? false : true,
+            }));
+          }
+        }
+
+        this.applicationForm?.get('selectedDuration')?.patchValue(null);
+        this.cdr.detectChanges();
+      });
+  }
+  isDateExistInDisableDateRanges(startDateTime: Date): {
+    startTime: number;
+    endTime: number;
+  } {
+    let startTime: number = 0;
+    let endTime: number = 0;
+    for (let slot of this.normalizedReservations) {
+      const blocEnd = new Date(
+        slot.end.getTime() + this.BLOC_DAYS_LIMIT * 24 * 60 * 60 * 1000
+      );
+      if (
+        this.isSameDay(startDateTime, slot.start) &&
+        endTime < slot.start.getHours() - 2
+      ) {
+        endTime = slot.start.getHours() - 2;
+      }
+      if (
+        this.isSameDay(startDateTime, blocEnd) &&
+        startTime < blocEnd.getHours()
+      ) {
+        startTime = blocEnd.getHours();
+      }
+    }
+    return { startTime: startTime, endTime: endTime };
+  }
+
+  isSameDay(selectedDate: Date, endDate: Date): boolean {
+    return (
+      selectedDate.getDate() === endDate.getDate() &&
+      selectedDate.getMonth() === endDate.getMonth() &&
+      selectedDate.getFullYear() === endDate.getFullYear()
+    );
+  }
+
+  dateFilter = (date: Date | null): boolean => {
+    if (!date) {
+      return false;
+    }
+    const dayOnly = this.stripTime(date);
+    const now = new Date();
+    const nextDay = new Date();
+    nextDay.setDate(now.getDate() + 1);
+    for (let slot of this.normalizedReservations) {
+      if (
+        this.isSameDay(nextDay, date) &&
+        this.isSameDay(nextDay, slot.start) &&
+        this.nextHour >= slot.start.getHours()
+      ) {
+        return false;
+      }
+      const blocStart = slot.start;
+      const blocEnd = new Date(
+        slot.end.getTime() + this.BLOC_DAYS_LIMIT * 24 * 60 * 60 * 1000
+      );
+      if (
+        dayOnly > this.stripTime(blocStart) &&
+        dayOnly < this.stripTime(blocEnd)
+      ) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  stripTime(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   }
 }
