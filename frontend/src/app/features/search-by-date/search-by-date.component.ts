@@ -9,6 +9,7 @@ import {
   EventEmitter,
   Output,
   ViewChild,
+  effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -76,27 +77,26 @@ type NormalizedReservation = { start: Date; end: Date };
   providers: [{ provide: MAT_DATE_LOCALE, useValue: 'en-GB' }],
 })
 export class SearchByDateComponent implements OnInit {
-  private reservationService = inject(ReservationService);
-  private cdr = inject(ChangeDetectorRef);
-  private fb = inject(FormBuilder);
-  private destroyRef = inject(DestroyRef);
-  private confirmationDialog = inject(MatDialog);
-  @Output() bookingSuccess = new EventEmitter();
+  private readonly reservationService = inject(ReservationService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly confirmationDialog = inject(MatDialog);
+
+  @Output() bookingSuccess = new EventEmitter<void>();
   @ViewChild(FormGroupDirective) private formDir?: FormGroupDirective;
 
   // ===== CONFIG =====
   private readonly SERVER_TIME_MODE: 'utc' | 'local-wall' = 'utc';
-
   private readonly TIME_SLOT_START_HOUR = 8;
   private readonly TIME_SLOT_END_HOUR = 23;
   private readonly END_SLOT_INCREMENT = 2;
   private readonly MIN_DURATION = 2;
   private readonly MAX_DURATION = 48;
-
   private readonly SELF_COOLDOWN_DAYS = 7;
-  private blackoutDays = new Set<string>();
+  public readonly HIDE_CONFLICTING_END_SLOTS = false;
 
-  readonly HIDE_CONFLICTING_END_SLOTS = false;
+  private readonly blackoutDays = new Set<string>();
 
   form = this.fb.group(
     {
@@ -132,6 +132,8 @@ export class SearchByDateComponent implements OnInit {
   revokeDate: Date | null = null;
 
   appConfig: AppConfig | null = null;
+
+  private readonly reservationsSig = this.reservationService.reservations;
   userReservations: Reservation[] = [];
   normalizedReservations: NormalizedReservation[] = [];
   dailyAvailability: DailyAvailabilityMap = {};
@@ -152,9 +154,39 @@ export class SearchByDateComponent implements OnInit {
     return this.selectedApps.map((a) => a.name).join(', ');
   }
 
+  private readonly syncFromReservations = effect(() => {
+    const all = this.reservationsSig();
+
+    const filtered = all.filter(
+      (r) =>
+        r.status === ReservationApiStatus.PENDING ||
+        r.status === ReservationApiStatus.ACTIVE
+    );
+
+    this.userReservations = filtered as Reservation[];
+    this.normalizedReservations = filtered.map((r) => ({
+      start: this.normalizeServerTime(r.startTime),
+      end: this.normalizeServerTime(r.endTime),
+    }));
+
+    this.rebuildBlackoutDays();
+    this.updateTimepickerBounds();
+    this.buildEndTimeSlots();
+    this.calculateEndDate();
+    this.form.updateValueAndValidity({ emitEvent: false });
+    this.cdr.markForCheck();
+  });
+
   ngOnInit(): void {
     this.resetForm();
-    this.bootstrap();
+
+    this.reservationService.getConfig().subscribe((cfg) => {
+      this.appConfig = cfg;
+      this.computeDateBounds();
+      this.updateTimepickerBounds();
+      this.cdr.markForCheck();
+    });
+
     this.setupFormSubscriptions();
   }
 
@@ -236,40 +268,6 @@ export class SearchByDateComponent implements OnInit {
     this.form.updateValueAndValidity({ emitEvent: false });
     this.showResultsCard = false;
     this.cdr.markForCheck();
-  }
-
-  private bootstrap(): void {
-    const config$ = this.reservationService
-      .getConfig()
-      .pipe(tap((cfg) => (this.appConfig = cfg)));
-
-    const reservations$ = this.reservationService.getReservations().pipe(
-      tap((res) => {
-        const filteredReservations = res.filter(
-          (r) =>
-            r.status === ReservationApiStatus.PENDING ||
-            r.status === ReservationApiStatus.ACTIVE
-        );
-
-        this.userReservations = filteredReservations;
-
-        this.normalizedReservations = filteredReservations.map((r) => ({
-          start: this.normalizeServerTime(r.startTime),
-          end: this.normalizeServerTime(r.endTime),
-        }));
-
-        this.rebuildBlackoutDays();
-      })
-    );
-
-    forkJoin({ config: config$, reservations: reservations$ }).subscribe(() => {
-      this.computeDateBounds();
-      this.updateTimepickerBounds();
-      this.buildEndTimeSlots();
-      this.calculateEndDate();
-      this.form.updateValueAndValidity({ emitEvent: false });
-      this.cdr.markForCheck();
-    });
   }
 
   private normalizeServerTime(iso: string): Date {
@@ -461,7 +459,6 @@ export class SearchByDateComponent implements OnInit {
       d += this.END_SLOT_INCREMENT
     ) {
       const end = new Date(start.getTime() + d * 3600_000);
-
       const endHour = end.getHours();
       const label = `${this.formatTime12h(endHour)} (${d} hrs)`;
 
@@ -523,7 +520,7 @@ export class SearchByDateComponent implements OnInit {
     });
   }
 
-  showConfirmationDialog() {
+  showConfirmationDialog(): void {
     const dialogRef = this.confirmationDialog.open(ConfirmationDialog, {
       width: 'auto',
       minWidth: 'none',
@@ -543,13 +540,11 @@ export class SearchByDateComponent implements OnInit {
       },
     });
     dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.onConfirmReservation();
-      }
+      if (result) this.onConfirmReservation();
     });
   }
 
-  showSuccessDialog() {
+  showSuccessDialog(): void {
     const dialogRef = this.confirmationDialog.open(SuccessDialog, {
       width: 'auto',
       minWidth: 'none',
@@ -564,10 +559,8 @@ export class SearchByDateComponent implements OnInit {
         confirmText: 'OK',
       },
     });
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.bookingSuccess.emit();
-      }
+    dialogRef.afterClosed().subscribe((ok) => {
+      if (ok) this.bookingSuccess.emit();
     });
   }
 
@@ -608,7 +601,6 @@ export class SearchByDateComponent implements OnInit {
           `Reservation successfully created with ID: ${newReservation.id}`
         );
         this.showSuccessDialog();
-        this.bootstrap();
         this.resetForm();
       },
       error: (err) => {

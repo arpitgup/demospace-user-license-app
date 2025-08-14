@@ -1,5 +1,5 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, finalize, forkJoin, Observable, of, tap } from 'rxjs';
 import { NewReservation, Reservation } from '../models/reservation.model';
 
@@ -21,6 +21,9 @@ export class ReservationService {
   private apiUrl = environment.apiUrl;
   private applicationSubject = new BehaviorSubject<Application[]>([]);
   public applications$ = this.applicationSubject.asObservable();
+
+  private reservationsState = signal<Reservation[]>([]);
+  public readonly reservations = this.reservationsState.asReadonly();
 
   /**
    * API call to check application availability for a given time range.
@@ -80,46 +83,58 @@ export class ReservationService {
   }
 
   /**
-   * Fetches user reservations from the backend API.
-   * The 'x-google-user-email' header is now handled by the authInterceptor.
-   * @returns An Observable of the user's reservations.
+   * Fetches user reservations and updates the public `reservations` signal.
+   * @returns An Observable of the user's reservations. The caller can subscribe
+   * to this to know when the fetch operation is complete.
    */
-  getReservations(): Observable<Reservation[]> {
-    const headers = new HttpHeaders({
-      accept: 'application/json',
-    });
-    return this.http.get<Reservation[]>(`${this.apiUrl}/reservations`, {
-      headers,
-    });
+  fetchReservations(): Observable<Reservation[]> {
+    return this.http.get<Reservation[]>(`${this.apiUrl}/reservations`).pipe(
+      tap((fetchedReservations) => {
+        this.reservationsState.set(fetchedReservations);
+      })
+    );
   }
 
   /**
-   * Fetches a list of all SaaS applications available for reservation.
-   * Corresponds to the GET /applications endpoint. [cite: 34, 48]
-   * @returns An Observable array of Application objects. [cite: 36, 38]
-   */
-
-  /**
-   * Creates a new reservation.
-   * Corresponds to the POST /reservations endpoint.
+   * Creates a new reservation, then updates the local `reservations` signal.
+   * This provides a real-time update to all subscribed components.
    * @param payload The new reservation details.
    * @returns An Observable of the newly created Reservation object.
    */
   createReservation(payload: NewReservation): Observable<Reservation> {
-    return this.http.post<Reservation>(`${this.apiUrl}/reservations`, payload);
+    return this.http
+      .post<Reservation>(`${this.apiUrl}/reservations`, payload)
+      .pipe(
+        tap((newReservation) => {
+          this.reservationsState.update((currentReservations) => [
+            ...currentReservations,
+            newReservation,
+          ]);
+        })
+      );
   }
 
   /**
-   * Cancels an existing reservation.
-   * Corresponds to POST /reservations/{id}/cancel.
+   * Cancels a reservation, then updates its status in the local `reservations` signal.
+   * This ensures the UI reflects the change immediately without a full re-fetch.
    * @param reservationId The ID of the reservation to cancel.
-   * @returns An Observable of the updated Reservation object.
+   * @returns An Observable of the updated (canceled) Reservation object.
    */
   cancelReservation(reservationId: number): Observable<Reservation> {
-    return this.http.post<Reservation>(
-      `${this.apiUrl}/reservations/${reservationId}/cancel`,
-      {}
-    );
+    return this.http
+      .post<Reservation>(
+        `${this.apiUrl}/reservations/${reservationId}/cancel`,
+        {}
+      )
+      .pipe(
+        tap((canceledReservation) => {
+          this.reservationsState.update((currentReservations) =>
+            currentReservations.map((res) =>
+              res.id === reservationId ? canceledReservation : res
+            )
+          );
+        })
+      );
   }
 
   callMakeReservation(

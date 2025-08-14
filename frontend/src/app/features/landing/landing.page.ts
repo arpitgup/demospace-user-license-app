@@ -52,32 +52,26 @@ export class LandingPage implements OnInit {
   public readonly SearchType = SearchType;
   private confirmationDialog = inject(MatDialog);
 
-  private allReservations = signal<Reservation[]>([]);
-  private reservationsFetched = signal(false);
   public selectedSearchType = signal<SearchType | null>(null);
   public showPastReservations = signal(false);
   @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
 
+  private readonly reservationsSignal = this.reservationService.reservations;
+
   public filteredReservations = computed(() => {
     const showPast = this.showPastReservations();
-    const reservations = this.allReservations();
+    const reservations = this.reservationsSignal();
 
-    if (showPast) {
-      return reservations.filter(
-        (res) =>
-          res.status === ReservationApiStatus.COMPLETED ||
+    return reservations.filter((res) =>
+      showPast
+        ? res.status === ReservationApiStatus.COMPLETED ||
           res.status === ReservationApiStatus.CANCELLED
-      );
-    } else {
-      return reservations.filter(
-        (res) =>
-          res.status === ReservationApiStatus.PENDING ||
+        : res.status === ReservationApiStatus.PENDING ||
           res.status === ReservationApiStatus.ACTIVE
-      );
-    }
+    );
   });
 
-  public readonly reservations$ = toObservable(this.filteredReservations);
+  public readonly resrevations$ = toObservable(this.filteredReservations);
 
   public readonly searchOptionCards: SearchOptionCard[] = [
     {
@@ -97,6 +91,7 @@ export class LandingPage implements OnInit {
   ];
 
   ngOnInit(): void {
+    this.reservationService.fetchReservations().subscribe();
     this.reservationService.getApplications().subscribe();
   }
 
@@ -113,9 +108,7 @@ export class LandingPage implements OnInit {
    * @param event The MatTabChangeEvent object.
    */
   onTabChange(event: MatTabChangeEvent): void {
-    if (event.index === 1) {
-      this.fetchReservation();
-    }
+    this.reservationService.fetchReservations().subscribe();
   }
 
   handleCancelReservation(reservation: Reservation): void {
@@ -134,13 +127,6 @@ export class LandingPage implements OnInit {
     this.tabGroup.selectedIndex = 1;
   }
 
-  fetchReservation() {
-    this.reservationService.getReservations().subscribe((data) => {
-      this.allReservations.set(data);
-      this.reservationsFetched.set(true);
-    });
-  }
-
   showSuccessDialog(reservation: Reservation) {
     const dialogRef = this.confirmationDialog.open(SuccessDialog, {
       width: 'auto',
@@ -157,7 +143,7 @@ export class LandingPage implements OnInit {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.fetchReservation();
+        this.reservationService.fetchReservations().subscribe();
       }
     });
   }
