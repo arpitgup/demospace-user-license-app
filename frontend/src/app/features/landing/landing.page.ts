@@ -108,7 +108,9 @@ export class LandingPage implements OnInit {
    * @param event The MatTabChangeEvent object.
    */
   onTabChange(event: MatTabChangeEvent): void {
-    this.reservationService.fetchReservations().subscribe();
+    if (event) {
+      this.reservationService.fetchReservations().subscribe();
+    }
   }
 
   handleCancelReservation(reservation: Reservation): void {

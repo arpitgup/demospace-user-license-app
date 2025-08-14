@@ -40,7 +40,6 @@ import {
   NewReservation,
 } from '../../core/models/reservation.model';
 import { AppConfig } from '../../core/models/appConfig.model';
-import { forkJoin, tap } from 'rxjs';
 import { ReservationApiStatus } from '../landing/landing.enums';
 import { Application } from '../../core/models/application.model';
 import { SearchByApplicationLoader } from '../../loaders/search-by-date-loader/search-by-date-loader';
@@ -578,7 +577,7 @@ export class SearchByDateComponent implements OnInit {
     return this.selectedApps.length;
   }
 
-  trackByAppId(index: number, app: Application): number {
+  trackByAppId(app: Application): number {
     return app.id;
   }
 
