@@ -1,6 +1,18 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, finalize, forkJoin, Observable, of, tap } from 'rxjs';
+import {
+  BehaviorSubject,
+  concatMap,
+  defaultIfEmpty,
+  filter,
+  finalize,
+  forkJoin,
+  from,
+  Observable,
+  of,
+  take,
+  tap,
+} from 'rxjs';
 import { NewReservation, Reservation } from '../models/reservation.model';
 
 import { AppConfig } from '../models/appConfig.model';
@@ -21,8 +33,6 @@ export class ReservationService {
   private apiUrl = environment.apiUrl;
   private applicationSubject = new BehaviorSubject<Application[]>([]);
   public applications$ = this.applicationSubject.asObservable();
-  private reservationSubject = new BehaviorSubject<Reservation[]>([]);
-  public reservation$ = this.reservationSubject.asObservable();
 
   private reservationsState = signal<Reservation[]>([]);
   public readonly reservations = this.reservationsState.asReadonly();
@@ -49,21 +59,6 @@ export class ReservationService {
         this.applicationSubject.next(applications);
       })
     );
-  }
-
-  getUserReservations(): Observable<Reservation[]> {
-    const headers = new HttpHeaders({
-      accept: 'application/json',
-    });
-    return this.http
-      .get<Reservation[]>(`${this.apiUrl}/reservations`, {
-        headers,
-      })
-      .pipe(
-        tap((reservations) => {
-          this.reservationSubject.next(reservations);
-        })
-      );
   }
 
   checkAvailabilityByApplication(

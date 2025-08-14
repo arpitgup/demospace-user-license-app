@@ -215,14 +215,12 @@
       <mat-divider class="custom-divider"></mat-divider>
       <div class="booking-details">
         <p class="booking-details-title">
-          License will be available
-          <span>{{
+          The requested license(s) will be available
+          <span class="booking-time">{{
             selectedTimeSlot!.startTime! | date : "MMMM d 'at' h:mm a z"
           }}</span>
-        </p>
-        <div class="booking-sized-box"></div>
-        <p class="booking-details-title">
-          License access will be revoked<span>{{
+          till
+          <span class="booking-time">{{
             selectedTimeSlot!.endTime! | date : "MMMM d 'at' h:mm a z"
           }}</span>
         </p>

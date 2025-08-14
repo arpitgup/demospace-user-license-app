@@ -17,7 +17,7 @@
       <!-- Tab 1: Book Reservation -->
       <mat-tab [label]="landingPageConstants.BOOK_RESERVATION_TAB_LABEL">
         @if(selectedIndex===0){
- <div class="tab-content book-reservation-content">
+        <div class="tab-content book-reservation-content">
           <div class="card-container">
             @for (searchOption of searchOptionCards; track searchOption.id) {
             <app-search-option-card

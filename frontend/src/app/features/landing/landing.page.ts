@@ -94,10 +94,6 @@ export class LandingPage implements OnInit {
   ngOnInit(): void {
     this.reservationService.fetchReservations().subscribe();
     this.reservationService.getApplications().subscribe();
-    this.callAllReservations();
-  }
-  callAllReservations() {
-    this.reservationService.getUserReservations().subscribe();;
   }
 
   onShowPastChange(checked: boolean): void {
@@ -113,7 +109,7 @@ export class LandingPage implements OnInit {
    * @param event The MatTabChangeEvent object.
    */
   onTabChange(event: MatTabChangeEvent): void {
-        this.selectedIndex = event.index;
+    this.selectedIndex = event.index;
     if (event) {
       this.reservationService.fetchReservations().subscribe();
     }
@@ -124,7 +120,6 @@ export class LandingPage implements OnInit {
       next: () => {
         console.log(`Reservation ${reservation.id} cancelled successfully.`);
         this.showSuccessDialog(reservation);
-          this.callAllReservations();
       },
       error: (err) => {
         console.error('Failed to cancel reservation:', err);

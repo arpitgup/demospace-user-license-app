@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  effect,
   EventEmitter,
   inject,
   OnDestroy,
@@ -91,6 +92,23 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   normalizedReservations: NormalizedReservation[] = [];
   readonly BLOC_DAYS_LIMIT: number = 7;
 
+  private readonly reservationsSig = this.reservationService.reservations;
+
+  private readonly syncFromReservations = effect(() => {
+    const all = this.reservationsSig();
+
+    const filtered = all.filter(
+      (r) =>
+        r.status === ReservationApiStatus.PENDING ||
+        r.status === ReservationApiStatus.ACTIVE
+    );
+
+    this.normalizedReservations = filtered.map((r) => ({
+      start: new Date(r.startTime),
+      end: new Date(r.endTime),
+    }));
+  });
+
   constructor(private fb: FormBuilder) {
     const today = new Date();
     this.minDate = new Date(today);
@@ -113,20 +131,6 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.applications$ = this.reservationService.applications$;
-    this.reservations$ = this.reservationService.reservation$;
-
-    this.reservations$.subscribe((res) => {
-      const filteredReservations = res.filter(
-        (r) =>
-          r.status === ReservationApiStatus.PENDING ||
-          r.status === ReservationApiStatus.ACTIVE
-      );
-
-      this.normalizedReservations = filteredReservations.map((r) => ({
-        start: new Date(r.startTime),
-        end: new Date(r.endTime),
-      }));
-    });
 
     this.applicationForm.valueChanges.subscribe(() => {
       this.isCheckAvailableDisabled = false;
