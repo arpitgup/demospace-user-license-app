@@ -24,6 +24,8 @@ import { SearchOptionCardComponent } from '../../shared/components/search-option
 import { LANDING_PAGE_CONSTANTS } from './landing.constant';
 import { SearchApplicationComponent } from '../search-application/search-application';
 import { toObservable } from '@angular/core/rxjs-interop';
+import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-landing-page',
@@ -48,34 +50,29 @@ export class LandingPage implements OnInit {
   private readonly reservationService = inject(ReservationService);
   public readonly landingPageConstants = LANDING_PAGE_CONSTANTS;
   public readonly SearchType = SearchType;
+  private confirmationDialog = inject(MatDialog);
 
-  private allReservations = signal<Reservation[]>([]);
-  private reservationsFetched = signal(false);
   public selectedSearchType = signal<SearchType | null>(null);
   public showPastReservations = signal(false);
   @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
   selectedIndex = 0;
 
+  private readonly reservationsSignal = this.reservationService.reservations;
+
   public filteredReservations = computed(() => {
     const showPast = this.showPastReservations();
-    const reservations = this.allReservations();
+    const reservations = this.reservationsSignal();
 
-    if (showPast) {
-      return reservations.filter(
-        (res) =>
-          res.status === ReservationApiStatus.COMPLETED ||
+    return reservations.filter((res) =>
+      showPast
+        ? res.status === ReservationApiStatus.COMPLETED ||
           res.status === ReservationApiStatus.CANCELLED
-      );
-    } else {
-      return reservations.filter(
-        (res) =>
-          res.status === ReservationApiStatus.PENDING ||
+        : res.status === ReservationApiStatus.PENDING ||
           res.status === ReservationApiStatus.ACTIVE
-      );
-    }
+    );
   });
 
-  public readonly reservations$ = toObservable(this.filteredReservations);
+  public readonly resrevations$ = toObservable(this.filteredReservations);
 
   public readonly searchOptionCards: SearchOptionCard[] = [
     {
@@ -95,6 +92,7 @@ export class LandingPage implements OnInit {
   ];
 
   ngOnInit(): void {
+    this.reservationService.fetchReservations().subscribe();
     this.reservationService.getApplications().subscribe();
     this.callAllReservations();
   }
@@ -115,12 +113,9 @@ export class LandingPage implements OnInit {
    * @param event The MatTabChangeEvent object.
    */
   onTabChange(event: MatTabChangeEvent): void {
-    this.selectedIndex = event.index;
-    if (event.index === 1) {
-      this.reservationService.getReservations().subscribe((data) => {
-        this.allReservations.set(data);
-        this.reservationsFetched.set(true);
-      });
+        this.selectedIndex = event.index;
+    if (event) {
+      this.reservationService.fetchReservations().subscribe();
     }
   }
 
@@ -128,6 +123,7 @@ export class LandingPage implements OnInit {
     this.reservationService.cancelReservation(reservation.id).subscribe({
       next: () => {
         console.log(`Reservation ${reservation.id} cancelled successfully.`);
+        this.showSuccessDialog(reservation);
           this.callAllReservations();
       },
       error: (err) => {
@@ -136,7 +132,28 @@ export class LandingPage implements OnInit {
     });
   }
 
-  onBookingSuccess(): void {
+  bookingSuccess(): void {
     this.tabGroup.selectedIndex = 1;
+  }
+
+  showSuccessDialog(reservation: Reservation) {
+    const dialogRef = this.confirmationDialog.open(SuccessDialog, {
+      width: 'auto',
+      minWidth: 'none',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        title: 'Success',
+        message: `Reservation ${reservation.id} cancelled successfully.`,
+        confirmText: 'OK',
+      },
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.reservationService.fetchReservations().subscribe();
+      }
+    });
   }
 }

@@ -6,6 +6,10 @@ import {
   OnInit,
   ChangeDetectorRef,
   DestroyRef,
+  EventEmitter,
+  Output,
+  ViewChild,
+  effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -15,6 +19,7 @@ import {
   AbstractControl,
   FormGroup,
   ValidationErrors,
+  FormGroupDirective,
 } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -35,12 +40,12 @@ import {
   NewReservation,
 } from '../../core/models/reservation.model';
 import { AppConfig } from '../../core/models/appConfig.model';
-import { forkJoin, tap } from 'rxjs';
 import { ReservationApiStatus } from '../landing/landing.enums';
 import { Application } from '../../core/models/application.model';
 import { SearchByApplicationLoader } from '../../loaders/search-by-date-loader/search-by-date-loader';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialog } from '../../shared/dialogs/confirmation-dialog/confirmation-dialog';
+import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
 
 type DailyAvailabilityMap = { [date: string]: number };
 type NormalizedReservation = { start: Date; end: Date };
@@ -71,25 +76,26 @@ type NormalizedReservation = { start: Date; end: Date };
   providers: [{ provide: MAT_DATE_LOCALE, useValue: 'en-GB' }],
 })
 export class SearchByDateComponent implements OnInit {
-  private reservationService = inject(ReservationService);
-  private cdr = inject(ChangeDetectorRef);
-  private fb = inject(FormBuilder);
-  private destroyRef = inject(DestroyRef);
-  private confirmationDialog = inject(MatDialog);
+  private readonly reservationService = inject(ReservationService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly confirmationDialog = inject(MatDialog);
+
+  @Output() bookingSuccess = new EventEmitter<void>();
+  @ViewChild(FormGroupDirective) private formDir?: FormGroupDirective;
 
   // ===== CONFIG =====
   private readonly SERVER_TIME_MODE: 'utc' | 'local-wall' = 'utc';
-
   private readonly TIME_SLOT_START_HOUR = 8;
   private readonly TIME_SLOT_END_HOUR = 23;
   private readonly END_SLOT_INCREMENT = 2;
   private readonly MIN_DURATION = 2;
   private readonly MAX_DURATION = 48;
-
   private readonly SELF_COOLDOWN_DAYS = 7;
-  private blackoutDays = new Set<string>();
+  public readonly HIDE_CONFLICTING_END_SLOTS = false;
 
-  readonly HIDE_CONFLICTING_END_SLOTS = false;
+  private readonly blackoutDays = new Set<string>();
 
   form = this.fb.group(
     {
@@ -125,6 +131,8 @@ export class SearchByDateComponent implements OnInit {
   revokeDate: Date | null = null;
 
   appConfig: AppConfig | null = null;
+
+  private readonly reservationsSig = this.reservationService.reservations;
   userReservations: Reservation[] = [];
   normalizedReservations: NormalizedReservation[] = [];
   dailyAvailability: DailyAvailabilityMap = {};
@@ -145,8 +153,39 @@ export class SearchByDateComponent implements OnInit {
     return this.selectedApps.map((a) => a.name).join(', ');
   }
 
+  private readonly syncFromReservations = effect(() => {
+    const all = this.reservationsSig();
+
+    const filtered = all.filter(
+      (r) =>
+        r.status === ReservationApiStatus.PENDING ||
+        r.status === ReservationApiStatus.ACTIVE
+    );
+
+    this.userReservations = filtered as Reservation[];
+    this.normalizedReservations = filtered.map((r) => ({
+      start: this.normalizeServerTime(r.startTime),
+      end: this.normalizeServerTime(r.endTime),
+    }));
+
+    this.rebuildBlackoutDays();
+    this.updateTimepickerBounds();
+    this.buildEndTimeSlots();
+    this.calculateEndDate();
+    this.form.updateValueAndValidity({ emitEvent: false });
+    this.cdr.markForCheck();
+  });
+
   ngOnInit(): void {
-    this.bootstrap();
+    this.resetForm();
+
+    this.reservationService.getConfig().subscribe((cfg) => {
+      this.appConfig = cfg;
+      this.computeDateBounds();
+      this.updateTimepickerBounds();
+      this.cdr.markForCheck();
+    });
+
     this.setupFormSubscriptions();
   }
 
@@ -228,41 +267,6 @@ export class SearchByDateComponent implements OnInit {
     this.form.updateValueAndValidity({ emitEvent: false });
     this.showResultsCard = false;
     this.cdr.markForCheck();
-  }
-
-  private bootstrap(): void {
-    const config$ = this.reservationService
-      .getConfig()
-      .pipe(tap((cfg) => (this.appConfig = cfg)));
-
-    const reservations$ = this.reservationService.getReservations().pipe(
-      tap((res) => {
-        console.log("//////////date",res);
-        const filteredReservations = res.filter(
-          (r) =>
-            r.status === ReservationApiStatus.PENDING ||
-            r.status === ReservationApiStatus.ACTIVE
-        );
-
-        this.userReservations = filteredReservations;
-
-        this.normalizedReservations = filteredReservations.map((r) => ({
-          start: this.normalizeServerTime(r.startTime),
-          end: this.normalizeServerTime(r.endTime),
-        }));
-
-        this.rebuildBlackoutDays();
-      })
-    );
-
-    forkJoin({ config: config$, reservations: reservations$ }).subscribe(() => {
-      this.computeDateBounds();
-      this.updateTimepickerBounds();
-      this.buildEndTimeSlots();
-      this.calculateEndDate();
-      this.form.updateValueAndValidity({ emitEvent: false });
-      this.cdr.markForCheck();
-    });
   }
 
   private normalizeServerTime(iso: string): Date {
@@ -454,7 +458,6 @@ export class SearchByDateComponent implements OnInit {
       d += this.END_SLOT_INCREMENT
     ) {
       const end = new Date(start.getTime() + d * 3600_000);
-
       const endHour = end.getHours();
       const label = `${this.formatTime12h(endHour)} (${d} hrs)`;
 
@@ -516,9 +519,14 @@ export class SearchByDateComponent implements OnInit {
     });
   }
 
-  showConfirmationDialog() {
+  showConfirmationDialog(): void {
     const dialogRef = this.confirmationDialog.open(ConfirmationDialog, {
-      width: '43.5rem',
+      width: 'auto',
+      minWidth: 'none',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
       data: {
         title: 'Are You Sure ?',
         message: 'Do you want to confirm the booking for',
@@ -531,9 +539,27 @@ export class SearchByDateComponent implements OnInit {
       },
     });
     dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.onConfirmReservation();
-      }
+      if (result) this.onConfirmReservation();
+    });
+  }
+
+  showSuccessDialog(): void {
+    const dialogRef = this.confirmationDialog.open(SuccessDialog, {
+      width: 'auto',
+      minWidth: 'none',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        title: 'Success',
+        message:
+          'A confirmation email has been sent to your inbox.<br> Please check your email for the booking details.<br> We’ll see you soon!',
+        confirmText: 'OK',
+      },
+    });
+    dialogRef.afterClosed().subscribe((ok) => {
+      if (ok) this.bookingSuccess.emit();
     });
   }
 
@@ -551,7 +577,7 @@ export class SearchByDateComponent implements OnInit {
     return this.selectedApps.length;
   }
 
-  trackByAppId(index: number, app: Application): number {
+  trackByAppId(app: Application): number {
     return app.id;
   }
 
@@ -570,8 +596,10 @@ export class SearchByDateComponent implements OnInit {
 
     this.reservationService.createReservation(payload).subscribe({
       next: (newReservation) => {
-        alert(`Reservation successfully created with ID: ${newReservation.id}`);
-        this.bootstrap();
+        console.log(
+          `Reservation successfully created with ID: ${newReservation.id}`
+        );
+        this.showSuccessDialog();
         this.resetForm();
       },
       error: (err) => {
@@ -744,10 +772,11 @@ export class SearchByDateComponent implements OnInit {
   }
 
   private resetForm(): void {
+    this.formDir?.resetForm();
     this.form.reset({
       startDate: null,
       startTime: { value: null, disabled: true },
-      endTime: { value: null, disabled: true }
+      endTime: { value: null, disabled: true },
     });
 
     this.endTimeSlots = [];

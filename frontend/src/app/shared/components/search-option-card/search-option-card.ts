@@ -12,6 +12,7 @@ import { SearchOptionCard } from '../../../../utilities/interfaces/search_option
 })
 export class SearchOptionCardComponent {
   @Input() searchOption?: SearchOptionCard;
+  @Input() isSelected: boolean = false;
   @Output() onSelected = new EventEmitter<SearchOptionCard>();
 
   /**
