@@ -13,14 +13,17 @@ CREATE INDEX idx_app_config_key ON app_config (key);
 
 CREATE TABLE applications (
     id SERIAL PRIMARY KEY,
-    name VARCHAR UNIQUE NOT NULL
+    name VARCHAR UNIQUE NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE
 );
 
 
 CREATE TABLE bots (
     id SERIAL PRIMARY KEY,
     name VARCHAR NOT NULL,
-    email VARCHAR UNIQUE NOT NULL
+    email VARCHAR UNIQUE NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    last_updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 
