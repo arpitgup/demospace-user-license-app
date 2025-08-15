@@ -79,7 +79,7 @@ def get_availability_by_date(
                 break
 
         if is_app_available:
-            available_apps.append(ApplicationOut(id=app.id, name=app.name))
+            available_apps.append(app)
 
     return AvailabilityByDateResponse(applications=available_apps)
 
