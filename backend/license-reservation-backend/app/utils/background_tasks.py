@@ -52,11 +52,9 @@ async def schedule_provisioning_task(
 
 
 async def schedule_deprovisioning_task(
-    client: tasks_v2.CloudTasksAsyncClient, reservation_id: int, run_at: datetime
+    client: tasks_v2.CloudTasksAsyncClient, reservation_id: int, run_at: datetime = None
 ):
     """Helper function to create a deprovisioning task for a reservation."""
-    timestamp = timestamp_pb2.Timestamp()
-    timestamp.FromDatetime(run_at.astimezone(timezone.utc))
     payload = json.dumps({"reservationId": reservation_id})
     task = tasks_v2.Task(
         http_request=tasks_v2.HttpRequest(
@@ -68,8 +66,11 @@ async def schedule_deprovisioning_task(
                 service_account_email=LICENSE_ENDPOINTS_INVOKER_SERVICE_ACCOUNT
             ),
         ),
-        schedule_time=timestamp,
     )
+    if run_at is not None:
+        timestamp = timestamp_pb2.Timestamp()
+        timestamp.FromDatetime(run_at.astimezone(timezone.utc))
+        task.schedule_time = timestamp
     response = await client.create_task(
         request=tasks_v2.CreateTaskRequest(
             parent=client.queue_path(

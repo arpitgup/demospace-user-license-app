@@ -19,7 +19,7 @@ from ..common.schemas import (
     UpdateBotApplicationsRequest,
     BotsUpsertRequest,
 )
-from ..utils.background_tasks import delete_reservation_tasks
+from ..utils.background_tasks import delete_reservation_tasks, schedule_deprovisioning_task
 from ..utils.crud import get_bot_with_supported_apps, upsert_bots_with_applications
 
 
@@ -77,8 +77,9 @@ def bulk_cancel_reservations(
     logger.info(
         f"Admin User {user_email}: Bulk cancelling reservations: {req.reservation_ids}"
     )
-    successfully_cancelled = []
     failed_to_cancel = []
+    cancel_immediately = {}
+    schedule_cancellation = {}
 
     reservations = (
         db.query(Reservation).filter(Reservation.id.in_(req.reservation_ids)).all()
@@ -93,13 +94,20 @@ def bulk_cancel_reservations(
         ]:
             failed_to_cancel.append(res_id)
             continue
+
         reservation.status = ReservationStatus.CANCELLED
-        successfully_cancelled.append(res_id)
+
+        if reservation.status == ReservationStatus.ACTIVE:
+            cancel_immediately.add(res_id)
+        else:
+            schedule_cancellation.add(res_id)
 
     try:
         db.commit()
-        for reservation_id in successfully_cancelled:
+        for reservation_id in schedule_cancellation:
             background_tasks.add_task(delete_reservation_tasks, reservation_id)
+        for reservation_id in cancel_immediately:
+            background_tasks.add_task(schedule_deprovisioning_task, reservation_id)
     except Exception as e:
         db.rollback()
         logger.error(f"An unexpected error occurred during bulk cancel: {e}")
@@ -109,7 +117,8 @@ def bulk_cancel_reservations(
         )
 
     return BulkCancelReservationsResponse(
-        successfully_cancelled=successfully_cancelled, failed_to_cancel=failed_to_cancel
+        successfully_cancelled=list(cancel_immediately | schedule_cancellation),
+        failed_to_cancel=failed_to_cancel,
     )
 
 
