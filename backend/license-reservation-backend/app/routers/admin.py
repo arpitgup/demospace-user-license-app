@@ -1,7 +1,10 @@
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status
 from loguru import logger
 from sqlalchemy.orm import Session
 from shared_lib.db.models import (
+    Application,
+    Bot,
+    BotApplication,
     Reservation,
     ReservationStatus,
 )
@@ -12,10 +15,36 @@ from ..common.schemas import (
     BulkCancelReservationsRequest,
     BulkCancelReservationsResponse,
     ReservationOut,
+    BotWithApplicationsOut,
+    UpdateBotApplicationsRequest,
+    BotsUpsertRequest,
 )
 from ..utils.background_tasks import delete_reservation_tasks
+from ..utils.crud import get_bot_with_supported_apps, upsert_bots_with_applications
+
 
 router = APIRouter()
+
+
+def build_response(bots: List[Bot]) -> List[BotWithApplicationsOut]:
+    """
+    Helper function to convert a list of Bot models to BotWithApplicationsOut objects.
+    """
+    res = []
+    for bot in bots:
+        res.append(
+            BotWithApplicationsOut(
+                id=bot.id,
+                name=bot.email,
+                email=bot.email,
+                created_at=bot.created_at,
+                updated_at=bot.updated_at,
+                supported_applications=[
+                    ba.application for ba in bot.supported_applications
+                ],
+            )
+        )
+    return res
 
 
 @router.get("/admin/reservations", response_model=List[ReservationOut])
@@ -82,3 +111,76 @@ def bulk_cancel_reservations(
     return BulkCancelReservationsResponse(
         successfully_cancelled=successfully_cancelled, failed_to_cancel=failed_to_cancel
     )
+
+
+# TODO: Add test
+@router.get("/admin/bots", response_model=List[BotWithApplicationsOut])
+def get_all_bots(db: Session = Depends(get_db)):
+    """
+    Retrieves all bots and the applications they support.
+    """
+    return get_bot_with_supported_apps(db).all()
+
+
+# TODO: Add test
+@router.patch(
+    "/admin/bots/{bot_id}/applications", response_model=BotWithApplicationsOut
+)
+def update_bot_applications(
+    bot_id: int,
+    req: UpdateBotApplicationsRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Updates the applications a specific bot supports.
+    """
+    bot = db.query(Bot).filter(Bot.id == bot_id).first()
+    if not bot:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Bot not found")
+
+    valid_apps = (
+        db.query(Application).filter(Application.id.in_(req.application_ids)).all()
+    )
+    if len(valid_apps) != len(req.application_ids):
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            detail="One or more application IDs are invalid",
+        )
+
+    db.query(BotApplication).filter(BotApplication.bot_id == bot_id).delete()
+    for app_id in req.application_ids:
+        db.add(BotApplication(bot_id=bot_id, application_id=app_id))
+    db.commit()
+    db.refresh(bot)
+
+    bot = get_bot_with_supported_apps(db).filter(Bot.id == bot_id).one()
+    return build_response([bot])[0]
+
+
+# TODO: Add test
+@router.post(
+    "/bots/upsert", response_model=list[BotWithApplicationsOut], status_code=200
+)
+def upsert_bots(request: BotsUpsertRequest, db: Session = Depends(get_db)):
+    """
+    Updates existing bots or creates new ones in a batch.
+
+    - If a bot with the provided email exists, its name and supported applications are updated.
+    - If it does not exist, a new bot is created.
+    """
+    try:
+        processed_bots = upsert_bots_with_applications(request, db)
+        db.commit()
+
+        for bot in processed_bots:
+            db.refresh(bot)
+
+        return processed_bots
+    except ValueError as e:
+        db.rollback()
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500, detail="An internal server error occurred."
+        )

@@ -1,4 +1,11 @@
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_validator,
+    model_validator,
+)
 from pydantic.alias_generators import to_camel
 from typing import List, Optional
 from datetime import datetime, timezone
@@ -25,6 +32,7 @@ class CamelModel(BaseModel):
 class ApplicationOut(CamelModel):
     id: int
     name: str
+    is_active: bool
 
 
 class AvailableBotInfo(CamelModel):
@@ -46,6 +54,8 @@ class BotOut(CamelModel):
     id: int
     name: str
     email: str
+    created_at: datetime
+    updated_at: datetime
 
 
 class ConfigOut(CamelModel):
@@ -127,3 +137,21 @@ class UpdateAppConfigRequest(CamelModel):
 
 class LicenseActionRequest(CamelModel):
     reservation_id: int
+
+
+class BotWithApplicationsOut(BotOut):
+    applications: List[ApplicationOut]
+
+
+class UpdateBotApplicationsRequest(CamelModel):
+    application_ids: List[int]
+
+
+class BotUpsertData(BaseModel):
+    name: str
+    email: EmailStr
+    application_ids: List[int]
+
+
+class BotsUpsertRequest(BaseModel):
+    bots: list[BotUpsertData]
