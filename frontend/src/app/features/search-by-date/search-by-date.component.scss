@@ -109,7 +109,6 @@
           .start-date-field,
           .start-time-field {
             flex: 0 0 16.375rem;
-            height: 3.5rem;
             border-radius: 0.25rem;
           }
 
@@ -119,7 +118,6 @@
         }
 
         .end-date-time-container {
-          margin-top: 1.88rem;
           display: flex;
           gap: 5.75rem;
           flex-wrap: wrap;
@@ -127,13 +125,12 @@
           .end-time-field,
           .end-date-field {
             flex: 0 0 12.375rem;
-            height: 3.5rem;
             border-radius: 0.25rem;
           }
 
-          .end-date-field {
-            background: #e6e6e6;
-          }
+          .mdc-text-field--disabled {
+              background: #e6e6e6;
+            }
         }
       }
 
@@ -148,7 +145,7 @@
     .actions-container {
       display: flex;
       justify-content: center;
-      margin-top: 10rem;
+      margin-top: 7rem;
 
       .check-availability-button {
         min-width: 13.1625rem;
@@ -269,13 +266,14 @@
       }
 
       .horizontal-line {
+        width: 38.9375rem;
+        height: 1px;
+
+        background-color: rgba(0, 0, 0, 0.2);
+        border: none;
+
         margin-top: 7.12rem;
         margin-left: 0.56rem;
-        width: 38.9375rem;
-        height: 0;
-        flex-shrink: 0;
-        stroke-width: 1px;
-        stroke: rgba(0, 0, 0, 0.2);
       }
 
       .license-info {
@@ -307,12 +305,10 @@
           width: 18.25rem;
           border-radius: 2.5625rem;
 
-          background: linear-gradient(
-            90deg,
-            rgba(66, 133, 244, 0.95) 7.88%,
-            #7051ca 83.78%,
-            rgba(188, 18, 4, 0.88) 152.54%
-          );
+          background: linear-gradient(90deg,
+              rgba(66, 133, 244, 0.95) 7.88%,
+              #7051ca 83.78%,
+              rgba(188, 18, 4, 0.88) 152.54%);
 
           color: white;
           font-family: Roboto;
