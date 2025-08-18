@@ -10,7 +10,7 @@
             <mat-label>Primary Application</mat-label>
             <mat-select
               class="custom-select"
-              formControlName="primaryApplication"
+              [formControlName]="PRIMARY_APPLICATION_FORM"
             >
               @for(application of applications; track application.id){
               <mat-option [value]="application">
@@ -33,7 +33,7 @@
               [min]="minDate"
               [max]="maxDate"
               readonly
-              formControlName="startDate"
+              [formControlName]="START_DATE_FORM"
             />
             <mat-datepicker-toggle
               matIconSuffix
@@ -48,7 +48,7 @@
               [matTimepicker]="picker"
               [matTimepickerMin]="minAllowedTime"
               [matTimepickerMax]="maxAllowedTime"
-              formControlName="startTime"
+              [formControlName]="START_TIME_FORM"
               readonly
             />
             <mat-timepicker-toggle matIconSuffix [for]="picker" />
@@ -61,7 +61,7 @@
             <mat-label class="custom-label">Select Duration</mat-label>
             <mat-select
               class="custom-select"
-              formControlName="selectedDuration"
+              [formControlName]="SELECTED_DURATION_FORM"
             >
               @for(duration of durations; track duration.value){
               <mat-option
@@ -110,7 +110,7 @@
       <app-search-by-application-loader></app-search-by-application-loader>
     </mat-card>
 
-    }@else if(availabilityApplication!=null){
+    }@else if(availabilityApplication!=null && (availabilityApplication.nextAvailableSlots?.length ?? 0) >0 ){
     <mat-card class="card">
       @if((availabilityApplication.nextAvailableSlots?.length ?? 0) > 1){
       <ng-container>
@@ -252,7 +252,7 @@
     </mat-card>
     }@else{
     <div class="invisible-mat-card"></div>
-    > }
+    }
   </div>
   }
 </div>

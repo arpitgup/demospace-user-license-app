@@ -42,6 +42,7 @@ import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialo
 
 import { ReservationApiStatus } from '../landing/landing.enums';
 import { Reservation } from '../../core/models/reservation.model';
+import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
 
 type NormalizedReservation = { start: Date; end: Date };
 
@@ -90,26 +91,26 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   isCheckAvailableDisabled = false;
   selectedApplicationList: string[] = [];
   normalizedReservations: NormalizedReservation[] = [];
-  readonly BLOC_DAYS_LIMIT: number = 7;
+
+  readonly BLOC_HOUR_LIMIT: number = 24;
+  readonly PRIMARY_APPLICATION_FORM = 'primaryApplication';
+  readonly START_DATE_FORM = 'startDate';
+  readonly START_TIME_FORM = 'startTime';
+  readonly SELECTED_DURATION_FORM = 'selectedDuration';
+
+  durations = [
+    { value: 2, viewValue: '2 Hours', isDisabled: false },
+    { value: 4, viewValue: '4 Hours', isDisabled: false },
+    { value: 8, viewValue: '8 Hours', isDisabled: false },
+    { value: 12, viewValue: '12 Hours', isDisabled: false },
+    { value: 24, viewValue: '24 Hours', isDisabled: false },
+    { value: 48, viewValue: '48 Hours', isDisabled: false },
+  ];
 
   private readonly reservationsSig = this.reservationService.reservations;
 
-  private readonly syncFromReservations = effect(() => {
-    const all = this.reservationsSig();
-
-    const filtered = all.filter(
-      (r) =>
-        r.status === ReservationApiStatus.PENDING ||
-        r.status === ReservationApiStatus.ACTIVE
-    );
-
-    this.normalizedReservations = filtered.map((r) => ({
-      start: new Date(r.startTime),
-      end: new Date(r.endTime),
-    }));
-  });
-
   constructor(private fb: FormBuilder) {
+    this.listenReservationChanges();
     const today = new Date();
     this.minDate = new Date(today);
     this.minDate.setDate(today.getDate() + 1);
@@ -122,10 +123,10 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     this.maxAllowedTime = '23:00';
 
     this.applicationForm = this.fb.group({
-      primaryApplication: ['', Validators.required],
-      startDate: ['', Validators.required],
-      startTime: ['', Validators.required],
-      selectedDuration: ['', [Validators.required]],
+      [this.PRIMARY_APPLICATION_FORM]: ['', Validators.required],
+      [this.START_DATE_FORM]: ['', Validators.required],
+      [this.START_TIME_FORM]: ['', Validators.required],
+      [this.SELECTED_DURATION_FORM]: ['', [Validators.required]],
     });
   }
 
@@ -135,29 +136,41 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     this.applicationForm.valueChanges.subscribe(() => {
       this.isCheckAvailableDisabled = false;
     });
-
     this.listenDateChanges();
     this.listenTimeChanges();
   }
 
-  durations = [
-    { value: 2, viewValue: '2 Hours', isDisabled: false },
-    { value: 4, viewValue: '4 Hours', isDisabled: false },
-    { value: 8, viewValue: '8 Hours', isDisabled: false },
-    { value: 12, viewValue: '12 Hours', isDisabled: false },
-    { value: 24, viewValue: '24 Hours', isDisabled: false },
-    { value: 48, viewValue: '48 Hours', isDisabled: false },
-  ];
+  listenReservationChanges() {
+    effect(() => {
+      const all = this.reservationsSig();
+
+      const filtered = all.filter(
+        (r) =>
+          r.status === ReservationApiStatus.PENDING ||
+          r.status === ReservationApiStatus.ACTIVE
+      );
+
+      this.normalizedReservations = filtered.map((r) => ({
+        start: new Date(r.startTime),
+        end: new Date(r.endTime),
+      }));
+    });
+  }
 
   checkAvailability() {
-    this.selectedPrimaryApplication =
-      this.applicationForm.get('primaryApplication')?.value;
+    this.selectedPrimaryApplication = this.applicationForm.get(
+      this.PRIMARY_APPLICATION_FORM
+    )?.value;
 
-    const selectedDuration =
-      this.applicationForm.get('selectedDuration')?.value;
-    const startDateTime: Date = this.applicationForm.get('startTime')?.value;
+    const selectedDuration = this.applicationForm.get(
+      this.SELECTED_DURATION_FORM
+    )?.value;
+    const startDateTime: Date = this.applicationForm.get(
+      this.START_TIME_FORM
+    )?.value;
     const availabilityByApplicationRequest: AvailabilityByApplicationRequest = {
-      applicationId: this.applicationForm.get('primaryApplication')?.value?.id,
+      applicationId: this.applicationForm.get(this.PRIMARY_APPLICATION_FORM)
+        ?.value?.id,
       startTime: startDateTime.toISOString(),
       durationHours: selectedDuration,
       getNextSlots: true,
@@ -221,8 +234,13 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
               })),
             ];
           }
-
-          this.availabilityApplication = res.slotsAvailableData;
+          this.availabilityApplication = this.removeSlotsForBlocDays(
+            res.slotsAvailableData
+          );
+          if((this.availabilityApplication?.nextAvailableSlots?.length ?? 0)<=0){
+            this.showErrorDialog("No slots found for selected application");
+            return;
+          }
           this.checkSameDatesSlots();
           this.setSelectedApplicationsValue();
         },
@@ -234,9 +252,13 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
           this.isCheckAvailabilityLoading = false;
           this.isCheckAvailableDisabled = false;
           this.cdr.detectChanges();
+          this.showErrorDialog(
+            error?.error?.detail || 'Something went wrong. Please try again.'
+          );
         },
       });
   }
+
   checkSameDatesSlots() {
     this.availabilityApplication?.nextAvailableSlots?.forEach((slot) => {
       const startDate = new Date(slot.startTime ?? '');
@@ -364,6 +386,10 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
           this.secondaryApplications = [];
           this.availabilityApplication = null;
           this.selectedTimeSlot = null;
+          this.showErrorDialog(
+            err?.error?.detail ||
+              'There was an error creating your reservation. Please try again.'
+          );
         },
       });
   }
@@ -372,6 +398,202 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     return this.availabilityApplication?.nextAvailableSlots?.filter(
       (item) => item.isLessDurationSlots === true
     );
+  }
+
+  listenDateChanges() {
+    this.applicationForm
+      .get(this.START_DATE_FORM)
+      ?.valueChanges.subscribe((newValue) => {
+        const startDateTime = new Date(newValue as Date);
+        this.durations = this.durations.map((item) => ({
+          ...item,
+          isDisabled: false,
+        }));
+        const disableDatesStartEndTime =
+          this.isDateExistInDisableDateRanges(startDateTime);
+
+        if (disableDatesStartEndTime.endTime > 0) {
+          this.maxAllowedTime =
+            disableDatesStartEndTime.endTime.toString().padStart(2, '0') +
+            ':00';
+        } else {
+          this.maxAllowedTime = '23:00';
+        }
+        if (this.isSameDay(newValue, this.minDate)) {
+          if (disableDatesStartEndTime.startTime > 0) {
+            this.minAllowedTime = disableDatesStartEndTime.startTime
+              .toString()
+              .padStart(2, '0');
+          } else {
+            this.minAllowedTime =
+              this.nextHour.toString().padStart(2, '0') + ':00';
+          }
+
+          const selectedHour =
+            this.applicationForm.get(this.START_TIME_FORM)?.value?.getHours ??
+            0;
+          if (
+            selectedHour >= this.nextHour &&
+            selectedHour < disableDatesStartEndTime.endTime
+          ) {
+            startDateTime.setHours(selectedHour, 0, 0);
+          } else {
+            startDateTime.setHours(
+              this.nextHour < 8 && disableDatesStartEndTime.endTime > 8
+                ? 8
+                : this.nextHour,
+              0,
+              0
+            );
+          }
+          this.applicationForm
+            .get(this.START_TIME_FORM)
+            ?.patchValue(startDateTime);
+        } else {
+          if (disableDatesStartEndTime.startTime > 0) {
+            this.minAllowedTime =
+              disableDatesStartEndTime.startTime.toString().padStart(2, '0') +
+              ':00';
+            startDateTime.setHours(disableDatesStartEndTime.startTime, 0, 0);
+          } else {
+            this.minAllowedTime = '00:00';
+            startDateTime.setHours(8, 0, 0);
+          }
+
+          // if (
+          //   this.applicationForm.get(this.START_TIME_FORM)?.value?.getHours ??
+          //   0 != 0
+          // ) {
+          //   startDateTime.setHours(
+          //     this.applicationForm.get(this.START_TIME_FORM)?.value?.getHours ?? 0,
+          //     0,
+          //     0
+          //   );
+          // } else {
+
+          // }
+
+          this.applicationForm
+            .get(this.START_TIME_FORM)
+            ?.patchValue(startDateTime);
+        }
+        this.applicationForm.get(this.START_TIME_FORM)?.markAllAsTouched();
+        this.applicationForm.get(this.START_TIME_FORM)?.markAllAsDirty();
+      });
+  }
+
+  listenTimeChanges() {
+    this.applicationForm
+      .get(this.START_TIME_FORM)
+      ?.valueChanges.subscribe((newValue) => {
+        const maxHour =
+          new Date(`2025-01-01T${this.maxAllowedTime}:00`).getHours() + 2;
+        const selectedDateTime = new Date(newValue);
+        const selectedHours = selectedDateTime.getHours();
+        for (let slot of this.normalizedReservations) {
+          if (this.isSameDay(slot.start, selectedDateTime)) {
+            this.durations = this.durations.map((item) => ({
+              ...item,
+              isDisabled: selectedHours + item.value <= maxHour ? false : true,
+            }));
+          }
+        }
+
+        this.applicationForm
+          ?.get(this.SELECTED_DURATION_FORM)
+          ?.patchValue(null);
+        this.cdr.detectChanges();
+      });
+  }
+
+  isDateExistInDisableDateRanges(startDateTime: Date): {
+    startTime: number;
+    endTime: number;
+  } {
+    let startTime: number = 0;
+    let endTime: number = 0;
+    for (let slot of this.normalizedReservations) {
+      const blocEnd = new Date(
+        slot.end.getTime() + this.BLOC_HOUR_LIMIT * 60 * 60 * 1000
+      );
+      if (
+        this.isSameDay(startDateTime, slot.start) &&
+        endTime < slot.start.getHours() - 2
+      ) {
+        endTime = slot.start.getHours() - 2;
+      }
+      if (
+        this.isSameDay(startDateTime, blocEnd) &&
+        startTime < blocEnd.getHours()
+      ) {
+        startTime = blocEnd.getHours();
+      }
+    }
+    return { startTime: startTime, endTime: endTime };
+  }
+
+  isSameDay(selectedDate: Date, endDate: Date): boolean {
+    return (
+      selectedDate.getDate() === endDate.getDate() &&
+      selectedDate.getMonth() === endDate.getMonth() &&
+      selectedDate.getFullYear() === endDate.getFullYear()
+    );
+  }
+
+  removeSlotsForBlocDays(slotsAvailableData: AvalaibilityByApplication) {
+    slotsAvailableData.nextAvailableSlots =
+      slotsAvailableData.nextAvailableSlots?.filter((item) => {
+        for (let slot of this.normalizedReservations) {
+          const startDate = new Date(item.startTime!);
+          const endDate = new Date(item.endTime!);
+          const slotEndDate = new Date(
+            slot.end.getTime() + this.BLOC_HOUR_LIMIT * 60 * 60 * 1000
+          );
+          if (
+            (startDate >= slot.start && startDate < slotEndDate) ||
+            (endDate >= slot.start && endDate <= slotEndDate)
+          ) {
+            return false;
+          }
+        }
+        return true;
+      });
+    return slotsAvailableData;
+  }
+
+  dateFilter = (date: Date | null): boolean => {
+    if (!date) {
+      return false;
+    }
+    const dayOnly = this.stripTime(date);
+    const now = new Date();
+    const nextDay = new Date();
+    nextDay.setDate(now.getDate() + 1);
+
+    for (let slot of this.normalizedReservations) {
+      if (
+        this.isSameDay(nextDay, date) &&
+        this.isSameDay(nextDay, slot.start) &&
+        this.nextHour > slot.start.getHours() - 2
+      ) {
+        return false;
+      }
+      const blocStart = slot.start;
+      const blocEnd = new Date(
+        slot.end.getTime() + this.BLOC_HOUR_LIMIT * 60 * 60 * 1000
+      );
+      if (
+        dayOnly > this.stripTime(blocStart) &&
+        dayOnly < this.stripTime(blocEnd)
+      ) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  stripTime(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   }
 
   showConfirmationDialog() {
@@ -422,177 +644,23 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     });
   }
 
+  showErrorDialog(message: string) {
+    this.confirmationDialog.open(ErrorDialog, {
+      width: 'auto',
+      minWidth: '41.86rem',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        message: message,
+      },
+    });
+  }
+
   ngOnDestroy(): void {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
-  }
-
-  listenDateChanges() {
-    this.applicationForm
-      .get('startDate')
-      ?.valueChanges.subscribe((newValue) => {
-        const startDateTime = new Date(newValue as Date);
-        this.durations = this.durations.map((item) => ({
-          ...item,
-          isDisabled: false,
-        }));
-        const disableDatesStartEndTime =
-          this.isDateExistInDisableDateRanges(startDateTime);
-
-        if (disableDatesStartEndTime.endTime > 0) {
-          this.maxAllowedTime =
-            disableDatesStartEndTime.endTime.toString().padStart(2, '0') +
-            ':00';
-        }
-        if (
-          newValue.getFullYear() === this.minDate.getFullYear() &&
-          newValue.getDate() === this.minDate.getDate() &&
-          this.minDate.getMonth() === newValue.getMonth()
-        ) {
-          if (disableDatesStartEndTime.startTime > 0) {
-            this.minAllowedTime = disableDatesStartEndTime.startTime
-              .toString()
-              .padStart(2, '0');
-          } else {
-            this.minAllowedTime =
-              this.nextHour.toString().padStart(2, '0') + ':00';
-          }
-
-          const selectedHour =
-            this.applicationForm.get('startTime')?.value?.getHours ?? 0;
-          if (
-            selectedHour >= this.nextHour &&
-            selectedHour < disableDatesStartEndTime.endTime
-          ) {
-            startDateTime.setHours(selectedHour, 0, 0);
-          } else {
-            startDateTime.setHours(
-              this.nextHour < 8 && disableDatesStartEndTime.endTime > 8
-                ? 8
-                : this.nextHour,
-              0,
-              0
-            );
-          }
-          this.applicationForm.get('startTime')?.patchValue(startDateTime);
-        } else {
-          if (disableDatesStartEndTime.startTime > 0) {
-            this.minAllowedTime =
-              disableDatesStartEndTime.startTime.toString().padStart(2, '0') +
-              ':00';
-            startDateTime.setHours(disableDatesStartEndTime.startTime, 0, 0);
-          } else {
-            this.minAllowedTime = '00:00';
-            startDateTime.setHours(8, 0, 0);
-          }
-
-          // if (
-          //   this.applicationForm.get('startTime')?.value?.getHours ??
-          //   0 != 0
-          // ) {
-          //   startDateTime.setHours(
-          //     this.applicationForm.get('startTime')?.value?.getHours ?? 0,
-          //     0,
-          //     0
-          //   );
-          // } else {
-
-          // }
-
-          this.applicationForm.get('startTime')?.patchValue(startDateTime);
-        }
-        this.applicationForm.get('startTime')?.markAllAsTouched();
-        this.applicationForm.get('startTime')?.markAllAsDirty();
-      });
-  }
-
-  listenTimeChanges() {
-    this.applicationForm
-      .get('startTime')
-      ?.valueChanges.subscribe((newValue) => {
-        const maxHour =
-          new Date(`2025-01-01T${this.maxAllowedTime}:00`).getHours() + 2;
-        const selectedDateTime = new Date(newValue);
-        const selectedHours = selectedDateTime.getHours();
-        for (let slot of this.normalizedReservations) {
-          if (this.isSameDay(slot.start, selectedDateTime)) {
-            this.durations = this.durations.map((item) => ({
-              ...item,
-              isDisabled: selectedHours + item.value <= maxHour ? false : true,
-            }));
-          }
-        }
-
-        this.applicationForm?.get('selectedDuration')?.patchValue(null);
-        this.cdr.detectChanges();
-      });
-  }
-  isDateExistInDisableDateRanges(startDateTime: Date): {
-    startTime: number;
-    endTime: number;
-  } {
-    let startTime: number = 0;
-    let endTime: number = 0;
-    for (let slot of this.normalizedReservations) {
-      const blocEnd = new Date(
-        slot.end.getTime() + this.BLOC_DAYS_LIMIT * 24 * 60 * 60 * 1000
-      );
-      if (
-        this.isSameDay(startDateTime, slot.start) &&
-        endTime < slot.start.getHours() - 2
-      ) {
-        endTime = slot.start.getHours() - 2;
-      }
-      if (
-        this.isSameDay(startDateTime, blocEnd) &&
-        startTime < blocEnd.getHours()
-      ) {
-        startTime = blocEnd.getHours();
-      }
-    }
-    return { startTime: startTime, endTime: endTime };
-  }
-
-  isSameDay(selectedDate: Date, endDate: Date): boolean {
-    return (
-      selectedDate.getDate() === endDate.getDate() &&
-      selectedDate.getMonth() === endDate.getMonth() &&
-      selectedDate.getFullYear() === endDate.getFullYear()
-    );
-  }
-
-  dateFilter = (date: Date | null): boolean => {
-    if (!date) {
-      return false;
-    }
-    const dayOnly = this.stripTime(date);
-    const now = new Date();
-    const nextDay = new Date();
-    nextDay.setDate(now.getDate() + 1);
-    for (let slot of this.normalizedReservations) {
-      if (
-        this.isSameDay(nextDay, date) &&
-        this.isSameDay(nextDay, slot.start) &&
-        this.nextHour >= slot.start.getHours()
-      ) {
-        return false;
-      }
-      const blocStart = slot.start;
-      const blocEnd = new Date(
-        slot.end.getTime() + this.BLOC_DAYS_LIMIT * 24 * 60 * 60 * 1000
-      );
-      if (
-        dayOnly > this.stripTime(blocStart) &&
-        dayOnly < this.stripTime(blocEnd)
-      ) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  stripTime(date: Date): Date {
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   }
 }
