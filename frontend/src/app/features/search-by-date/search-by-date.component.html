@@ -217,7 +217,7 @@
           <mat-button-toggle
             [value]="app"
             class="app-toggle"
-            [disabled]="!isSelected(app) && selectedApps.length >= 3"
+            [disabled]="isAppToggleDisabled(app)"
             [checked]="isSelected(app)"
             [disableRipple]="true"
           >

@@ -22,3 +22,10 @@ export interface NewReservation {
   startTime: string;
   endTime: string;
 }
+
+export type BotWithApps = {
+  id: number;
+  name: string;
+  email: string;
+  applications: Application[];
+};

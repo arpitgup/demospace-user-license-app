@@ -38,6 +38,7 @@ import { ReservationService } from '../../core/services/reservation.service';
 import {
   Reservation,
   NewReservation,
+  BotWithApps,
 } from '../../core/models/reservation.model';
 import { AppConfig } from '../../core/models/appConfig.model';
 import { ReservationApiStatus } from '../landing/landing.enums';
@@ -129,6 +130,7 @@ export class SearchByDateComponent implements OnInit {
   maxSelectableDate: Date | null = null;
 
   availableApplications: Application[] = [];
+  botsWithApps: BotWithApps[] = [];
   selectedApps: Application[] = [];
   availableDate: Date | null = null;
   revokeDate: Date | null = null;
@@ -594,9 +596,38 @@ export class SearchByDateComponent implements OnInit {
       endTime: this.calculatedEndDate!.toISOString(),
     };
 
-    this.reservationService.checkAvailabilityByDate(payload).subscribe({
-      next: (response) => {
-        this.availableApplications = response.applications;
+    // this.reservationService.checkAvailabilityByDate(payload).subscribe({
+    //   next: (response) => {
+    //     this.availableApplications = response.applications;
+    //     this.selectedApps = [];
+    //     this.availableDate = startDateTime;
+    //     this.revokeDate = this.calculatedEndDate;
+    //     this.isLoading = false;
+    //     this.showResultsCard = true;
+    //     this.cdr.markForCheck();
+    //   },
+    //   error: (err) => {
+    //     console.error('Error checking availability:', err);
+    //     this.availableApplications = [];
+    //     this.isLoading = false;
+    //     this.showResultsCard = true;
+    //     this.cdr.markForCheck();
+    //   },
+    // });
+
+    this.reservationService.checkBotsAvailabilityByDate(payload).subscribe({
+      next: (response: any) => {
+        this.botsWithApps = response?.availableBots ?? [];
+        const appMap = new Map<number, Application>();
+        this.botsWithApps.forEach((bot: any) => {
+          bot.applications.forEach((app: any) => {
+            if (!appMap.has(app.id)) {
+              appMap.set(app.id, app);
+            }
+          });
+        });
+
+        this.availableApplications = Array.from(appMap.values());
         this.selectedApps = [];
         this.availableDate = startDateTime;
         this.revokeDate = this.calculatedEndDate;
@@ -605,15 +636,14 @@ export class SearchByDateComponent implements OnInit {
         this.cdr.markForCheck();
       },
       error: (err) => {
-        console.error('Error checking availability:', err);
+        console.error('Error checking bot availability:', err);
         this.availableApplications = [];
+        this.botsWithApps = [];
         this.isLoading = false;
         this.showResultsCard = true;
         this.cdr.markForCheck();
       },
     });
-
-    this.reservationService.checkBotsAvailabilityByDate(payload).subscribe();
   }
 
   showErrorDialog(message: string) {
@@ -680,6 +710,41 @@ export class SearchByDateComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
+  isAppToggleDisabled(app: Application): boolean {
+    if (this.isSelected(app)) {
+      return false;
+    }
+
+    if (this.selectedApps.length >= 3) {
+      return true;
+    }
+
+    if (this.selectedApps.length === 0) {
+      return false;
+    }
+
+    const selectedAppIds = this.selectedApps.map((a) => a.id); 
+
+    const compatibleBots = this.botsWithApps.filter((bot) =>
+      selectedAppIds.every((id) =>
+        bot.applications.some((botApp) => botApp.id === id)
+      )
+    );
+
+    if (compatibleBots.length === 0) {
+      return true;
+    }
+
+    const availableCompanionAppIds = new Set<number>();
+    compatibleBots.forEach((bot) => {
+      bot.applications.forEach((botApp) => {
+        availableCompanionAppIds.add(botApp.id);
+      });
+    });
+
+    return !availableCompanionAppIds.has(app.id);
+  }
+
   isSelected(app: Application): boolean {
     return this.selectedApps.some((s) => s.id === app.id);
   }
@@ -716,9 +781,9 @@ export class SearchByDateComponent implements OnInit {
       error: (err) => {
         console.error('Failed to create reservation:', err);
         this.showErrorDialog(
-            err?.error?.detail ||
-              'There was an error creating your reservation. Please try again.'
-          );
+          err?.error?.detail ||
+            'There was an error creating your reservation. Please try again.'
+        );
       },
     });
   }
@@ -895,6 +960,7 @@ export class SearchByDateComponent implements OnInit {
     this.calculatedEndDate = null;
     this.availableApplications = [];
     this.selectedApps = [];
+    this.botsWithApps = [];
     this.showResultsCard = false;
     this.startBlockedLegend = [];
     this.cdr.markForCheck();
