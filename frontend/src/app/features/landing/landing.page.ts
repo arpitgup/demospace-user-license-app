@@ -26,6 +26,7 @@ import { SearchApplicationComponent } from '../search-application/search-applica
 import { toObservable } from '@angular/core/rxjs-interop';
 import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
 import { MatDialog } from '@angular/material/dialog';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-landing-page',
@@ -41,6 +42,7 @@ import { MatDialog } from '@angular/material/dialog';
     SearchOptionCardComponent,
     SearchByDateComponent,
     SearchApplicationComponent,
+    MatIcon,
   ],
   host: {
     class: 'landing-page-container',
@@ -54,6 +56,7 @@ export class LandingPage implements OnInit {
 
   public selectedSearchType = signal<SearchType | null>(null);
   public showPastReservations = signal(false);
+  public userEmail: string | null = null;
   @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
   selectedIndex = 0;
 
@@ -91,9 +94,17 @@ export class LandingPage implements OnInit {
     },
   ];
 
-  ngOnInit(): void {
+  onRefreshData() {
     this.reservationService.fetchReservations().subscribe();
     this.reservationService.getApplications().subscribe();
+  }
+
+  ngOnInit(): void {
+    this.userEmail =
+      (sessionStorage.getItem('userEmail')?.split('@')[0] as string) ?? null;
+    if (this.userEmail) {
+      this.onRefreshData();
+    }
   }
 
   onShowPastChange(checked: boolean): void {

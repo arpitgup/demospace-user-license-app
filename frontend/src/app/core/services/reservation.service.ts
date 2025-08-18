@@ -6,7 +6,6 @@ import {
   defaultIfEmpty,
   filter,
   finalize,
-  forkJoin,
   from,
   Observable,
   of,
@@ -49,6 +48,16 @@ export class ReservationService {
   }): Observable<{ applications: Application[] }> {
     return this.http.post<{ applications: Application[] }>(
       `${this.apiUrl}/availability/by-date`,
+      payload
+    );
+  }
+
+  checkBotsAvailabilityByDate(payload: {
+    startTime: string;
+    endTime: string;
+  }): Observable<{ applications: Application[] }> {
+    return this.http.post<{ applications: Application[] }>(
+      `${this.apiUrl}/availability/by-date/v2`,
       payload
     );
   }

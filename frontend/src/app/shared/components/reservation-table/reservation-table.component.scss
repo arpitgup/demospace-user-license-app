@@ -143,4 +143,8 @@
     margin-right: $spacing-xs;
     font-size: $font-size-xs;
   }
+
+  .status-row {
+     text-transform: capitalize;
+  }
 }

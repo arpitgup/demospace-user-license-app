@@ -5,7 +5,7 @@ import { environment } from '../../../environments/environment';
   providedIn: 'root'
 })
 export class AuthService {
-  private userEmail = environment.emailId;
+  private userEmail = sessionStorage.getItem('userEmail') || environment.emailId;
 
   /**
    * Returns the authenticated user's email.
