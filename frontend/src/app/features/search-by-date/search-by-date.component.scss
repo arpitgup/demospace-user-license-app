@@ -128,9 +128,11 @@
             border-radius: 0.25rem;
           }
 
-          .mdc-text-field--disabled {
+          .end-date-field{
+            .mdc-text-field--disabled {
               background: #e6e6e6;
             }
+          }
         }
       }
 
@@ -229,6 +231,7 @@
           grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 1rem;
           border: none;
+          border-radius: inherit;
 
           .app-toggle {
             border: none !important;

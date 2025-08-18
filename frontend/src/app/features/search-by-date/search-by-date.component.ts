@@ -580,6 +580,8 @@ export class SearchByDateComponent implements OnInit {
 
   onEndTimeChange(): void {
     this.calculateEndDate();
+    this.showResultsCard = false;
+    this.syncControlErrors();
     this.cdr.markForCheck();
   }
 
@@ -793,7 +795,7 @@ export class SearchByDateComponent implements OnInit {
       this.isLoading ||
       this.form.invalid ||
       !this.calculatedEndDate ||
-      this.showResultsCard
+      this.showResultsCard 
     );
   }
 
