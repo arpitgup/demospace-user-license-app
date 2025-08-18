@@ -46,6 +46,7 @@ import { SearchByApplicationLoader } from '../../loaders/search-by-date-loader/s
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialog } from '../../shared/dialogs/confirmation-dialog/confirmation-dialog';
 import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
+import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
 
 type DailyAvailabilityMap = { [date: string]: number };
 type BlockedInterval = { start: Date; end: Date };
@@ -613,6 +614,20 @@ export class SearchByDateComponent implements OnInit {
     });
   }
 
+  showErrorDialog(message: string) {
+    this.confirmationDialog.open(ErrorDialog, {
+      width: 'auto',
+      minWidth: '41.86rem',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        message: message,
+      },
+    });
+  }
+
   showConfirmationDialog(): void {
     const dialogRef = this.confirmationDialog.open(ConfirmationDialog, {
       width: 'auto',
@@ -698,10 +713,10 @@ export class SearchByDateComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to create reservation:', err);
-        alert(
-          err?.error?.detail ||
-            'There was an error creating your reservation. Please try again.'
-        );
+        this.showErrorDialog(
+            err?.error?.detail ||
+              'There was an error creating your reservation. Please try again.'
+          );
       },
     });
   }
