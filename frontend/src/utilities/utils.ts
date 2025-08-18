@@ -28,8 +28,10 @@ export function onApplicationSelected(
   selectedTimeSlot: NextAvailableSlots
 ): Application[] {
   if (
-    (application.isSelected ?? false) === false &&
-    secondaryApplications.filter((item) => item.isSelected === true).length >= 2
+    ((application.isSelected ?? false) === false &&
+      secondaryApplications.filter((item) => item.isSelected === true).length >=
+        2) ||
+    application.isEnabled === false
   ) {
     return secondaryApplications;
   }
@@ -74,4 +76,14 @@ export function onApplicationSelected(
     ...item,
     isEnabled: availableIds.has(item.id),
   }));
+}
+
+export function getLocalTimeZoneAbbreviation(date: Date): string | undefined {
+  const parts = new Intl.DateTimeFormat(undefined, {
+    timeZoneName: 'short',
+  }).formatToParts(date);
+
+  const timeZoneNamePart = parts.find((part) => part.type === 'timeZoneName');
+
+  return timeZoneNamePart ? timeZoneNamePart.value : undefined;
 }

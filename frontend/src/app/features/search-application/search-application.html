@@ -110,7 +110,8 @@
       <app-search-by-application-loader></app-search-by-application-loader>
     </mat-card>
 
-    }@else if(availabilityApplication!=null && (availabilityApplication.nextAvailableSlots?.length ?? 0) >0 ){
+    }@else if(availabilityApplication!=null &&
+    (availabilityApplication.nextAvailableSlots?.length ?? 0) >0 ){
     <mat-card class="card">
       @if((availabilityApplication.nextAvailableSlots?.length ?? 0) > 1){
       <ng-container>
@@ -206,9 +207,14 @@
           class="application-item"
           [class.selected]="secondaryApplication.isSelected"
           (click)="onApplicationClicked(secondaryApplication)"
+          [class.disabled]="secondaryApplication.isEnabled === false"
         >
           <span class="tick-icon">&#10003;</span>
-          <span class="secondary-text">{{ secondaryApplication.name }}</span>
+          <span
+            class="secondary-text"
+            [class.disabled]="secondaryApplication.isEnabled === false"
+            >{{ secondaryApplication.name }}</span
+          >
         </div>
         }
       </div>
@@ -216,13 +222,15 @@
       <div class="booking-details">
         <p class="booking-details-title">
           The requested license(s) will be available
-          <span class="booking-time">{{
-            selectedTimeSlot!.startTime! | date : "MMMM d 'at' h:mm a z"
-          }}</span>
+          <span class="booking-time"
+            >{{ selectedTimeSlot!.startTime! | date : "MMMM d 'at' h:mm a "
+            }}{{ localTimeAbbrevation }}</span
+          >
           till
-          <span class="booking-time">{{
-            selectedTimeSlot!.endTime! | date : "MMMM d 'at' h:mm a z"
-          }}</span>
+          <span class="booking-time"
+            >{{ selectedTimeSlot!.endTime! | date : "MMMM d 'at' h:mm a "
+            }}{{ localTimeAbbrevation }}</span
+          >
         </p>
         <div class="booking-sized-box"></div>
         @if(selectedApplicationList!=null&&selectedApplicationList!.length===1){

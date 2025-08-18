@@ -1,11 +1,12 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
+import { getLocalTimeZoneAbbreviation } from '../../../../utilities/utils';
 
 @Component({
   selector: 'app-confirmation-dialog',
@@ -13,7 +14,9 @@ import { MatIcon } from '@angular/material/icon';
   templateUrl: './confirmation-dialog.html',
   styleUrl: './confirmation-dialog.scss',
 })
-export class ConfirmationDialog {
+export class ConfirmationDialog implements OnInit {
+  localTimeAbbrevation: string = '';
+
   dialogRef = inject(MatDialogRef<ConfirmationDialog>);
   data = inject(MAT_DIALOG_DATA) as {
     title: string;
@@ -25,12 +28,18 @@ export class ConfirmationDialog {
     confirmText: string;
     cancelText: string;
   };
-
   onConfirm(): void {
     this.dialogRef.close(true);
   }
 
   onCancel(): void {
     this.dialogRef.close(false);
+  }
+
+  ngOnInit(): void {
+    this.localTimeAbbrevation =
+      getLocalTimeZoneAbbreviation(
+        new Date(this.data.startDateTime) ?? new Date()
+      ) ?? '';
   }
 }

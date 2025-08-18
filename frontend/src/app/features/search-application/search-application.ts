@@ -44,6 +44,7 @@ import { ReservationApiStatus } from '../landing/landing.enums';
 import { Reservation } from '../../core/models/reservation.model';
 import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
 import {
+  getLocalTimeZoneAbbreviation,
   getUniqueSecondaryApplications,
   onApplicationSelected,
 } from '../../../utilities/utils';
@@ -103,6 +104,8 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   readonly START_DATE_FORM = 'startDate';
   readonly START_TIME_FORM = 'startTime';
   readonly SELECTED_DURATION_FORM = 'selectedDuration';
+  readonly localTimeAbbrevation= getLocalTimeZoneAbbreviation(new Date());
+
 
   durations = [
     { value: 2, viewValue: '2 Hours', isDisabled: false },
@@ -144,6 +147,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     });
     this.listenDateChanges();
     this.listenTimeChanges();
+   
   }
 
   listenReservationChanges() {
@@ -290,6 +294,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
       nextAvailableSlots,
       this.selectedPrimaryApplication?.id ?? 0
     );
+    this.cdr.detectChanges();
   }
 
   onApplicationClicked(application: Application) {
@@ -372,9 +377,9 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
         }
         if (this.isSameDay(newValue, this.minDate)) {
           if (disableDatesStartEndTime.startTime > 0) {
-            this.minAllowedTime = disableDatesStartEndTime.startTime
-              .toString()
-              .padStart(2, '0');
+            this.minAllowedTime =
+              disableDatesStartEndTime.startTime.toString().padStart(2, '0') +
+              ':00';
           } else {
             this.minAllowedTime =
               this.nextHour.toString().padStart(2, '0') + ':00';
@@ -392,6 +397,8 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
             startDateTime.setHours(
               this.nextHour < 8 && disableDatesStartEndTime.endTime > 8
                 ? 8
+                : disableDatesStartEndTime.startTime > this.nextHour
+                ? disableDatesStartEndTime.startTime
                 : this.nextHour,
               0,
               0
@@ -428,6 +435,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
             .get(this.START_TIME_FORM)
             ?.patchValue(startDateTime);
         }
+
         this.applicationForm.get(this.START_TIME_FORM)?.markAllAsTouched();
         this.applicationForm.get(this.START_TIME_FORM)?.markAllAsDirty();
       });
@@ -547,6 +555,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   }
 
+ 
   showConfirmationDialog() {
     const dialogRef = this.confirmationDialog.open(ConfirmationDialog, {
       width: 'auto',
