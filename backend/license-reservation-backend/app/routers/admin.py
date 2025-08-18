@@ -1,3 +1,4 @@
+from datetime import timezone
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status
 from loguru import logger
 from sqlalchemy.orm import Session
@@ -14,12 +15,18 @@ from typing import List
 from ..common.schemas import (
     BulkCancelReservationsRequest,
     BulkCancelReservationsResponse,
+    ExtendReservationRequest,
     ReservationOut,
     BotWithApplicationsOut,
     UpdateBotApplicationsRequest,
+    UpdateApplicationStatusRequest,
     BotsUpsertRequest,
 )
-from ..utils.background_tasks import delete_reservation_tasks, schedule_deprovisioning_task
+from ..utils.background_tasks import (
+    delete_reservation_tasks,
+    schedule_deprovisioning_task,
+    delete_license_deprovisioning_task,
+)
 from ..utils.crud import get_bot_with_supported_apps, upsert_bots_with_applications
 
 
@@ -78,8 +85,8 @@ def bulk_cancel_reservations(
         f"Admin User {user_email}: Bulk cancelling reservations: {req.reservation_ids}"
     )
     failed_to_cancel = []
-    cancel_immediately = {}
-    schedule_cancellation = {}
+    cancel_immediately = set()
+    schedule_cancellation = set()
 
     reservations = (
         db.query(Reservation).filter(Reservation.id.in_(req.reservation_ids)).all()
@@ -120,6 +127,122 @@ def bulk_cancel_reservations(
         successfully_cancelled=list(cancel_immediately | schedule_cancellation),
         failed_to_cancel=failed_to_cancel,
     )
+
+
+@router.patch(
+    "/admin/reservations/{reservation_id}/extend", response_model=ReservationOut
+)
+def extend_reservation(
+    reservation_id: int,
+    req: ExtendReservationRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+):
+    """
+    Extends an active reservation to a new end time.
+    """
+    logger.info(
+        f"Admin User {user_email}: Extending reservation {reservation_id} to {req.end_time}"
+    )
+
+    reservation = db.query(Reservation).filter(Reservation.id == reservation_id).first()
+
+    if not reservation:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Reservation not found")
+
+    if reservation.status != ReservationStatus.ACTIVE:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            detail="Only active reservations can be extended.",
+        )
+
+    reservation_end_time = reservation.end_time
+    if reservation_end_time.tzinfo is None:
+        reservation_end_time = reservation_end_time.replace(tzinfo=timezone.utc)
+    if req.end_time <= reservation_end_time:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            detail="New end time must be after the current end time.",
+        )
+
+    # Check for bot availability
+    conflicting_reservations = (
+        db.query(Reservation)
+        .filter(
+            Reservation.bot_id == reservation.bot_id,
+            Reservation.id != reservation_id,
+            Reservation.status.in_(
+                [ReservationStatus.ACTIVE, ReservationStatus.PENDING]
+            ),
+            Reservation.start_time < req.end_time,
+            Reservation.end_time > reservation_end_time,
+        )
+        .all()
+    )
+
+    if conflicting_reservations:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            detail="Bot is not available for the extended period.",
+        )
+
+    reservation.end_time = req.end_time
+    try:
+        db.commit()
+        db.refresh(reservation)
+        background_tasks.add_task(
+            delete_license_deprovisioning_task,
+            reservation.id,
+            reservation.deprovisioning_task_id,
+        )
+        background_tasks.add_task(
+            schedule_deprovisioning_task, reservation.id, reservation.end_time
+        )
+    except Exception as e:
+        db.rollback()
+        logger.error(f"An unexpected error occurred during reservation extension: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="An unexpected error occurred during reservation extension.",
+        )
+
+    return reservation
+
+
+@router.patch(
+    "/admin/applications/{application_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+def update_application_status(
+    application_id: int,
+    req: UpdateApplicationStatusRequest,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+):
+    """
+    Activates or deactivates an application.
+    """
+    logger.info(
+        f"Admin User {user_email}: Updating application {application_id} status to {req.is_active}"
+    )
+
+    application = db.query(Application).filter(Application.id == application_id).first()
+
+    if not application:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Application not found")
+
+    application.is_active = req.is_active
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"An unexpected error occurred during application status update: {e}"
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="An unexpected error occurred during application status update.",
+        )
 
 
 # TODO: Add test

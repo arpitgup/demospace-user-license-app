@@ -155,3 +155,13 @@ class BotUpsertData(BaseModel):
 
 class BotsUpsertRequest(BaseModel):
     bots: list[BotUpsertData]
+
+
+class ExtendReservationRequest(CamelModel):
+    end_time: datetime
+
+    _convert_to_utc = field_validator("end_time")(convert_to_utc)
+
+
+class UpdateApplicationStatusRequest(CamelModel):
+    is_active: bool
