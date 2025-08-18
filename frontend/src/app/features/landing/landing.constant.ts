@@ -1,5 +1,5 @@
 export const LANDING_PAGE_CONSTANTS = {
-  WELCOME_GREETING: 'Hey, Alex',
+  WELCOME_GREETING: 'Hey,',
   WELCOME_SUBTITLE: 'Welcome to Agentspace License Reservation System',
   YOUR_RESERVATION_TAB_LABEL: 'Your Reservation',
   BOOK_RESERVATION_TAB_LABEL: 'Book Reservation',

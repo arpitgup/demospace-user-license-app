@@ -1,12 +1,10 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { AuthService } from '../services/auth.service';
+import { inject } from '@angular/core';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  // const authService = inject(AuthService);
-  // const userEmail = authService.getUserEmail();
-  let userEmail;
-  if (typeof window !== 'undefined') {
-    userEmail = sessionStorage.getItem('userEmail');
-  }
+  const authService = inject(AuthService);
+  const userEmail = authService.getUserEmail();
 
   if (!userEmail) {
     return next(req);
