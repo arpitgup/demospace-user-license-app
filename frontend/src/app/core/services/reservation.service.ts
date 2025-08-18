@@ -53,6 +53,16 @@ export class ReservationService {
     );
   }
 
+  checkBotsAvailabilityByDate(payload: {
+    startTime: string;
+    endTime: string;
+  }): Observable<{ applications: Application[] }> {
+    return this.http.post<{ applications: Application[] }>(
+      `${this.apiUrl}/availability/by-date/v2`,
+      payload
+    );
+  }
+
   getApplications(): Observable<Application[]> {
     return this.http.get<Application[]>(`${this.apiUrl}/applications`).pipe(
       tap((applications) => {

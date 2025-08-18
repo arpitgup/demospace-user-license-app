@@ -612,6 +612,8 @@ export class SearchByDateComponent implements OnInit {
         this.cdr.markForCheck();
       },
     });
+
+    this.reservationService.checkBotsAvailabilityByDate(payload).subscribe();
   }
 
   showErrorDialog(message: string) {
