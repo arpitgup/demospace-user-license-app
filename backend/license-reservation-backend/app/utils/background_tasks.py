@@ -18,9 +18,7 @@ from ..common.constants import (
 )
 
 
-async def schedule_provisioning_task(
-    client: tasks_v2.CloudTasksAsyncClient, reservation_id: int, run_at: datetime
-):
+async def schedule_provisioning_task(reservation_id: int, run_at: datetime):
     """Helper function to create a provisioning task for a reservation."""
     timestamp = timestamp_pb2.Timestamp()
     timestamp.FromDatetime(run_at.astimezone(timezone.utc))
@@ -37,6 +35,7 @@ async def schedule_provisioning_task(
         ),
         schedule_time=timestamp,
     )
+    client = tasks_v2.CloudTasksAsyncClient()
     response = await client.create_task(
         request=tasks_v2.CreateTaskRequest(
             parent=client.queue_path(
@@ -51,12 +50,8 @@ async def schedule_provisioning_task(
     return response
 
 
-async def schedule_deprovisioning_task(
-    client: tasks_v2.CloudTasksAsyncClient, reservation_id: int, run_at: datetime
-):
+async def schedule_deprovisioning_task(reservation_id: int, run_at: datetime = None):
     """Helper function to create a deprovisioning task for a reservation."""
-    timestamp = timestamp_pb2.Timestamp()
-    timestamp.FromDatetime(run_at.astimezone(timezone.utc))
     payload = json.dumps({"reservationId": reservation_id})
     task = tasks_v2.Task(
         http_request=tasks_v2.HttpRequest(
@@ -68,8 +63,12 @@ async def schedule_deprovisioning_task(
                 service_account_email=LICENSE_ENDPOINTS_INVOKER_SERVICE_ACCOUNT
             ),
         ),
-        schedule_time=timestamp,
     )
+    if run_at is not None:
+        timestamp = timestamp_pb2.Timestamp()
+        timestamp.FromDatetime(run_at.astimezone(timezone.utc))
+        task.schedule_time = timestamp
+    client = tasks_v2.CloudTasksAsyncClient()
     response = await client.create_task(
         request=tasks_v2.CreateTaskRequest(
             parent=client.queue_path(
@@ -93,10 +92,10 @@ async def schedule_reservation_tasks(
     try:
         provisioning_task_response, deprovisioning_task_response = await asyncio.gather(
             schedule_provisioning_task(
-                client=client, reservation_id=reservation_id, run_at=start_time
+                reservation_id=reservation_id, run_at=start_time
             ),
             schedule_deprovisioning_task(
-                client=client, reservation_id=reservation_id, run_at=end_time
+                reservation_id=reservation_id, run_at=end_time
             ),
         )
 
@@ -117,31 +116,43 @@ async def schedule_reservation_tasks(
         raise e
 
 
+async def delete_license_provisioning_task(reservation_id: int, task_id: str):
+    """Helper function to delete the license provisioning task for a reservation."""
+    client = tasks_v2.CloudTasksAsyncClient()
+    try:
+        await client.delete_task(name=task_id)
+        logger.info(
+            f"Deleted license provisioning task for reservation {reservation_id}."
+        )
+    except Exception as e:
+        logger.error(
+            f"Failed to delete license provisioning task for reservation {reservation_id}: {e}"
+        )
+
+
+async def delete_license_deprovisioning_task(reservation_id: int, task_id: str):
+    """Helper function to delete the license de-provisioning task for a reservation."""
+    client = tasks_v2.CloudTasksAsyncClient()
+    try:
+        await client.delete_task(name=task_id)
+        logger.info(
+            f"Deleted license deprovisioning task for reservation {reservation_id}."
+        )
+    except Exception as e:
+        logger.error(
+            f"Failed to delete license deprovisioning task for reservation {reservation_id}: {e}"
+        )
+
+
 async def delete_reservation_tasks(reservation_id: int):
     """Deletes license allocation and revocation tasks for a reservation."""
-    client = tasks_v2.CloudTasksAsyncClient()
-
     with SessionLocal() as db:
         reservation = (
             db.query(Reservation).filter(Reservation.id == reservation_id).first()
         )
-        if reservation.provisioning_task_id:
-            try:
-                await client.delete_task(name=reservation.provisioning_task_id)
-                logger.info(
-                    f"Deleted license provisioning task for reservation {reservation_id}."
-                )
-            except Exception as e:
-                logger.error(
-                    f"Failed to delete license provisioning task for reservation {reservation_id}: {e}"
-                )
-        if reservation.deprovisioning_task_id:
-            try:
-                await client.delete_task(name=reservation.deprovisioning_task_id)
-                logger.info(
-                    f"Deleted license deprovisioning task for reservation {reservation_id}."
-                )
-            except Exception as e:
-                logger.error(
-                    f"Failed to delete license deprovisioning task for reservation {reservation_id}: {e}"
-                )
+        await delete_license_provisioning_task(
+            reservation_id, reservation.provisioning_task_id
+        )
+        await delete_license_deprovisioning_task(
+            reservation_id, reservation.deprovisioning_task_id
+        )
