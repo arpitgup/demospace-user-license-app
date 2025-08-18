@@ -10,7 +10,7 @@
             <mat-label>Primary Application</mat-label>
             <mat-select
               class="custom-select"
-              formControlName="primaryApplication"
+              [formControlName]="PRIMARY_APPLICATION_FORM"
             >
               @for(application of applications; track application.id){
               <mat-option [value]="application">
@@ -29,10 +29,11 @@
             <input
               matInput
               [matDatepicker]="datePicker"
+              [matDatepickerFilter]="dateFilter"
               [min]="minDate"
               [max]="maxDate"
               readonly
-              formControlName="startDate"
+              [formControlName]="START_DATE_FORM"
             />
             <mat-datepicker-toggle
               matIconSuffix
@@ -47,7 +48,7 @@
               [matTimepicker]="picker"
               [matTimepickerMin]="minAllowedTime"
               [matTimepickerMax]="maxAllowedTime"
-              formControlName="startTime"
+              [formControlName]="START_TIME_FORM"
               readonly
             />
             <mat-timepicker-toggle matIconSuffix [for]="picker" />
@@ -60,10 +61,13 @@
             <mat-label class="custom-label">Select Duration</mat-label>
             <mat-select
               class="custom-select"
-              formControlName="selectedDuration"
+              [formControlName]="SELECTED_DURATION_FORM"
             >
               @for(duration of durations; track duration.value){
-              <mat-option [value]="duration.value">
+              <mat-option
+                [value]="duration.value"
+                [disabled]="duration.isDisabled"
+              >
                 {{ duration.viewValue }}
               </mat-option>
               }
@@ -106,7 +110,7 @@
       <app-search-by-application-loader></app-search-by-application-loader>
     </mat-card>
 
-    }@else if(availabilityApplication!=null){
+    }@else if(availabilityApplication!=null && (availabilityApplication.nextAvailableSlots?.length ?? 0) >0 ){
     <mat-card class="card">
       @if((availabilityApplication.nextAvailableSlots?.length ?? 0) > 1){
       <ng-container>
@@ -122,17 +126,19 @@
           class="custom-grid"
         >
           @for(availableSlots of availabilityApplication!.nextAvailableSlots;
-          track $index){
+          track $index){ @if(availableSlots.isLessDurationSlots!==true){
           <mat-grid-tile
             class="grid-tile"
             [class.selected]="availableSlots.isSelected"
             (click)="onNextAvailableSlotClicked(availableSlots)"
           >
             @if(availableSlots.isSameDay===true){
+
             <p class="slot-time" [class.selected]="availableSlots.isSelected">
               {{ availableSlots.startTime | date : "MMMM d" }}
             </p>
             }@else {
+
             <p class="slot-time" [class.selected]="availableSlots.isSelected">
               {{ availableSlots.startTime | date : "MMM d" }} -
               {{ availableSlots.endTime | date : "MMM d" }}
@@ -144,7 +150,7 @@
               {{ availableSlots.endTime | date : "h a" }}
             </p>
           </mat-grid-tile>
-          }
+          } }
         </mat-grid-list>
         <mat-divider class="custom-divider"></mat-divider>
       </ng-container>
@@ -209,14 +215,12 @@
       <mat-divider class="custom-divider"></mat-divider>
       <div class="booking-details">
         <p class="booking-details-title">
-          License will be available
-          <span>{{
+          The requested license(s) will be available
+          <span class="booking-time">{{
             selectedTimeSlot!.startTime! | date : "MMMM d 'at' h:mm a z"
           }}</span>
-        </p>
-        <div class="booking-sized-box"></div>
-        <p class="booking-details-title">
-          License access will be revoked<span>{{
+          till
+          <span class="booking-time">{{
             selectedTimeSlot!.endTime! | date : "MMMM d 'at' h:mm a z"
           }}</span>
         </p>
@@ -233,7 +237,7 @@
         </p>
         }
       </div>
-      <div class="sized-box"></div>
+      <div class="sized-box-reservation"></div>
       <div class="confirm-reservation">
         <button
           matButton
@@ -248,7 +252,7 @@
     </mat-card>
     }@else{
     <div class="invisible-mat-card"></div>
-    > }
+    }
   </div>
   }
 </div>

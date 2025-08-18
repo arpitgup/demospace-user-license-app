@@ -1,4 +1,4 @@
-<!-- 
+<!--
   This template remains unchanged as it already uses modern control flow (`@for`, `@if`)
   and correctly consumes signals (`selectedSearchType()`, `filteredReservations()`)
   and component outputs (`(bookingSuccess)`, `(cancelReservation)`).
@@ -16,6 +16,7 @@
     >
       <!-- Tab 1: Book Reservation -->
       <mat-tab [label]="landingPageConstants.BOOK_RESERVATION_TAB_LABEL">
+        @if(selectedIndex===0){
         <div class="tab-content book-reservation-content">
           <div class="card-container">
             @for (searchOption of searchOptionCards; track searchOption.id) {
@@ -44,6 +45,7 @@
           </div>
           }
         </div>
+        }
       </mat-tab>
 
       <!-- Tab 2: Your Reservations -->

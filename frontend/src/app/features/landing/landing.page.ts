@@ -55,6 +55,7 @@ export class LandingPage implements OnInit {
   public selectedSearchType = signal<SearchType | null>(null);
   public showPastReservations = signal(false);
   @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
+  selectedIndex = 0;
 
   private readonly reservationsSignal = this.reservationService.reservations;
 
@@ -108,6 +109,7 @@ export class LandingPage implements OnInit {
    * @param event The MatTabChangeEvent object.
    */
   onTabChange(event: MatTabChangeEvent): void {
+    this.selectedIndex = event.index;
     if (event) {
       this.reservationService.fetchReservations().subscribe();
     }

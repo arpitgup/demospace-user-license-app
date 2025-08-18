@@ -2,10 +2,12 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  effect,
   EventEmitter,
   inject,
+  OnDestroy,
+  OnInit,
   Output,
-  OnInit, OnDestroy,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -23,7 +25,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTimepickerModule } from '@angular/material/timepicker';
-import { map, Observable, Subscription } from 'rxjs';
+import { map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { ReservationService } from '../../core/services/reservation.service';
 import { Application } from '../../core/models/application.model';
 import { AsyncPipe, DatePipe } from '@angular/common';
@@ -37,7 +39,12 @@ import { SearchByApplicationLoader } from '../../loaders/search-by-application-l
 import { ConfirmationDialog } from '../../shared/dialogs/confirmation-dialog/confirmation-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
-import { start } from 'repl';
+
+import { ReservationApiStatus } from '../landing/landing.enums';
+import { Reservation } from '../../core/models/reservation.model';
+import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
+
+type NormalizedReservation = { start: Date; end: Date };
 
 @Component({
   selector: 'app-search-application',
@@ -69,7 +76,8 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   @Output() bookingSuccess = new EventEmitter();
 
   applications$!: Observable<Application[]>;
-  availabilityApplication?: AvalaibilityByApplication | null;
+  reservations$!: Observable<Reservation[]>;
+  availabilityApplication?: AvalaibilityByApplication | null = null;
   minDate: Date;
   maxDate: Date;
   minAllowedTime: string;
@@ -82,8 +90,27 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   isCheckAvailabilityLoading = false;
   isCheckAvailableDisabled = false;
   selectedApplicationList: string[] = [];
+  normalizedReservations: NormalizedReservation[] = [];
+
+  readonly BLOC_HOUR_LIMIT: number = 24;
+  readonly PRIMARY_APPLICATION_FORM = 'primaryApplication';
+  readonly START_DATE_FORM = 'startDate';
+  readonly START_TIME_FORM = 'startTime';
+  readonly SELECTED_DURATION_FORM = 'selectedDuration';
+
+  durations = [
+    { value: 2, viewValue: '2 Hours', isDisabled: false },
+    { value: 4, viewValue: '4 Hours', isDisabled: false },
+    { value: 8, viewValue: '8 Hours', isDisabled: false },
+    { value: 12, viewValue: '12 Hours', isDisabled: false },
+    { value: 24, viewValue: '24 Hours', isDisabled: false },
+    { value: 48, viewValue: '48 Hours', isDisabled: false },
+  ];
+
+  private readonly reservationsSig = this.reservationService.reservations;
 
   constructor(private fb: FormBuilder) {
+    this.listenReservationChanges();
     const today = new Date();
     this.minDate = new Date(today);
     this.minDate.setDate(today.getDate() + 1);
@@ -96,155 +123,147 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     this.maxAllowedTime = '23:00';
 
     this.applicationForm = this.fb.group({
-      primaryApplication: ['', Validators.required],
-      startDate: ['', Validators.required],
-      startTime: ['', Validators.required],
-      selectedDuration: ['', [Validators.required]],
+      [this.PRIMARY_APPLICATION_FORM]: ['', Validators.required],
+      [this.START_DATE_FORM]: ['', Validators.required],
+      [this.START_TIME_FORM]: ['', Validators.required],
+      [this.SELECTED_DURATION_FORM]: ['', [Validators.required]],
     });
   }
 
   ngOnInit(): void {
     this.applications$ = this.reservationService.applications$;
+
     this.applicationForm.valueChanges.subscribe(() => {
       this.isCheckAvailableDisabled = false;
     });
-
-    this.applicationForm
-      .get('startDate')
-      ?.valueChanges.subscribe((newValue) => {
-        const startDateTime = new Date(newValue as Date);
-        if (
-          newValue.getFullYear() === this.minDate.getFullYear() &&
-          newValue.getDate() === this.minDate.getDate() &&
-          this.minDate.getMonth() === newValue.getMonth()
-        ) {
-          this.minAllowedTime =
-            this.nextHour < 8
-              ? '08:00'
-              : this.nextHour.toString().padStart(2, '0') + ':00';
-          const selectedHour =
-            this.applicationForm.get('startTime')?.value?.getHours ?? 0;
-          if (selectedHour >= this.nextHour) {
-            startDateTime.setHours(selectedHour, 0, 0);
-          } else {
-            startDateTime.setHours(this.nextHour < 8 ? 8 : this.nextHour, 0, 0);
-          }
-
-          this.applicationForm.get('startTime')?.patchValue(startDateTime);
-        } else {
-          this.minAllowedTime = '00:00';
-          // if (
-          //   this.applicationForm.get('startTime')?.value?.getHours ??
-          //   0 != 0
-          // ) {
-          //   startDateTime.setHours(
-          //     this.applicationForm.get('startTime')?.value?.getHours ?? 0,
-          //     0,
-          //     0
-          //   );
-          // } else {
-
-          // }
-          startDateTime.setHours(8, 0, 0);
-          this.applicationForm.get('startTime')?.patchValue(startDateTime);
-        }
-        this.applicationForm.get('startTime')?.markAllAsTouched();
-        this.applicationForm.get('startTime')?.markAllAsDirty();
-      });
+    this.listenDateChanges();
+    this.listenTimeChanges();
   }
 
-  durations = [
-    { value: '2', viewValue: '2 Hours' },
-    { value: '4', viewValue: '4 Hours' },
-    { value: '8', viewValue: '8 Hours' },
-    { value: '12', viewValue: '12 Hours' },
-    { value: '24', viewValue: '24 Hours' },
-    { value: '48', viewValue: '48 Hours' },
-  ];
+  listenReservationChanges() {
+    effect(() => {
+      const all = this.reservationsSig();
+
+      const filtered = all.filter(
+        (r) =>
+          r.status === ReservationApiStatus.PENDING ||
+          r.status === ReservationApiStatus.ACTIVE
+      );
+
+      this.normalizedReservations = filtered.map((r) => ({
+        start: new Date(r.startTime),
+        end: new Date(r.endTime),
+      }));
+    });
+  }
 
   checkAvailability() {
-    this.selectedPrimaryApplication =
-      this.applicationForm.get('primaryApplication')?.value;
+    this.selectedPrimaryApplication = this.applicationForm.get(
+      this.PRIMARY_APPLICATION_FORM
+    )?.value;
 
-    const index = this.durations.findIndex(
-      (item) =>
-        item.value === this.applicationForm.get('selectedDuration')?.value
-    );
-    const selectedIndex = index <= 0 ? 0 : index - 1;
-    const startDateTime: Date = this.applicationForm.get('startTime')?.value;
+    const selectedDuration = this.applicationForm.get(
+      this.SELECTED_DURATION_FORM
+    )?.value;
+    const startDateTime: Date = this.applicationForm.get(
+      this.START_TIME_FORM
+    )?.value;
     const availabilityByApplicationRequest: AvailabilityByApplicationRequest = {
-      applicationId: this.applicationForm.get('primaryApplication')?.value?.id,
+      applicationId: this.applicationForm.get(this.PRIMARY_APPLICATION_FORM)
+        ?.value?.id,
       startTime: startDateTime.toISOString(),
-      durationHours: this.applicationForm.get('selectedDuration')?.value,
+      durationHours: selectedDuration,
       getNextSlots: true,
     };
-    const noApplicationAvailableRequest: AvailabilityByApplicationRequest = {
-      applicationId: this.applicationForm.get('primaryApplication')?.value?.id,
-      startTime: startDateTime.toISOString(),
-      durationHours: Number(this.durations[selectedIndex].value),
-      getNextSlots: false,
-    };
+
     this.isCheckAvailabilityLoading = true;
     this.isCheckAvailableDisabled = true;
     this.availabilityApplication = null;
     this.secondaryApplications = [];
     this.selectedTimeSlot = null;
-    this.subscription = this.reservationService
-      .checkAvailabilityByApplication(
-        availabilityByApplicationRequest,
-        noApplicationAvailableRequest
+    const selectedDurationIndex = this.durations.findIndex(
+      (item) => item.value === selectedDuration
+    );
+    const lessDurationList =
+      selectedDurationIndex > 0
+        ? this.durations
+            .slice(0, selectedDurationIndex)
+            .map((item) => item.value)
+        : [];
+    this.reservationService
+      ?.checkAvailabilityByApplication(availabilityByApplicationRequest)
+      .pipe(
+        switchMap((slotsAvailabilityResponse) => {
+          if (
+            slotsAvailabilityResponse.requestedSlotAvailable === false &&
+            lessDurationList.length > 1
+          ) {
+            return this.reservationService
+              .checkLessDurationSlotsApplication(
+                lessDurationList,
+                availabilityByApplicationRequest
+              )
+              .pipe(
+                map((lessDurationSlotsResponse) => ({
+                  slotsAvailableData: slotsAvailabilityResponse,
+                  lessDurationSlots: lessDurationSlotsResponse,
+                }))
+              );
+          }
+          return of({
+            slotsAvailableData: slotsAvailabilityResponse,
+            lessDurationSlots: null,
+          });
+        })
       )
       .subscribe({
         next: (res) => {
-          this.isCheckAvailabilityLoading = false;
           if ((res.slotsAvailableData.nextAvailableSlots?.length ?? 0) >= 1) {
-            this.checkSameDatesSlots(res.slotsAvailableData);
             if (res.slotsAvailableData?.requestedSlotAvailable === true) {
               this.selectedTimeSlot =
                 res.slotsAvailableData.nextAvailableSlots![0];
               this.checkSecondaryApplications(this.selectedTimeSlot!);
-              this.availabilityApplication = res.slotsAvailableData;
-              this.cdr.detectChanges();
-              return;
             }
           }
-          if (
-            res.noSlotsAvailableData?.requestedSlotAvailable === false &&
-            (res.noSlotsAvailableData.nextAvailableSlots?.length ?? 0) >= 1
-          ) {
-            this.checkSameDatesSlots(res.noSlotsAvailableData);
+          if ((res.lessDurationSlots?.nextAvailableSlots?.length ?? 0) >= 1) {
             res.slotsAvailableData.nextAvailableSlots = [
               ...res.slotsAvailableData!.nextAvailableSlots!,
-              ...res.noSlotsAvailableData!.nextAvailableSlots!.map((item) => ({
+              ...res.lessDurationSlots!.nextAvailableSlots!.map((item) => ({
                 ...item,
                 isLessDurationSlots: true,
               })),
             ];
           }
-          this.availabilityApplication = res.slotsAvailableData;
+          this.availabilityApplication = this.removeSlotsForBlocDays(
+            res.slotsAvailableData
+          );
+          if((this.availabilityApplication?.nextAvailableSlots?.length ?? 0)<=0){
+            this.showErrorDialog("No slots found for selected application");
+            return;
+          }
+          this.checkSameDatesSlots();
           this.setSelectedApplicationsValue();
+        },
+        complete: () => {
+          this.isCheckAvailabilityLoading = false;
           this.cdr.detectChanges();
         },
-        error: (err) => {
-          console.log('resSuccessNot===', err);
-          this.secondaryApplications = [];
-          this.availabilityApplication = null;
-          console.error(err);
+        error: (error) => {
           this.isCheckAvailabilityLoading = false;
           this.isCheckAvailableDisabled = false;
           this.cdr.detectChanges();
+          this.showErrorDialog(
+            error?.error?.detail || 'Something went wrong. Please try again.'
+          );
         },
       });
   }
-  checkSameDatesSlots(slotsAvailableData: AvalaibilityByApplication) {
-    slotsAvailableData.nextAvailableSlots?.map((slots) => {
-      const startDate = new Date(slots.startTime ?? '');
-      const endDate = new Date(slots?.endTime ?? '');
-      const isSameDay =
-        startDate.getFullYear === endDate.getFullYear &&
-        startDate.getMonth === endDate.getMonth &&
-        startDate.getDate === endDate.getDate;
-      return { ...slots, isSameDay: isSameDay };
+
+  checkSameDatesSlots() {
+    this.availabilityApplication?.nextAvailableSlots?.forEach((slot) => {
+      const startDate = new Date(slot.startTime ?? '');
+      const endDate = new Date(slot?.endTime ?? '');
+      slot.isSameDay = startDate.getDate() === endDate.getDate();
     });
   }
 
@@ -343,7 +362,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
       const selectedApplicationNames = this.secondaryApplications
         .filter((item) => item.isSelected === true)
         .map((item) => item.name);
-      console.log('selectedApplications====', selectedApplicationNames);
+
       this.selectedApplicationList.push(...selectedApplicationNames);
     }
   }
@@ -367,7 +386,10 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
           this.secondaryApplications = [];
           this.availabilityApplication = null;
           this.selectedTimeSlot = null;
-          console.error('error=====', err);
+          this.showErrorDialog(
+            err?.error?.detail ||
+              'There was an error creating your reservation. Please try again.'
+          );
         },
       });
   }
@@ -376,6 +398,202 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     return this.availabilityApplication?.nextAvailableSlots?.filter(
       (item) => item.isLessDurationSlots === true
     );
+  }
+
+  listenDateChanges() {
+    this.applicationForm
+      .get(this.START_DATE_FORM)
+      ?.valueChanges.subscribe((newValue) => {
+        const startDateTime = new Date(newValue as Date);
+        this.durations = this.durations.map((item) => ({
+          ...item,
+          isDisabled: false,
+        }));
+        const disableDatesStartEndTime =
+          this.isDateExistInDisableDateRanges(startDateTime);
+
+        if (disableDatesStartEndTime.endTime > 0) {
+          this.maxAllowedTime =
+            disableDatesStartEndTime.endTime.toString().padStart(2, '0') +
+            ':00';
+        } else {
+          this.maxAllowedTime = '23:00';
+        }
+        if (this.isSameDay(newValue, this.minDate)) {
+          if (disableDatesStartEndTime.startTime > 0) {
+            this.minAllowedTime = disableDatesStartEndTime.startTime
+              .toString()
+              .padStart(2, '0');
+          } else {
+            this.minAllowedTime =
+              this.nextHour.toString().padStart(2, '0') + ':00';
+          }
+
+          const selectedHour =
+            this.applicationForm.get(this.START_TIME_FORM)?.value?.getHours ??
+            0;
+          if (
+            selectedHour >= this.nextHour &&
+            selectedHour < disableDatesStartEndTime.endTime
+          ) {
+            startDateTime.setHours(selectedHour, 0, 0);
+          } else {
+            startDateTime.setHours(
+              this.nextHour < 8 && disableDatesStartEndTime.endTime > 8
+                ? 8
+                : this.nextHour,
+              0,
+              0
+            );
+          }
+          this.applicationForm
+            .get(this.START_TIME_FORM)
+            ?.patchValue(startDateTime);
+        } else {
+          if (disableDatesStartEndTime.startTime > 0) {
+            this.minAllowedTime =
+              disableDatesStartEndTime.startTime.toString().padStart(2, '0') +
+              ':00';
+            startDateTime.setHours(disableDatesStartEndTime.startTime, 0, 0);
+          } else {
+            this.minAllowedTime = '00:00';
+            startDateTime.setHours(8, 0, 0);
+          }
+
+          // if (
+          //   this.applicationForm.get(this.START_TIME_FORM)?.value?.getHours ??
+          //   0 != 0
+          // ) {
+          //   startDateTime.setHours(
+          //     this.applicationForm.get(this.START_TIME_FORM)?.value?.getHours ?? 0,
+          //     0,
+          //     0
+          //   );
+          // } else {
+
+          // }
+
+          this.applicationForm
+            .get(this.START_TIME_FORM)
+            ?.patchValue(startDateTime);
+        }
+        this.applicationForm.get(this.START_TIME_FORM)?.markAllAsTouched();
+        this.applicationForm.get(this.START_TIME_FORM)?.markAllAsDirty();
+      });
+  }
+
+  listenTimeChanges() {
+    this.applicationForm
+      .get(this.START_TIME_FORM)
+      ?.valueChanges.subscribe((newValue) => {
+        const maxHour =
+          new Date(`2025-01-01T${this.maxAllowedTime}:00`).getHours() + 2;
+        const selectedDateTime = new Date(newValue);
+        const selectedHours = selectedDateTime.getHours();
+        for (let slot of this.normalizedReservations) {
+          if (this.isSameDay(slot.start, selectedDateTime)) {
+            this.durations = this.durations.map((item) => ({
+              ...item,
+              isDisabled: selectedHours + item.value <= maxHour ? false : true,
+            }));
+          }
+        }
+
+        this.applicationForm
+          ?.get(this.SELECTED_DURATION_FORM)
+          ?.patchValue(null);
+        this.cdr.detectChanges();
+      });
+  }
+
+  isDateExistInDisableDateRanges(startDateTime: Date): {
+    startTime: number;
+    endTime: number;
+  } {
+    let startTime: number = 0;
+    let endTime: number = 0;
+    for (let slot of this.normalizedReservations) {
+      const blocEnd = new Date(
+        slot.end.getTime() + this.BLOC_HOUR_LIMIT * 60 * 60 * 1000
+      );
+      if (
+        this.isSameDay(startDateTime, slot.start) &&
+        endTime < slot.start.getHours() - 2
+      ) {
+        endTime = slot.start.getHours() - 2;
+      }
+      if (
+        this.isSameDay(startDateTime, blocEnd) &&
+        startTime < blocEnd.getHours()
+      ) {
+        startTime = blocEnd.getHours();
+      }
+    }
+    return { startTime: startTime, endTime: endTime };
+  }
+
+  isSameDay(selectedDate: Date, endDate: Date): boolean {
+    return (
+      selectedDate.getDate() === endDate.getDate() &&
+      selectedDate.getMonth() === endDate.getMonth() &&
+      selectedDate.getFullYear() === endDate.getFullYear()
+    );
+  }
+
+  removeSlotsForBlocDays(slotsAvailableData: AvalaibilityByApplication) {
+    slotsAvailableData.nextAvailableSlots =
+      slotsAvailableData.nextAvailableSlots?.filter((item) => {
+        for (let slot of this.normalizedReservations) {
+          const startDate = new Date(item.startTime!);
+          const endDate = new Date(item.endTime!);
+          const slotEndDate = new Date(
+            slot.end.getTime() + this.BLOC_HOUR_LIMIT * 60 * 60 * 1000
+          );
+          if (
+            (startDate >= slot.start && startDate < slotEndDate) ||
+            (endDate >= slot.start && endDate <= slotEndDate)
+          ) {
+            return false;
+          }
+        }
+        return true;
+      });
+    return slotsAvailableData;
+  }
+
+  dateFilter = (date: Date | null): boolean => {
+    if (!date) {
+      return false;
+    }
+    const dayOnly = this.stripTime(date);
+    const now = new Date();
+    const nextDay = new Date();
+    nextDay.setDate(now.getDate() + 1);
+
+    for (let slot of this.normalizedReservations) {
+      if (
+        this.isSameDay(nextDay, date) &&
+        this.isSameDay(nextDay, slot.start) &&
+        this.nextHour > slot.start.getHours() - 2
+      ) {
+        return false;
+      }
+      const blocStart = slot.start;
+      const blocEnd = new Date(
+        slot.end.getTime() + this.BLOC_HOUR_LIMIT * 60 * 60 * 1000
+      );
+      if (
+        dayOnly > this.stripTime(blocStart) &&
+        dayOnly < this.stripTime(blocEnd)
+      ) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  stripTime(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   }
 
   showConfirmationDialog() {
@@ -423,6 +641,20 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
       if (result) {
         this.bookingSuccess.emit();
       }
+    });
+  }
+
+  showErrorDialog(message: string) {
+    this.confirmationDialog.open(ErrorDialog, {
+      width: 'auto',
+      minWidth: '41.86rem',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        message: message,
+      },
     });
   }
 
