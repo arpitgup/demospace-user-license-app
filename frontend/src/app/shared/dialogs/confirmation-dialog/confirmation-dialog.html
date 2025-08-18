@@ -12,13 +12,14 @@
       data.startDateTime | date : "MMMM d, y"
     }}</span>
     at<br />
-    <span class="application-details">{{
-      data.startDateTime | date : "h a z"
-    }}</span>
+    <span class="application-details"
+      >{{ data.startDateTime | date : "h a " }}{{ localTimeAbbrevation }}</span
+    >
     till
-    <span class="application-details">{{
-      data.endDateTime | date : "MMMM d, y h a z"
-    }}</span>
+    <span class="application-details"
+      >{{ data.endDateTime | date : "MMMM d, y h a "
+      }}{{ localTimeAbbrevation }}</span
+    >
   </p>
 </mat-dialog-content>
 <mat-dialog-actions class="dialog-actions">
