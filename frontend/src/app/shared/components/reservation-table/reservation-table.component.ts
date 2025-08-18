@@ -45,6 +45,7 @@ export class ReservationTableComponent implements AfterViewInit, OnChanges {
   @Output() cancelReservation = new EventEmitter<Reservation>();
   public readonly reservationTableConstants = RESERVATION_TABLE_CONSTANTS;
   public readonly pageSizeOptions: number[] = [5];
+  public readonly reservationStatus = ReservationApiStatus;
   private confirmationDialog = inject(MatDialog);
 
   displayedColumns: string[] = ['date', 'applications', 'status', 'action'];
@@ -141,17 +142,8 @@ export class ReservationTableComponent implements AfterViewInit, OnChanges {
    * @param reservation The reservation object.
    * @returns The determined reservation status.
    */
-  getStatus(reservation: Reservation): ReservationStatus {
-    if (
-      reservation.status === ReservationApiStatus.COMPLETED ||
-      reservation.status === ReservationApiStatus.CANCELLED
-    ) {
-      return ReservationStatus.PAST;
-    } else if (reservation.status === ReservationApiStatus.ACTIVE) {
-      return ReservationStatus.CURRENT;
-    } else {
-      return ReservationStatus.UPCOMING;
-    }
+  getStatus(reservation: Reservation): any {
+    return reservation.status;
   }
 
   /**
