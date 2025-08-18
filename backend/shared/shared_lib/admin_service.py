@@ -77,13 +77,49 @@ def update_user_profile_with_saml_attributes(
         raise e
 
 
+def get_user_details(user_email: str):
+    """Fetches full user details from Google Workspace along with custom schema attributes."""
+    try:
+        user = (
+            admin_service.users().get(userKey=user_email, projection="full").execute()
+        )
+        return user
+    except HttpError as error:
+        if error.resp.status == 404:
+            logger.error(f"admin_service: User {user_email} does not exist.")
+        else:
+            logger.error(f"An error occurred while trying to fetch user: {error}")
+        return None
+
+
 def clear_saml_attributes_for_user(user_email: str):
     """Updates the user profile to clear the custom SAML attributes to revoke the licenses."""
     try:
         logger.info(f"Clearing SAML attributes for {user_email}.")
-        saml_info = {}
-        saml_info["customSchemas"] = {}
-        admin_service.users().update(userKey=user_email, body=saml_info).execute()
+        user = get_user_details(user_email)
+        if not user:
+            return
+
+        custom_schemas = user.get("customSchemas")
+        if not custom_schemas:
+            logger.info(f"User {user_email} has no custom schemas to clear.")
+            return
+
+        schemas_to_clear = {
+            schema_name: {
+                "Given_Name": "",
+                "Email": "",
+            }
+            for schema_name in custom_schemas
+            if schema_name.startswith("SAML_")
+        }
+
+        if not schemas_to_clear:
+            logger.info(f"No SAML attributes found for user {user_email} to clear.")
+            return
+
+        body = {"customSchemas": schemas_to_clear}
+        admin_service.users().patch(userKey=user_email, body=body).execute()
         logger.info(f"Successfully cleared SAML attributes for {user_email}.")
     except Exception as e:
         logger.error(

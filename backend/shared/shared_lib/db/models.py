@@ -35,31 +35,6 @@ class AppConfig(Base):
     description = Column(String)
 
 
-class Application(Base):
-    __tablename__ = "applications"
-    id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True, nullable=False)
-
-    supported_by_bots = relationship("BotApplication", back_populates="application")
-    reservations = relationship(
-        "Reservation",
-        secondary=reservation_applications_table,
-        back_populates="applications",
-    )
-
-
-class Bot(Base):
-    __tablename__ = "bots"
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    email = Column(String, unique=True, nullable=False)
-
-    reservations = relationship("Reservation", back_populates="bot")
-    supported_applications = relationship(
-        "BotApplication", back_populates="bot", lazy="joined"
-    )
-
-
 class BotApplication(Base):
     __tablename__ = "bot_applications"
     bot_id = Column(Integer, ForeignKey("bots.id"), primary_key=True)
@@ -73,9 +48,62 @@ class BotApplication(Base):
     )
 
 
+bot_applications_table = Table(
+    "bot_applications",
+    Base.metadata,
+    Column("bot_id", Integer, ForeignKey("bots.id"), primary_key=True),
+    Column("application_id", Integer, ForeignKey("applications.id"), primary_key=True),
+    extend_existing=True,
+)
+
+
+class Application(Base):
+    __tablename__ = "applications"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
+    is_active = Column(Boolean, default=True)
+
+    supported_by_bots = relationship("BotApplication", back_populates="application")
+    reservations = relationship(
+        "Reservation",
+        secondary=reservation_applications_table,
+        back_populates="applications",
+    )
+    bots = relationship(
+        "Bot",
+        secondary=bot_applications_table,
+        back_populates="applications",
+        viewonly=True
+    )
+
+
+class Bot(Base):
+    __tablename__ = "bots"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
+
+    reservations = relationship("Reservation", back_populates="bot")
+    supported_applications = relationship(
+        "BotApplication", back_populates="bot", lazy="joined"
+    )
+    applications = relationship(
+        "Application",
+        secondary=bot_applications_table,
+        back_populates="bots",
+        viewonly=True
+    )
+
+
 class Reservation(Base):
     __tablename__ = "reservations"
-    id = Column(BigInteger().with_variant(Integer, "sqlite"), primary_key=True, autoincrement=True)
+    id = Column(
+        BigInteger().with_variant(Integer, "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    )
     user_email = Column(String, nullable=False, index=True)
     bot_id = Column(Integer, ForeignKey("bots.id"), index=True)
     primary_application_id = Column(Integer, ForeignKey("applications.id"))
