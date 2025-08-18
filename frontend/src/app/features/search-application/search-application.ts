@@ -97,7 +97,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   selectedApplicationList: string[] = [];
   normalizedReservations: NormalizedReservation[] = [];
 
-  readonly BLOC_HOUR_LIMIT: number = 168;
+  readonly BLOC_HOUR_LIMIT: number = 48;
   readonly MAX_ALLOWED_TIME_VALUE = '23:00';
   readonly MIN_ALLOWED_TIME_VALUE = '00:00';
   readonly PRIMARY_APPLICATION_FORM = 'primaryApplication';
