@@ -52,9 +52,9 @@
             >
             } @if (form.hasError('noValidStartTimeOptions') &&
             startDateCtrl.touched) {
-            <mat-error id="start-date-no-options"
-              >No valid start times remain for this date.</mat-error
-            >
+            <mat-error id="start-date-no-options">
+              No valid start times remain for this date.
+            </mat-error>
             } @if (form.hasError('dateTimeInvalid') && startDateCtrl.touched) {
             <mat-error id="start-date-invalid"
               >Please fix the date/time selection.</mat-error
@@ -62,7 +62,7 @@
             }
           </mat-form-field>
 
-          <!-- Start Time (TIMEPICKER) -->
+          <!-- Start Time (Material-style timepicker) -->
           <mat-form-field appearance="outline" class="start-time-field">
             <mat-label>Start Time</mat-label>
             <input
@@ -78,17 +78,21 @@
               matIconSuffix
               [for]="startPicker"
             ></mat-timepicker-toggle>
-            <mat-timepicker interval="60min" #startPicker></mat-timepicker>
+
+            <mat-timepicker
+              #startPicker
+              interval="60min"
+              (timeChange)="onStartTimePicked($event)"
+            ></mat-timepicker>
 
             @if (startTimeCtrl.hasError('required')) {
             <mat-error id="start-time-required"
               >Start time is required.</mat-error
             >
             } @if (form.hasError('overlapsExisting') && startTimeCtrl.touched) {
-            <mat-error id="start-time-overlap"
-              >The selected time window overlaps an existing
-              reservation.</mat-error
-            >
+            <mat-error id="start-time-overlap">
+              The selected time window overlaps an existing reservation.
+            </mat-error>
             } @if (form.hasError('dateTimeInvalid') && startTimeCtrl.touched) {
             <mat-error id="start-time-invalid"
               >Please fix the date/time selection.</mat-error
@@ -127,16 +131,14 @@
             @if (endTimeCtrl.hasError('required')) {
             <mat-error id="end-time-required">End time is required.</mat-error>
             } @if (form.hasError('overlapsExisting') && endTimeCtrl.touched) {
-            <mat-error id="end-time-overlap"
-              >The selected time window overlaps an existing
-              reservation.</mat-error
-            >
+            <mat-error id="end-time-overlap">
+              The selected time window overlaps an existing reservation.
+            </mat-error>
             } @if (form.hasError('noValidEndTimeOptions') &&
             endTimeCtrl.touched) {
-            <mat-error id="end-time-no-options"
-              >No valid end-time options are available for the chosen start
-              time.</mat-error
-            >
+            <mat-error id="end-time-no-options">
+              No valid end-time options are available for the chosen start time.
+            </mat-error>
             } @if (form.hasError('dateTimeInvalid') && endTimeCtrl.touched) {
             <mat-error id="end-time-invalid"
               >Please fix the date/time selection.</mat-error
@@ -215,7 +217,7 @@
           <mat-button-toggle
             [value]="app"
             class="app-toggle"
-            [disabled]="!isSelected(app) && selectedApps.length >= 3"
+            [disabled]="isAppToggleDisabled(app)"
             [checked]="isSelected(app)"
             [disableRipple]="true"
           >
