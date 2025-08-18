@@ -1,0 +1,52 @@
+<ng-container>
+  <ngx-skeleton-loader
+    class="loader-title"
+    appearance="line"
+    size="20px"
+  ></ngx-skeleton-loader>
+  <mat-grid-list
+    cols="3"
+    rowHeight="2:1"
+    gutterSize="1.56rem"
+    class="custom-grid"
+  >
+    @for(i of [].constructor(6); track $index){
+    <mat-grid-tile class="grid-tile">
+      <ngx-skeleton-loader
+        count="1"
+        appearance="square"
+        [theme]="{ height: '200px', width: '500px' }"
+      ></ngx-skeleton-loader>
+    </mat-grid-tile>
+    }
+  </mat-grid-list>
+
+  <mat-divider class="custom-divider"></mat-divider>
+
+  <ngx-skeleton-loader
+    class="loader-title"
+    appearance="line"
+    [theme]="{ height: '40px', width: '100px' }"
+  ></ngx-skeleton-loader>
+  <ngx-skeleton-loader
+    class="loader-title"
+    appearance="line"
+    [theme]="{ height: '20px', width: '400px' }"
+  ></ngx-skeleton-loader>
+  <mat-grid-list
+    cols="3"
+    rowHeight="2:1"
+    gutterSize="1.56rem"
+    class="custom-grid"
+  >
+    @for(i of [].constructor(6); track $index){
+    <mat-grid-tile class="grid-tile">
+      <ngx-skeleton-loader
+        count="1"
+        appearance="square"
+        [theme]="{ height: '200px', width: '500px' }"
+      ></ngx-skeleton-loader>
+    </mat-grid-tile>
+    }
+  </mat-grid-list>
+</ng-container>

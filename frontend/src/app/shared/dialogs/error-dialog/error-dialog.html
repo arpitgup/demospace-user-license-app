@@ -1,0 +1,12 @@
+<div class="header">
+  <button mat-icon-button (click)="onCancel()" class="close-button">
+    <mat-icon>close</mat-icon>
+  </button>
+  <div class="header-content">
+    <img src="assets/svgs/ic_error.svg" class="header-image" />
+  </div>
+</div>
+
+<mat-dialog-content>
+  <p [innerHTML]="data.message"></p>
+</mat-dialog-content>

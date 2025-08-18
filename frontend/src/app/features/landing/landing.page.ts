@@ -3,18 +3,29 @@ import {
   ChangeDetectionStrategy,
   inject,
   OnInit,
+  ViewChild,
+  signal,
+  computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReservationTableComponent } from '../../shared/components/reservation-table/reservation-table.component';
-import { MatTabsModule } from '@angular/material/tabs';
+import {
+  MatTabGroup,
+  MatTabsModule,
+  MatTabChangeEvent,
+} from '@angular/material/tabs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ReservationService } from '../../core/services/reservation.service';
 import { Reservation } from '../../core/models/reservation.model';
-import { Observable, of } from 'rxjs';
-import { LANDING_PAGE_CONSTANTS } from './landing.constant';
-import { SearchOptionCardComponent } from '../../shared/components/search-option-card/search-option-card';
 import { SearchOptionCard } from '../../../utilities/interfaces/search_option_card';
-import { SearchType } from './landing.enums';
+import { ReservationApiStatus, SearchType } from './landing.enums';
+import { SearchByDateComponent } from '../search-by-date/search-by-date.component';
+import { SearchOptionCardComponent } from '../../shared/components/search-option-card/search-option-card';
+import { LANDING_PAGE_CONSTANTS } from './landing.constant';
+import { SearchApplicationComponent } from '../search-application/search-application';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-landing-page',
@@ -28,63 +39,47 @@ import { SearchType } from './landing.enums';
     MatCheckboxModule,
     ReservationTableComponent,
     SearchOptionCardComponent,
+    SearchByDateComponent,
+    SearchApplicationComponent,
   ],
   host: {
     class: 'landing-page-container',
   },
 })
 export class LandingPage implements OnInit {
-  private reservationService = inject(ReservationService);
+  private readonly reservationService = inject(ReservationService);
   public readonly landingPageConstants = LANDING_PAGE_CONSTANTS;
+  public readonly SearchType = SearchType;
+  private confirmationDialog = inject(MatDialog);
 
-  reservations$!: Observable<Reservation[]>;
-  private allReservations: Reservation[] = [];
-  private now = new Date();
+  public selectedSearchType = signal<SearchType | null>(null);
+  public showPastReservations = signal(false);
+  @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
+  selectedIndex = 0;
 
-  ngOnInit(): void {
-    this.reservationService.getReservations().subscribe((data) => {
-      this.allReservations = data;
-      this.updateFilteredReservations(false);
-    });
-  }
+  private readonly reservationsSignal = this.reservationService.reservations;
 
-  /**
-   * Handles the change event from the 'Show Past Reservations' checkbox.
-   * @param checked The new state of the checkbox.
-   */
-  onShowPastChange(checked: boolean): void {
-    this.updateFilteredReservations(checked);
-  }
+  public filteredReservations = computed(() => {
+    const showPast = this.showPastReservations();
+    const reservations = this.reservationsSignal();
 
-  /**
-   * Updates the reservations$ observable based on the filter state.
-   * @param showPast If true, shows only past reservations. If false, shows current and upcoming.
-   */
-  private updateFilteredReservations(showPast: boolean): void {
-    let filteredData: Reservation[];
+    return reservations.filter((res) =>
+      showPast
+        ? res.status === ReservationApiStatus.COMPLETED ||
+          res.status === ReservationApiStatus.CANCELLED
+        : res.status === ReservationApiStatus.PENDING ||
+          res.status === ReservationApiStatus.ACTIVE
+    );
+  });
 
-    if (showPast) {
-      filteredData = this.allReservations.filter((res) => {
-        const endDate = new Date(res.endDate);
-        return endDate < this.now;
-      });
-    } else {
-      filteredData = this.allReservations.filter((res) => {
-        const endDate = new Date(res.endDate);
-        return endDate >= this.now;
-      });
-    }
+  public readonly resrevations$ = toObservable(this.filteredReservations);
 
-    this.reservations$ = of(filteredData);
-  }
-
-  searchOptionCards: SearchOptionCard[] = [
+  public readonly searchOptionCards: SearchOptionCard[] = [
     {
       id: 1,
       icon: 'assets/svgs/date_icon.svg',
       title: 'Search by Date',
       description: 'Reservations must be made 24 hours in advance.',
-      isSelected: false,
       searchType: SearchType.ByDate,
     },
     {
@@ -92,15 +87,68 @@ export class LandingPage implements OnInit {
       icon: 'assets/svgs/application_icon.svg',
       title: 'Search by Application',
       description: 'Reservations must be made 24 hours in advance.',
-      isSelected: false,
       searchType: SearchType.ByApplication,
     },
   ];
 
-  onCardSelected(searchOption?: SearchOptionCard) {
-    this.searchOptionCards = this.searchOptionCards.map((card) => ({
-      ...card,
-      isSelected: card.id === searchOption?.id,
-    }));
+  ngOnInit(): void {
+    this.reservationService.fetchReservations().subscribe();
+    this.reservationService.getApplications().subscribe();
+  }
+
+  onShowPastChange(checked: boolean): void {
+    this.showPastReservations.set(checked);
+  }
+
+  onCardSelected(searchOption: SearchOptionCard): void {
+    this.selectedSearchType.set(searchOption?.searchType ?? null);
+  }
+
+  /**
+   * Fetches reservations when the "Your Reservations" tab is selected for the first time.
+   * @param event The MatTabChangeEvent object.
+   */
+  onTabChange(event: MatTabChangeEvent): void {
+    this.selectedIndex = event.index;
+    if (event) {
+      this.reservationService.fetchReservations().subscribe();
+    }
+  }
+
+  handleCancelReservation(reservation: Reservation): void {
+    this.reservationService.cancelReservation(reservation.id).subscribe({
+      next: () => {
+        console.log(`Reservation ${reservation.id} cancelled successfully.`);
+        this.showSuccessDialog(reservation);
+      },
+      error: (err) => {
+        console.error('Failed to cancel reservation:', err);
+      },
+    });
+  }
+
+  bookingSuccess(): void {
+    this.tabGroup.selectedIndex = 1;
+  }
+
+  showSuccessDialog(reservation: Reservation) {
+    const dialogRef = this.confirmationDialog.open(SuccessDialog, {
+      width: 'auto',
+      minWidth: 'none',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        title: 'Success',
+        message: `Reservation ${reservation.id} cancelled successfully.`,
+        confirmText: 'OK',
+      },
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.reservationService.fetchReservations().subscribe();
+      }
+    });
   }
 }

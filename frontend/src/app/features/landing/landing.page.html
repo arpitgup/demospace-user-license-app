@@ -1,34 +1,70 @@
+<!--
+  This template remains unchanged as it already uses modern control flow (`@for`, `@if`)
+  and correctly consumes signals (`selectedSearchType()`, `filteredReservations()`)
+  and component outputs (`(bookingSuccess)`, `(cancelReservation)`).
+-->
 <section class="landing-content">
-  <!-- UPDATED: Use landingPageConstants for text -->
   <h1 class="welcome-title">{{ landingPageConstants.WELCOME_GREETING }}</h1>
-  <span class="welcome-subtitle">{{ landingPageConstants.WELCOME_SUBTITLE }}</span>
+  <span class="welcome-subtitle">{{
+    landingPageConstants.WELCOME_SUBTITLE
+  }}</span>
 
   <div class="reservation-table-container">
-    <mat-tab-group class="reservation-tabs">
-      <!-- Tab 1: Your Reservations -->
+    <mat-tab-group
+      class="reservation-tabs"
+      (selectedTabChange)="onTabChange($event)"
+    >
+      <!-- Tab 1: Book Reservation -->
+      <mat-tab [label]="landingPageConstants.BOOK_RESERVATION_TAB_LABEL">
+        @if(selectedIndex===0){
+        <div class="tab-content book-reservation-content">
+          <div class="card-container">
+            @for (searchOption of searchOptionCards; track searchOption.id) {
+            <app-search-option-card
+              [searchOption]="searchOption"
+              (onSelected)="onCardSelected(searchOption)"
+              [isSelected]="selectedSearchType() === searchOption.searchType"
+              [class.is-selected]="
+                selectedSearchType() === searchOption.searchType
+              "
+            ></app-search-option-card>
+            }
+          </div>
+
+          @if (selectedSearchType() === SearchType.ByDate) {
+          <div class="content-by-date">
+            <app-search-by-date
+              (bookingSuccess)="bookingSuccess()"
+            ></app-search-by-date>
+          </div>
+          } @if (selectedSearchType() === SearchType.ByApplication) {
+          <div class="search-content">
+            <app-search-application
+              (bookingSuccess)="bookingSuccess()"
+            ></app-search-application>
+          </div>
+          }
+        </div>
+        }
+      </mat-tab>
+
+      <!-- Tab 2: Your Reservations -->
       <mat-tab [label]="landingPageConstants.YOUR_RESERVATION_TAB_LABEL">
         <div class="tab-content">
           <div class="show-past-checkbox-wrapper">
-            <mat-checkbox class="show-past-checkbox" (change)="onShowPastChange($event.checked)">
+            <mat-checkbox
+              class="show-past-checkbox"
+              (change)="onShowPastChange($event.checked)"
+              [checked]="showPastReservations()"
+            >
               {{ landingPageConstants.SHOW_PAST_CHECKBOX_LABEL }}
             </mat-checkbox>
           </div>
           <div class="table-scroll-wrapper">
-            <app-reservation-table [data]="reservations$ | async"></app-reservation-table>
-          </div>
-        </div>
-      </mat-tab>
-
-      <!-- Tab 2: Book Reservation -->
-      <mat-tab [label]="landingPageConstants.BOOK_RESERVATION_TAB_LABEL">
-        <div class="tab-content">
-          <div class="card-container">
-            @for( searchOption of searchOptionCards; track searchOption.id){
-            <app-search-option-card
-              [searchOption]="searchOption"
-              (onSelected)="onCardSelected($event)"
-            ></app-search-option-card>
-            }
+            <app-reservation-table
+              [data]="filteredReservations()"
+              (cancelReservation)="handleCancelReservation($event)"
+            ></app-reservation-table>
           </div>
         </div>
       </mat-tab>

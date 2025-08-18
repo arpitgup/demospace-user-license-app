@@ -3,103 +3,121 @@
 @use '../../../styles/mixins' as *;
 
 .landing-content {
-    @include flex-center;
+  @include flex-center;
+  flex-direction: column;
+  margin-bottom: 16.06rem;
+  margin-top: 7.19rem;
+
+  .welcome-title {
+    @include heading-xl;
+    @include gradient-text;
+    margin-top: $spacing-lg;
+  }
+
+  .welcome-subtitle {
+    @include heading-lg;
+    color: $color-black;
+    margin: $spacing-md 0;
+  }
+
+  .reservation-table-container {
+    width: 100.375rem;
+    flex-shrink: 0;
+    border: 1px solid $color-gray;
+    margin: 5.19rem auto 0;
+    display: flex;
     flex-direction: column;
-    margin-bottom: 16.06rem;
-    margin-top: 7.19rem;
 
-    .welcome-title {
-        @include heading-xl;
-        @include gradient-text;
-        margin-top: $spacing-lg;
-    }
+    ::ng-deep .reservation-tabs {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      overflow: hidden;
 
-    .welcome-subtitle {
-        @include heading-lg;
-        color: $color-black;
-        margin: $spacing-md 0;
-    }
+      .mat-mdc-tab-body-wrapper {
+        flex-grow: 1;
+      }
 
-    .reservation-table-container {
-        width: 100.375rem;
-        flex-shrink: 0;
-        border: 1px solid $color-gray;
-        margin: 5.19rem auto 0;
-        display: flex;
-        flex-direction: column;
+      .mat-mdc-tab-list {
+        background-color: $color-bg-light;
+      }
 
-        ::ng-deep .reservation-tabs {
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-            overflow: hidden;
+      .mat-mdc-tab {
+        flex: 0 0 19.60569rem !important;
+        width: 19.60569rem !important;
+        min-width: 19.60569rem !important;
+        max-width: 19.60569rem !important;
+        justify-content: center !important;
+        height: 4.59231rem;
+        @include body-md;
 
-            .mat-mdc-tab-body-wrapper {
-                flex-grow: 1;
-            }
-
-            .mat-mdc-tab-list {
-                background-color: $color-bg-light;
-            }
-
-            .mat-mdc-tab {
-                flex: 0 0 19.60569rem !important;
-                width: 19.60569rem !important;
-                min-width: 19.60569rem !important;
-                max-width: 19.60569rem !important;
-                justify-content: center !important;
-                height: 4.59231rem;
-                @include body-md;
-
-                .mdc-tab__text-label {
-                    color: $color-black !important;
-                }
-
-                &.mdc-tab--active {
-                    .mdc-tab__text-label {
-                        color: var(--blue, $color-blue) !important;
-                    }
-                }
-            }
-
-            .mdc-tab-indicator__content--underline {
-                border-color: var(--blue, $color-blue) !important;
-                border-width: 2px;
-                width: 100% !important;
-            }
-        }
-    }
-
-    .tab-content {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-
-        .show-past-checkbox-wrapper {
-            background-color: $color-bg-lighter;
-            height: 4.59231rem;
-            display: flex;
-            align-items: center;
-            padding-left: $spacing-sm;
-            flex-shrink: 0;
-
-            .show-past-checkbox {
-                display: block;
-            }
+        .mdc-tab__text-label {
+          color: $color-black !important;
         }
 
-        .table-scroll-wrapper {
-            flex-grow: 1;
-            overflow-y: auto;
-            position: relative;
-        }
-
-         .card-container {
-            display: flex;
-            gap: 2.5rem;
-            margin-top: 3.37rem;
-            justify-content: center;
-            margin-bottom: 3.37rem;
+        &.mdc-tab--active {
+          .mdc-tab__text-label {
+            color: var(--blue, $color-blue) !important;
           }
+        }
+      }
+
+      .mdc-tab-indicator__content--underline {
+        border-color: var(--blue, $color-blue) !important;
+        border-width: 2px;
+        width: 100% !important;
+      }
     }
+  }
+
+  .tab-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    .show-past-checkbox-wrapper {
+      background-color: $color-bg-lighter;
+      height: 4.59231rem;
+      display: flex;
+      align-items: center;
+      padding-left: $spacing-sm;
+      flex-shrink: 0;
+
+      .show-past-checkbox {
+        display: block;
+      }
+    }
+
+    .table-scroll-wrapper {
+      flex-grow: 1;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .card-container {
+      display: flex;
+      gap: 2.5rem;
+      margin-top: 3.37rem;
+      justify-content: center;
+      margin-bottom: 3.37rem;
+    }
+    .search-content {
+      max-width: 100%;
+      height: fill-content;
+      left: 0;
+      right: 0;
+      margin-left: 5.12rem;
+      margin-right: 5.12rem;
+      padding-top: 2.81rem;
+      padding-bottom: 11.88rem;
+      border-radius: 1.5rem;
+      background: #ecf3fe;
+    }
+
+    .content-by-date {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 3.37rem;
+    }
+  }
 }
