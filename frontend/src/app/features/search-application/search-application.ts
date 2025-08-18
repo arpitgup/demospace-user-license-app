@@ -43,6 +43,10 @@ import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialo
 import { ReservationApiStatus } from '../landing/landing.enums';
 import { Reservation } from '../../core/models/reservation.model';
 import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
+import {
+  getUniqueSecondaryApplications,
+  onApplicationSelected,
+} from '../../../utilities/utils';
 
 type NormalizedReservation = { start: Date; end: Date };
 
@@ -93,6 +97,8 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   normalizedReservations: NormalizedReservation[] = [];
 
   readonly BLOC_HOUR_LIMIT: number = 24;
+  readonly MAX_ALLOWED_TIME_VALUE = '23:00';
+  readonly MIN_ALLOWED_TIME_VALUE = '00:00';
   readonly PRIMARY_APPLICATION_FORM = 'primaryApplication';
   readonly START_DATE_FORM = 'startDate';
   readonly START_TIME_FORM = 'startTime';
@@ -117,10 +123,10 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
 
     this.maxDate = new Date(today);
     this.maxDate.setDate(today.getDate() + 30);
-    this.minAllowedTime = '00:00';
+    this.minAllowedTime = this.MIN_ALLOWED_TIME_VALUE;
     const now = new Date();
     this.nextHour = (now.getHours() + 1) % 24;
-    this.maxAllowedTime = '23:00';
+    this.maxAllowedTime = this.MAX_ALLOWED_TIME_VALUE;
 
     this.applicationForm = this.fb.group({
       [this.PRIMARY_APPLICATION_FORM]: ['', Validators.required],
@@ -237,8 +243,10 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
           this.availabilityApplication = this.removeSlotsForBlocDays(
             res.slotsAvailableData
           );
-          if((this.availabilityApplication?.nextAvailableSlots?.length ?? 0)<=0){
-            this.showErrorDialog("No slots found for selected application");
+          if (
+            (this.availabilityApplication?.nextAvailableSlots?.length ?? 0) <= 0
+          ) {
+            this.showErrorDialog('No slots found for selected application');
             return;
           }
           this.checkSameDatesSlots();
@@ -278,79 +286,22 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   }
 
   checkSecondaryApplications(nextAvailableSlots: NextAvailableSlots) {
-    const uniqueApplications = new Map<number, Application>();
-    nextAvailableSlots.availableBots?.forEach((availableBots) => {
-      availableBots.applications?.forEach((application) => {
-        if (
-          !uniqueApplications.has(application.id) &&
-          this.selectedPrimaryApplication?.id !== application.id
-        ) {
-          uniqueApplications.set(application.id, application);
-        }
-      });
-    });
-    this.secondaryApplications = Array.from(uniqueApplications.values()).map(
-      (item) => ({
-        ...item,
-        isEnabled: true,
-      })
+    this.secondaryApplications = getUniqueSecondaryApplications(
+      nextAvailableSlots,
+      this.selectedPrimaryApplication?.id ?? 0
     );
   }
 
   onApplicationClicked(application: Application) {
-    if (
-      (application.isSelected ?? false) === false &&
-      this.secondaryApplications.filter((item) => item.isSelected === true)
-        .length >= 2
-    ) {
-      return;
-    }
-    const selectedSecondaryApplications = this.secondaryApplications.find(
-      (item) => item.id === application.id
-    );
-    if (selectedSecondaryApplications) {
-      selectedSecondaryApplications.isSelected = !(
-        application.isSelected ?? false
+    if (this.selectedTimeSlot) {
+      this.secondaryApplications = onApplicationSelected(
+        application,
+        this.secondaryApplications,
+        this.selectedTimeSlot!
       );
-    }
-    if (
-      this.secondaryApplications.filter((item) => item.isSelected === true)
-        .length >= 2
-    ) {
-      this.secondaryApplications = this.secondaryApplications.map((item) => ({
-        ...item,
-        isEnabled: item.isSelected ? true : false,
-      }));
       this.setSelectedApplicationsValue();
-      return;
+      this.cdr.detectChanges();
     }
-    const uniqueApplications = new Map<number, Application>();
-
-    this.selectedTimeSlot?.availableBots?.forEach((availableBots) => {
-      const selectedIds = this.secondaryApplications
-        .filter((item) => item.isSelected === true)
-        .map((item) => item.id);
-
-      if (
-        selectedIds.every((id) =>
-          availableBots.applications?.some((item) => item.id == id)
-        )
-      ) {
-        availableBots.applications?.forEach((application) => {
-          if (!uniqueApplications.has(application.id)) {
-            uniqueApplications.set(application.id, application);
-          }
-        });
-      }
-    });
-    const availableApplications = Array.from(uniqueApplications.values());
-    const availableIds = new Set(availableApplications.map((item) => item.id));
-    this.secondaryApplications = this.secondaryApplications.map((item) => ({
-      ...item,
-      isEnabled: availableIds.has(item.id),
-    }));
-    this.setSelectedApplicationsValue();
-    this.cdr.detectChanges();
   }
 
   setSelectedApplicationsValue() {
@@ -417,7 +368,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
             disableDatesStartEndTime.endTime.toString().padStart(2, '0') +
             ':00';
         } else {
-          this.maxAllowedTime = '23:00';
+          this.maxAllowedTime = this.MAX_ALLOWED_TIME_VALUE;
         }
         if (this.isSameDay(newValue, this.minDate)) {
           if (disableDatesStartEndTime.startTime > 0) {
@@ -456,7 +407,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
               ':00';
             startDateTime.setHours(disableDatesStartEndTime.startTime, 0, 0);
           } else {
-            this.minAllowedTime = '00:00';
+            this.minAllowedTime = this.MIN_ALLOWED_TIME_VALUE;
             startDateTime.setHours(8, 0, 0);
           }
 
