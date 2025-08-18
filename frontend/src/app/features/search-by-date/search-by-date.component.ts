@@ -48,7 +48,7 @@ import { ConfirmationDialog } from '../../shared/dialogs/confirmation-dialog/con
 import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
 
 type DailyAvailabilityMap = { [date: string]: number };
-type NormalizedReservation = { start: Date; end: Date };
+type BlockedInterval = { start: Date; end: Date };
 
 @Component({
   selector: 'app-search-by-date',
@@ -92,10 +92,12 @@ export class SearchByDateComponent implements OnInit {
   private readonly END_SLOT_INCREMENT = 2;
   private readonly MIN_DURATION = 2;
   private readonly MAX_DURATION = 48;
-  private readonly SELF_COOLDOWN_DAYS = 7;
+
+  private readonly SELF_COOLDOWN_HOURS = 1;
+
   public readonly HIDE_CONFLICTING_END_SLOTS = false;
 
-  private readonly blackoutDays = new Set<string>();
+  dailyAvailability: DailyAvailabilityMap = {};
 
   form = this.fb.group(
     {
@@ -134,8 +136,9 @@ export class SearchByDateComponent implements OnInit {
 
   private readonly reservationsSig = this.reservationService.reservations;
   userReservations: Reservation[] = [];
-  normalizedReservations: NormalizedReservation[] = [];
-  dailyAvailability: DailyAvailabilityMap = {};
+  blockedIntervals: BlockedInterval[] = [];
+
+  startBlockedLegend: string[] = [];
 
   isLoading = false;
   showResultsCard = false;
@@ -155,23 +158,25 @@ export class SearchByDateComponent implements OnInit {
 
   private readonly syncFromReservations = effect(() => {
     const all = this.reservationsSig();
-
     const filtered = all.filter(
       (r) =>
         r.status === ReservationApiStatus.PENDING ||
         r.status === ReservationApiStatus.ACTIVE
     );
-
     this.userReservations = filtered as Reservation[];
-    this.normalizedReservations = filtered.map((r) => ({
-      start: this.normalizeServerTime(r.startTime),
-      end: this.normalizeServerTime(r.endTime),
-    }));
 
-    this.rebuildBlackoutDays();
+    const cooldownMs = this.SELF_COOLDOWN_HOURS * 3600_000;
+    this.blockedIntervals = filtered.map((r) => {
+      const start = this.normalizeServerTime(r.startTime);
+      const end = this.normalizeServerTime(r.endTime);
+      const endWithCooldown = new Date(end.getTime() + cooldownMs);
+      return { start, end: endWithCooldown };
+    });
+
     this.updateTimepickerBounds();
     this.buildEndTimeSlots();
     this.calculateEndDate();
+    this.buildStartBlockedLegend();
     this.form.updateValueAndValidity({ emitEvent: false });
     this.cdr.markForCheck();
   });
@@ -183,6 +188,7 @@ export class SearchByDateComponent implements OnInit {
       this.appConfig = cfg;
       this.computeDateBounds();
       this.updateTimepickerBounds();
+      this.buildStartBlockedLegend();
       this.cdr.markForCheck();
     });
 
@@ -206,6 +212,7 @@ export class SearchByDateComponent implements OnInit {
         }
 
         this.updateFormState();
+        this.buildStartBlockedLegend();
       });
 
     this.startTimeCtrl.valueChanges
@@ -237,6 +244,7 @@ export class SearchByDateComponent implements OnInit {
           this.resetEndTimeControls();
         }
         this.updateFormState();
+        this.buildStartBlockedLegend();
       });
 
     this.endTimeCtrl.valueChanges
@@ -250,6 +258,52 @@ export class SearchByDateComponent implements OnInit {
     this.form.statusChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.syncControlErrors());
+  }
+
+  isStartTimeSelectable = (candidate: Date): boolean => {
+    const date = this.startDateCtrl.value as Date | null;
+    if (!date) return false;
+
+    const c = new Date(candidate);
+    c.setMinutes(0, 0, 0);
+
+    if (this.minTime && c < this.minTime) return false;
+    if (this.maxTime && c > this.maxTime) return false;
+
+    if (
+      c.getFullYear() !== date.getFullYear() ||
+      c.getMonth() !== date.getMonth() ||
+      c.getDate() !== date.getDate()
+    )
+      return false;
+
+    const hour = c.getHours();
+    if (hour < this.TIME_SLOT_START_HOUR) return false;
+    if (hour > this.TIME_SLOT_END_HOUR - this.MIN_DURATION) return false;
+
+    const minEnd = new Date(c.getTime() + this.MIN_DURATION * 3600_000);
+    return (
+      !this.overlapsAnyBlockedInterval(c, minEnd) &&
+      this.hasAtLeastOneEndOptionFrom(c)
+    );
+  };
+
+  private buildStartBlockedLegend(): void {
+    const date = this.startDateCtrl.value as Date | null;
+    this.startBlockedLegend = [];
+    if (!date) return;
+
+    const earliestHour = this.getMinStartHourForDate(date);
+    const latestStartHour = this.TIME_SLOT_END_HOUR - this.MIN_DURATION;
+
+    const labels: string[] = [];
+    for (let h = earliestHour; h <= latestStartHour; h++) {
+      const start = new Date(date);
+      start.setHours(h, 0, 0, 0);
+      const selectable = this.isStartTimeSelectable(start);
+      if (!selectable) labels.push(this.formatTime12h(h));
+    }
+    this.startBlockedLegend = labels;
   }
 
   private resetEndTimeControls(): void {
@@ -284,23 +338,6 @@ export class SearchByDateComponent implements OnInit {
     return new Date(y, mo, d, h, min, s, 0);
   }
 
-  private rebuildBlackoutDays(): void {
-    this.blackoutDays.clear();
-    for (const { start } of this.normalizedReservations) {
-      const startDay = new Date(start);
-      startDay.setHours(0, 0, 0, 0);
-      for (let i = 0; i < this.SELF_COOLDOWN_DAYS; i++) {
-        const d = new Date(startDay);
-        d.setDate(startDay.getDate() + i);
-        this.blackoutDays.add(this.formatDate(d));
-      }
-    }
-  }
-
-  private isInBlackout(date: Date): boolean {
-    return this.blackoutDays.has(this.formatDate(date));
-  }
-
   private computeDateBounds(): void {
     const now = new Date();
     const minSelectableDateTime = this.getMinSelectableDateTime(now);
@@ -333,8 +370,6 @@ export class SearchByDateComponent implements OnInit {
   }
 
   private hasFreeSlotOnDate(date: Date): boolean {
-    if (this.isInBlackout(date)) return false;
-
     const ds = this.formatDate(date);
     const count = this.dailyAvailability[ds];
     if (count !== undefined && count === 0) return false;
@@ -348,7 +383,7 @@ export class SearchByDateComponent implements OnInit {
       const start = new Date(date);
       start.setHours(h, 0, 0, 0);
       const end = new Date(start.getTime() + this.MIN_DURATION * 3600_000);
-      if (!this.overlapsAnyReservation(start, end)) return true;
+      if (!this.overlapsAnyBlockedInterval(start, end)) return true;
     }
     return false;
   }
@@ -366,15 +401,7 @@ export class SearchByDateComponent implements OnInit {
     if (!selectedDate) {
       this.minTime = null;
       this.maxTime = null;
-      return;
-    }
-
-    if (this.isInBlackout(selectedDate)) {
-      this.minTime = null;
-      this.maxTime = null;
-      this.startTimeCtrl.setValue(null, { emitEvent: false });
-      this.startTimeCtrl.enable({ emitEvent: false });
-      this.noValidStartOptions = true;
+      this.startBlockedLegend = [];
       return;
     }
 
@@ -386,23 +413,31 @@ export class SearchByDateComponent implements OnInit {
     if (firstValid) {
       this.minTime = new Date(firstValid);
       const cur = this.startTimeCtrl.value as Date | null;
-      const outOfBounds = !cur || cur < this.minTime || cur > this.maxTime;
+      const outOfBounds = !cur || cur < this.minTime || cur > this.maxTime!;
       if (outOfBounds) {
-        this.startTimeCtrl.setValue(new Date(this.minTime), {
-          emitEvent: true,
-        });
+        const v = new Date(this.minTime);
+        v.setMinutes(0, 0, 0);
+        this.startTimeCtrl.setValue(v, { emitEvent: true });
       } else {
-        this.buildEndTimeSlots();
+        const normalized = new Date(cur);
+        normalized.setMinutes(0, 0, 0);
+        if (normalized.getTime() !== cur.getTime()) {
+          this.startTimeCtrl.setValue(normalized, { emitEvent: true });
+        } else {
+          this.buildEndTimeSlots();
+        }
       }
     } else {
       this.minTime = null;
       this.startTimeCtrl.setValue(null, { emitEvent: false });
       this.noValidStartOptions = true;
     }
+
+    this.buildStartBlockedLegend();
+    this.cdr.markForCheck();
   }
 
   private getFirstValidStartTimeForDate(date: Date): Date | null {
-    if (this.isInBlackout(date)) return null;
     const earliestHour = this.getMinStartHourForDate(date);
     const latestStartHour = this.TIME_SLOT_END_HOUR - this.MIN_DURATION;
 
@@ -418,7 +453,6 @@ export class SearchByDateComponent implements OnInit {
     date: Date,
     fromHour: number
   ): Date | null {
-    if (this.isInBlackout(date)) return null;
     const earliestHour = Math.max(this.getMinStartHourForDate(date), fromHour);
     const latestStartHour = this.TIME_SLOT_END_HOUR - this.MIN_DURATION;
 
@@ -437,9 +471,69 @@ export class SearchByDateComponent implements OnInit {
       d += this.END_SLOT_INCREMENT
     ) {
       const end = new Date(start.getTime() + d * 3600_000);
-      if (!this.overlapsAnyReservation(start, end)) return true;
+      if (!this.overlapsAnyBlockedInterval(start, end)) return true;
     }
     return false;
+  }
+
+  private roundUpToHour(d: Date): Date {
+    const t = new Date(d);
+    if (t.getMinutes() > 0 || t.getSeconds() > 0 || t.getMilliseconds() > 0) {
+      t.setHours(t.getHours() + 1, 0, 0, 0);
+    } else {
+      t.setMinutes(0, 0, 0);
+    }
+    return t;
+  }
+
+  private isWithinStartBounds(d: Date): boolean {
+    if (this.minTime && d < this.minTime) return false;
+    if (this.maxTime && d > this.maxTime) return false;
+    return true;
+  }
+
+  private snapToValidStart(d: Date): Date | null {
+    let cur = this.roundUpToHour(d);
+    if (this.minTime && cur < this.minTime) cur = new Date(this.minTime);
+    if (!this.isWithinStartBounds(cur)) return null;
+
+    const dateOnly = this.startDateCtrl.value!;
+    const latestStartHour = this.TIME_SLOT_END_HOUR - this.MIN_DURATION;
+
+    while (true) {
+      if (this.hasAtLeastOneEndOptionFrom(cur)) return cur;
+
+      const next = new Date(cur);
+      next.setHours(cur.getHours() + 1, 0, 0, 0);
+
+      if (
+        next.getDate() !== dateOnly.getDate() ||
+        next.getHours() > latestStartHour ||
+        !this.isWithinStartBounds(next)
+      )
+        break;
+
+      cur = next;
+    }
+    return null;
+  }
+
+  onStartTimePicked(value: any): void {
+    if (!value) return;
+    const snapped = this.snapToValidStart(new Date(value));
+
+    if (snapped) {
+      this.startTimeCtrl.setValue(snapped, { emitEvent: true });
+    } else {
+      const date = this.startDateCtrl.value!;
+      const first = this.getFirstValidStartTimeForDate(date);
+      if (first) {
+        this.startTimeCtrl.setValue(first, { emitEvent: true });
+      } else {
+        this.startTimeCtrl.setValue(null, { emitEvent: true });
+        this.noValidStartOptions = true;
+      }
+    }
   }
 
   private buildEndTimeSlots(): void {
@@ -461,7 +555,7 @@ export class SearchByDateComponent implements OnInit {
       const endHour = end.getHours();
       const label = `${this.formatTime12h(endHour)} (${d} hrs)`;
 
-      const conflicts = this.overlapsAnyReservation(start, end);
+      const conflicts = this.overlapsAnyBlockedInterval(start, end);
       this.endTimeSlots.push(label);
       this.endConflictMap[label] = conflicts;
 
@@ -644,7 +738,7 @@ export class SearchByDateComponent implements OnInit {
       const selEnd = new Date(selStart.getTime() + duration * 3600_000);
 
       if (selEnd <= selStart) errors['endBeforeOrEqualStart'] = true;
-      if (this.overlapsAnyReservation(selStart, selEnd))
+      if (this.overlapsAnyBlockedInterval(selStart, selEnd))
         errors['overlapsExisting'] = true;
       if (this.noValidStartOptions) errors['noValidStartTimeOptions'] = true;
       if (this.noValidEndOptions) errors['noValidEndTimeOptions'] = true;
@@ -708,9 +802,9 @@ export class SearchByDateComponent implements OnInit {
     return aStart < bEnd && aEnd > bStart;
   }
 
-  private overlapsAnyReservation(selStart: Date, selEnd: Date): boolean {
-    if (!this.normalizedReservations.length) return false;
-    return this.normalizedReservations.some(({ start, end }) =>
+  private overlapsAnyBlockedInterval(selStart: Date, selEnd: Date): boolean {
+    if (!this.blockedIntervals.length) return false;
+    return this.blockedIntervals.some(({ start, end }) =>
       this.intervalsOverlap(selStart, selEnd, start, end)
     );
   }
@@ -785,6 +879,7 @@ export class SearchByDateComponent implements OnInit {
     this.availableApplications = [];
     this.selectedApps = [];
     this.showResultsCard = false;
+    this.startBlockedLegend = [];
     this.cdr.markForCheck();
   }
 }
