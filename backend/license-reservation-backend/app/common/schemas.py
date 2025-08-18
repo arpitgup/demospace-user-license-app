@@ -107,6 +107,10 @@ class AvailabilityByDateResponse(CamelModel):
     applications: List[ApplicationOut]
 
 
+class AvailabilityByDateV2Response(CamelModel):
+    available_bots: List[AvailableBotInfo]
+
+
 class BulkCancelReservationsRequest(CamelModel):
     reservation_ids: List[int]
 

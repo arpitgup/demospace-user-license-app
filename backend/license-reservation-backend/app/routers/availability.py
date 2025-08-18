@@ -24,8 +24,10 @@ from ..common.schemas import (
     AvailabilityByApplicationResponse,
     AvailabilityByDateRequest,
     AvailabilityByDateResponse,
+    AvailabilityByDateV2Response,
     AvailabilitySlot,
 )
+from ..utils.crud import get_bot_availability_in_slot
 
 
 router = APIRouter()
@@ -84,41 +86,42 @@ def get_availability_by_date(
     return AvailabilityByDateResponse(applications=available_apps)
 
 
-def get_bot_availability_in_slot(
-    bot: Bot, start_time: datetime, end_time: datetime, db: Session
-) -> List[Application]:
+@router.post("/availability/by-date/v2", response_model=AvailabilityByDateV2Response)
+def get_availability_by_date_v2(
+    req: AvailabilityByDateRequest, db: Session = Depends(get_db)
+):
     """
-    Calculates which applications a specific bot can serve during a given time slot.
+    For a given time range, find all bots that have at least one available application.
+    The response contains these bots, along with the applications they can serve in that timeframe.
     """
-    # Get all applications this bot supports. The relationship is now eagerly loaded.
-    all_supported_apps = [ba.application for ba in bot.supported_applications]
-    all_supported_app_ids = {app.id for app in all_supported_apps}
-
-    # Find applications this bot is busy with during the slot
-    conflicting_reservations = (
-        db.query(Reservation)
-        .filter(
-            Reservation.bot_id == bot.id,
-            Reservation.status.in_(
-                [ReservationStatus.PENDING, ReservationStatus.ACTIVE]
-            ),
-            Reservation.start_time < end_time,
-            Reservation.end_time > start_time,
+    all_bots = (
+        db.query(Bot)
+        .options(
+            joinedload(Bot.supported_applications).joinedload(
+                BotApplication.application
+            )
         )
-        .options(joinedload(Reservation.applications))
         .all()
     )
+    response_bots = []
 
-    busy_app_ids = set()
-    for res in conflicting_reservations:
-        for app in res.applications:
-            busy_app_ids.add(app.id)
+    for bot in all_bots:
+        # Check which applications are actually available for this bot in the time slot
+        available_apps = get_bot_availability_in_slot(
+            bot, req.start_time, req.end_time, db
+        )
 
-    # Determine available applications
-    available_app_ids = all_supported_app_ids - busy_app_ids
-    available_apps = [app for app in all_supported_apps if app.id in available_app_ids]
+        if available_apps:
+            response_bots.append(
+                AvailableBotInfo(
+                    id=bot.id,
+                    name=bot.name,
+                    email=bot.email,
+                    applications=available_apps,
+                )
+            )
 
-    return available_apps
+    return AvailabilityByDateV2Response(available_bots=response_bots)
 
 
 @router.post(

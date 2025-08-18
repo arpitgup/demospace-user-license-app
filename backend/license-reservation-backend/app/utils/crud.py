@@ -1,10 +1,13 @@
 from datetime import datetime, timezone
-from sqlalchemy.orm import Session, selectinload, Query
+from sqlalchemy.orm import Session, selectinload, Query, joinedload
 from shared_lib.db.models import (
     Application,
     Bot,
     BotApplication,
+    Reservation,
+    ReservationStatus,
 )
+from typing import List
 
 from ..common.schemas import (
     BotsUpsertRequest,
@@ -64,3 +67,40 @@ def upsert_bots_with_applications(request: BotsUpsertRequest, db: Session) -> li
             processed_bots.append(new_bot)
 
     return processed_bots
+
+
+def get_bot_availability_in_slot(
+    bot: Bot, start_time: datetime, end_time: datetime, db: Session
+) -> List[Application]:
+    """
+    Calculates which applications a specific bot can serve during a given time slot.
+    """
+    # Get all applications this bot supports. The relationship is now eagerly loaded.
+    all_supported_apps = [ba.application for ba in bot.supported_applications]
+    all_supported_app_ids = {app.id for app in all_supported_apps}
+
+    # Find applications this bot is busy with during the slot
+    conflicting_reservations = (
+        db.query(Reservation)
+        .filter(
+            Reservation.bot_id == bot.id,
+            Reservation.status.in_(
+                [ReservationStatus.PENDING, ReservationStatus.ACTIVE]
+            ),
+            Reservation.start_time < end_time,
+            Reservation.end_time > start_time,
+        )
+        .options(joinedload(Reservation.applications))
+        .all()
+    )
+
+    busy_app_ids = set()
+    for res in conflicting_reservations:
+        for app in res.applications:
+            busy_app_ids.add(app.id)
+
+    # Determine available applications
+    available_app_ids = all_supported_app_ids - busy_app_ids
+    available_apps = [app for app in all_supported_apps if app.id in available_app_ids]
+
+    return available_apps
