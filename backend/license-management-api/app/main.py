@@ -7,6 +7,7 @@ from shared_lib.db.models import ReservationStatus, Reservation
 from sqlalchemy.orm import Session
 
 from .schemas import DeprovisionLicensesRequest, ProvisionLicensesRequest
+from .utils import provision_app_licenses, deprovision_app_licenses
 
 
 app = FastAPI(
@@ -41,11 +42,7 @@ def provision_licenses(req: ProvisionLicensesRequest, db: Session = Depends(get_
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Cannot provision licenses as reservation is in '{reservation.status.value}' state.",
         )
-    admin_service.update_user_profile_with_saml_attributes(
-        user_email=reservation.user_email,
-        bot=reservation.bot,
-        applications=reservation.applications,
-    )
+    provision_app_licenses(reservation)
     reservation.status = ReservationStatus.ACTIVE
     db.commit()
     db.refresh(reservation)
@@ -70,7 +67,7 @@ def deprovision_licenses(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Cannot deprovision licenses as reservation is in '{reservation.status.value}' state.",
         )
-    admin_service.clear_saml_attributes_for_user(reservation.user_email)
+    deprovision_app_licenses(reservation)
     reservation.status = ReservationStatus.COMPLETED
     db.commit()
     db.refresh(reservation)
