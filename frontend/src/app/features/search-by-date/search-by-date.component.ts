@@ -59,6 +59,7 @@ import {
   SERVER_TIME_MODE,
   MAX_CALENDAR_DAYS,
   MAX_RESERVATION_APPLICATION,
+  DEFAULT_START_DATE_TIME,
 } from './search-by-date.constants';
 
 import {
@@ -180,7 +181,9 @@ export class SearchByDateComponent implements OnInit {
     );
     this.userReservations = filtered as Reservation[];
 
-    const cooldownMs = (this.appConfigSignal()?.rollingWindowHours || SELF_COOLDOWN_HOURS) * 3600_000;
+    const cooldownMs =
+      (this.appConfigSignal()?.rollingWindowHours || SELF_COOLDOWN_HOURS) *
+      3600_000;
     this.blockedIntervals = filtered.map((r) => {
       const start = normalizeServerTime(r.startTime, SERVER_TIME_MODE);
       const end = normalizeServerTime(r.endTime, SERVER_TIME_MODE);
@@ -198,7 +201,7 @@ export class SearchByDateComponent implements OnInit {
   ngOnInit(): void {
     this.resetForm();
     this.computeDateBounds();
-      this.cdr.markForCheck();
+    this.cdr.markForCheck();
     this.setupFormSubscriptions();
   }
 
@@ -307,16 +310,26 @@ export class SearchByDateComponent implements OnInit {
     this.startConflictMap.set(newStartConflictMap);
 
     if (hasValid) {
-      const firstValid =
-        this.startTimeSlots().find((l) => !this.startConflictMap()[l]) ?? null;
-      this.startTimeCtrl.setValue(firstValid, { emitEvent: false });
+      const defaultTime = formatTime12h(DEFAULT_START_DATE_TIME);
+      const isDefaultAvailable =
+        newStartTimeSlots.includes(defaultTime) &&
+        !newStartConflictMap[defaultTime];
+
+      if (isDefaultAvailable) {
+        this.startTimeCtrl.setValue(defaultTime, { emitEvent: false });
+      } else {
+        const firstValid =
+          this.startTimeSlots().find((l) => !this.startConflictMap()[l]) ??
+          null;
+        this.startTimeCtrl.setValue(firstValid, { emitEvent: false });
+      }
+
       this.buildEndTimeSlots();
     } else {
       this.noValidStartOptions = true;
       this.startTimeCtrl.setValue(null, { emitEvent: false });
     }
   }
-
   private buildEndTimeSlots(): void {
     const newEndTimeSlots: string[] = [];
     const newEndConflictMap: Record<string, boolean> = {};
@@ -412,7 +425,8 @@ export class SearchByDateComponent implements OnInit {
     this.minSelectableDay = new Date(minSelectableDateTime);
     this.minSelectableDay.setHours(0, 0, 0, 0);
 
-    const maxBookingDays = this.appConfigSignal()?.maxCalendarDays ?? MAX_CALENDAR_DAYS;
+    const maxBookingDays =
+      this.appConfigSignal()?.maxCalendarDays ?? MAX_CALENDAR_DAYS;
     this.maxSelectableDate = new Date(now);
     this.maxSelectableDate.setDate(now.getDate() + maxBookingDays);
     this.maxSelectableDate.setHours(23, 59, 59, 999);
@@ -445,48 +459,48 @@ export class SearchByDateComponent implements OnInit {
   }
 
   onCheckAvailability(): void {
-  if (this.isCheckAvailabilityDisabled()) return;
+    if (this.isCheckAvailabilityDisabled()) return;
 
-  this.isLoading.set(true);
-  this.showResultsCard.set(false);
-  this.cdr.markForCheck();
+    this.isLoading.set(true);
+    this.showResultsCard.set(false);
+    this.cdr.markForCheck();
 
-  const startDateTime = this.getStartDateTime();
-  const payload = {
-    startTime: startDateTime.toISOString(),
+    const startDateTime = this.getStartDateTime();
+    const payload = {
+      startTime: startDateTime.toISOString(),
       endTime: this.calculatedEndDate()!.toISOString(),
-  };
+    };
 
-  this.reservationService.checkBotsAvailabilityByDate(payload).subscribe({
-    next: (response: { availableBots: BotWithApps[] }) => {
-      this.botsWithApps.set(response.availableBots ?? []);
-      const appMap = new Map<number, Application>();
-      this.botsWithApps().forEach((bot) => {
-        bot.applications.forEach((app) => {
-          if (!appMap.has(app.id)) {
-            appMap.set(app.id, app);
-          }
+    this.reservationService.checkBotsAvailabilityByDate(payload).subscribe({
+      next: (response: { availableBots: BotWithApps[] }) => {
+        this.botsWithApps.set(response.availableBots ?? []);
+        const appMap = new Map<number, Application>();
+        this.botsWithApps().forEach((bot) => {
+          bot.applications.forEach((app) => {
+            if (!appMap.has(app.id)) {
+              appMap.set(app.id, app);
+            }
+          });
         });
-      });
 
-      this.availableApplications.set(Array.from(appMap.values()));
-      this.selectedApps.set([]);
-      this.availableDate.set(startDateTime);
+        this.availableApplications.set(Array.from(appMap.values()));
+        this.selectedApps.set([]);
+        this.availableDate.set(startDateTime);
         this.revokeDate.set(this.calculatedEndDate());
-      this.isLoading.set(false);
-      this.showResultsCard.set(true);
-      this.cdr.markForCheck();
-    },
-    error: (err: unknown) => {
-      console.error('Error checking bot availability:', err);
-      this.availableApplications.set([]);
-      this.botsWithApps.set([]);
-      this.isLoading.set(false);
-      this.showResultsCard.set(true);
-      this.cdr.markForCheck();
-    },
-  });
-}
+        this.isLoading.set(false);
+        this.showResultsCard.set(true);
+        this.cdr.markForCheck();
+      },
+      error: (err: unknown) => {
+        console.error('Error checking bot availability:', err);
+        this.availableApplications.set([]);
+        this.botsWithApps.set([]);
+        this.isLoading.set(false);
+        this.showResultsCard.set(true);
+        this.cdr.markForCheck();
+      },
+    });
+  }
 
   showErrorDialog(message: string): void {
     this.confirmationDialog.open(ErrorDialog, {
@@ -557,7 +571,11 @@ export class SearchByDateComponent implements OnInit {
       return false;
     }
 
-    if (this.selectedApps().length >= (this.appConfigSignal()?.maxReservationApplications || MAX_RESERVATION_APPLICATION)) {
+    if (
+      this.selectedApps().length >=
+      (this.appConfigSignal()?.maxReservationApplications ||
+        MAX_RESERVATION_APPLICATION)
+    ) {
       return true;
     }
 
