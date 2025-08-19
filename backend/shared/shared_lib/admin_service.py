@@ -126,3 +126,51 @@ def clear_saml_attributes_for_user(user_email: str):
             f"Error occurred while clearing SAML attributes for {user_email}: {e}"
         )
         raise e
+
+
+def add_user_to_group(user_email: str, group_email: str):
+    """Adds a user to a Google Workspace group."""
+    try:
+        logger.info(f"Adding user {user_email} to group {group_email}.")
+        member = {"email": user_email, "role": "MEMBER"}
+        admin_service.members().insert(groupKey=group_email, body=member).execute()
+        logger.info(f"Successfully added {user_email} to {group_email}.")
+    except HttpError as e:
+        if e.resp.status == 409:
+            logger.warning(
+                f"User {user_email} is already a member of group {group_email}."
+            )
+        else:
+            logger.error(
+                f"Error occurred while adding {user_email} to {group_email}: {e}"
+            )
+            raise e
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred while adding {user_email} to {group_email}: {e}"
+        )
+        raise e
+
+
+def remove_user_from_group(user_email: str, group_email: str):
+    """Removes a user from a Google Workspace group."""
+    try:
+        logger.info(f"Removing user {user_email} from group {group_email}.")
+        admin_service.members().delete(
+            groupKey=group_email, memberKey=user_email
+        ).execute()
+        logger.info(f"Successfully removed {user_email} from {group_email}.")
+    except HttpError as e:
+        # 404 Not Found indicates the user is not a member of the group
+        if e.resp.status == 404:
+            logger.warning(f"User {user_email} is not a member of group {group_email}.")
+        else:
+            logger.error(
+                f"Error occurred while removing {user_email} from {group_email}: {e}"
+            )
+            raise e
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred while removing {user_email} from {group_email}: {e}"
+        )
+        raise e

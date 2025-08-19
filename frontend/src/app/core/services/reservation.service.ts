@@ -12,7 +12,7 @@ import {
   take,
   tap,
 } from 'rxjs';
-import { NewReservation, Reservation } from '../models/reservation.model';
+import { BotWithApps, NewReservation, Reservation } from '../models/reservation.model';
 
 import { AppConfig } from '../models/appConfig.model';
 import { environment } from '../../../environments/environment';
@@ -55,8 +55,8 @@ export class ReservationService {
   checkBotsAvailabilityByDate(payload: {
     startTime: string;
     endTime: string;
-  }): Observable<{ applications: Application[] }> {
-    return this.http.post<{ applications: Application[] }>(
+  }):  Observable<{ availableBots: BotWithApps[] }> {
+    return this.http.post<{ availableBots: BotWithApps[] }>(
       `${this.apiUrl}/availability/by-date/v2`,
       payload
     );

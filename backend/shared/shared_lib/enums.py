@@ -6,3 +6,8 @@ class ReservationStatus(str, Enum):
     ACTIVE = "ACTIVE"
     COMPLETED = "COMPLETED"
     CANCELLED = "CANCELLED"
+
+
+class ApplicationLicenseType(str, Enum):
+    SUBSCRIPTION = "SUBSCRIPTION"
+    ENVIRONMENT = "ENVIRONMENT"

@@ -1,6 +1,6 @@
 -- Create custom ENUM types for status fields
 CREATE TYPE reservation_status_enum AS ENUM ('PENDING', 'ACTIVE', 'COMPLETED', 'CANCELLED');
-
+CREATE TYPE application_license_type_enum AS ENUM ('SUBSCRIPTION', 'ENVIRONMENT');
 
 CREATE TABLE app_config (
     id SERIAL PRIMARY KEY,
@@ -14,7 +14,9 @@ CREATE INDEX idx_app_config_key ON app_config (key);
 CREATE TABLE applications (
     id SERIAL PRIMARY KEY,
     name VARCHAR UNIQUE NOT NULL,
-    is_active BOOLEAN DEFAULT TRUE
+    is_active BOOLEAN DEFAULT TRUE,
+    license_type application_license_type_enum DEFAULT 'SUBSCRIPTION',
+    license_group VARCHAR
 );
 
 

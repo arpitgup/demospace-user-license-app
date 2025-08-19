@@ -25,15 +25,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTimepickerModule } from '@angular/material/timepicker';
-import {
-  generate,
-  map,
-  Observable,
-  of,
-  Subscription,
-  switchMap,
-  tap,
-} from 'rxjs';
+import { map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { ReservationService } from '../../core/services/reservation.service';
 import { Application } from '../../core/models/application.model';
 import { AsyncPipe, DatePipe } from '@angular/common';
@@ -104,7 +96,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   selectedApplicationList: string[] = [];
   normalizedReservations: NormalizedReservation[] = [];
 
-  readonly BLOC_HOUR_LIMIT: number = 1;
+  readonly BLOC_HOUR_LIMIT: number = 48;
   readonly MAX_ALLOWED_TIME_VALUE = '23:00';
   readonly MIN_ALLOWED_TIME_VALUE = '00:00';
   readonly PRIMARY_APPLICATION_FORM = 'primaryApplication';
@@ -506,8 +498,6 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
         this.isSameDay(nextDay, blocEnd) &&
         this.nextHour > blocEnd.getHours() - 2
       ) {
-        console.log('data=====', nextDay);
-        console.log('data=====', date);
         return false;
       }
       if (

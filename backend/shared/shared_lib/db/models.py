@@ -11,7 +11,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.dialects.postgresql import ENUM as PGEnum
-from ..enums import ReservationStatus
+from ..enums import ReservationStatus, ApplicationLicenseType
 
 
 Base = declarative_base()
@@ -62,6 +62,10 @@ class Application(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, nullable=False)
     is_active = Column(Boolean, default=True)
+    license_type = Column(
+        PGEnum(ApplicationLicenseType), default=ApplicationLicenseType.SUBSCRIPTION
+    )
+    license_group = Column(String, nullable=True)
 
     supported_by_bots = relationship("BotApplication", back_populates="application")
     reservations = relationship(
@@ -73,7 +77,7 @@ class Application(Base):
         "Bot",
         secondary=bot_applications_table,
         back_populates="applications",
-        viewonly=True
+        viewonly=True,
     )
 
 
@@ -93,7 +97,7 @@ class Bot(Base):
         "Application",
         secondary=bot_applications_table,
         back_populates="bots",
-        viewonly=True
+        viewonly=True,
     )
 
 
