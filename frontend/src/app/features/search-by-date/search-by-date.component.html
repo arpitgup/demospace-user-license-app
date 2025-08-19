@@ -40,6 +40,7 @@
               aria-describedby="start-date-help"
               aria-label="Start date"
             />
+
             <mat-datepicker-toggle
               matSuffix
               [for]="picker"
@@ -62,28 +63,30 @@
             }
           </mat-form-field>
 
-          <!-- Start Time (Material-style timepicker) -->
+          <!-- Start Time -->
           <mat-form-field appearance="outline" class="start-time-field">
             <mat-label>Start Time</mat-label>
-            <input
-              matInput
-              [matTimepicker]="startPicker"
+            <mat-select
               formControlName="startTime"
-              [readonly]="true"
-              [matTimepickerMin]="minTime"
-              [matTimepickerMax]="maxTime"
+              (selectionChange)="onStartTimeChange()"
+              [disabled]="startTimeCtrl.disabled"
               aria-label="Start time"
-            />
-            <mat-timepicker-toggle
-              matIconSuffix
-              [for]="startPicker"
-            ></mat-timepicker-toggle>
+            >
+              @for (time of startTimeSlots; track time) {
 
-            <mat-timepicker
-              #startPicker
-              interval="60min"
-              (timeChange)="onStartTimePicked($event)"
-            ></mat-timepicker>
+              <mat-option
+                [value]="time"
+                [disabled]="startConflictMap[time] === true"
+                [title]="
+                  startConflictMap[time]
+                    ? 'Conflicts with an existing reservation'
+                    : ''
+                "
+              >
+                {{ time }}
+              </mat-option>
+              }
+            </mat-select>
 
             @if (startTimeCtrl.hasError('required')) {
             <mat-error id="start-time-required"
@@ -148,7 +151,7 @@
 
           <!-- Calculated End Date (read-only) -->
           @if (calculatedEndDate) {
-           <mat-form-field appearance="outline" class="end-date-field">
+          <mat-form-field appearance="outline" class="end-date-field">
             <mat-label>End Date</mat-label>
             <input
               matInput
@@ -232,7 +235,7 @@
         }
       </div>
 
-     <div class="horizontal-line" aria-hidden="true"></div>
+      <div class="horizontal-line" aria-hidden="true"></div>
 
       <div class="license-info">
         <p>
