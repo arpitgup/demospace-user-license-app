@@ -36,6 +36,9 @@ export class ReservationService {
   private reservationsState = signal<Reservation[]>([]);
   public readonly reservations = this.reservationsState.asReadonly();
 
+  private configState = signal<AppConfig | null>(null);
+  public readonly appConfigData = this.configState.asReadonly();
+
   /**
    * API call to check application availability for a given time range.
    * Corresponds to POST /availability/by-date.
@@ -104,13 +107,11 @@ export class ReservationService {
    * @returns An Observable of the application configuration.
    */
   getConfig(): Observable<AppConfig> {
-    const mockConfig: AppConfig = {
-      reservationBlockDays: 2,
-      leadTimeDays: 1,
-      calendarViewMonths: 3,
-      maxBookingLeadDays: 30,
-    };
-    return of(mockConfig);
+    return this.http.get<AppConfig>(`${this.apiUrl}/config`).pipe(
+      tap((appConfigData) => {
+        this.configState.set(appConfigData);
+      })
+    );
   }
 
   /**
