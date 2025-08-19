@@ -128,7 +128,7 @@
             border-radius: 0.25rem;
           }
 
-          .end-date-field{
+          .end-date-field {
             .mdc-text-field--disabled {
               background: #e6e6e6;
             }
@@ -221,10 +221,12 @@
       }
 
       .pill-container {
-        width: 29.125rem;
+        width: 100%;
+        display: flex;
         min-height: 9rem;
         margin-top: 2.94rem;
-        margin-left: 5.75rem;
+        align-items: center;
+        justify-content: center;
 
         .pill-group {
           display: grid;
@@ -245,7 +247,7 @@
               padding: 0 1.3rem;
               justify-content: center;
               align-items: center;
-              gap: 0.8125rem;
+              gap: 7.44rem;
               flex-shrink: 0;
               border-radius: 1.5625rem;
               background: #e6e6e6;
@@ -343,4 +345,10 @@
   .mat-form-field-wrapper {
     padding-bottom: 0;
   }
+}
+
+:ng-deep .mat-button-toggle-button:hover {
+  box-shadow: none !important;
+  border: none !important;
+  background-color: transparent !important;
 }
