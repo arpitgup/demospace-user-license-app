@@ -69,6 +69,7 @@ import {
   intervalsOverlap,
   normalizeServerTime,
 } from './search-by-date.utils';
+import { TimezoneAbbrPipe } from '../../shared/pipes/timezone-abbr.pipe';
 
 type DailyAvailabilityMap = { [date: string]: number };
 type BlockedInterval = { start: Date; end: Date };
@@ -90,6 +91,7 @@ type BlockedInterval = { start: Date; end: Date };
     MatButtonToggleModule,
     MatProgressSpinnerModule,
     SearchByApplicationLoader,
+    TimezoneAbbrPipe,
   ],
   templateUrl: './search-by-date.component.html',
   styleUrls: ['./search-by-date.component.scss'],
@@ -448,48 +450,48 @@ export class SearchByDateComponent implements OnInit {
   }
 
   onCheckAvailability(): void {
-    if (this.isCheckAvailabilityDisabled()) return;
+  if (this.isCheckAvailabilityDisabled()) return;
 
-    this.isLoading.set(true);
-    this.showResultsCard.set(false);
-    this.cdr.markForCheck();
+  this.isLoading.set(true);
+  this.showResultsCard.set(false);
+  this.cdr.markForCheck();
 
-    const startDateTime = this.getStartDateTime();
-    const payload = {
-      startTime: startDateTime.toISOString(),
+  const startDateTime = this.getStartDateTime();
+  const payload = {
+    startTime: startDateTime.toISOString(),
       endTime: this.calculatedEndDate()!.toISOString(),
-    };
+  };
 
-    this.reservationService.checkBotsAvailabilityByDate(payload).subscribe({
-      next: (response: { availableBots: BotWithApps[] }) => {
-        this.botsWithApps.set(response.availableBots ?? []);
-        const appMap = new Map<number, Application>();
-        this.botsWithApps().forEach((bot) => {
-          bot.applications.forEach((app) => {
-            if (!appMap.has(app.id)) {
-              appMap.set(app.id, app);
-            }
-          });
+  this.reservationService.checkBotsAvailabilityByDate(payload).subscribe({
+    next: (response: { availableBots: BotWithApps[] }) => {
+      this.botsWithApps.set(response.availableBots ?? []);
+      const appMap = new Map<number, Application>();
+      this.botsWithApps().forEach((bot) => {
+        bot.applications.forEach((app) => {
+          if (!appMap.has(app.id)) {
+            appMap.set(app.id, app);
+          }
         });
+      });
 
-        this.availableApplications.set(Array.from(appMap.values()));
-        this.selectedApps.set([]);
-        this.availableDate.set(startDateTime);
+      this.availableApplications.set(Array.from(appMap.values()));
+      this.selectedApps.set([]);
+      this.availableDate.set(startDateTime);
         this.revokeDate.set(this.calculatedEndDate());
-        this.isLoading.set(false);
-        this.showResultsCard.set(true);
-        this.cdr.markForCheck();
-      },
-      error: (err: unknown) => {
-        console.error('Error checking bot availability:', err);
-        this.availableApplications.set([]);
-        this.botsWithApps.set([]);
-        this.isLoading.set(false);
-        this.showResultsCard.set(true);
-        this.cdr.markForCheck();
-      },
-    });
-  }
+      this.isLoading.set(false);
+      this.showResultsCard.set(true);
+      this.cdr.markForCheck();
+    },
+    error: (err: unknown) => {
+      console.error('Error checking bot availability:', err);
+      this.availableApplications.set([]);
+      this.botsWithApps.set([]);
+      this.isLoading.set(false);
+      this.showResultsCard.set(true);
+      this.cdr.markForCheck();
+    },
+  });
+}
 
   showErrorDialog(message: string): void {
     this.confirmationDialog.open(ErrorDialog, {

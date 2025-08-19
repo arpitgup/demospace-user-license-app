@@ -284,12 +284,16 @@
       }
 
       .license-info {
-        margin-top: 2.62rem;
+        margin-top: 1.62rem;
         margin-left: 2.44rem;
         color: #4285f4;
         font-family: Roboto;
         font-size: 1rem;
         line-height: 1.125rem;
+
+        .date-avilable {
+          font-weight: 600;
+        }
       }
 
       .selected-app-info {
@@ -300,12 +304,17 @@
         color: #4285f4;
         font-family: Roboto;
         font-size: 1rem;
+
+        .selected-app-data {
+          font-weight: 600;
+        }
       }
 
       .confirmation-actions-container {
         display: flex;
         align-items: center;
         justify-content: center;
+        margin-top: 1rem;
 
         .confirm-btn.mat-mdc-raised-button {
           height: 3.5rem;
@@ -327,6 +336,18 @@
           &[disabled] {
             background: #ccc !important;
             color: #666 !important;
+          }
+
+          .btn-text-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+
+            .arrow-icon-container {
+              position: relative;
+              top: 1px;
+            }
           }
         }
       }
