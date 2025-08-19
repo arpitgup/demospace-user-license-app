@@ -417,14 +417,14 @@ export class SearchByDateComponent implements OnInit {
     this.minSelectableDay = new Date(minSelectableDateTime);
     this.minSelectableDay.setHours(0, 0, 0, 0);
 
-    const maxBookingDays = this.appConfig?.maxBookingLeadDays ?? 30;
+    const maxBookingDays = this.appConfig?.maxCalendarDays ?? 30;
     this.maxSelectableDate = new Date(now);
     this.maxSelectableDate.setDate(now.getDate() + maxBookingDays);
     this.maxSelectableDate.setHours(23, 59, 59, 999);
   }
 
   private getMinSelectableDateTime(now: Date): Date {
-    const leadTimeDays = this.appConfig?.leadTimeDays || 1;
+    const leadTimeDays = this.appConfig?.rollingWindowHours || 1;
     const leadTimeHours = leadTimeDays * 24;
     return new Date(now.getTime() + leadTimeHours * 3600_000);
   }

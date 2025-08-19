@@ -1,6 +1,8 @@
 export interface AppConfig {
-  reservationBlockDays: number;
-  leadTimeDays: number;
-  calendarViewMonths: number;
-  maxBookingLeadDays: number;
+  maxReservationApplications: number;
+  maxCalendarDays: number;
+  rollingWindowHours: number;
+  reservationLeadDays: number;
+  unavailableReservationDays: number;
+  maxSlotsToFind: number;
 }
