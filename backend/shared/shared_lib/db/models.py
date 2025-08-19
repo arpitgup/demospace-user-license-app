@@ -65,6 +65,7 @@ class Application(Base):
     license_type = Column(
         PGEnum(ApplicationLicenseType), default=ApplicationLicenseType.SUBSCRIPTION
     )
+    license_group = Column(String, nullable=True)
 
     supported_by_bots = relationship("BotApplication", back_populates="application")
     reservations = relationship(
@@ -77,9 +78,6 @@ class Application(Base):
         secondary=bot_applications_table,
         back_populates="applications",
         viewonly=True,
-    )
-    license_group = relationship(
-        "ApplicationLicenseGroup", uselist=False, back_populates="application"
     )
 
 
@@ -129,11 +127,3 @@ class Reservation(Base):
         back_populates="reservations",
         lazy="joined",
     )
-
-
-class ApplicationLicenseGroup(Base):
-    __tablename__ = "application_license_groups"
-    application_id = Column(Integer, ForeignKey("applications.id"), primary_key=True)
-    group_email = Column(String, nullable=False)
-
-    application = relationship("Application", back_populates="license_group")

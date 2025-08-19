@@ -15,14 +15,8 @@ CREATE TABLE applications (
     id SERIAL PRIMARY KEY,
     name VARCHAR UNIQUE NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
-    license_type application_license_type_enum DEFAULT 'SUBSCRIPTION'
-);
-
-
-CREATE TABLE application_license_groups (
-    application_id INTEGER NOT NULL REFERENCES applications(id),
-    group_email VARCHAR NOT NULL,
-    PRIMARY KEY (application_id)
+    license_type application_license_type_enum DEFAULT 'SUBSCRIPTION',
+    license_group VARCHAR
 );
 
 
