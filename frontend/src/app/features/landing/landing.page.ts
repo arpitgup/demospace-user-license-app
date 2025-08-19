@@ -99,6 +99,7 @@ export class LandingPage implements OnInit {
   onRefreshData() {
     this.reservationService.fetchReservations().subscribe();
     this.reservationService.getApplications().subscribe();
+    this.reservationService.getConfig().subscribe();
   }
 
   ngOnInit(): void {
