@@ -7,6 +7,7 @@ import {
   signal,
   computed,
   PLATFORM_ID,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ReservationTableComponent } from '../../shared/components/reservation-table/reservation-table.component';
@@ -28,6 +29,8 @@ import { toObservable } from '@angular/core/rxjs-interop';
 import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
+import { forkJoin } from 'rxjs';
+import { SearchOptionContentLoader } from '../../loaders/search-option-content-loader/search-option-content-loader';
 
 @Component({
   selector: 'app-landing-page',
@@ -44,6 +47,7 @@ import { MatIcon } from '@angular/material/icon';
     SearchByDateComponent,
     SearchApplicationComponent,
     MatIcon,
+    SearchOptionContentLoader,
   ],
   host: {
     class: 'landing-page-container',
@@ -55,6 +59,7 @@ export class LandingPage implements OnInit {
   public readonly SearchType = SearchType;
   private confirmationDialog = inject(MatDialog);
   private platformId = inject(PLATFORM_ID);
+  private cdr = inject(ChangeDetectorRef);
 
   public selectedSearchType = signal<SearchType | null>(null);
   public showPastReservations = signal(false);
@@ -63,6 +68,7 @@ export class LandingPage implements OnInit {
   selectedIndex = 0;
 
   private readonly reservationsSignal = this.reservationService.reservations;
+  isFetchingData: boolean = true;
 
   public filteredReservations = computed(() => {
     const showPast = this.showPastReservations();
@@ -97,8 +103,23 @@ export class LandingPage implements OnInit {
   ];
 
   onRefreshData() {
+    this.isFetchingData = true;
     this.reservationService.fetchReservations().subscribe();
     this.reservationService.getApplications().subscribe();
+    this.reservationService.getConfig().subscribe();
+    forkJoin({
+      application: this.reservationService.getApplications(),
+      config: this.reservationService.getConfig(),
+    }).subscribe({
+      next: (res) => {
+        this.isFetchingData = false;
+         this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isFetchingData = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   ngOnInit(): void {

@@ -26,12 +26,13 @@ export function getUniqueSecondaryApplications(
 export function onApplicationSelected(
   application: Application,
   secondaryApplications: Application[],
-  selectedTimeSlot: NextAvailableSlots
+  selectedTimeSlot: NextAvailableSlots,
+  maxApplicationSelection:number
 ): Application[] {
   if (
     ((application.isSelected ?? false) === false &&
       secondaryApplications.filter((item) => item.isSelected === true).length >=
-        2) ||
+        maxApplicationSelection) ||
     application.isEnabled === false
   ) {
     return secondaryApplications;
@@ -45,7 +46,7 @@ export function onApplicationSelected(
     );
   }
   if (
-    secondaryApplications.filter((item) => item.isSelected === true).length >= 2
+    secondaryApplications.filter((item) => item.isSelected === true).length >= maxApplicationSelection
   ) {
     return secondaryApplications.map((item) => ({
       ...item,
