@@ -6,10 +6,11 @@ import {
   OnInit,
   ChangeDetectorRef,
   DestroyRef,
-  EventEmitter,
-  Output,
+  output,
   ViewChild,
   effect,
+  signal,
+  computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -31,7 +32,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTimepickerModule } from '@angular/material/timepicker';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ReservationService } from '../../core/services/reservation.service';
@@ -48,6 +48,27 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialog } from '../../shared/dialogs/confirmation-dialog/confirmation-dialog';
 import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
 import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
+
+import {
+  TIME_SLOT_START_HOUR,
+  TIME_SLOT_END_HOUR,
+  END_SLOT_INCREMENT,
+  MIN_DURATION,
+  MAX_DURATION,
+  SELF_COOLDOWN_HOURS,
+  HIDE_CONFLICTING_END_SLOTS,
+  SERVER_TIME_MODE,
+} from './search-by-date.constants';
+
+import {
+  formatTime12h,
+  parseHourFromTime,
+  parseDurationFromEndTime,
+  isSameDay,
+  formatDate,
+  intervalsOverlap,
+  normalizeServerTime,
+} from './search-by-date.utils';
 
 type DailyAvailabilityMap = { [date: string]: number };
 type BlockedInterval = { start: Date; end: Date };
@@ -68,7 +89,6 @@ type BlockedInterval = { start: Date; end: Date };
     MatIconModule,
     MatButtonToggleModule,
     MatProgressSpinnerModule,
-    MatTimepickerModule,
     SearchByApplicationLoader,
   ],
   templateUrl: './search-by-date.component.html',
@@ -84,28 +104,18 @@ export class SearchByDateComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly confirmationDialog = inject(MatDialog);
 
-  @Output() bookingSuccess = new EventEmitter<void>();
+  bookingSuccess = output<void>();
   @ViewChild(FormGroupDirective) private formDir?: FormGroupDirective;
 
-  // ===== CONFIG =====
-  private readonly SERVER_TIME_MODE: 'utc' | 'local-wall' = 'utc';
-  private readonly TIME_SLOT_START_HOUR = 8;
-  private readonly TIME_SLOT_END_HOUR = 23;
-  private readonly END_SLOT_INCREMENT = 2;
-  private readonly MIN_DURATION = 2;
-  private readonly MAX_DURATION = 48;
+  readonly HIDE_CONFLICTING_END_SLOTS = HIDE_CONFLICTING_END_SLOTS;
 
-  private readonly SELF_COOLDOWN_HOURS = 1;
-
-  public readonly HIDE_CONFLICTING_END_SLOTS = false;
-
-  dailyAvailability: DailyAvailabilityMap = {};
+  dailyAvailability = signal<DailyAvailabilityMap>({});
 
   form = this.fb.group(
     {
       startDate: [null as Date | null, Validators.required],
       startTime: [
-        { value: null as Date | null, disabled: true },
+        { value: null as string | null, disabled: true },
         Validators.required,
       ],
       endTime: [
@@ -116,24 +126,24 @@ export class SearchByDateComponent implements OnInit {
     { validators: this.dateTimeComboValidator() }
   );
 
-  endTimeSlots: string[] = [];
-  endConflictMap: Record<string, boolean> = {};
+  startTimeSlots = signal<string[]>([]);
+  startConflictMap = signal<Record<string, boolean>>({});
+  endTimeSlots = signal<string[]>([]);
+  endConflictMap = signal<Record<string, boolean>>({});
+
   private noValidStartOptions = false;
   private noValidEndOptions = false;
 
-  calculatedEndDate: Date | null = null;
-
-  minTime: Date | null = null;
-  maxTime: Date | null = null;
+  calculatedEndDate = signal<Date | null>(null);
 
   minSelectableDay: Date | null = null;
   maxSelectableDate: Date | null = null;
 
-  availableApplications: Application[] = [];
-  botsWithApps: BotWithApps[] = [];
-  selectedApps: Application[] = [];
-  availableDate: Date | null = null;
-  revokeDate: Date | null = null;
+  availableApplications = signal<Application[]>([]);
+  botsWithApps = signal<BotWithApps[]>([]);
+  selectedApps = signal<Application[]>([]);
+  availableDate = signal<Date | null>(null);
+  revokeDate = signal<Date | null>(null);
 
   appConfig: AppConfig | null = null;
 
@@ -141,10 +151,8 @@ export class SearchByDateComponent implements OnInit {
   userReservations: Reservation[] = [];
   blockedIntervals: BlockedInterval[] = [];
 
-  startBlockedLegend: string[] = [];
-
-  isLoading = false;
-  showResultsCard = false;
+  isLoading = signal<boolean>(false);
+  showResultsCard = signal<boolean>(false);
 
   get startDateCtrl() {
     return this.form.controls.startDate;
@@ -155,9 +163,11 @@ export class SearchByDateComponent implements OnInit {
   get endTimeCtrl() {
     return this.form.controls.endTime;
   }
-  get selectedAppNames(): string {
-    return this.selectedApps.map((a) => a.name).join(', ');
-  }
+  selectedAppNames = computed<string>(() => {
+    return this.selectedApps()
+      .map((a) => a.name)
+      .join(', ');
+  });
 
   private readonly syncFromReservations = effect(() => {
     const all = this.reservationsSig();
@@ -168,18 +178,17 @@ export class SearchByDateComponent implements OnInit {
     );
     this.userReservations = filtered as Reservation[];
 
-    const cooldownMs = this.SELF_COOLDOWN_HOURS * 3600_000;
+    const cooldownMs = SELF_COOLDOWN_HOURS * 3600_000;
     this.blockedIntervals = filtered.map((r) => {
-      const start = this.normalizeServerTime(r.startTime);
-      const end = this.normalizeServerTime(r.endTime);
+      const start = normalizeServerTime(r.startTime, SERVER_TIME_MODE);
+      const end = normalizeServerTime(r.endTime, SERVER_TIME_MODE);
       const endWithCooldown = new Date(end.getTime() + cooldownMs);
       return { start, end: endWithCooldown };
     });
 
-    this.updateTimepickerBounds();
+    this.buildStartTimeSlots();
     this.buildEndTimeSlots();
     this.calculateEndDate();
-    this.buildStartBlockedLegend();
     this.form.updateValueAndValidity({ emitEvent: false });
     this.cdr.markForCheck();
   });
@@ -190,8 +199,6 @@ export class SearchByDateComponent implements OnInit {
     this.reservationService.getConfig().subscribe((cfg) => {
       this.appConfig = cfg;
       this.computeDateBounds();
-      this.updateTimepickerBounds();
-      this.buildStartBlockedLegend();
       this.cdr.markForCheck();
     });
 
@@ -202,52 +209,18 @@ export class SearchByDateComponent implements OnInit {
     this.startDateCtrl.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((date) => {
-        this.resetEndTimeControls();
+        this.resetTimeControls();
 
         if (date) {
           this.startTimeCtrl.enable({ emitEvent: false });
-          this.updateTimepickerBounds();
+          this.buildStartTimeSlots();
         } else {
           this.startTimeCtrl.reset(
             { value: null, disabled: true },
             { emitEvent: false }
           );
         }
-
         this.updateFormState();
-        this.buildStartBlockedLegend();
-      });
-
-    this.startTimeCtrl.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((startTime) => {
-        if (startTime) {
-          if (!this.hasAtLeastOneEndOptionFrom(startTime)) {
-            const date = this.startDateCtrl.value!;
-            const next = this.getNextValidStartTimeOnDate(
-              date,
-              startTime.getHours()
-            );
-            if (next) {
-              this.startTimeCtrl.setValue(next, { emitEvent: true });
-              return;
-            } else {
-              const first = this.getFirstValidStartTimeForDate(date);
-              if (first) {
-                this.startTimeCtrl.setValue(first, { emitEvent: true });
-                return;
-              }
-              this.resetEndTimeControls();
-              this.noValidStartOptions = true;
-            }
-          } else {
-            this.buildEndTimeSlots();
-          }
-        } else {
-          this.resetEndTimeControls();
-        }
-        this.updateFormState();
-        this.buildStartBlockedLegend();
       });
 
     this.endTimeCtrl.valueChanges
@@ -263,50 +236,159 @@ export class SearchByDateComponent implements OnInit {
       .subscribe(() => this.syncControlErrors());
   }
 
-  isStartTimeSelectable = (candidate: Date): boolean => {
-    const date = this.startDateCtrl.value as Date | null;
-    if (!date) return false;
-
-    const c = new Date(candidate);
-    c.setMinutes(0, 0, 0);
-
-    if (this.minTime && c < this.minTime) return false;
-    if (this.maxTime && c > this.maxTime) return false;
-
-    if (
-      c.getFullYear() !== date.getFullYear() ||
-      c.getMonth() !== date.getMonth() ||
-      c.getDate() !== date.getDate()
-    )
-      return false;
-
-    const hour = c.getHours();
-    if (hour < this.TIME_SLOT_START_HOUR) return false;
-    if (hour > this.TIME_SLOT_END_HOUR - this.MIN_DURATION) return false;
-
-    const minEnd = new Date(c.getTime() + this.MIN_DURATION * 3600_000);
-    return (
-      !this.overlapsAnyBlockedInterval(c, minEnd) &&
-      this.hasAtLeastOneEndOptionFrom(c)
-    );
+  dateFilter = (date: Date | null): boolean => {
+    if (!date || !this.appConfig) return false;
+    return this.hasFreeSlotOnDate(date);
   };
 
-  private buildStartBlockedLegend(): void {
-    const date = this.startDateCtrl.value as Date | null;
-    this.startBlockedLegend = [];
-    if (!date) return;
+  dateClass = (date: Date): string =>
+    this.hasFreeSlotOnDate(date) ? '' : 'date-unavailable';
+
+  private hasFreeSlotOnDate(date: Date): boolean {
+    const ds = formatDate(date);
+    const count = this.dailyAvailability()[ds];
+    if (count !== undefined && count === 0) return false;
+
+    if (!this.minSelectableDay || !this.maxSelectableDate) return false;
 
     const earliestHour = this.getMinStartHourForDate(date);
-    const latestStartHour = this.TIME_SLOT_END_HOUR - this.MIN_DURATION;
+    const latestStartHour = TIME_SLOT_END_HOUR - MIN_DURATION;
 
-    const labels: string[] = [];
     for (let h = earliestHour; h <= latestStartHour; h++) {
       const start = new Date(date);
       start.setHours(h, 0, 0, 0);
-      const selectable = this.isStartTimeSelectable(start);
-      if (!selectable) labels.push(this.formatTime12h(h));
+      if (this.hasAtLeastOneEndOptionFrom(start)) return true;
     }
-    this.startBlockedLegend = labels;
+    return false;
+  }
+
+  onStartTimeChange(): void {
+    const startTimeStr = this.startTimeCtrl.value;
+    if (startTimeStr) {
+      this.buildEndTimeSlots();
+    } else {
+      this.resetTimeControls();
+    }
+    this.updateFormState();
+  }
+
+  private buildStartTimeSlots(): void {
+    const newStartTimeSlots: string[] = [];
+    const newStartConflictMap: Record<string, boolean> = {};
+    this.noValidStartOptions = false;
+
+    const date = this.startDateCtrl.value as Date | null;
+    if (!date) {
+      this.startTimeSlots.set([]);
+      this.startConflictMap.set({});
+      return;
+    }
+
+    let hasValid = false;
+    const earliestHour = this.getMinStartHourForDate(date);
+    const latestStartHour = TIME_SLOT_END_HOUR - MIN_DURATION;
+
+    for (let h = earliestHour; h <= latestStartHour; h++) {
+      const start = new Date(date);
+      start.setHours(h, 0, 0, 0);
+      const label = formatTime12h(h);
+
+      const hasEndOption = this.hasAtLeastOneEndOptionFrom(start);
+      const isBlocked = this.overlapsAnyBlockedInterval(
+        start,
+        new Date(start.getTime() + MIN_DURATION * 3600_000)
+      );
+      const conflicts = isBlocked || !hasEndOption;
+
+      newStartTimeSlots.push(label);
+      newStartConflictMap[label] = conflicts;
+
+      if (!conflicts) hasValid = true;
+    }
+
+    this.startTimeSlots.set(newStartTimeSlots);
+    this.startConflictMap.set(newStartConflictMap);
+
+    if (hasValid) {
+      const firstValid =
+        this.startTimeSlots().find((l) => !this.startConflictMap()[l]) ?? null;
+      this.startTimeCtrl.setValue(firstValid, { emitEvent: false });
+      this.buildEndTimeSlots();
+    } else {
+      this.noValidStartOptions = true;
+      this.startTimeCtrl.setValue(null, { emitEvent: false });
+    }
+  }
+
+  private buildEndTimeSlots(): void {
+    const newEndTimeSlots: string[] = [];
+    const newEndConflictMap: Record<string, boolean> = {};
+    this.noValidEndOptions = false;
+
+    const startDate = this.startDateCtrl.value as Date | null;
+    const startTimeStr = this.startTimeCtrl.value;
+
+    if (!startDate || !startTimeStr) {
+      this.resetEndTimeControls();
+      return;
+    }
+
+    const start = new Date(startDate);
+    const startHour = parseHourFromTime(startTimeStr);
+    start.setHours(startHour, 0, 0, 0);
+
+    let hasValid = false;
+
+    for (let d = MIN_DURATION; d <= MAX_DURATION; d += END_SLOT_INCREMENT) {
+      const end = new Date(start.getTime() + d * 3600_000);
+      const endHour = end.getHours();
+      const label = `${formatTime12h(endHour)} (${d} hrs)`;
+
+      const conflicts = this.overlapsAnyBlockedInterval(start, end);
+      newEndTimeSlots.push(label);
+      newEndConflictMap[label] = conflicts;
+
+      if (!conflicts) hasValid = true;
+    }
+
+    this.endTimeSlots.set(newEndTimeSlots);
+    this.endConflictMap.set(newEndConflictMap);
+
+    if (hasValid) {
+      const firstValid =
+        this.endTimeSlots().find((l) => !this.endConflictMap()[l]) ?? null;
+      this.endTimeCtrl.enable({ emitEvent: false });
+      this.endTimeCtrl.setValue(firstValid, { emitEvent: true });
+    } else {
+      this.noValidEndOptions = true;
+      this.endTimeCtrl.setValue(null, { emitEvent: false });
+    }
+
+    this.cdr.markForCheck();
+  }
+
+  onEndTimeChange(): void {
+    this.calculateEndDate();
+    this.showResultsCard.set(false);
+    this.syncControlErrors();
+    this.cdr.markForCheck();
+  }
+
+  private resetTimeControls(): void {
+    this.startTimeCtrl.reset(
+      { value: null, disabled: true },
+      { emitEvent: false }
+    );
+    this.endTimeCtrl.reset(
+      { value: null, disabled: true },
+      { emitEvent: false }
+    );
+    this.startTimeSlots.set([]);
+    this.startConflictMap.set({});
+    this.endTimeSlots.set([]);
+    this.endConflictMap.set({});
+    this.noValidStartOptions = false;
+    this.noValidEndOptions = false;
   }
 
   private resetEndTimeControls(): void {
@@ -314,31 +396,16 @@ export class SearchByDateComponent implements OnInit {
       { value: null, disabled: true },
       { emitEvent: false }
     );
-    this.endTimeSlots = [];
-    this.endConflictMap = {};
+    this.endTimeSlots.set([]);
+    this.endConflictMap.set({});
     this.noValidEndOptions = false;
   }
 
   private updateFormState(): void {
     this.calculateEndDate();
     this.form.updateValueAndValidity({ emitEvent: false });
-    this.showResultsCard = false;
+    this.showResultsCard.set(false);
     this.cdr.markForCheck();
-  }
-
-  private normalizeServerTime(iso: string): Date {
-    if (this.SERVER_TIME_MODE === 'utc') return new Date(iso);
-    const m = iso.match(
-      /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/
-    );
-    if (!m) return new Date(iso);
-    const y = +m[1],
-      mo = +m[2] - 1,
-      d = +m[3],
-      h = +m[4],
-      min = +m[5],
-      s = m[6] ? +m[6] : 0;
-    return new Date(y, mo, d, h, min, s, 0);
   }
 
   private computeDateBounds(): void {
@@ -362,8 +429,8 @@ export class SearchByDateComponent implements OnInit {
 
   private getMinStartHourForDate(date: Date): number {
     const minSelectable = this.getMinSelectableDateTime(new Date());
-    let hour = this.TIME_SLOT_START_HOUR;
-    if (this.isSameDay(date, minSelectable)) {
+    let hour = TIME_SLOT_START_HOUR;
+    if (isSameDay(date, minSelectable)) {
       hour = Math.max(
         hour,
         minSelectable.getHours() + (minSelectable.getMinutes() > 0 ? 1 : 0)
@@ -372,283 +439,59 @@ export class SearchByDateComponent implements OnInit {
     return hour;
   }
 
-  private hasFreeSlotOnDate(date: Date): boolean {
-    const ds = this.formatDate(date);
-    const count = this.dailyAvailability[ds];
-    if (count !== undefined && count === 0) return false;
-
-    if (!this.minSelectableDay || !this.maxSelectableDate) return false;
-
-    const earliestHour = this.getMinStartHourForDate(date);
-    const latestStartHour = this.TIME_SLOT_END_HOUR - this.MIN_DURATION;
-
-    for (let h = earliestHour; h <= latestStartHour; h++) {
-      const start = new Date(date);
-      start.setHours(h, 0, 0, 0);
-      const end = new Date(start.getTime() + this.MIN_DURATION * 3600_000);
-      if (!this.overlapsAnyBlockedInterval(start, end)) return true;
-    }
-    return false;
-  }
-
-  dateFilter = (date: Date | null): boolean => {
-    if (!date || !this.appConfig) return false;
-    return this.hasFreeSlotOnDate(date);
-  };
-
-  dateClass = (date: Date): string =>
-    this.hasFreeSlotOnDate(date) ? '' : 'date-unavailable';
-
-  private updateTimepickerBounds(): void {
-    const selectedDate = this.startDateCtrl.value;
-    if (!selectedDate) {
-      this.minTime = null;
-      this.maxTime = null;
-      this.startBlockedLegend = [];
-      return;
-    }
-
-    const endOfBusiness = new Date(selectedDate);
-    endOfBusiness.setHours(this.TIME_SLOT_END_HOUR, 0, 0, 0);
-    this.maxTime = endOfBusiness;
-
-    const firstValid = this.getFirstValidStartTimeForDate(selectedDate);
-    if (firstValid) {
-      this.minTime = new Date(firstValid);
-      const cur = this.startTimeCtrl.value as Date | null;
-      const outOfBounds = !cur || cur < this.minTime || cur > this.maxTime!;
-      if (outOfBounds) {
-        const v = new Date(this.minTime);
-        v.setMinutes(0, 0, 0);
-        this.startTimeCtrl.setValue(v, { emitEvent: true });
-      } else {
-        const normalized = new Date(cur);
-        normalized.setMinutes(0, 0, 0);
-        if (normalized.getTime() !== cur.getTime()) {
-          this.startTimeCtrl.setValue(normalized, { emitEvent: true });
-        } else {
-          this.buildEndTimeSlots();
-        }
-      }
-    } else {
-      this.minTime = null;
-      this.startTimeCtrl.setValue(null, { emitEvent: false });
-      this.noValidStartOptions = true;
-    }
-
-    this.buildStartBlockedLegend();
-    this.cdr.markForCheck();
-  }
-
-  private getFirstValidStartTimeForDate(date: Date): Date | null {
-    const earliestHour = this.getMinStartHourForDate(date);
-    const latestStartHour = this.TIME_SLOT_END_HOUR - this.MIN_DURATION;
-
-    for (let h = earliestHour; h <= latestStartHour; h++) {
-      const start = new Date(date);
-      start.setHours(h, 0, 0, 0);
-      if (this.hasAtLeastOneEndOptionFrom(start)) return start;
-    }
-    return null;
-  }
-
-  private getNextValidStartTimeOnDate(
-    date: Date,
-    fromHour: number
-  ): Date | null {
-    const earliestHour = Math.max(this.getMinStartHourForDate(date), fromHour);
-    const latestStartHour = this.TIME_SLOT_END_HOUR - this.MIN_DURATION;
-
-    for (let h = earliestHour; h <= latestStartHour; h++) {
-      const start = new Date(date);
-      start.setHours(h, 0, 0, 0);
-      if (this.hasAtLeastOneEndOptionFrom(start)) return start;
-    }
-    return null;
-  }
-
   private hasAtLeastOneEndOptionFrom(start: Date): boolean {
-    for (
-      let d = this.MIN_DURATION;
-      d <= this.MAX_DURATION;
-      d += this.END_SLOT_INCREMENT
-    ) {
+    for (let d = MIN_DURATION; d <= MAX_DURATION; d += END_SLOT_INCREMENT) {
       const end = new Date(start.getTime() + d * 3600_000);
       if (!this.overlapsAnyBlockedInterval(start, end)) return true;
     }
     return false;
-  }
-
-  private roundUpToHour(d: Date): Date {
-    const t = new Date(d);
-    if (t.getMinutes() > 0 || t.getSeconds() > 0 || t.getMilliseconds() > 0) {
-      t.setHours(t.getHours() + 1, 0, 0, 0);
-    } else {
-      t.setMinutes(0, 0, 0);
-    }
-    return t;
-  }
-
-  private isWithinStartBounds(d: Date): boolean {
-    if (this.minTime && d < this.minTime) return false;
-    if (this.maxTime && d > this.maxTime) return false;
-    return true;
-  }
-
-  private snapToValidStart(d: Date): Date | null {
-    let cur = this.roundUpToHour(d);
-    if (this.minTime && cur < this.minTime) cur = new Date(this.minTime);
-    if (!this.isWithinStartBounds(cur)) return null;
-
-    const dateOnly = this.startDateCtrl.value!;
-    const latestStartHour = this.TIME_SLOT_END_HOUR - this.MIN_DURATION;
-
-    while (true) {
-      if (this.hasAtLeastOneEndOptionFrom(cur)) return cur;
-
-      const next = new Date(cur);
-      next.setHours(cur.getHours() + 1, 0, 0, 0);
-
-      if (
-        next.getDate() !== dateOnly.getDate() ||
-        next.getHours() > latestStartHour ||
-        !this.isWithinStartBounds(next)
-      )
-        break;
-
-      cur = next;
-    }
-    return null;
-  }
-
-  onStartTimePicked(value: any): void {
-    if (!value) return;
-    const snapped = this.snapToValidStart(new Date(value));
-
-    if (snapped) {
-      this.startTimeCtrl.setValue(snapped, { emitEvent: true });
-    } else {
-      const date = this.startDateCtrl.value!;
-      const first = this.getFirstValidStartTimeForDate(date);
-      if (first) {
-        this.startTimeCtrl.setValue(first, { emitEvent: true });
-      } else {
-        this.startTimeCtrl.setValue(null, { emitEvent: true });
-        this.noValidStartOptions = true;
-      }
-    }
-  }
-
-  private buildEndTimeSlots(): void {
-    this.endTimeSlots = [];
-    this.endConflictMap = {};
-    this.noValidEndOptions = false;
-
-    const start = this.startTimeCtrl.value as Date | null;
-    if (!start) return;
-
-    let hasValid = false;
-
-    for (
-      let d = this.MIN_DURATION;
-      d <= this.MAX_DURATION;
-      d += this.END_SLOT_INCREMENT
-    ) {
-      const end = new Date(start.getTime() + d * 3600_000);
-      const endHour = end.getHours();
-      const label = `${this.formatTime12h(endHour)} (${d} hrs)`;
-
-      const conflicts = this.overlapsAnyBlockedInterval(start, end);
-      this.endTimeSlots.push(label);
-      this.endConflictMap[label] = conflicts;
-
-      if (!conflicts) hasValid = true;
-    }
-
-    if (hasValid) {
-      const firstValid =
-        this.endTimeSlots.find((l) => !this.endConflictMap[l]) ?? null;
-      this.endTimeCtrl.enable({ emitEvent: false });
-      this.endTimeCtrl.setValue(firstValid, { emitEvent: true });
-    } else {
-      this.noValidEndOptions = true;
-      this.endTimeCtrl.setValue(null, { emitEvent: false });
-    }
-
-    this.cdr.markForCheck();
-  }
-
-  onEndTimeChange(): void {
-    this.calculateEndDate();
-    this.showResultsCard = false;
-    this.syncControlErrors();
-    this.cdr.markForCheck();
   }
 
   onCheckAvailability(): void {
     if (this.isCheckAvailabilityDisabled()) return;
 
-    this.isLoading = true;
-    this.showResultsCard = false;
+    this.isLoading.set(true);
+    this.showResultsCard.set(false);
     this.cdr.markForCheck();
 
     const startDateTime = this.getStartDateTime();
     const payload = {
       startTime: startDateTime.toISOString(),
-      endTime: this.calculatedEndDate!.toISOString(),
+      endTime: this.calculatedEndDate()!.toISOString(),
     };
 
-    // this.reservationService.checkAvailabilityByDate(payload).subscribe({
-    //   next: (response) => {
-    //     this.availableApplications = response.applications;
-    //     this.selectedApps = [];
-    //     this.availableDate = startDateTime;
-    //     this.revokeDate = this.calculatedEndDate;
-    //     this.isLoading = false;
-    //     this.showResultsCard = true;
-    //     this.cdr.markForCheck();
-    //   },
-    //   error: (err) => {
-    //     console.error('Error checking availability:', err);
-    //     this.availableApplications = [];
-    //     this.isLoading = false;
-    //     this.showResultsCard = true;
-    //     this.cdr.markForCheck();
-    //   },
-    // });
-
     this.reservationService.checkBotsAvailabilityByDate(payload).subscribe({
-      next: (response: any) => {
-        this.botsWithApps = response?.availableBots ?? [];
+      next: (response: { availableBots: BotWithApps[] }) => {
+        this.botsWithApps.set(response.availableBots ?? []);
         const appMap = new Map<number, Application>();
-        this.botsWithApps.forEach((bot: any) => {
-          bot.applications.forEach((app: any) => {
+        this.botsWithApps().forEach((bot) => {
+          bot.applications.forEach((app) => {
             if (!appMap.has(app.id)) {
               appMap.set(app.id, app);
             }
           });
         });
 
-        this.availableApplications = Array.from(appMap.values());
-        this.selectedApps = [];
-        this.availableDate = startDateTime;
-        this.revokeDate = this.calculatedEndDate;
-        this.isLoading = false;
-        this.showResultsCard = true;
+        this.availableApplications.set(Array.from(appMap.values()));
+        this.selectedApps.set([]);
+        this.availableDate.set(startDateTime);
+        this.revokeDate.set(this.calculatedEndDate());
+        this.isLoading.set(false);
+        this.showResultsCard.set(true);
         this.cdr.markForCheck();
       },
-      error: (err) => {
+      error: (err: unknown) => {
         console.error('Error checking bot availability:', err);
-        this.availableApplications = [];
-        this.botsWithApps = [];
-        this.isLoading = false;
-        this.showResultsCard = true;
+        this.availableApplications.set([]);
+        this.botsWithApps.set([]);
+        this.isLoading.set(false);
+        this.showResultsCard.set(true);
         this.cdr.markForCheck();
       },
     });
   }
 
-  showErrorDialog(message: string) {
+  showErrorDialog(message: string): void {
     this.confirmationDialog.open(ErrorDialog, {
       width: 'auto',
       minWidth: '41.86rem',
@@ -673,15 +516,15 @@ export class SearchByDateComponent implements OnInit {
       data: {
         title: 'Are You Sure ?',
         message: 'Do you want to confirm the booking for',
-        applications: `${this.selectedAppNames}?`,
+        applications: `${this.selectedAppNames()}?`,
         licenseTitle: 'The requested license(s) will be available on',
-        startDateTime: this.availableDate!.toISOString() ?? '',
-        endDateTime: this.revokeDate!.toISOString() ?? '',
+        startDateTime: this.availableDate()?.toISOString() ?? '',
+        endDateTime: this.revokeDate()?.toISOString() ?? '',
         confirmText: 'Confirm',
         cancelText: 'Cancel',
       },
     });
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().subscribe((result: boolean) => {
       if (result) this.onConfirmReservation();
     });
   }
@@ -701,14 +544,14 @@ export class SearchByDateComponent implements OnInit {
         confirmText: 'OK',
       },
     });
-    dialogRef.afterClosed().subscribe((ok) => {
+    dialogRef.afterClosed().subscribe((ok: boolean) => {
       if (ok) this.bookingSuccess.emit();
     });
   }
 
   onToggleGroupChange(event: { value: Application[] }): void {
     const next = event?.value ?? [];
-    this.selectedApps = next.length <= 3 ? [...next] : [...next].slice(0, 3);
+    this.selectedApps.set(next.length <= 3 ? [...next] : [...next].slice(0, 3));
     this.cdr.markForCheck();
   }
 
@@ -717,17 +560,17 @@ export class SearchByDateComponent implements OnInit {
       return false;
     }
 
-    if (this.selectedApps.length >= 3) {
+    if (this.selectedApps().length >= 3) {
       return true;
     }
 
-    if (this.selectedApps.length === 0) {
+    if (this.selectedApps().length === 0) {
       return false;
     }
 
-    const selectedAppIds = this.selectedApps.map((a) => a.id); 
+    const selectedAppIds = this.selectedApps().map((a) => a.id);
 
-    const compatibleBots = this.botsWithApps.filter((bot) =>
+    const compatibleBots = this.botsWithApps().filter((bot) =>
       selectedAppIds.every((id) =>
         bot.applications.some((botApp) => botApp.id === id)
       )
@@ -748,11 +591,11 @@ export class SearchByDateComponent implements OnInit {
   }
 
   isSelected(app: Application): boolean {
-    return this.selectedApps.some((s) => s.id === app.id);
+    return this.selectedApps().some((s) => s.id === app.id);
   }
 
   getSelectedAvailableAppCount(): number {
-    return this.selectedApps.length;
+    return this.selectedApps().length;
   }
 
   trackByAppId(app: Application): number {
@@ -760,64 +603,70 @@ export class SearchByDateComponent implements OnInit {
   }
 
   onConfirmReservation(): void {
-    if (this.selectedApps.length === 0) return;
+    if (this.selectedApps().length === 0) return;
 
-    const primaryApp = this.selectedApps[0];
-    const secondaryApps = this.selectedApps.slice(1);
+    const primaryApp = this.selectedApps()[0];
+    const secondaryApps = this.selectedApps().slice(1);
 
     const payload: NewReservation = {
       primaryApplicationId: primaryApp.id,
       secondaryApplicationIds: secondaryApps.map((a) => a.id),
       startTime: this.getStartDateTime().toISOString(),
-      endTime: this.calculatedEndDate!.toISOString(),
+      endTime: this.calculatedEndDate()!.toISOString(),
     };
 
     this.reservationService.createReservation(payload).subscribe({
-      next: (newReservation) => {
+      next: (newReservation: Reservation) => {
         console.log(
           `Reservation successfully created with ID: ${newReservation.id}`
         );
         this.showSuccessDialog();
         this.resetForm();
       },
-      error: (err) => {
+      error: (err: unknown) => {
         console.error('Failed to create reservation:', err);
         this.showErrorDialog(
-          err?.error?.detail ||
+          (err as { error: { detail: string } })?.error?.detail ||
             'There was an error creating your reservation. Please try again.'
         );
       },
     });
   }
 
-  isCheckAvailabilityDisabled(): boolean {
-    return (
-      this.isLoading ||
-      this.form.invalid ||
-      !this.calculatedEndDate ||
-      this.showResultsCard 
-    );
-  }
+  isCheckAvailabilityDisabled = computed<boolean>(() => {
+    const isInvalid = this.form.invalid;
+    const isCalculating = this.isLoading();
+    const isEndDateNull = this.calculatedEndDate() === null;
+    const isResultsShown = this.showResultsCard();
+
+    return isInvalid || isCalculating || isEndDateNull || isResultsShown;
+  });
 
   private dateTimeComboValidator() {
-    return (group: AbstractControl) => {
+    return (group: AbstractControl): ValidationErrors | null => {
       const fg = group as FormGroup;
       const startDate: Date | null = fg.get('startDate')?.value ?? null;
-      const startTime: Date | null = fg.get('startTime')?.value ?? null;
+      const startTimeStr: string | null = fg.get('startTime')?.value ?? null;
       const endTimeLabel: string | null = fg.get('endTime')?.value ?? null;
 
-      if (!startDate || !startTime || !endTimeLabel) return null;
+      if (!startDate || !startTimeStr || !endTimeLabel) return null;
 
       const errors: ValidationErrors = {};
-      const duration = this.parseDurationFromEndTime(endTimeLabel);
+      const duration = parseDurationFromEndTime(endTimeLabel);
 
       if (isNaN(duration)) {
         errors['invalidEndTimeFormat'] = true;
         return { dateTimeInvalid: true, ...errors };
       }
 
+      const startHour = parseHourFromTime(startTimeStr);
+      if (isNaN(startHour)) {
+        errors['invalidStartTimeFormat'] = true;
+        return { dateTimeInvalid: true, ...errors };
+      }
+
       const selStart = new Date(startDate);
-      selStart.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
+      selStart.setHours(startHour, 0, 0, 0);
 
       const selEnd = new Date(selStart.getTime() + duration * 3600_000);
 
@@ -877,76 +726,40 @@ export class SearchByDateComponent implements OnInit {
     return Object.keys(merged).length ? merged : null;
   }
 
-  private intervalsOverlap(
-    aStart: Date,
-    aEnd: Date,
-    bStart: Date,
-    bEnd: Date
-  ): boolean {
-    return aStart < bEnd && aEnd > bStart;
-  }
-
   private overlapsAnyBlockedInterval(selStart: Date, selEnd: Date): boolean {
     if (!this.blockedIntervals.length) return false;
     return this.blockedIntervals.some(({ start, end }) =>
-      this.intervalsOverlap(selStart, selEnd, start, end)
+      intervalsOverlap(selStart, selEnd, start, end)
     );
   }
 
   private calculateEndDate(): void {
     const startDate = this.startDateCtrl.value;
-    const startTime = this.startTimeCtrl.value as Date | null;
+    const startTimeStr = this.startTimeCtrl.value;
     const endTimeStr = this.endTimeCtrl.value;
 
-    if (startDate && startTime && endTimeStr) {
-      const duration = this.parseDurationFromEndTime(endTimeStr);
-      if (!isNaN(duration)) {
+    if (startDate && startTimeStr && endTimeStr) {
+      const startHour = parseHourFromTime(startTimeStr);
+      const duration = parseDurationFromEndTime(endTimeStr);
+      if (!isNaN(duration) && !isNaN(startHour)) {
         const base = new Date(startDate);
-        base.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
-        this.calculatedEndDate = new Date(base.getTime() + duration * 3600_000);
+        base.setHours(startHour, 0, 0, 0);
+        this.calculatedEndDate.set(
+          new Date(base.getTime() + duration * 3600_000)
+        );
         return;
       }
     }
-    this.calculatedEndDate = null;
+    this.calculatedEndDate.set(null);
   }
 
   private getStartDateTime(): Date {
     const startDate = this.startDateCtrl.value!;
-    const startTime = this.startTimeCtrl.value!;
+    const startTimeStr = this.startTimeCtrl.value!;
     const dt = new Date(startDate);
-    dt.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
+    const startHour = parseHourFromTime(startTimeStr);
+    dt.setHours(startHour, 0, 0, 0);
     return dt;
-  }
-
-  private isSameDay(d1: Date, d2: Date): boolean {
-    return (
-      d1.getFullYear() === d2.getFullYear() &&
-      d1.getMonth() === d2.getMonth() &&
-      d1.getDate() === d2.getDate()
-    );
-  }
-
-  private formatDate(d: Date): string {
-    const y = d.getFullYear();
-    const m = (d.getMonth() + 1).toString().padStart(2, '0');
-    const day = d.getDate().toString().padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  }
-
-  private formatTime12h(hour24: number): string {
-    const period = hour24 >= 12 ? 'PM' : 'AM';
-    let h = hour24 % 12;
-    if (h === 0) h = 12;
-    return `${h.toString().padStart(2, '0')}:00 ${period}`;
-  }
-
-  private parseDurationFromEndTime(endTimeStr: string): number {
-    if (!endTimeStr) return NaN;
-    const s = String(endTimeStr)
-      .replace(/\u00A0/g, ' ')
-      .trim();
-    const m = s.match(/\((\d+)\s*hrs?\)/i);
-    return m ? Number(m[1]) : NaN;
   }
 
   private resetForm(): void {
@@ -957,14 +770,17 @@ export class SearchByDateComponent implements OnInit {
       endTime: { value: null, disabled: true },
     });
 
-    this.endTimeSlots = [];
-    this.endConflictMap = {};
-    this.calculatedEndDate = null;
-    this.availableApplications = [];
-    this.selectedApps = [];
-    this.botsWithApps = [];
-    this.showResultsCard = false;
-    this.startBlockedLegend = [];
+    this.startTimeSlots.set([]);
+    this.startConflictMap.set({});
+    this.endTimeSlots.set([]);
+    this.endConflictMap.set({});
+    this.calculatedEndDate.set(null);
+    this.availableApplications.set([]);
+    this.selectedApps.set([]);
+    this.botsWithApps.set([]);
+    this.showResultsCard.set(false);
+    this.noValidStartOptions = false;
+    this.noValidEndOptions = false;
     this.cdr.markForCheck();
   }
 }

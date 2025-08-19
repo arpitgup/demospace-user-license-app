@@ -20,7 +20,6 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { Reservation } from '../../../core/models/reservation.model';
 import {
   RESERVATION_TABLE_CONSTANTS,
-  ReservationStatus,
 } from './reservation-table.constant';
 import { ReservationApiStatus } from '../../../features/landing/landing.enums';
 import { MatDialog } from '@angular/material/dialog';
@@ -142,7 +141,7 @@ export class ReservationTableComponent implements AfterViewInit, OnChanges {
    * @param reservation The reservation object.
    * @returns The determined reservation status.
    */
-  getStatus(reservation: Reservation): any {
+  getStatus(reservation: Reservation): Partial<string> {
     return reservation.status;
   }
 

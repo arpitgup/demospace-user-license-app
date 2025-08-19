@@ -6,8 +6,9 @@ import {
   ViewChild,
   signal,
   computed,
+  PLATFORM_ID,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ReservationTableComponent } from '../../shared/components/reservation-table/reservation-table.component';
 import {
   MatTabGroup,
@@ -53,6 +54,7 @@ export class LandingPage implements OnInit {
   public readonly landingPageConstants = LANDING_PAGE_CONSTANTS;
   public readonly SearchType = SearchType;
   private confirmationDialog = inject(MatDialog);
+  private platformId = inject(PLATFORM_ID);
 
   public selectedSearchType = signal<SearchType | null>(null);
   public showPastReservations = signal(false);
@@ -100,10 +102,12 @@ export class LandingPage implements OnInit {
   }
 
   ngOnInit(): void {
-    this.userEmail =
-      (sessionStorage.getItem('userEmail')?.split('@')[0] as string) ?? null;
-    if (this.userEmail) {
-      this.onRefreshData();
+    if (isPlatformBrowser(this.platformId)) {
+      this.userEmail =
+        (sessionStorage?.getItem('userEmail')?.split('@')[0] as string) ?? null;
+      if (this.userEmail) {
+        this.onRefreshData();
+      }
     }
   }
 
