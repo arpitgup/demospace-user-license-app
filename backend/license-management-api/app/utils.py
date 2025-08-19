@@ -23,7 +23,7 @@ def provision_environment_licenses(reservation: Reservation):
     ]
     for app in env_based_apps:
         admin_service.add_user_to_group(
-            user_email=reservation.user_email, group_email=app.license_group.group_email
+            user_email=reservation.user_email, group_email=app.license_group
         )
 
 
@@ -44,7 +44,7 @@ def deprovision_environment_licenses(reservation: Reservation):
     ]
     for app in env_based_apps:
         admin_service.remove_user_from_group(
-            user_email=reservation.user_email, group_email=app.license_group.group_email
+            user_email=reservation.user_email, group_email=app.license_group
         )
 
 
