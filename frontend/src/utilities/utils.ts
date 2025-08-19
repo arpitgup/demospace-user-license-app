@@ -1,4 +1,3 @@
-import { start } from 'repl';
 import { Application } from '../app/core/models/application.model';
 import { NextAvailableSlots } from '../app/core/models/availabilityByApplication.model';
 

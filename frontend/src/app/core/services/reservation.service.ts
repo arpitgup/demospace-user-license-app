@@ -8,7 +8,6 @@ import {
   finalize,
   from,
   Observable,
-  of,
   take,
   tap,
 } from 'rxjs';
@@ -20,7 +19,6 @@ import { AvailabilityByApplicationRequest } from '../models/availabilityByApplic
 import { AvalaibilityByApplication } from '../models/availabilityByApplication.model';
 import { MakeReservationRequest } from '../models/makeReservationRequest.model';
 import { MakeReservationResponse } from '../models/makeReservationResponse.model';
-import { LoaderService } from './loader.service';
 import { Application } from '../models/application.model';
 
 @Injectable({
@@ -28,7 +26,6 @@ import { Application } from '../models/application.model';
 })
 export class ReservationService {
   private http = inject(HttpClient);
-  private loader = inject(LoaderService);
   private apiUrl = environment.apiUrl;
   private applicationSubject = new BehaviorSubject<Application[]>([]);
   public applications$ = this.applicationSubject.asObservable();
@@ -172,9 +169,8 @@ export class ReservationService {
   callMakeReservation(
     data: MakeReservationRequest
   ): Observable<MakeReservationResponse> {
-    this.loader.show();
     return this.http
       .post<MakeReservationResponse>(`${this.apiUrl}/reservations`, data)
-      .pipe(finalize(() => this.loader.hide()));
+      .pipe(finalize(() => {}));
   }
 }

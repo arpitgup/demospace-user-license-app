@@ -17,6 +17,7 @@ import {
 } from '@angular/common/http';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { provideNgxSkeletonLoader } from 'ngx-skeleton-loader';
+import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -30,6 +31,6 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(appRoutes),
     provideClientHydration(withEventReplay()),
-    provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor, loadingInterceptor])),
   ],
 };
