@@ -142,7 +142,7 @@ export class ReservationTableComponent implements AfterViewInit, OnChanges {
    * @returns The determined reservation status.
    */
   getStatus(reservation: Reservation): Partial<string> {
-    return reservation.status.toLowerCase();
+    return reservation.status;
   }
 
   /**

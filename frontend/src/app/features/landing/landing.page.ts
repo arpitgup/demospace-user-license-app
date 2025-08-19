@@ -105,8 +105,6 @@ export class LandingPage implements OnInit {
   onRefreshData() {
     this.isFetchingData = true;
     this.reservationService.fetchReservations().subscribe();
-    this.reservationService.getApplications().subscribe();
-    this.reservationService.getConfig().subscribe();
     forkJoin({
       application: this.reservationService.getApplications(),
       config: this.reservationService.getConfig(),

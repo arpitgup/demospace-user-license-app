@@ -8,3 +8,5 @@ export const MIN_DURATION = 2;
 export const MAX_DURATION = 48;
 export const SELF_COOLDOWN_HOURS = 1;
 export const HIDE_CONFLICTING_END_SLOTS = false;
+export const MAX_CALENDAR_DAYS = 30;
+export const MAX_RESERVATION_APPLICATION = 3;
