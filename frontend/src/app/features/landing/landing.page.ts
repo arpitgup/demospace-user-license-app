@@ -109,11 +109,11 @@ export class LandingPage implements OnInit {
       application: this.reservationService.getApplications(),
       config: this.reservationService.getConfig(),
     }).subscribe({
-      next: (res) => {
+      next: () => {
         this.isFetchingData = false;
          this.cdr.detectChanges();
       },
-      error: (err) => {
+      error: () => {
         this.isFetchingData = false;
         this.cdr.detectChanges();
       },
