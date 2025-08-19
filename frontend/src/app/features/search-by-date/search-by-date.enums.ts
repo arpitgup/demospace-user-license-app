@@ -1,0 +1,1 @@
+export type ServerTimeMode = 'utc' | 'local-wall';

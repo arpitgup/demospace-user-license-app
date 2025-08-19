@@ -1,9 +1,10 @@
-<mat-card class="search-by-date-container" [attr.aria-busy]="isLoading">
+<mat-card class="search-by-date-container" [attr.aria-busy]="isLoading()">
   <mat-card-title class="main-title">Select Date & Application</mat-card-title>
 
   <div class="card-wrapper">
     <mat-card-content class="main-content">
       <h3 class="content-header">Select Date Range</h3>
+
       <p class="content-header-note">* Maximum reservation time is 48 hours.</p>
 
       <div class="calendar-info-details" aria-hidden="true">
@@ -11,6 +12,7 @@
           <span class="calendar-color available"></span>
           <span class="calendar-info-text">Available Dates</span>
         </div>
+
         <div class="calendar-info-item">
           <span class="calendar-color not-available"></span>
           <span class="calendar-info-text">Dates Not Available</span>
@@ -24,9 +26,7 @@
         #formDir="ngForm"
         novalidate
       >
-        <!-- Start date/time -->
         <div class="start-date-time-container">
-          <!-- Start Date -->
           <mat-form-field appearance="outline" class="start-date-field">
             <mat-label>Start Date</mat-label>
             <input
@@ -45,6 +45,7 @@
               matSuffix
               [for]="picker"
             ></mat-datepicker-toggle>
+
             <mat-datepicker #picker [dateClass]="dateClass"></mat-datepicker>
 
             @if (startDateCtrl.hasError('required')) {
@@ -63,22 +64,20 @@
             }
           </mat-form-field>
 
-          <!-- Start Time -->
           <mat-form-field appearance="outline" class="start-time-field">
             <mat-label>Start Time</mat-label>
             <mat-select
               formControlName="startTime"
               (selectionChange)="onStartTimeChange()"
-              [disabled]="startTimeCtrl.disabled"
               aria-label="Start time"
             >
-              @for (time of startTimeSlots; track time) {
+              @for (time of startTimeSlots(); track time) {
 
               <mat-option
                 [value]="time"
-                [disabled]="startConflictMap[time] === true"
+                [disabled]="startConflictMap()[time] === true"
                 [title]="
-                  startConflictMap[time]
+                  startConflictMap()[time]
                     ? 'Conflicts with an existing reservation'
                     : ''
                 "
@@ -104,24 +103,21 @@
           </mat-form-field>
         </div>
 
-        <!-- End date/time -->
         <div class="end-date-time-container">
-          <!-- End Time -->
           <mat-form-field appearance="outline" class="end-time-field">
             <mat-label>End Time</mat-label>
             <mat-select
               formControlName="endTime"
               (selectionChange)="onEndTimeChange()"
-              [disabled]="endTimeCtrl.disabled"
               aria-label="End time"
             >
-              @for (time of endTimeSlots; track time) { @if
-              (!HIDE_CONFLICTING_END_SLOTS || !endConflictMap[time]) {
+              @for (time of endTimeSlots(); track time) { @if
+              (!HIDE_CONFLICTING_END_SLOTS || !endConflictMap()[time]) {
               <mat-option
                 [value]="time"
-                [disabled]="endConflictMap[time] === true"
+                [disabled]="endConflictMap()[time] === true"
                 [title]="
-                  endConflictMap[time]
+                  endConflictMap()[time]
                     ? 'Conflicts with an existing reservation'
                     : ''
                 "
@@ -149,13 +145,12 @@
             }
           </mat-form-field>
 
-          <!-- Calculated End Date (read-only) -->
-          @if (calculatedEndDate) {
+          @if (calculatedEndDate()) {
           <mat-form-field appearance="outline" class="end-date-field">
             <mat-label>End Date</mat-label>
             <input
               matInput
-              [value]="calculatedEndDate | date : 'MM/dd/yyyy'"
+              [value]="calculatedEndDate() | date : 'MM/dd/yyyy'"
               [disabled]="true"
               aria-readonly="true"
             />
@@ -163,7 +158,6 @@
           }
         </div>
 
-        <!-- Submit -->
         <mat-card-actions class="actions-container">
           <button
             mat-flat-button
@@ -194,29 +188,30 @@
       </div>
     </mat-card-content>
 
-    <!-- Loading / Results -->
-    @if (isLoading) {
+    @if (isLoading()) {
     <mat-card class="availability-results-container">
       <app-search-by-date-loader />
     </mat-card>
-    } @else if (showResultsCard) {
+    } @else if (showResultsCard()) {
     <mat-card class="availability-results-container">
       <mat-card-title>Available Applications by Selected Date</mat-card-title>
+
       <mat-card-subtitle>
         * You may select up to <strong>THREE</strong> applications from the list
         below.
       </mat-card-subtitle>
 
       <div class="pill-container">
-        @if (availableApplications.length > 0) {
+        @if (availableApplications().length > 0) {
         <mat-button-toggle-group
           class="pill-group"
           multiple
-          [value]="selectedApps"
+          [value]="selectedApps()"
           (change)="onToggleGroupChange($event)"
           aria-label="Select up to three applications"
         >
-          @for (app of availableApplications; track app.id) {
+          @for (app of availableApplications(); track app.id) {
+
           <mat-button-toggle
             [value]="app"
             class="app-toggle"
@@ -240,16 +235,17 @@
       <div class="license-info">
         <p>
           License will be available
-          {{ availableDate | date : "MMMM d 'at' h:mm a z" }}
+          {{ availableDate() | date : "MMMM d 'at' h:mm a z" }}
         </p>
+
         <p>
           License access will be revoked
-          {{ revokeDate | date : "MMMM d 'at' h:mm a z" }}
+          {{ revokeDate() | date : "MMMM d 'at' h:mm a z" }}
         </p>
       </div>
 
       <div class="selected-app-info" aria-live="polite">
-        Selected Application: {{ selectedAppNames }}
+        Selected Application: {{ selectedAppNames() }}
       </div>
 
       <div class="confirmation-actions-container">
