@@ -40,7 +40,6 @@ import {
   NewReservation,
   BotWithApps,
 } from '../../core/models/reservation.model';
-import { AppConfig } from '../../core/models/appConfig.model';
 import { ReservationApiStatus } from '../landing/landing.enums';
 import { Application } from '../../core/models/application.model';
 import { SearchByApplicationLoader } from '../../loaders/search-by-date-loader/search-by-date-loader';
@@ -58,6 +57,8 @@ import {
   SELF_COOLDOWN_HOURS,
   HIDE_CONFLICTING_END_SLOTS,
   SERVER_TIME_MODE,
+  MAX_CALENDAR_DAYS,
+  MAX_RESERVATION_APPLICATION,
 } from './search-by-date.constants';
 
 import {
@@ -147,9 +148,8 @@ export class SearchByDateComponent implements OnInit {
   availableDate = signal<Date | null>(null);
   revokeDate = signal<Date | null>(null);
 
-  appConfig: AppConfig | null = null;
-
   private readonly reservationsSig = this.reservationService.reservations;
+  private readonly appConfigSignal = this.reservationService.appConfigData;
   userReservations: Reservation[] = [];
   blockedIntervals: BlockedInterval[] = [];
 
@@ -180,7 +180,7 @@ export class SearchByDateComponent implements OnInit {
     );
     this.userReservations = filtered as Reservation[];
 
-    const cooldownMs = SELF_COOLDOWN_HOURS * 3600_000;
+    const cooldownMs = (this.appConfigSignal()?.rollingWindowHours || SELF_COOLDOWN_HOURS) * 3600_000;
     this.blockedIntervals = filtered.map((r) => {
       const start = normalizeServerTime(r.startTime, SERVER_TIME_MODE);
       const end = normalizeServerTime(r.endTime, SERVER_TIME_MODE);
@@ -197,13 +197,8 @@ export class SearchByDateComponent implements OnInit {
 
   ngOnInit(): void {
     this.resetForm();
-
-    this.reservationService.getConfig().subscribe((cfg) => {
-      this.appConfig = cfg;
-      this.computeDateBounds();
+    this.computeDateBounds();
       this.cdr.markForCheck();
-    });
-
     this.setupFormSubscriptions();
   }
 
@@ -239,7 +234,7 @@ export class SearchByDateComponent implements OnInit {
   }
 
   dateFilter = (date: Date | null): boolean => {
-    if (!date || !this.appConfig) return false;
+    if (!date || !this.appConfigSignal()) return false;
     return this.hasFreeSlotOnDate(date);
   };
 
@@ -417,14 +412,14 @@ export class SearchByDateComponent implements OnInit {
     this.minSelectableDay = new Date(minSelectableDateTime);
     this.minSelectableDay.setHours(0, 0, 0, 0);
 
-    const maxBookingDays = this.appConfig?.maxCalendarDays ?? 30;
+    const maxBookingDays = this.appConfigSignal()?.maxCalendarDays ?? MAX_CALENDAR_DAYS;
     this.maxSelectableDate = new Date(now);
     this.maxSelectableDate.setDate(now.getDate() + maxBookingDays);
     this.maxSelectableDate.setHours(23, 59, 59, 999);
   }
 
   private getMinSelectableDateTime(now: Date): Date {
-    const leadTimeDays = this.appConfig?.rollingWindowHours || 1;
+    const leadTimeDays = this.appConfigSignal()?.rollingWindowHours || 1;
     const leadTimeHours = leadTimeDays * 24;
     return new Date(now.getTime() + leadTimeHours * 3600_000);
   }
@@ -562,7 +557,7 @@ export class SearchByDateComponent implements OnInit {
       return false;
     }
 
-    if (this.selectedApps().length >= 3) {
+    if (this.selectedApps().length >= (this.appConfigSignal()?.maxReservationApplications || MAX_RESERVATION_APPLICATION)) {
       return true;
     }
 
