@@ -42,18 +42,23 @@
             <mat-datepicker #datePicker></mat-datepicker>
           </mat-form-field>
           <mat-form-field appearance="outline" class="custom-time-drop-down">
-            <mat-label class="custom-label">Start Time</mat-label>
-            <input
-              matInput
-              [matTimepicker]="picker"
-              [matTimepickerMin]="minAllowedTime"
-              [matTimepickerMax]="maxAllowedTime"
+            <mat-label>Start Time</mat-label>
+            <mat-select
+              class="custom-select"
               [formControlName]="START_TIME_FORM"
-              readonly
-            />
-            <mat-timepicker-toggle matIconSuffix [for]="picker" />
-            <mat-timepicker interval="1hour" #picker />
+            >
+              @for(timeSlot of hoursList; track $index){
+              <mat-option
+                [value]="timeSlot.date"
+                [disabled]="timeSlot.isDisabled"
+              >
+                {{ timeSlot.display }}
+              </mat-option>
+              }
+            </mat-select>
           </mat-form-field>
+
+         
         </div>
 
         <div class="custom-form-field">

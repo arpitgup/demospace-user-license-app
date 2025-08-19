@@ -44,12 +44,11 @@ import { ReservationApiStatus } from '../landing/landing.enums';
 import { Reservation } from '../../core/models/reservation.model';
 import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
 import {
+  generateHoursList,
   getLocalTimeZoneAbbreviation,
   getUniqueSecondaryApplications,
   onApplicationSelected,
 } from '../../../utilities/utils';
-
-type NormalizedReservation = { start: Date; end: Date };
 
 @Component({
   selector: 'app-search-application',
@@ -104,8 +103,12 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   readonly START_DATE_FORM = 'startDate';
   readonly START_TIME_FORM = 'startTime';
   readonly SELECTED_DURATION_FORM = 'selectedDuration';
-  readonly localTimeAbbrevation= getLocalTimeZoneAbbreviation(new Date());
-
+  readonly localTimeAbbrevation = getLocalTimeZoneAbbreviation(
+    new Date(),
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
+  hoursList: TimeSlot[] = [];
+  readonly today = new Date();
 
   durations = [
     { value: 2, viewValue: '2 Hours', isDisabled: false },
@@ -120,15 +123,14 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
 
   constructor(private fb: FormBuilder) {
     this.listenReservationChanges();
-    const today = new Date();
-    this.minDate = new Date(today);
-    this.minDate.setDate(today.getDate() + 1);
+    this.minDate = new Date(this.today);
+    this.minDate.setDate(this.today.getDate() + 1);
 
-    this.maxDate = new Date(today);
-    this.maxDate.setDate(today.getDate() + 30);
+    this.maxDate = new Date(this.today);
+    this.maxDate.setDate(this.today.getDate() + 30);
     this.minAllowedTime = this.MIN_ALLOWED_TIME_VALUE;
-    const now = new Date();
-    this.nextHour = (now.getHours() + 1) % 24;
+
+    this.nextHour = (this.today.getHours() + 1) % 24;
     this.maxAllowedTime = this.MAX_ALLOWED_TIME_VALUE;
 
     this.applicationForm = this.fb.group({
@@ -140,14 +142,23 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    const nextDate = new Date(this.today);
+    nextDate.setHours(0, 0, 0);
+    this.hoursList = generateHoursList(
+      new Date(),
+      [],
+      this.BLOC_HOUR_LIMIT,
+      this.durations[0].value,
+      nextDate
+    );
     this.applications$ = this.reservationService.applications$;
 
     this.applicationForm.valueChanges.subscribe(() => {
       this.isCheckAvailableDisabled = false;
     });
+
     this.listenDateChanges();
     this.listenTimeChanges();
-   
   }
 
   listenReservationChanges() {
@@ -360,84 +371,45 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     this.applicationForm
       .get(this.START_DATE_FORM)
       ?.valueChanges.subscribe((newValue) => {
-        const startDateTime = new Date(newValue as Date);
+        let startDateTime = new Date(newValue as Date);
         this.durations = this.durations.map((item) => ({
           ...item,
           isDisabled: false,
         }));
-        const disableDatesStartEndTime =
-          this.isDateExistInDisableDateRanges(startDateTime);
-
-        if (disableDatesStartEndTime.endTime > 0) {
-          this.maxAllowedTime =
-            disableDatesStartEndTime.endTime.toString().padStart(2, '0') +
-            ':00';
-        } else {
-          this.maxAllowedTime = this.MAX_ALLOWED_TIME_VALUE;
+        const tomorrowDate = new Date(this.today);
+        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+        tomorrowDate.setHours(this.nextHour, 0, 0, 0);
+        this.hoursList = generateHoursList(
+          startDateTime,
+          this.normalizedReservations,
+          this.BLOC_HOUR_LIMIT,
+          this.durations[0].value,
+          tomorrowDate
+        );
+        if (this.hoursList.length > 0) {
+          const displayTimeSlot = this.hoursList.find(
+            (item) => item.date.getHours() === 8
+          );
+          const beforeDisplayTimeSlot = this.hoursList.find(
+            (item) => item.date.getHours() < 8
+          );
+          const afterTimeSlot = this.hoursList.find(
+            (item) => item.date.getHours() > 8
+          );
+          if (this.isSameDay(newValue, this.minDate)) {
+            startDateTime = this.hoursList[0].date;
+          } else if (displayTimeSlot) {
+            startDateTime = displayTimeSlot.date;
+          } else if (beforeDisplayTimeSlot) {
+            startDateTime = beforeDisplayTimeSlot.date;
+          } else if (afterTimeSlot) {
+            startDateTime = afterTimeSlot.date;
+          } else {
+            startDateTime = this.hoursList[0].date;
+          }
         }
-        if (this.isSameDay(newValue, this.minDate)) {
-          if (disableDatesStartEndTime.startTime > 0) {
-            this.minAllowedTime =
-              disableDatesStartEndTime.startTime.toString().padStart(2, '0') +
-              ':00';
-          } else {
-            this.minAllowedTime =
-              this.nextHour.toString().padStart(2, '0') + ':00';
-          }
-
-          const selectedHour =
-            this.applicationForm.get(this.START_TIME_FORM)?.value?.getHours ??
-            0;
-          if (
-            selectedHour >= this.nextHour &&
-            selectedHour < disableDatesStartEndTime.endTime
-          ) {
-            startDateTime.setHours(selectedHour, 0, 0);
-          } else {
-            startDateTime.setHours(
-              this.nextHour < 8 && disableDatesStartEndTime.endTime > 8
-                ? 8
-                : disableDatesStartEndTime.startTime > this.nextHour
-                ? disableDatesStartEndTime.startTime
-                : this.nextHour,
-              0,
-              0
-            );
-          }
-          this.applicationForm
-            .get(this.START_TIME_FORM)
-            ?.patchValue(startDateTime);
-        } else {
-          if (disableDatesStartEndTime.startTime > 0) {
-            this.minAllowedTime =
-              disableDatesStartEndTime.startTime.toString().padStart(2, '0') +
-              ':00';
-            startDateTime.setHours(disableDatesStartEndTime.startTime, 0, 0);
-          } else {
-            this.minAllowedTime = this.MIN_ALLOWED_TIME_VALUE;
-            startDateTime.setHours(8, 0, 0);
-          }
-
-          // if (
-          //   this.applicationForm.get(this.START_TIME_FORM)?.value?.getHours ??
-          //   0 != 0
-          // ) {
-          //   startDateTime.setHours(
-          //     this.applicationForm.get(this.START_TIME_FORM)?.value?.getHours ?? 0,
-          //     0,
-          //     0
-          //   );
-          // } else {
-
-          // }
-
-          this.applicationForm
-            .get(this.START_TIME_FORM)
-            ?.patchValue(startDateTime);
-        }
-
-        this.applicationForm.get(this.START_TIME_FORM)?.markAllAsTouched();
-        this.applicationForm.get(this.START_TIME_FORM)?.markAllAsDirty();
+        this.cdr.detectChanges();
+        this.applicationForm.get(this.START_TIME_FORM)?.setValue(startDateTime);
       });
   }
 
@@ -445,50 +417,42 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     this.applicationForm
       .get(this.START_TIME_FORM)
       ?.valueChanges.subscribe((newValue) => {
-        const maxHour =
-          new Date(`2025-01-01T${this.maxAllowedTime}:00`).getHours() + 2;
-        const selectedDateTime = new Date(newValue);
-        const selectedHours = selectedDateTime.getHours();
-        for (let slot of this.normalizedReservations) {
-          if (this.isSameDay(slot.start, selectedDateTime)) {
-            this.durations = this.durations.map((item) => ({
-              ...item,
-              isDisabled: selectedHours + item.value <= maxHour ? false : true,
-            }));
-          }
+        if (newValue === null) {
+          return;
         }
+
+        const slotSart = new Date(newValue);
+
+        for (let i = 0; i < this.durations.length; i++) {
+          const slotEnd = new Date(
+            slotSart.getTime() + this.durations[i].value * 60 * 60 * 1000
+          );
+          const isDisabled = this.normalizedReservations.some(
+            (range) =>
+              (slotSart >= range.start && slotSart < range.end) ||
+              (slotEnd > range.start && slotEnd <= range.end) ||
+              (slotSart <= range.start && slotEnd >= range.end)
+          );
+          this.durations[i].isDisabled = isDisabled;
+        }
+        // const maxHour =
+        //   new Date(`2025-01-01T${this.maxAllowedTime}:00`).getHours() + 2;
+        // const selectedDateTime = new Date(newValue);
+        // const selectedHours = selectedDateTime.getHours();
+        // for (let slot of this.normalizedReservations) {
+        //   if (this.isSameDay(slot.start, selectedDateTime)) {
+        //     this.durations = this.durations.map((item) => ({
+        //       ...item,
+        //       isDisabled: selectedHours + item.value <= maxHour ? false : true,
+        //     }));
+        //   }
+        // }
 
         this.applicationForm
           ?.get(this.SELECTED_DURATION_FORM)
           ?.patchValue(null);
         this.cdr.detectChanges();
       });
-  }
-
-  isDateExistInDisableDateRanges(startDateTime: Date): {
-    startTime: number;
-    endTime: number;
-  } {
-    let startTime: number = 0;
-    let endTime: number = 0;
-    for (let slot of this.normalizedReservations) {
-      const blocEnd = new Date(
-        slot.end.getTime() + this.BLOC_HOUR_LIMIT * 60 * 60 * 1000
-      );
-      if (
-        this.isSameDay(startDateTime, slot.start) &&
-        endTime < slot.start.getHours() - 2
-      ) {
-        endTime = slot.start.getHours() - 2;
-      }
-      if (
-        this.isSameDay(startDateTime, blocEnd) &&
-        startTime < blocEnd.getHours()
-      ) {
-        startTime = blocEnd.getHours();
-      }
-    }
-    return { startTime: startTime, endTime: endTime };
   }
 
   isSameDay(selectedDate: Date, endDate: Date): boolean {
@@ -500,22 +464,17 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   }
 
   removeSlotsForBlocDays(slotsAvailableData: AvalaibilityByApplication) {
+    const expandRanges = this.normalizedReservations.map((r) => ({
+      start: new Date(r.start),
+      end: new Date(r.end.getTime() + this.BLOC_HOUR_LIMIT * 60 * 60 * 1000),
+    }));
     slotsAvailableData.nextAvailableSlots =
       slotsAvailableData.nextAvailableSlots?.filter((item) => {
-        for (let slot of this.normalizedReservations) {
-          const startDate = new Date(item.startTime!);
-          const endDate = new Date(item.endTime!);
-          const slotEndDate = new Date(
-            slot.end.getTime() + this.BLOC_HOUR_LIMIT * 60 * 60 * 1000
-          );
-          if (
-            (startDate >= slot.start && startDate < slotEndDate) ||
-            (endDate >= slot.start && endDate <= slotEndDate)
-          ) {
-            return false;
-          }
-        }
-        return true;
+        const startDate = new Date(item.startTime!);
+        const endDate = new Date(item.endTime!);
+        return !expandRanges.some(
+          (range) => startDate < range.end && endDate > range.start
+        );
       });
     return slotsAvailableData;
   }
@@ -530,17 +489,17 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     nextDay.setDate(now.getDate() + 1);
 
     for (let slot of this.normalizedReservations) {
-      if (
-        this.isSameDay(nextDay, date) &&
-        this.isSameDay(nextDay, slot.start) &&
-        this.nextHour > slot.start.getHours() - 2
-      ) {
-        return false;
-      }
       const blocStart = slot.start;
       const blocEnd = new Date(
         slot.end.getTime() + this.BLOC_HOUR_LIMIT * 60 * 60 * 1000
       );
+      if (
+        this.isSameDay(nextDay, date) &&
+        this.isSameDay(nextDay, blocEnd) &&
+        this.nextHour > blocEnd.getHours() - 2
+      ) {
+        return false;
+      }
       if (
         dayOnly > this.stripTime(blocStart) &&
         dayOnly < this.stripTime(blocEnd)
@@ -555,7 +514,6 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   }
 
- 
   showConfirmationDialog() {
     const dialogRef = this.confirmationDialog.open(ConfirmationDialog, {
       width: 'auto',

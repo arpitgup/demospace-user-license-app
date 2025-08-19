@@ -39,7 +39,8 @@ export class ConfirmationDialog implements OnInit {
   ngOnInit(): void {
     this.localTimeAbbrevation =
       getLocalTimeZoneAbbreviation(
-        new Date(this.data.startDateTime) ?? new Date()
+        new Date(this.data.startDateTime) ?? new Date(),
+        Intl.DateTimeFormat().resolvedOptions().timeZone
       ) ?? '';
   }
 }
