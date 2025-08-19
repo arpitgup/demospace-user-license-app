@@ -3,6 +3,8 @@
   align-items: stretch;
   flex-wrap: wrap;
   flex-direction: column;
+  padding-left: 2.8rem;
+  padding-right: 2.8rem;
   .title {
     color: var(--Black, #161a1d);
     font-family: Roboto;
@@ -10,7 +12,6 @@
     font-style: normal;
     font-weight: 500;
     line-height: 3rem; /* 160% */
-    margin-left: 5.81rem;
     margin-bottom: 2.69rem;
   }
 
@@ -18,8 +19,6 @@
     display: flex;
     align-items: stretch;
     flex-wrap: wrap;
-    margin-left: 8.44rem;
-    margin-right: 8.44rem;
     gap: 2rem;
     position: relative;
 

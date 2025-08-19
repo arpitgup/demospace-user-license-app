@@ -11,7 +11,11 @@ import {
   take,
   tap,
 } from 'rxjs';
-import { BotWithApps, NewReservation, Reservation } from '../models/reservation.model';
+import {
+  BotWithApps,
+  NewReservation,
+  Reservation,
+} from '../models/reservation.model';
 
 import { AppConfig } from '../models/appConfig.model';
 import { environment } from '../../../environments/environment';
@@ -20,6 +24,7 @@ import { AvalaibilityByApplication } from '../models/availabilityByApplication.m
 import { MakeReservationRequest } from '../models/makeReservationRequest.model';
 import { MakeReservationResponse } from '../models/makeReservationResponse.model';
 import { Application } from '../models/application.model';
+import { LoaderService } from './loading.service';
 
 @Injectable({
   providedIn: 'root',
@@ -35,6 +40,7 @@ export class ReservationService {
 
   private configState = signal<AppConfig | null>(null);
   public readonly appConfigData = this.configState.asReadonly();
+  loadingService = inject(LoaderService);
 
   /**
    * API call to check application availability for a given time range.
@@ -55,7 +61,7 @@ export class ReservationService {
   checkBotsAvailabilityByDate(payload: {
     startTime: string;
     endTime: string;
-  }):  Observable<{ availableBots: BotWithApps[] }> {
+  }): Observable<{ availableBots: BotWithApps[] }> {
     return this.http.post<{ availableBots: BotWithApps[] }>(
       `${this.apiUrl}/availability/by-date/v2`,
       payload
@@ -131,6 +137,7 @@ export class ReservationService {
    * @returns An Observable of the newly created Reservation object.
    */
   createReservation(payload: NewReservation): Observable<Reservation> {
+    this.loadingService.show();
     return this.http
       .post<Reservation>(`${this.apiUrl}/reservations`, payload)
       .pipe(
@@ -139,6 +146,9 @@ export class ReservationService {
             ...currentReservations,
             newReservation,
           ]);
+        }),
+        finalize(() => {
+          this.loadingService.hide();
         })
       );
   }
@@ -150,6 +160,7 @@ export class ReservationService {
    * @returns An Observable of the updated (canceled) Reservation object.
    */
   cancelReservation(reservationId: number): Observable<Reservation> {
+     this.loadingService.show();
     return this.http
       .post<Reservation>(
         `${this.apiUrl}/reservations/${reservationId}/cancel`,
@@ -162,6 +173,9 @@ export class ReservationService {
               res.id === reservationId ? canceledReservation : res
             )
           );
+        }),
+        finalize(() => {
+          this.loadingService.hide();
         })
       );
   }
@@ -169,8 +183,13 @@ export class ReservationService {
   callMakeReservation(
     data: MakeReservationRequest
   ): Observable<MakeReservationResponse> {
+    this.loadingService.show();
     return this.http
       .post<MakeReservationResponse>(`${this.apiUrl}/reservations`, data)
-      .pipe(finalize(() => {}));
+      .pipe(
+        finalize(() => {
+          this.loadingService.hide();
+        })
+      );
   }
 }

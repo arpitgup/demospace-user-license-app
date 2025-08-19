@@ -82,12 +82,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   applications$!: Observable<Application[]>;
   reservations$!: Observable<Reservation[]>;
   availabilityApplication?: AvalaibilityByApplication | null = null;
-  minDate: Date;
-  maxDate: Date;
-  minAllowedTime: string;
-  maxAllowedTime: string;
   applicationForm: FormGroup;
-  nextHour: number;
   secondaryApplications: Application[] = [];
   selectedTimeSlot?: NextAvailableSlots | null;
   selectedPrimaryApplication?: Application;
@@ -96,7 +91,12 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   selectedApplicationList: string[] = [];
   normalizedReservations: NormalizedReservation[] = [];
 
-  readonly BLOC_HOUR_LIMIT: number = 48;
+  BLOC_HOUR_LIMIT: number = 48;
+  MAX_CALENDAR_DAYS: number = 30;
+  MAX_APPLICATION_SELECTION = 3;
+  nextHour: number = 0;
+  minDate: Date = new Date();
+  maxDate: Date = new Date();
   readonly MAX_ALLOWED_TIME_VALUE = '23:00';
   readonly MIN_ALLOWED_TIME_VALUE = '00:00';
   readonly PRIMARY_APPLICATION_FORM = 'primaryApplication';
@@ -119,19 +119,11 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     { value: 48, viewValue: '48 Hours', isDisabled: false },
   ];
 
-  private readonly reservationsSig = this.reservationService.reservations;
+  private readonly reservationsSig = this.reservationService;
 
   constructor(private fb: FormBuilder) {
     this.listenReservationChanges();
-    this.minDate = new Date(this.today);
-    this.minDate.setDate(this.today.getDate() + 1);
-
-    this.maxDate = new Date(this.today);
-    this.maxDate.setDate(this.today.getDate() + 30);
-    this.minAllowedTime = this.MIN_ALLOWED_TIME_VALUE;
-
-    this.nextHour = (this.today.getHours() + 1) % 24;
-    this.maxAllowedTime = this.MAX_ALLOWED_TIME_VALUE;
+    this.listenAppConfig();
 
     this.applicationForm = this.fb.group({
       [this.PRIMARY_APPLICATION_FORM]: ['', Validators.required],
@@ -142,6 +134,11 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.minDate = new Date(this.today);
+    this.minDate.setDate(this.today.getDate() + 1);
+    this.maxDate = new Date(this.today);
+    this.maxDate.setDate(this.today.getDate() + this.MAX_CALENDAR_DAYS);
+    this.nextHour = (this.today.getHours() + 1) % 24;
     const nextDate = new Date(this.today);
     nextDate.setHours(0, 0, 0);
     this.hoursList = generateHoursList(
@@ -163,7 +160,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
 
   listenReservationChanges() {
     effect(() => {
-      const all = this.reservationsSig();
+      const all = this.reservationsSig.reservations();
 
       const filtered = all.filter(
         (r) =>
@@ -175,6 +172,16 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
         start: new Date(r.startTime),
         end: new Date(r.endTime),
       }));
+    });
+  }
+
+  listenAppConfig() {
+    effect(() => {
+      const appConfig = this.reservationsSig.appConfigData();
+      this.BLOC_HOUR_LIMIT = appConfig?.rollingWindowHours || 48;
+      this.MAX_CALENDAR_DAYS = appConfig?.maxCalendarDays || 30;
+      this.MAX_APPLICATION_SELECTION =
+        appConfig?.maxReservationApplications || 3;
     });
   }
 
@@ -313,7 +320,8 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
       this.secondaryApplications = onApplicationSelected(
         application,
         this.secondaryApplications,
-        this.selectedTimeSlot!
+        this.selectedTimeSlot!,
+        this.MAX_APPLICATION_SELECTION-1
       );
       this.setSelectedApplicationsValue();
       this.cdr.detectChanges();
@@ -390,7 +398,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
           const displayTimeSlot = this.hoursList.find(
             (item) => item.date.getHours() === 8
           );
-          const beforeDisplayTimeSlot = this.hoursList.find(
+          const beforeDisplayTimeSlot = [...this.hoursList].reverse().find(
             (item) => item.date.getHours() < 8
           );
           const afterTimeSlot = this.hoursList.find(
