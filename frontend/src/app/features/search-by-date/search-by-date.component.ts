@@ -286,7 +286,7 @@ export class SearchByDateComponent implements OnInit {
 
     let hasValid = false;
     const earliestHour = this.getMinStartHourForDate(date);
-    const latestStartHour = TIME_SLOT_END_HOUR - MIN_DURATION;
+    const latestStartHour = TIME_SLOT_END_HOUR;
 
     for (let h = earliestHour; h <= latestStartHour; h++) {
       const start = new Date(date);
@@ -330,6 +330,7 @@ export class SearchByDateComponent implements OnInit {
       this.startTimeCtrl.setValue(null, { emitEvent: false });
     }
   }
+
   private buildEndTimeSlots(): void {
     const newEndTimeSlots: string[] = [];
     const newEndConflictMap: Record<string, boolean> = {};
