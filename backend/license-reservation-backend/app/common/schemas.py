@@ -9,7 +9,7 @@ from pydantic import (
 from pydantic.alias_generators import to_camel
 from typing import List, Optional
 from datetime import datetime, timezone
-from shared_lib.enums import ReservationStatus
+from shared_lib.enums import ReservationStatus, ApplicationLicenseType
 
 
 def convert_to_utc(v: datetime) -> datetime:
@@ -169,3 +169,20 @@ class ExtendReservationRequest(CamelModel):
 
 class UpdateApplicationStatusRequest(CamelModel):
     is_active: bool
+
+
+class ApplicationWithLicenseGroupOut(ApplicationOut):
+    license_type: ApplicationLicenseType
+    license_group: Optional[str] = None
+
+
+class ApplicationUpdate(CamelModel):
+    id: int
+    name: str
+    is_active: bool
+    license_type: ApplicationLicenseType
+    license_group: Optional[str] = None
+
+
+class UpdateApplicationsRequest(CamelModel):
+    applications: List[ApplicationUpdate]

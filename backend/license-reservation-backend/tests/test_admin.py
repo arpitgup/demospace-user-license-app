@@ -283,3 +283,102 @@ def test_update_application_status_not_found(test_client):
         json={"isActive": True},
     )
     assert response.status_code == 404
+
+
+def test_get_applications(test_client, seed_data):
+    """Test retrieving all applications."""
+    response = test_client.get("/admin/applications")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == len(seed_data["apps"])
+    # Check a sample
+    app_from_api = data[0]
+    app_from_db = seed_data["apps"][0]
+    assert app_from_api["id"] == app_from_db.id
+    assert app_from_api["name"] == app_from_db.name
+    assert app_from_api["isActive"] == app_from_db.is_active
+    assert app_from_api["licenseType"] == app_from_db.license_type.value
+
+
+def test_update_applications_success(test_client, db_session, seed_data):
+    """Test successfully updating multiple applications."""
+    app1 = seed_data["apps"][0]
+    app2 = seed_data["apps"][1]
+
+    update_data = {
+        "applications": [
+            {
+                "id": app1.id,
+                "name": "Updated App 1 Name",
+                "isActive": not app1.is_active,
+                "licenseType": "SUBSCRIPTION",
+                "licenseGroup": None,
+            },
+            {
+                "id": app2.id,
+                "name": app2.name,  # No name change
+                "isActive": not app2.is_active,
+                "licenseType": "ENVIRONMENT",
+                "licenseGroup": "env-group@example.com",
+            },
+        ]
+    }
+
+    response = test_client.patch("/admin/applications", json=update_data)
+
+    assert response.status_code == 204
+
+
+def test_update_applications_not_found(test_client, seed_data):
+    """Test updating applications when one does not exist."""
+    app1 = seed_data["apps"][0]
+    update_data = {
+        "applications": [
+            {
+                "id": app1.id,
+                "name": "Updated App 1 Name",
+                "isActive": not app1.is_active,
+                "licenseType": "SUBSCRIPTION",
+                "licenseGroup": None
+            },
+            {
+                "id": 9999,
+                "name": "Non-existent app",
+                "isActive": True,
+                "licenseType": "SUBSCRIPTION",
+                "licenseGroup": None
+            },
+        ]
+    }
+
+    response = test_client.patch("/admin/applications", json=update_data)
+
+    assert response.status_code == 404
+    assert "One or more applications not found" in response.json()["detail"]
+
+
+def test_update_applications_environment_without_group_email(
+    test_client, seed_data
+):
+    """Test updating an application to ENVIRONMENT license type without a group email."""
+    app1 = seed_data["apps"][0]
+    update_data = {
+        "applications": [
+            {
+                "id": app1.id,
+                "name": "Updated App 1 Name",
+                "isActive": True,
+                "licenseType": "ENVIRONMENT",
+                "licenseGroup": None,
+            }
+        ]
+    }
+
+    response = test_client.patch("/admin/applications", json=update_data)
+
+    assert response.status_code == 400
+    assert (
+        "Group email is required for application with license type as ENVIRONMENT."
+        in response.json()["detail"]
+    )

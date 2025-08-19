@@ -23,6 +23,7 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 app.add_middleware(UserValidationMiddleware)
+# TODO: add admin middleware
 
 
 app.include_router(applications.router, tags=["Applications"])
