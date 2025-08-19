@@ -239,7 +239,9 @@
             border: none !important;
             box-shadow: none !important;
             background-color: transparent !important;
-            min-width: 8.8125rem;
+            min-width: 9.8125rem;
+            border-radius: 30px;
+
 
             .mat-button-toggle-button {
               display: flex;
@@ -345,10 +347,4 @@
   .mat-form-field-wrapper {
     padding-bottom: 0;
   }
-}
-
-:ng-deep .mat-button-toggle-button:hover {
-  box-shadow: none !important;
-  border: none !important;
-  background-color: transparent !important;
 }
