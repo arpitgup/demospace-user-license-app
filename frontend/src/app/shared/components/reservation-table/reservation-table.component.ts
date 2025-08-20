@@ -9,6 +9,7 @@ import {
   inject,
   OnChanges,
   SimpleChanges,
+  signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -24,6 +25,7 @@ import {
 import { ReservationApiStatus } from '../../../features/landing/landing.enums';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialog } from '../../dialogs/confirmation-dialog/confirmation-dialog';
+import { ReservationTableLoader } from '../../../loaders/reservation-table-loader/reservation-table-loader';
 
 @Component({
   selector: 'app-reservation-table',
@@ -37,6 +39,7 @@ import { ConfirmationDialog } from '../../dialogs/confirmation-dialog/confirmati
     MatIconModule,
     MatButtonModule,
     MatPaginatorModule,
+    ReservationTableLoader,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -49,6 +52,7 @@ export class ReservationTableComponent implements AfterViewInit, OnChanges {
 
   displayedColumns: string[] = ['date', 'applications', 'status', 'action'];
   dataSource = new MatTableDataSource<Reservation>([]);
+  public isLoading = signal(true);
 
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) set paginator(value: MatPaginator) {
@@ -78,8 +82,10 @@ export class ReservationTableComponent implements AfterViewInit, OnChanges {
   }
   
   ngOnChanges(changes: SimpleChanges): void {
+    this.isLoading.set(true);
     if (changes['data'] && this.data) {
       this.dataSource.data = this.data;
+      this.isLoading.set(false);
       if (this.dataSource.paginator) {
         this.dataSource.paginator.firstPage();
       }
