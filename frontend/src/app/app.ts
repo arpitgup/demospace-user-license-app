@@ -9,11 +9,18 @@ import { ActivatedRoute, RouterOutlet } from '@angular/router';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { HeaderComponent } from './shared/components/header/ header.component';
 import { CommonLoader } from './shared/components/loaders/common-loader/common-loader';
+import { AppTag } from './shared/components/app-tag/app-tag';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, HeaderComponent, FooterComponent, CommonLoader],
+  imports: [
+    RouterOutlet,
+    HeaderComponent,
+    FooterComponent,
+    CommonLoader,
+    AppTag,
+  ],
   templateUrl: './app.html',
   styleUrls: ['./app.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
