@@ -186,3 +186,10 @@ class ApplicationUpdate(CamelModel):
 
 class UpdateApplicationsRequest(CamelModel):
     applications: List[ApplicationUpdate]
+
+
+class UserInfo(CamelModel):
+    email: str
+    given_name: str
+    family_name: str
+    full_name: str

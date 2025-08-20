@@ -1,8 +1,10 @@
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from shared_lib.dependencies import get_user_email
+from shared_lib import admin_service
 
 from .common.constants import ALLOWED_ORIGINS
+from .common.schemas import UserInfo
 from .middlewares.user_validation import UserValidationMiddleware
 from .middlewares.admin_validation import AdminValidationMiddleware
 from .routers import admin, applications, availability, config, reservations
@@ -24,7 +26,8 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 app.add_middleware(UserValidationMiddleware)
-# TODO: uncomment below line to enable admin validation middleware
+# TODO: uncomment below line to enable admin validation middleware,
+# ensure that the PORTAL_ADMIN_GROUP_EMAIL environment variable is updated
 # app.add_middleware(AdminValidationMiddleware)
 
 
@@ -33,3 +36,15 @@ app.include_router(availability.router, tags=["Availability"])
 app.include_router(reservations.router, tags=["Reservations"])
 app.include_router(config.router, tags=["App Config"])
 app.include_router(admin.router, tags=["Admin"])
+
+
+@app.get("/api/me", tags=["User"])
+def get_user_info(user_email: str = Depends(get_user_email)):
+    user = admin_service.get_user(user_email)
+    user_name_info = user["name"]
+    return UserInfo(
+        email=user["primaryEmail"],
+        given_name=user_name_info["givenName"],
+        family_name=user_name_info["familyName"],
+        full_name=user_name_info["fullName"],
+    )
