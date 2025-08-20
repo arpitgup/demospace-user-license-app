@@ -1,0 +1,50 @@
+<div class="table-scroll-container">
+  <table class="reservation-table skeleton-table">
+    <tr class="mat-mdc-header-row skeleton-header-row">
+      @for (col of [1, 2, 3, 4]; track col) {
+      <th class="mat-mdc-header-cell skeleton-header-cell">
+        <ngx-skeleton-loader
+          [appearance]="'line'"
+          [theme]="{ 'border-radius': '0', height: '20px', width: '80%' }"
+        ></ngx-skeleton-loader>
+      </th>
+      }
+    </tr>
+    @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+    <tr class="table-row skeleton-row">
+      <td class="mat-mdc-cell skeleton-cell mat-column-date">
+        <ngx-skeleton-loader
+          [appearance]="'line'"
+          [theme]="{ 'border-radius': '10px', height: '15px' }"
+        ></ngx-skeleton-loader>
+      </td>
+      <td class="mat-mdc-cell skeleton-cell mat-column-applications">
+        <div class="app-chip-list">
+          @for (j of [1, 2]; track j) {
+          <ngx-skeleton-loader
+            [appearance]="'line'"
+            [theme]="{
+              'border-radius': '15px',
+              height: '30px',
+              width: '100px'
+            }"
+          ></ngx-skeleton-loader>
+          }
+        </div>
+      </td>
+      <td class="mat-mdc-cell skeleton-cell mat-column-status">
+        <ngx-skeleton-loader
+          [appearance]="'line'"
+          [theme]="{ 'border-radius': '10px', height: '15px' }"
+        ></ngx-skeleton-loader>
+      </td>
+      <td class="mat-mdc-cell skeleton-cell mat-column-action">
+        <ngx-skeleton-loader
+          [appearance]="'line'"
+          [theme]="{ 'border-radius': '20px', height: '35px', width: '120px' }"
+        ></ngx-skeleton-loader>
+      </td>
+    </tr>
+    }
+  </table>
+</div>
