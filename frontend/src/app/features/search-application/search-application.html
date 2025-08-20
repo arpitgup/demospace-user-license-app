@@ -57,8 +57,6 @@
               }
             </mat-select>
           </mat-form-field>
-
-         
         </div>
 
         <div class="custom-form-field">
@@ -115,7 +113,8 @@
       <app-search-by-application-loader></app-search-by-application-loader>
     </mat-card>
 
-    }@else if(availabilityApplication!=null &&
+    }@else if(availabilityApplication!==null&&
+    availabilityApplication!==undefined&&
     (availabilityApplication.nextAvailableSlots?.length ?? 0) >0 ){
     <mat-card class="card">
       @if((availabilityApplication.nextAvailableSlots?.length ?? 0) > 1){
@@ -238,12 +237,12 @@
           >
         </p>
         <div class="booking-sized-box"></div>
-        @if(selectedApplicationList!=null&&selectedApplicationList!.length===1){
+        @if(selectedApplicationList!==null&&selectedApplicationList!==undefined&&selectedApplicationList!.length===1){
         <p class="booking-details-title">
           Selected Application :
           <span>{{ selectedApplicationList!.join(", ") }}</span>
         </p>
-        }@else if(selectedApplicationList!=null){
+        }@else if(selectedApplicationList!==null){
         <p class="booking-details-title">
           Selected Applications :
           <span>{{ selectedApplicationList!.join(", ") }}</span>

@@ -1,0 +1,16 @@
+.status-tag-container {
+  position: fixed;
+  top: 0;
+  right: 0;
+  padding: 0.6rem;
+  color: #fff;
+  width: 25rem;
+  font-size: 1rem;
+  z-index: 1000;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  text-transform: uppercase;
+  font-weight: bold;
+  background-color: red;
+  transform: rotate(45deg) translate(11rem, -2rem);
+}

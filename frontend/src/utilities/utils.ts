@@ -1,5 +1,7 @@
 import { Application } from '../app/core/models/application.model';
 import { NextAvailableSlots } from '../app/core/models/availabilityByApplication.model';
+import { NormalizedReservation } from './interfaces/normalized_reservation';
+import { TimeSlot } from './interfaces/time_slot';
 
 export function getUniqueSecondaryApplications(
   nextAvailableSlots: NextAvailableSlots,

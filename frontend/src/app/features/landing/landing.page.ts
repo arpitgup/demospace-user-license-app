@@ -32,6 +32,7 @@ import { MatIcon } from '@angular/material/icon';
 import { forkJoin } from 'rxjs';
 import { SearchOptionContentLoader } from '../../loaders/search-option-content-loader/search-option-content-loader';
 import { UserService } from '../../core/services/user.service';
+import { ErrorMessage } from '../../shared/components/error-message/error-message';
 
 @Component({
   selector: 'app-landing-page',
@@ -49,6 +50,7 @@ import { UserService } from '../../core/services/user.service';
     SearchApplicationComponent,
     MatIcon,
     SearchOptionContentLoader,
+    ErrorMessage,
   ],
   host: {
     class: 'landing-page-container',
@@ -62,7 +64,7 @@ export class LandingPage implements OnInit {
   private confirmationDialog = inject(MatDialog);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
-   private readonly currentUserSignal = this.userService.currentUser;
+  private readonly currentUserSignal = this.userService.currentUser;
 
   public selectedSearchType = signal<SearchType | null>(null);
   public showPastReservations = signal(false);
@@ -72,6 +74,8 @@ export class LandingPage implements OnInit {
 
   private readonly reservationsSignal = this.reservationService.reservations;
   isFetchingData: boolean = true;
+  isError: boolean = false;
+  errorMessage: string = '';
 
   public filteredReservations = computed(() => {
     const showPast = this.showPastReservations();
@@ -88,7 +92,9 @@ export class LandingPage implements OnInit {
 
   public readonly resrevations$ = toObservable(this.filteredReservations);
 
-  public userFullName = computed<string>(() => this.currentUserSignal()?.givenName ?? '');
+  public userFullName = computed<string>(
+    () => this.currentUserSignal()?.givenName ?? ''
+  );
 
   public readonly searchOptionCards: SearchOptionCard[] = [
     {
@@ -108,21 +114,27 @@ export class LandingPage implements OnInit {
   ];
 
   onRefreshData() {
-    this.isFetchingData = true;
+    this.setLoadingErrorValues(true, false, '');
     this.selectedIndex = 0;
     this.selectedSearchType.set(null);
+    this.cdr.detectChanges();
     this.reservationService.fetchReservations().subscribe();
+    this.callApplicationConfigApi();
+  }
+  callApplicationConfigApi() {
     forkJoin({
       user: this.userService.fetchCurrentUser(),
       application: this.reservationService.getApplications(),
       config: this.reservationService.getConfig(),
     }).subscribe({
       next: () => {
-        this.isFetchingData = false;
+        this.setLoadingErrorValues(false, false, '');
         this.cdr.detectChanges();
       },
-      error: () => {
-        this.isFetchingData = false;
+      error: (error) => {
+        this.errorMessage =
+          error?.error?.detail || 'Something went wrong. Please try again.';
+        this.setLoadingErrorValues(false, true, '');
         this.cdr.detectChanges();
       },
     });
@@ -192,5 +204,18 @@ export class LandingPage implements OnInit {
         this.reservationService.fetchReservations().subscribe();
       }
     });
+  }
+  onRetryCall() {
+    this.setLoadingErrorValues(true, false, '');
+    this.callApplicationConfigApi();
+  }
+  setLoadingErrorValues(
+    isLoading: boolean,
+    isError: boolean,
+    errorMessage: string
+  ) {
+    this.isFetchingData = isLoading;
+    this.isError = isError;
+    this.errorMessage = errorMessage;
   }
 }
