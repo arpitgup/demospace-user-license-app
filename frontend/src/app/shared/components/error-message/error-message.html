@@ -1,0 +1,8 @@
+<div class="error-content">
+  <img src="assets/svgs/ic_error.svg" class="error-image" />
+  <p>{{ errorMessage }}</p>
+  <div matButton class="retry-content" (click)="onRetryCall()">
+    <mat-icon class="refresh-icon">refresh</mat-icon>
+    <h4 class="retry-text">Retry</h4>
+  </div>
+</div>
