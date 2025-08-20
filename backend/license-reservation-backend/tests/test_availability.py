@@ -258,3 +258,89 @@ def test_get_availability_by_date_v2_no_bots_available(test_client, db_session):
     assert response.status_code == 200
     data = response.json()
     assert len(data["availableBots"]) == 0
+
+
+def test_get_availability_by_application_inactive_app_404(test_client, db_session):
+    """Test that requesting availability for an inactive application returns 404."""
+    # Deactivate Jira
+    jira_app = db_session.query(Application).filter(Application.name == "Jira").one()
+    jira_app.is_active = False
+    db_session.commit()
+
+    request_data = {
+        "applicationId": 1,  # Inactive Jira
+        "startTime": (datetime.now(UTC) + timedelta(hours=1)).isoformat(),
+        "durationHours": 2,
+    }
+    response = test_client.post("/availability/by-application", json=request_data)
+
+    assert response.status_code == 404
+    assert "not found or is not active" in response.json()["detail"]
+
+
+def test_get_availability_by_application_filters_inactive_apps(
+    test_client, db_session
+):
+    """Test that the response for a bot doesn't include its other inactive supported apps."""
+    # Deactivate Slack, which BotA also supports
+    slack_app = db_session.query(Application).filter(Application.name == "Slack").one()
+    slack_app.is_active = False
+    db_session.commit()
+
+    # Request availability for Jira (which is active)
+    request_data = {
+        "applicationId": 1,  # Jira
+        "startTime": (datetime.now(UTC) + timedelta(hours=1)).isoformat(),
+        "durationHours": 2,
+    }
+    response = test_client.post("/availability/by-application", json=request_data)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["requestedSlotAvailable"] is True
+    slot = data["nextAvailableSlots"][0]
+    bot_info = slot["availableBots"][0]
+    assert bot_info["name"] == "BotA"
+
+    # BotA supports Jira, Slack, Salesforce. Slack is inactive.
+    # So, it should return Jira and Salesforce.
+    assert len(bot_info["applications"]) == 2
+    app_names = {app["name"] for app in bot_info["applications"]}
+    assert "Slack" not in app_names
+    assert "Jira" in app_names
+    assert "Salesforce" in app_names
+
+
+def test_get_availability_by_date_v2_filters_inactive_apps(test_client, db_session):
+    """Test that the response for a bot doesn't include its inactive supported apps."""
+    # Deactivate Slack, which BotA supports
+    slack_app = db_session.query(Application).filter(Application.name == "Slack").one()
+    slack_app.is_active = False
+    db_session.commit()
+
+    start_time = datetime.now(UTC) + timedelta(days=5)
+    end_time = start_time + timedelta(hours=2)
+    request_data = {
+        "startTime": start_time.isoformat(),
+        "endTime": end_time.isoformat(),
+    }
+    response = test_client.post("/availability/by-date/v2", json=request_data)
+
+    assert response.status_code == 200
+    data = response.json()
+    available_bots = data["availableBots"]
+    assert len(available_bots) == 2  # Both bots should be available
+
+    bot_a_info = next(bot for bot in available_bots if bot["name"] == "BotA")
+
+    # BotA supports Jira, Slack, Salesforce. Slack is inactive.
+    # So, it should return Jira and Salesforce.
+    assert len(bot_a_info["applications"]) == 2
+    app_names = {app["name"] for app in bot_a_info["applications"]}
+    assert "Slack" not in app_names
+    assert "Jira" in app_names
+    assert "Salesforce" in app_names
+
+    # BotB should be unaffected
+    bot_b_info = next(bot for bot in available_bots if bot["name"] == "BotB")
+    assert len(bot_b_info["applications"]) == 2
