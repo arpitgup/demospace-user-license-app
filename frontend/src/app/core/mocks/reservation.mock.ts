@@ -1,4 +1,7 @@
-import { Reservation } from '../models/reservation.model';
+import { of } from 'rxjs';
+import { BotWithApps, Reservation } from '../models/reservation.model';
+import { AppConfig } from '../models/appConfig.model';
+import { signal } from '@angular/core';
 
 export const MOCK_RESERVATIONS: Reservation[] = [
   {
@@ -161,3 +164,48 @@ export const MOCK_RESERVATIONS: Reservation[] = [
     status: 'COMPLETED',
   },
 ];
+
+
+export const mockReservationService = {
+  reservations: signal<Reservation[]>([]),
+  appConfigData: signal<AppConfig | null>(null),
+  fetchReservations: () => of([]),
+  getApplications: () => of([]),
+  getConfig: () => of({
+    rollingWindowHours: 1,
+    maxCalendarDays: 30,
+    maxReservationApplications: 3,
+  }),
+  checkBotsAvailabilityByDate: () => of({ availableBots: [] }),
+  createReservation: () => of({} as Reservation),
+};
+
+export const mockMatDialog = {
+  open: () => ({
+    afterClosed: () => of(true),
+  }),
+};
+
+export enum ReservationApiStatus {
+  PENDING = 'Pending',
+  ACTIVE = 'Active',
+  COMPLETED = 'Completed',
+  CANCELLED = 'Cancelled',
+}
+
+export const mockAppConfig: AppConfig = {
+  maxReservationApplications: 3,
+  maxCalendarDays: 30,
+  rollingWindowHours: 1,
+  reservationLeadDays: 7,
+  unavailableReservationDays: 7,
+  maxSlotsToFind: 3
+};
+
+export const mockAvailableBots: BotWithApps = {
+  id: 1,
+  name: 'demo.user1',
+  email: 'demo.altostrat.com',
+  applications: [
+  ],
+};

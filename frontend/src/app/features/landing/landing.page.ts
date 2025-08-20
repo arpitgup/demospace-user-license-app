@@ -31,6 +31,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { forkJoin } from 'rxjs';
 import { SearchOptionContentLoader } from '../../loaders/search-option-content-loader/search-option-content-loader';
+import { UserService } from '../../core/services/user.service';
 
 @Component({
   selector: 'app-landing-page',
@@ -54,12 +55,14 @@ import { SearchOptionContentLoader } from '../../loaders/search-option-content-l
   },
 })
 export class LandingPage implements OnInit {
+  private readonly userService = inject(UserService);
   private readonly reservationService = inject(ReservationService);
   public readonly landingPageConstants = LANDING_PAGE_CONSTANTS;
   public readonly SearchType = SearchType;
   private confirmationDialog = inject(MatDialog);
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
+   private readonly currentUserSignal = this.userService.currentUser;
 
   public selectedSearchType = signal<SearchType | null>(null);
   public showPastReservations = signal(false);
@@ -85,6 +88,8 @@ export class LandingPage implements OnInit {
 
   public readonly resrevations$ = toObservable(this.filteredReservations);
 
+  public userFullName = computed<string>(() => this.currentUserSignal()?.givenName ?? '');
+
   public readonly searchOptionCards: SearchOptionCard[] = [
     {
       id: 1,
@@ -104,16 +109,19 @@ export class LandingPage implements OnInit {
 
   onRefreshData() {
     this.isFetchingData = true;
+    this.selectedIndex = 0;
+    this.selectedSearchType.set(null);
     this.reservationService.fetchReservations().subscribe();
     forkJoin({
+      user: this.userService.fetchCurrentUser(),
       application: this.reservationService.getApplications(),
       config: this.reservationService.getConfig(),
     }).subscribe({
-      next: (res) => {
+      next: () => {
         this.isFetchingData = false;
-         this.cdr.detectChanges();
+        this.cdr.detectChanges();
       },
-      error: (err) => {
+      error: () => {
         this.isFetchingData = false;
         this.cdr.detectChanges();
       },

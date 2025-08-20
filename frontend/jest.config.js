@@ -18,4 +18,15 @@ module.exports = {
     '@core/(.*)': '<rootDir>/src/app/core/$1',
     '@env/(.*)': '<rootDir>/src/environments/$1',
   },
+  coverageDirectory: 'coverage',
+  collectCoverage: true,
+  coverageReporters: ['html', 'lcov', 'text'],
+  collectCoverageFrom: [
+    'src/**/*.ts',
+    '!src/**/*.d.ts',
+    '!src/**/*.spec.ts',
+    '!src/main.ts',
+    '!src/polyfills.ts',
+    '!src/environments/*.ts',
+  ],
 };
