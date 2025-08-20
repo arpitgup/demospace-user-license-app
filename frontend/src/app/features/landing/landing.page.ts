@@ -104,6 +104,8 @@ export class LandingPage implements OnInit {
 
   onRefreshData() {
     this.isFetchingData = true;
+    this.selectedIndex = 0;
+    this.selectedSearchType.set(null);
     this.reservationService.fetchReservations().subscribe();
     forkJoin({
       application: this.reservationService.getApplications(),
@@ -111,7 +113,7 @@ export class LandingPage implements OnInit {
     }).subscribe({
       next: () => {
         this.isFetchingData = false;
-         this.cdr.detectChanges();
+        this.cdr.detectChanges();
       },
       error: () => {
         this.isFetchingData = false;
