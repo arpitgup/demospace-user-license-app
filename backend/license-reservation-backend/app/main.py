@@ -4,6 +4,7 @@ from shared_lib.dependencies import get_user_email
 
 from .common.constants import ALLOWED_ORIGINS
 from .middlewares.user_validation import UserValidationMiddleware
+from .middlewares.admin_validation import AdminValidationMiddleware
 from .routers import admin, applications, availability, config, reservations
 
 
@@ -23,7 +24,8 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 app.add_middleware(UserValidationMiddleware)
-# TODO: add admin middleware
+# TODO: uncomment below line to enable admin validation middleware
+# app.add_middleware(AdminValidationMiddleware)
 
 
 app.include_router(applications.router, tags=["Applications"])

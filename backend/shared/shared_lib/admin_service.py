@@ -51,6 +51,31 @@ def get_user(user_email):
         return None
 
 
+@cached(cache)
+def is_user_in_group(user_email: str, group_email: str) -> bool:
+    """Checks if a user is a member of a Google Workspace group."""
+    try:
+        admin_service.members().get(
+            groupKey=group_email, memberKey=user_email
+        ).execute()
+        logger.info(f"User {user_email} is a member of group {group_email}.")
+        return True
+    except HttpError as e:
+        if e.resp.status == 404:
+            logger.info(f"User {user_email} is not a member of group {group_email}.")
+            return False
+        else:
+            logger.error(
+                f"Error occurred while checking membership for {user_email} in {group_email}: {e}"
+            )
+            raise e
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred while checking membership for {user_email} in {group_email}: {e}"
+        )
+        raise e
+
+
 def update_user_profile_with_saml_attributes(
     user_email: str, bot: Bot, applications: List[Application]
 ):
