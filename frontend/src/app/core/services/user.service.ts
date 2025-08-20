@@ -3,7 +3,6 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { LoaderService } from './loading.service';
 import { User } from '../models/user.model';
 
 @Injectable({
