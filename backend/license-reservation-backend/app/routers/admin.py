@@ -4,6 +4,7 @@ from loguru import logger
 from sqlalchemy.orm import Session
 from shared_lib.db.models import (
     Application,
+    ApplicationLicenseType,
     Bot,
     BotApplication,
     Reservation,
@@ -13,11 +14,13 @@ from shared_lib.dependencies import get_user_email, get_db
 from typing import List
 
 from ..common.schemas import (
+    ApplicationWithLicenseGroupOut,
     BulkCancelReservationsRequest,
     BulkCancelReservationsResponse,
     ExtendReservationRequest,
     ReservationOut,
     BotWithApplicationsOut,
+    UpdateApplicationsRequest,
     UpdateBotApplicationsRequest,
     UpdateApplicationStatusRequest,
     BotsUpsertRequest,
@@ -30,7 +33,7 @@ from ..utils.background_tasks import (
 from ..utils.crud import get_bot_with_supported_apps, upsert_bots_with_applications
 
 
-router = APIRouter()
+router = APIRouter(prefix="/admin")
 
 
 def build_response(bots: List[Bot]) -> List[BotWithApplicationsOut]:
@@ -46,29 +49,116 @@ def build_response(bots: List[Bot]) -> List[BotWithApplicationsOut]:
                 email=bot.email,
                 created_at=bot.created_at,
                 updated_at=bot.updated_at,
-                supported_applications=[
-                    ba.application for ba in bot.supported_applications
-                ],
+                applications=[ba.application for ba in bot.supported_applications],
             )
         )
     return res
 
 
-@router.get("/admin/reservations", response_model=List[ReservationOut])
+@router.get("/applications", response_model=List[ApplicationWithLicenseGroupOut])
+def get_applications(db: Session = Depends(get_db)):
+    """
+    Retrieves all applications with their license group information.
+    """
+    return db.query(Application).all()
+
+
+@router.patch("/applications", status_code=status.HTTP_204_NO_CONTENT)
+def update_applications(
+    req: UpdateApplicationsRequest,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+):
+    """
+    Updates the status and license group for multiple applications.
+    """
+    logger.info(f"Admin User {user_email}: Updating applications: {req.applications}")
+    app_ids = [app.id for app in req.applications]
+    apps_in_db = db.query(Application).filter(Application.id.in_(app_ids)).all()
+
+    if len(apps_in_db) != len(app_ids):
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND, detail="One or more applications not found"
+        )
+
+    app_map = {app.id: app for app in apps_in_db}
+
+    for app_update in req.applications:
+        app_in_db = app_map[app_update.id]
+        app_in_db.name = app_update.name
+        app_in_db.is_active = app_update.is_active
+        app_in_db.license_type = app_update.license_type
+
+        if (
+            app_update.license_type == ApplicationLicenseType.ENVIRONMENT
+            and app_update.license_group is None
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Group email is required for application with license type as ENVIRONMENT.",
+            )
+
+        if app_update.license_group:
+            app_in_db.license_group = app_update.license_group
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"An unexpected error occurred during application update: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="An unexpected error occurred during application update.",
+        )
+
+
+@router.patch("/applications/{application_id}", status_code=status.HTTP_204_NO_CONTENT)
+def update_application_status(
+    application_id: int,
+    req: UpdateApplicationStatusRequest,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+):
+    """
+    Activates or deactivates an application.
+    """
+    logger.info(
+        f"Admin User {user_email}: Updating application {application_id} status to {req.is_active}"
+    )
+
+    application = db.query(Application).filter(Application.id == application_id).first()
+
+    if not application:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Application not found")
+
+    application.is_active = req.is_active
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"An unexpected error occurred during application status update: {e}"
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="An unexpected error occurred during application status update.",
+        )
+
+
+@router.get("/reservations", response_model=List[ReservationOut])
 def get_all_reservations(
     db: Session = Depends(get_db), user_email: str = Depends(get_user_email)
 ):
     """
     Retrieves all reservations.
     """
-    # TODO: check for admin user
     logger.info(f"Admin User {user_email}: Fetching all reservations")
     reservations = db.query(Reservation).all()
     return reservations
 
 
 @router.post(
-    "/admin/reservations/bulk-cancel",
+    "/reservations/bulk-cancel",
     response_model=BulkCancelReservationsResponse,
 )
 def bulk_cancel_reservations(
@@ -80,7 +170,6 @@ def bulk_cancel_reservations(
     """
     Cancels a list of reservations by their IDs.
     """
-    # TODO: check for admin user
     logger.info(
         f"Admin User {user_email}: Bulk cancelling reservations: {req.reservation_ids}"
     )
@@ -129,9 +218,7 @@ def bulk_cancel_reservations(
     )
 
 
-@router.patch(
-    "/admin/reservations/{reservation_id}/extend", response_model=ReservationOut
-)
+@router.patch("/reservations/{reservation_id}/extend", response_model=ReservationOut)
 def extend_reservation(
     reservation_id: int,
     req: ExtendReservationRequest,
@@ -210,43 +297,7 @@ def extend_reservation(
     return reservation
 
 
-@router.patch(
-    "/admin/applications/{application_id}", status_code=status.HTTP_204_NO_CONTENT
-)
-def update_application_status(
-    application_id: int,
-    req: UpdateApplicationStatusRequest,
-    db: Session = Depends(get_db),
-    user_email: str = Depends(get_user_email),
-):
-    """
-    Activates or deactivates an application.
-    """
-    logger.info(
-        f"Admin User {user_email}: Updating application {application_id} status to {req.is_active}"
-    )
-
-    application = db.query(Application).filter(Application.id == application_id).first()
-
-    if not application:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Application not found")
-
-    application.is_active = req.is_active
-    try:
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        logger.error(
-            f"An unexpected error occurred during application status update: {e}"
-        )
-        raise HTTPException(
-            status_code=500,
-            detail="An unexpected error occurred during application status update.",
-        )
-
-
-# TODO: Add test
-@router.get("/admin/bots", response_model=List[BotWithApplicationsOut])
+@router.get("/bots", response_model=List[BotWithApplicationsOut])
 def get_all_bots(db: Session = Depends(get_db)):
     """
     Retrieves all bots and the applications they support.
@@ -254,10 +305,7 @@ def get_all_bots(db: Session = Depends(get_db)):
     return get_bot_with_supported_apps(db).all()
 
 
-# TODO: Add test
-@router.patch(
-    "/admin/bots/{bot_id}/applications", response_model=BotWithApplicationsOut
-)
+@router.patch("/bots/{bot_id}/applications", response_model=BotWithApplicationsOut)
 def update_bot_applications(
     bot_id: int,
     req: UpdateBotApplicationsRequest,
@@ -289,7 +337,6 @@ def update_bot_applications(
     return build_response([bot])[0]
 
 
-# TODO: Add test
 @router.post(
     "/bots/upsert", response_model=list[BotWithApplicationsOut], status_code=200
 )
