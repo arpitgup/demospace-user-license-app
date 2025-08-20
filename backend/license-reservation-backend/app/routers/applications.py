@@ -15,4 +15,4 @@ def get_all_applications(db: Session = Depends(get_db)):
     """
     Returns a list of all applications available in the system.
     """
-    return db.query(Application).all()
+    return db.query(Application).filter(Application.is_active == True).all()

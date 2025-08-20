@@ -77,7 +77,10 @@ def get_bot_availability_in_slot(
     """
     # Get all applications this bot supports. The relationship is now eagerly loaded.
     all_supported_apps = [ba.application for ba in bot.supported_applications]
-    all_supported_app_ids = {app.id for app in all_supported_apps}
+    all_supported_app_ids = {
+        # Check for active applications only
+        app.id for app in all_supported_apps if app.is_active == True
+    }
 
     # Find applications this bot is busy with during the slot
     conflicting_reservations = (

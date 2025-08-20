@@ -29,3 +29,7 @@ export type BotWithApps = {
   email: string;
   applications: Application[];
 };
+
+export interface BotsAvailabilityResponse {
+  availableBots: BotWithApps[];
+}

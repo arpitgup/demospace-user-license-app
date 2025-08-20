@@ -41,7 +41,7 @@ def get_availability_by_date(
     For a given time range, find all applications that can be served.
     An application is considered available if at least one bot supporting it is free.
     """
-    all_apps = db.query(Application).all()
+    all_apps = db.query(Application).filter(Application.is_active == True).all()
     available_apps = []
 
     # For each application, check if at least one bot is available
@@ -137,6 +137,18 @@ def get_availability_by_application(
     Finds available bots and the applications they can serve for a given application and time.
     Handles partial bot availability. If the requested time is unavailable, it finds the next N available slots.
     """
+    # Check if the requested application is active
+    application = (
+        db.query(Application)
+        .filter(Application.id == req.application_id)
+        .one_or_none()
+    )
+    if not application or not application.is_active:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Application with ID {req.application_id} not found or is not active.",
+        )
+
     # Find all bots that support the requested application
     supporting_bots = (
         db.query(Bot)
