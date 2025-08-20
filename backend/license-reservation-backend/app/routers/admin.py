@@ -112,6 +112,39 @@ def update_applications(
         )
 
 
+@router.patch("/applications/{application_id}", status_code=status.HTTP_204_NO_CONTENT)
+def update_application_status(
+    application_id: int,
+    req: UpdateApplicationStatusRequest,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+):
+    """
+    Activates or deactivates an application.
+    """
+    logger.info(
+        f"Admin User {user_email}: Updating application {application_id} status to {req.is_active}"
+    )
+
+    application = db.query(Application).filter(Application.id == application_id).first()
+
+    if not application:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Application not found")
+
+    application.is_active = req.is_active
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"An unexpected error occurred during application status update: {e}"
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="An unexpected error occurred during application status update.",
+        )
+
+
 @router.get("/reservations", response_model=List[ReservationOut])
 def get_all_reservations(
     db: Session = Depends(get_db), user_email: str = Depends(get_user_email)
@@ -264,40 +297,6 @@ def extend_reservation(
     return reservation
 
 
-@router.patch("/applications/{application_id}", status_code=status.HTTP_204_NO_CONTENT)
-def update_application_status(
-    application_id: int,
-    req: UpdateApplicationStatusRequest,
-    db: Session = Depends(get_db),
-    user_email: str = Depends(get_user_email),
-):
-    """
-    Activates or deactivates an application.
-    """
-    logger.info(
-        f"Admin User {user_email}: Updating application {application_id} status to {req.is_active}"
-    )
-
-    application = db.query(Application).filter(Application.id == application_id).first()
-
-    if not application:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Application not found")
-
-    application.is_active = req.is_active
-    try:
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        logger.error(
-            f"An unexpected error occurred during application status update: {e}"
-        )
-        raise HTTPException(
-            status_code=500,
-            detail="An unexpected error occurred during application status update.",
-        )
-
-
-# TODO: Add test
 @router.get("/bots", response_model=List[BotWithApplicationsOut])
 def get_all_bots(db: Session = Depends(get_db)):
     """
@@ -306,7 +305,6 @@ def get_all_bots(db: Session = Depends(get_db)):
     return get_bot_with_supported_apps(db).all()
 
 
-# TODO: Add test
 @router.patch("/bots/{bot_id}/applications", response_model=BotWithApplicationsOut)
 def update_bot_applications(
     bot_id: int,
@@ -339,7 +337,6 @@ def update_bot_applications(
     return build_response([bot])[0]
 
 
-# TODO: Add test
 @router.post(
     "/bots/upsert", response_model=list[BotWithApplicationsOut], status_code=200
 )

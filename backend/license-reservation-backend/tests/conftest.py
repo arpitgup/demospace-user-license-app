@@ -138,7 +138,8 @@ def app(db_session):
         fastapi_app.user_middleware = [
             m
             for m in fastapi_app.user_middleware
-            if m.cls.__name__ != "UserValidationMiddleware"
+            if m.cls.__name__
+            not in ["UserValidationMiddleware", "AdminValidationMiddleware"]
         ]
         fastapi_app.middleware_stack = fastapi_app.build_middleware_stack()
         fastapi_app.dependency_overrides[get_db] = override_get_db
