@@ -12,7 +12,7 @@ This app uses Python **3.12** version.
    - For subscription based apps, this will add a custom `SAML_APPNAME` attributes to the user's account
    - For environment based apps, this will add the user to a predefined group (Check `applications.license_group` column in DB)
 
-1. `/licenses/provision`
+1. `/licenses/deprovision`
    - This API is triggered at the reservation end time (UTC)
    - Use this API to test the license revocation
    - For subscription based apps, this will clear the custom `SAML_APPNAME` attributes from the user's account
