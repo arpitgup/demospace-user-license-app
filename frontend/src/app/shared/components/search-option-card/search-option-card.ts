@@ -13,7 +13,7 @@ import { SearchOptionCard } from '../../../../utilities/interfaces/search_option
 export class SearchOptionCardComponent {
   @Input() searchOption?: SearchOptionCard;
   @Input() isSelected: boolean = false;
-  @Output() onSelected = new EventEmitter<SearchOptionCard>();
+  @Output() cardClicked = new EventEmitter<SearchOptionCard>();
 
   /**
    * Emits the searchOption object when the card is clicked.
@@ -22,7 +22,7 @@ export class SearchOptionCardComponent {
    */
   onCardSelected(): void {
     if (this.searchOption) {
-      this.onSelected.emit(this.searchOption);
+      this.cardClicked.emit(this.searchOption);
     }
   }
 }

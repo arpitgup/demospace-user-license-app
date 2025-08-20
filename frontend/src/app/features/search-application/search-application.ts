@@ -25,7 +25,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTimepickerModule } from '@angular/material/timepicker';
-import { map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
+import { map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { ReservationService } from '../../core/services/reservation.service';
 import { Application } from '../../core/models/application.model';
 import { AsyncPipe, DatePipe } from '@angular/common';
@@ -49,6 +49,8 @@ import {
   getUniqueSecondaryApplications,
   onApplicationSelected,
 } from '../../../utilities/utils';
+import { TimeSlot } from '../../../utilities/interfaces/time_slot';
+import { NormalizedReservation } from '../../../utilities/interfaces/normalized_reservation';
 
 @Component({
   selector: 'app-search-application',
@@ -75,6 +77,7 @@ import {
 export class SearchApplicationComponent implements OnInit, OnDestroy {
   private reservationService = inject(ReservationService);
   private confirmationDialog = inject(MatDialog);
+  private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
   private subscription?: Subscription;
   @Output() bookingSuccess = new EventEmitter();
@@ -82,7 +85,6 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   applications$!: Observable<Application[]>;
   reservations$!: Observable<Reservation[]>;
   availabilityApplication?: AvalaibilityByApplication | null = null;
-  applicationForm: FormGroup;
   secondaryApplications: Application[] = [];
   selectedTimeSlot?: NextAvailableSlots | null;
   selectedPrimaryApplication?: Application;
@@ -121,16 +123,16 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
 
   private readonly reservationsSig = this.reservationService;
 
-  constructor(private fb: FormBuilder) {
+  applicationForm: FormGroup = this.fb.group({
+    [this.PRIMARY_APPLICATION_FORM]: ['', Validators.required],
+    [this.START_DATE_FORM]: ['', Validators.required],
+    [this.START_TIME_FORM]: ['', Validators.required],
+    [this.SELECTED_DURATION_FORM]: ['', [Validators.required]],
+  });
+
+  constructor() {
     this.listenReservationChanges();
     this.listenAppConfig();
-
-    this.applicationForm = this.fb.group({
-      [this.PRIMARY_APPLICATION_FORM]: ['', Validators.required],
-      [this.START_DATE_FORM]: ['', Validators.required],
-      [this.START_TIME_FORM]: ['', Validators.required],
-      [this.SELECTED_DURATION_FORM]: ['', [Validators.required]],
-    });
   }
 
   ngOnInit(): void {
@@ -321,7 +323,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
         application,
         this.secondaryApplications,
         this.selectedTimeSlot!,
-        this.MAX_APPLICATION_SELECTION-1
+        this.MAX_APPLICATION_SELECTION - 1
       );
       this.setSelectedApplicationsValue();
       this.cdr.detectChanges();
@@ -354,7 +356,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     this.reservationService
       .callMakeReservation(makeReservationRequest)
       .subscribe({
-        next: (data) => {
+        next: () => {
           this.showSuccessDialog();
         },
         error: (err) => {
@@ -398,9 +400,9 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
           const displayTimeSlot = this.hoursList.find(
             (item) => item.date.getHours() === 8
           );
-          const beforeDisplayTimeSlot = [...this.hoursList].reverse().find(
-            (item) => item.date.getHours() < 8
-          );
+          const beforeDisplayTimeSlot = [...this.hoursList]
+            .reverse()
+            .find((item) => item.date.getHours() < 8);
           const afterTimeSlot = this.hoursList.find(
             (item) => item.date.getHours() > 8
           );
@@ -443,18 +445,6 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
           );
           this.durations[i].isDisabled = isDisabled;
         }
-        // const maxHour =
-        //   new Date(`2025-01-01T${this.maxAllowedTime}:00`).getHours() + 2;
-        // const selectedDateTime = new Date(newValue);
-        // const selectedHours = selectedDateTime.getHours();
-        // for (let slot of this.normalizedReservations) {
-        //   if (this.isSameDay(slot.start, selectedDateTime)) {
-        //     this.durations = this.durations.map((item) => ({
-        //       ...item,
-        //       isDisabled: selectedHours + item.value <= maxHour ? false : true,
-        //     }));
-        //   }
-        // }
 
         this.applicationForm
           ?.get(this.SELECTED_DURATION_FORM)
@@ -496,7 +486,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     const nextDay = new Date();
     nextDay.setDate(now.getDate() + 1);
 
-    for (let slot of this.normalizedReservations) {
+    for (const slot of this.normalizedReservations) {
       const blocStart = slot.start;
       const blocEnd = new Date(
         slot.end.getTime() + this.BLOC_HOUR_LIMIT * 60 * 60 * 1000

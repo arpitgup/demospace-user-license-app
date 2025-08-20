@@ -35,7 +35,7 @@
 
             <app-search-option-card
               [searchOption]="searchOption"
-              (onSelected)="onCardSelected(searchOption)"
+              (cardClicked)="onCardSelected(searchOption)"
               [isSelected]="selectedSearchType() === searchOption.searchType"
               [class.is-selected]="
                 selectedSearchType() === searchOption.searchType
