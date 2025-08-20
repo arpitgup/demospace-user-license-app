@@ -1,8 +1,6 @@
-// src/app/core/services/user.service.ts
-
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { finalize, Observable, tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { LoaderService } from './loading.service';
@@ -14,7 +12,6 @@ import { User } from '../models/user.model';
 export class UserService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
-  private loadingService = inject(LoaderService);
 
   private userState = signal<User | null>(null);
   public readonly currentUser = this.userState.asReadonly();
