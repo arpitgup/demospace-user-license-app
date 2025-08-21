@@ -1,8 +1,100 @@
-# AgentspaceReservations
+# Agentspace License Reservation Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.1.1.
+This project is the frontend for a web-based reservation system that allows users to book and manage licenses for various software agents. It's built with Angular and designed to interact with a separate backend API.
 
-## Development server
+## Features
+
+* Search for available license slots by date or by application.
+* Book new reservations for a desired time window.
+* View all upcoming and past reservations.
+* Cancel active reservations.
+
+
+## Technology Stack
+
+* **Framework:** Angular (v17+)
+* **UI Components:** Angular Material
+* **State Management:** Angular Signals
+* **Unit Testing:** Jest
+* **Styling:** SCSS
+
+
+## Table of Contents
+
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Development](#development)
+
+---
+
+## Project Structure
+
+The project follows a standard Angular architecture, organizing files by their function and feature area.
+
+```
+frontend/
+├── src/
+│   ├── app/
+│   │   ├── core/
+│   │   │   ├── models/
+│   │   │   ├── services/
+│   │   │   └── ...
+│   │   │
+│   │   ├── pages/
+│   │   │   ├── landing-page/
+│   │   │   └── ...
+│   │   │
+│   │   ├── shared/
+│   │   │   ├── components/
+│   │   │   ├── dialogs/
+│   │   │   └── ...
+│   │   │
+│   │   ├── app.component.scss
+│   │   ├── app.component.html
+│   │   ├── app.component.ts
+│   │   └── app.routes.ts
+│   │
+│   ├── assets/
+│   │   └── ...
+│   │
+│   └── environments/
+│       ├── environment.prod.ts
+│       └── environment.ts
+│
+├── .editorconfig
+├── .gitignore
+├── angular.json
+├── package.json
+├── README.md
+└── tsconfig.json
+```
+
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+- [Node.js](https://nodejs.org/) (v20.x or later recommended)
+- [Docker](https://www.docker.com/)(If you plan to run the backend service in a container)
+
+---
+
+## Installation
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://ssm-demo-instance-659143206033-git.us-central1.sourcemanager.dev/tasbirimam-1121-20250225154029/license-reservation-app.git
+    cd frontend
+    ```
+
+2.  **Install NPM packages:**
+    ```bash
+    npm install
+    ```
+
+---
+
+## Development
 
 To start a local development server, run:
 
@@ -38,7 +130,7 @@ This will compile your project and store the build artifacts in the `dist/` dire
 
 ## Running unit tests
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+To execute unit tests with the [Jest](https://jestjs.io/docs/getting-started) test runner, use the following command:
 
 ```bash
 ng test
