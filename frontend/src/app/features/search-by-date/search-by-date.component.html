@@ -46,7 +46,7 @@
 
           <mat-form-field appearance="outline" class="start-time-field">
             <mat-label>Start Time</mat-label>
-            <mat-select formControlName="startTime" (selectionChange)="onStartTimeChange()" aria-label="Start time">
+            <mat-select formControlName="startTime" (selectionChange)="onStartTimeChange()" aria-label="Start time" aria-describedby="start-time-help">
               @for (time of startTimeSlots(); track time) {
 
               <mat-option [value]="time" [disabled]="startConflictMap()[time] === true" [title]="

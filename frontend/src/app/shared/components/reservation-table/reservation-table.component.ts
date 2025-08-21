@@ -160,7 +160,6 @@ export class ReservationTableComponent implements AfterViewInit, OnChanges {
   }
 
   showConfirmationDialog(reservation: Reservation) {
-    console.log({ reservation });
     const selectedAppNames = reservation.applications.map(app => app.name).join(', ')
     const dialogRef = this.confirmationDialog.open(ConfirmationDialog, {
         width: 'auto',
