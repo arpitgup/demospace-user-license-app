@@ -504,7 +504,9 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
       } else {
         minTomorrow.setMinutes(0, 0, 0);
       }
-
+      if(minTomorrow.getHours()>23){
+        return false;
+      }
       dayStart.setHours(minTomorrow.getHours(), 0, 0, 0);
     }
 
