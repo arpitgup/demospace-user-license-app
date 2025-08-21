@@ -60,6 +60,7 @@ import {
   MAX_CALENDAR_DAYS,
   MAX_RESERVATION_APPLICATION,
   DEFAULT_START_DATE_TIME,
+  MILLISECONDS_PER_HOUR,
 } from './search-by-date.constants';
 
 import {
@@ -183,7 +184,7 @@ export class SearchByDateComponent implements OnInit {
 
     const cooldownMs =
       (this.appConfigSignal()?.rollingWindowHours || SELF_COOLDOWN_HOURS) *
-      3600_000;
+      MILLISECONDS_PER_HOUR;
     this.blockedIntervals = filtered.map((r) => {
       const start = normalizeServerTime(r.startTime, SERVER_TIME_MODE);
       const end = normalizeServerTime(r.endTime, SERVER_TIME_MODE);
@@ -252,7 +253,7 @@ export class SearchByDateComponent implements OnInit {
     if (!this.minSelectableDay || !this.maxSelectableDate) return false;
 
     const earliestHour = this.getMinStartHourForDate(date);
-    const latestStartHour = TIME_SLOT_END_HOUR - MIN_DURATION;
+    const latestStartHour = TIME_SLOT_END_HOUR;
 
     for (let h = earliestHour; h <= latestStartHour; h++) {
       const start = new Date(date);
@@ -296,7 +297,7 @@ export class SearchByDateComponent implements OnInit {
       const hasEndOption = this.hasAtLeastOneEndOptionFrom(start);
       const isBlocked = this.overlapsAnyBlockedInterval(
         start,
-        new Date(start.getTime() + MIN_DURATION * 3600_000)
+        new Date(start.getTime() + MIN_DURATION * MILLISECONDS_PER_HOUR)
       );
       const conflicts = isBlocked || !hasEndOption;
 
@@ -351,7 +352,7 @@ export class SearchByDateComponent implements OnInit {
     let hasValid = false;
 
     for (let d = MIN_DURATION; d <= MAX_DURATION; d += END_SLOT_INCREMENT) {
-      const end = new Date(start.getTime() + d * 3600_000);
+      const end = new Date(start.getTime() + d * MILLISECONDS_PER_HOUR);
       const endHour = end.getHours();
       const label = `${formatTime12h(endHour)} (${d} hrs)`;
 
@@ -436,7 +437,7 @@ export class SearchByDateComponent implements OnInit {
   private getMinSelectableDateTime(now: Date): Date {
     const leadTimeDays = this.appConfigSignal()?.rollingWindowHours || 1;
     const leadTimeHours = leadTimeDays * 24;
-    return new Date(now.getTime() + leadTimeHours * 3600_000);
+    return new Date(now.getTime() + leadTimeHours * MILLISECONDS_PER_HOUR);
   }
 
   private getMinStartHourForDate(date: Date): number {
@@ -453,7 +454,7 @@ export class SearchByDateComponent implements OnInit {
 
   private hasAtLeastOneEndOptionFrom(start: Date): boolean {
     for (let d = MIN_DURATION; d <= MAX_DURATION; d += END_SLOT_INCREMENT) {
-      const end = new Date(start.getTime() + d * 3600_000);
+      const end = new Date(start.getTime() + d * MILLISECONDS_PER_HOUR);
       if (!this.overlapsAnyBlockedInterval(start, end)) return true;
     }
     return false;
@@ -563,7 +564,11 @@ export class SearchByDateComponent implements OnInit {
 
   onToggleGroupChange(event: { value: Application[] }): void {
     const next = event?.value ?? [];
-    this.selectedApps.set(next.length <= 3 ? [...next] : [...next].slice(0, 3));
+    this.selectedApps.set(
+      next.length <= MAX_RESERVATION_APPLICATION
+        ? [...next]
+        : [...next].slice(0, 3)
+    );
     this.cdr.markForCheck();
   }
 
@@ -684,7 +689,9 @@ export class SearchByDateComponent implements OnInit {
       const selStart = new Date(startDate);
       selStart.setHours(startHour, 0, 0, 0);
 
-      const selEnd = new Date(selStart.getTime() + duration * 3600_000);
+      const selEnd = new Date(
+        selStart.getTime() + duration * MILLISECONDS_PER_HOUR
+      );
 
       if (selEnd <= selStart) errors['endBeforeOrEqualStart'] = true;
       if (this.overlapsAnyBlockedInterval(selStart, selEnd))
@@ -761,7 +768,7 @@ export class SearchByDateComponent implements OnInit {
         const base = new Date(startDate);
         base.setHours(startHour, 0, 0, 0);
         this.calculatedEndDate.set(
-          new Date(base.getTime() + duration * 3600_000)
+          new Date(base.getTime() + duration * MILLISECONDS_PER_HOUR)
         );
         return;
       }
