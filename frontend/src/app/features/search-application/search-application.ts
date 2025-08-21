@@ -549,11 +549,12 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
         36e5;
       if (gap >= minGapHours) return true;
     } else {
-      const gapSeconds =
-        Math.floor(dayEnd.getTime() / 60000) -
-        Math.floor(lastReservation.end.getTime() / 60000);
+      // const gapSeconds =
+      //   Math.floor(dayEnd.getTime() / 60000) -
+      //   Math.floor(lastReservation.end.getTime() / 60000);
 
-      if (gapSeconds >= ((minGapHours * 60) - 1)) return true;
+      // if (gapSeconds >= ((minGapHours * 60) - 1)) return true;
+      return true;
     }
 
     return false;
