@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { of, throwError } from 'rxjs';
 import { signal, WritableSignal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { By } from '@angular/platform-browser';
 
 import { LandingPage } from './landing.page';
 import { ReservationService } from '../../core/services/reservation.service';
@@ -168,7 +167,7 @@ describe('LandingPage', () => {
         
         const dialogSpy = mockMatDialog.open.mockReturnValue({
             afterClosed: () => of(true)
-        } as any);
+        });
 
         component.handleCancelReservation(reservationToCancel);
         tick();

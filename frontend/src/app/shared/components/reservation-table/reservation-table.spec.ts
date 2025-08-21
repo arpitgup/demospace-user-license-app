@@ -16,6 +16,7 @@ import {
 import { ReservationApiStatus } from '../../../features/landing/landing.enums';
 import { ConfirmationDialog } from '../../dialogs/confirmation-dialog/confirmation-dialog';
 import { By } from '@angular/platform-browser';
+import { MatPaginator } from '@angular/material/paginator';
 
 const mockBot1: BotWithApps = {
   id: 1,
@@ -62,7 +63,6 @@ const mockMatDialog = {
 describe('ReservationTableComponent', () => {
   let component: ReservationTableComponent;
   let fixture: ComponentFixture<ReservationTableComponent>;
-  let dialog: MatDialog;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -72,7 +72,6 @@ describe('ReservationTableComponent', () => {
 
     fixture = TestBed.createComponent(ReservationTableComponent);
     component = fixture.componentInstance;
-    dialog = TestBed.inject(MatDialog);
     fixture.detectChanges();
   });
 
@@ -122,8 +121,10 @@ describe('ReservationTableComponent', () => {
     });
 
     it('should call paginator firstPage method when data changes', () => {
-      const mockPaginator = { firstPage: jest.fn() } as any;
-      component.dataSource.paginator = mockPaginator;
+      const mockPaginator: Partial<MatPaginator> = {
+        firstPage: jest.fn(),
+      };
+      component.dataSource.paginator = mockPaginator as MatPaginator;
 
       component.data = mockReservations;
       component.ngOnChanges({
