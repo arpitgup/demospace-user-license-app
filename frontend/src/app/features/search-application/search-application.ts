@@ -514,47 +514,63 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     }));
 
     const dayReservations = slots
-      .filter((s) => s.start.toDateString() === checkDate.toDateString())
+      .filter((s) => !(s.end <= dayStart || s.start >= dayEnd))
+      .map((s) => ({
+        start: new Date(Math.max(s.start.getTime(), dayStart.getTime())),
+        end: new Date(Math.min(s.end.getTime(), dayEnd.getTime())),
+      }))
       .sort((a, b) => a.start.getTime() - b.start.getTime());
 
     if (dayReservations.length === 0) {
       return true;
     }
 
+    const normalize = (d: Date) => {
+      const copy = new Date(d);
+      copy.setSeconds(0, 0);
+      return copy;
+    };
+
     if (
-      (dayReservations[0].start.getTime() - dayStart.getTime()) / 36e5 >=
+      (normalize(dayReservations[0].start).getTime() -
+        normalize(dayStart).getTime()) /
+        36e5 >=
       minGapHours
     ) {
       return true;
     }
     for (let i = 0; i < dayReservations.length - 1; i++) {
       const gap =
-        (dayReservations[i + 1].start.getTime() -
-          dayReservations[i].end.getTime()) /
+        (normalize(dayReservations[i + 1].start).getTime() -
+          normalize(dayReservations[i].end).getTime()) /
         36e5;
       if (gap >= minGapHours) return true;
     }
 
-    const lastReservation = dayReservations[dayReservations.length - 1];
+    const last = dayReservations[dayReservations.length - 1];
+
+
     const nextDay = new Date(checkDate);
     nextDay.setDate(nextDay.getDate() + 1);
+    nextDay.setHours(0, 0, 0, 0);
 
-    const nextDayReservation = slots
+    const nextDayReservations = slots
       .filter((s) => s.start.toDateString() === nextDay.toDateString())
-      .sort((a, b) => a.start.getTime() - b.start.getTime())[0];
+      .sort((a, b) => a.start.getTime() - b.start.getTime());
 
-    if (nextDayReservation) {
+    if (nextDayReservations.length > 0) {
+      const firstNextDay = nextDayReservations[0];
       const gap =
-        (nextDayReservation.start.getTime() - lastReservation.end.getTime()) /
+        (normalize(firstNextDay.start).getTime() -
+          normalize(last.end).getTime()) /
         36e5;
       if (gap >= minGapHours) return true;
     } else {
-      // const gapSeconds =
-      //   Math.floor(dayEnd.getTime() / 60000) -
-      //   Math.floor(lastReservation.end.getTime() / 60000);
-
-      // if (gapSeconds >= ((minGapHours * 60) - 1)) return true;
-      return true;
+      const gap =
+        (normalize(dayEnd).getTime() - normalize(last.end).getTime()) / 36e5;
+      if (gap >= 0.9) {
+        return true;
+      }
     }
 
     return false;
