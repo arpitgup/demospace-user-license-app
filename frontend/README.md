@@ -32,6 +32,7 @@ This project is the frontend for a web-based reservation system that allows user
 
 The project follows a standard Angular architecture, organizing files by their function and feature area.
 
+```
 frontend/
 ├── src/
 │   ├── app/
@@ -67,6 +68,7 @@ frontend/
 ├── package.json
 ├── README.md
 └── tsconfig.json
+```
 
 
 ## Prerequisites
