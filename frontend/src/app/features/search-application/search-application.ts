@@ -501,11 +501,11 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
       minTomorrow.setDate(minTomorrow.getDate() + 1);
       if (minTomorrow.getMinutes() > 0) {
         minTomorrow.setHours(minTomorrow.getHours() + 1, 0, 0, 0);
+        if (minTomorrow.getHours() === 0) {
+          return false;
+        }
       } else {
         minTomorrow.setMinutes(0, 0, 0);
-      }
-      if(minTomorrow.getHours()>23){
-        return false;
       }
       dayStart.setHours(minTomorrow.getHours(), 0, 0, 0);
     }
@@ -550,7 +550,6 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     }
 
     const last = dayReservations[dayReservations.length - 1];
-
 
     const nextDay = new Date(checkDate);
     nextDay.setDate(nextDay.getDate() + 1);
