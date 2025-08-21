@@ -32,44 +32,41 @@ This project is the frontend for a web-based reservation system that allows user
 
 The project follows a standard Angular architecture, organizing files by their function and feature area.
 
-src/
-├── app/
-│   ├── core/                 # Core module: singleton services, models, guards
-│   │   ├── guards/
-│   │   ├── models/
-│   │   └── services/
-│   │       └── reservation.service.ts
+frontend/
+├── src/
+│   ├── app/
+│   │   ├── core/
+│   │   │   ├── models/
+│   │   │   ├── services/
+│   │   │   └── ...
+│   │   │
+│   │   ├── pages/
+│   │   │   ├── landing-page/
+│   │   │   └── ...
+│   │   │
+│   │   ├── shared/
+│   │   │   ├── components/
+│   │   │   ├── dialogs/
+│   │   │   └── ...
+│   │   │
+│   │   ├── app.component.scss
+│   │   ├── app.component.html
+│   │   ├── app.component.ts
+│   │   └── app.routes.ts
 │   │
-│   ├── pages/                # Feature modules/components for each page
-│   │   ├── landing-page/
-│   │   │   ├── landing.page.html
-│   │   │   ├── landing.page.scss
-│   │   │   └── landing.page.ts
-│   │   ├── search-application/
-│   │   └── search-by-date/
+│   ├── assets/
+│   │   └── ...
 │   │
-│   ├── shared/               # Shared components, directives, pipes, etc.
-│   │   ├── components/
-│   │   │   └── reservation-table/
-│   │   └── dialogs/
-│   │
-│   ├── app.component.ts
-│   ├── app.config.ts
-│   └── app.routes.ts
+│   └── environments/
+│       ├── environment.prod.ts
+│       └── environment.ts
 │
-├── assets/                 # Static assets like images, svgs, and fonts
-│   └── svgs/
-│
-├── environments/           # Environment-specific settings
-│   ├── environment.prod.ts
-│   └── environment.ts
-│
-├── styles/                 # Global styles, variables, and mixins
-│   ├── _variables.scss
-│   └── styles.scss
-│
-├── index.html
-└── main.ts
+├── .editorconfig
+├── .gitignore
+├── angular.json
+├── package.json
+├── README.md
+└── tsconfig.json
 
 
 ## Prerequisites
