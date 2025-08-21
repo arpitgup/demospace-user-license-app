@@ -253,7 +253,7 @@ export class SearchByDateComponent implements OnInit {
     if (!this.minSelectableDay || !this.maxSelectableDate) return false;
 
     const earliestHour = this.getMinStartHourForDate(date);
-    const latestStartHour = TIME_SLOT_END_HOUR - MIN_DURATION;
+    const latestStartHour = TIME_SLOT_END_HOUR;
 
     for (let h = earliestHour; h <= latestStartHour; h++) {
       const start = new Date(date);
@@ -564,7 +564,11 @@ export class SearchByDateComponent implements OnInit {
 
   onToggleGroupChange(event: { value: Application[] }): void {
     const next = event?.value ?? [];
-    this.selectedApps.set(next.length <= MAX_RESERVATION_APPLICATION ? [...next] : [...next].slice(0, 3));
+    this.selectedApps.set(
+      next.length <= MAX_RESERVATION_APPLICATION
+        ? [...next]
+        : [...next].slice(0, 3)
+    );
     this.cdr.markForCheck();
   }
 
@@ -685,7 +689,9 @@ export class SearchByDateComponent implements OnInit {
       const selStart = new Date(startDate);
       selStart.setHours(startHour, 0, 0, 0);
 
-      const selEnd = new Date(selStart.getTime() + duration * MILLISECONDS_PER_HOUR);
+      const selEnd = new Date(
+        selStart.getTime() + duration * MILLISECONDS_PER_HOUR
+      );
 
       if (selEnd <= selStart) errors['endBeforeOrEqualStart'] = true;
       if (this.overlapsAnyBlockedInterval(selStart, selEnd))
