@@ -477,35 +477,104 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     return slotsAvailableData;
   }
 
-  dateFilter = (date: Date | null): boolean => {
-    if (!date) {
-      return false;
-    }
-    const dayOnly = this.stripTime(date);
-    const now = new Date();
-    const nextDay = new Date();
-    nextDay.setDate(now.getDate() + 1);
+  dateFilter = (checkDate: Date | null): boolean => {
+    if (!checkDate) return false;
 
-    for (const slot of this.normalizedReservations) {
-      const blocStart = slot.start;
-      const blocEnd = new Date(
-        slot.end.getTime() + this.BLOC_HOUR_LIMIT * 60 * 60 * 1000
-      );
-      if (
-        this.isSameDay(nextDay, date) &&
-        this.isSameDay(nextDay, blocEnd) &&
-        this.nextHour > blocEnd.getHours() - 2
-      ) {
-        return false;
+    const now = new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+
+    const minGapHours = this.durations[0].value;
+
+    const dayStart = new Date(checkDate);
+    dayStart.setHours(0, 0, 0, 0);
+
+    const dayEnd = new Date(checkDate);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    if (checkDate.getTime() === tomorrow.getTime()) {
+      const minTomorrow = new Date(now);
+      minTomorrow.setDate(minTomorrow.getDate() + 1);
+      if (minTomorrow.getMinutes() > 0) {
+        minTomorrow.setHours(minTomorrow.getHours() + 1, 0, 0, 0);
+        if (minTomorrow.getHours() === 0) {
+          return false;
+        }
+      } else {
+        minTomorrow.setMinutes(0, 0, 0);
       }
-      if (
-        dayOnly > this.stripTime(blocStart) &&
-        dayOnly < this.stripTime(blocEnd)
-      ) {
-        return false;
+      dayStart.setHours(minTomorrow.getHours(), 0, 0, 0);
+    }
+
+    const slots = this.normalizedReservations.map((r) => ({
+      start: new Date(r.start),
+      end: new Date(r.end.getTime() + this.BLOC_HOUR_LIMIT * 60 * 60 * 1000),
+    }));
+
+    const dayReservations = slots
+      .filter((s) => !(s.end <= dayStart || s.start >= dayEnd))
+      .map((s) => ({
+        start: new Date(Math.max(s.start.getTime(), dayStart.getTime())),
+        end: new Date(Math.min(s.end.getTime(), dayEnd.getTime())),
+      }))
+      .sort((a, b) => a.start.getTime() - b.start.getTime());
+
+    if (dayReservations.length === 0) {
+      return true;
+    }
+
+    const normalize = (d: Date) => {
+      const copy = new Date(d);
+      copy.setSeconds(0, 0);
+      return copy;
+    };
+
+    if (
+      (normalize(dayReservations[0].start).getTime() -
+        normalize(dayStart).getTime()) /
+        36e5 >=
+      minGapHours
+    ) {
+      return true;
+    }
+    for (let i = 0; i < dayReservations.length - 1; i++) {
+      const gap =
+        (normalize(dayReservations[i + 1].start).getTime() -
+          normalize(dayReservations[i].end).getTime()) /
+        36e5;
+      if (gap >= minGapHours) return true;
+    }
+
+    const last = dayReservations[dayReservations.length - 1];
+
+    const nextDay = new Date(checkDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    nextDay.setHours(0, 0, 0, 0);
+
+    const nextDayReservations = slots
+      .filter((s) => s.start.toDateString() === nextDay.toDateString())
+      .sort((a, b) => a.start.getTime() - b.start.getTime());
+
+    if (nextDayReservations.length > 0) {
+      const firstNextDay = nextDayReservations[0];
+      const gap =
+        (normalize(firstNextDay.start).getTime() -
+          normalize(last.end).getTime()) /
+        36e5;
+      if (gap >= minGapHours) return true;
+    } else {
+      const gap =
+        (normalize(dayEnd).getTime() - normalize(last.end).getTime()) / 36e5;
+      if (gap >= 0.9) {
+        return true;
       }
     }
-    return true;
+
+    return false;
   };
 
   stripTime(date: Date): Date {
