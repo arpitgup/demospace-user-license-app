@@ -22,13 +22,13 @@ const mockBot1: BotWithApps = {
   id: 1,
   name: 'Automation Bot 01',
   email: 'bot1@example.com',
-  applications: [{ id: 1, name: 'App A', isEnabled: true, isSelected: false }],
+  applications: [{ id: 1, name: 'App A', isEnabled: true, isSelected: false,isActive:true }],
 };
 const mockBot2: BotWithApps = {
   id: 2,
   name: 'Data Entry Bot 02',
   email: 'bot2@example.com',
-  applications: [{ id: 2, name: 'App B', isEnabled: true, isSelected: false }],
+  applications: [{ id: 2, name: 'App B', isEnabled: true, isSelected: false,isActive:true }],
 };
 
 const mockReservations: Reservation[] = [
@@ -37,7 +37,7 @@ const mockReservations: Reservation[] = [
     userEmail: 'user1@example.com',
     bot: mockBot1,
     applications: [
-      { id: 1, name: 'App A', isEnabled: true, isSelected: false },
+      { id: 1, name: 'App A', isEnabled: true, isSelected: false,isActive:true },
     ],
     startTime: '2025-08-21T10:00:00Z',
     endTime: '2025-08-21T14:00:00Z',
@@ -48,7 +48,7 @@ const mockReservations: Reservation[] = [
     userEmail: 'user2@example.com',
     bot: mockBot2,
     applications: [
-      { id: 2, name: 'App B', isEnabled: true, isSelected: false },
+      { id: 2, name: 'App B', isEnabled: true, isSelected: false,isActive:true },
     ],
     startTime: '2025-09-01T22:00:00Z',
     endTime: '2025-09-02T02:00:00Z',
