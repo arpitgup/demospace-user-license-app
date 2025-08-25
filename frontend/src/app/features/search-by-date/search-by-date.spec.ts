@@ -188,7 +188,7 @@ describe('SearchByDateComponent', () => {
 
     it('should update state and show results on successful availability check', fakeAsync(() => {
       const applications: Application[] = [
-        { id: 1, name: 'App1', isEnabled: true, isSelected: false },
+        { id: 1, name: 'App1', isEnabled: true, isSelected: false,isActive:true  },
       ];
       const mockResponse: BotsAvailabilityResponse = {
         availableBots: [{ ...mockAvailableBots, applications }],
@@ -240,10 +240,10 @@ describe('SearchByDateComponent', () => {
 
   describe('Application Selection', () => {
     const mockApps: Application[] = [
-      { id: 1, name: 'App1', isEnabled: true, isSelected: false },
-      { id: 2, name: 'App2', isEnabled: true, isSelected: false },
-      { id: 3, name: 'App3', isEnabled: true, isSelected: false },
-      { id: 4, name: 'App4', isEnabled: true, isSelected: false },
+      { id: 1, name: 'App1', isEnabled: true, isSelected: false,isActive:true },
+      { id: 2, name: 'App2', isEnabled: true, isSelected: false,isActive:true },
+      { id: 3, name: 'App3', isEnabled: true, isSelected: false,isActive:true },
+      { id: 4, name: 'App4', isEnabled: true, isSelected: false,isActive:true },
     ];
 
     beforeEach(() => {

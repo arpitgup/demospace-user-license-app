@@ -1,5 +1,5 @@
 <div class="card-content">
-  <span class="title">Select Application & Date </span>
+  <h1 class="title">Select Application & Date</h1>
   @if(applications$ | async; as applications){
   <div class="cards-containers">
     <ng-container>
@@ -9,6 +9,7 @@
           <mat-form-field appearance="outline" class="custom-drop-down-field">
             <mat-label>Primary Application</mat-label>
             <mat-select
+              id="primary-application"
               class="custom-select"
               [formControlName]="PRIMARY_APPLICATION_FORM"
             >
@@ -27,6 +28,7 @@
           <mat-form-field appearance="outline" class="custom-date-field">
             <mat-label class="custom-label">Start Date</mat-label>
             <input
+              id="date-picker"
               matInput
               [matDatepicker]="datePicker"
               [matDatepickerFilter]="dateFilter"
@@ -44,6 +46,7 @@
           <mat-form-field appearance="outline" class="custom-time-drop-down">
             <mat-label>Start Time</mat-label>
             <mat-select
+              id="time-picker"
               class="custom-select"
               [formControlName]="START_TIME_FORM"
             >
@@ -63,6 +66,7 @@
           <mat-form-field appearance="outline" class="custom-drop-down-field">
             <mat-label class="custom-label">Select Duration</mat-label>
             <mat-select
+              id="duration-picker"
               class="custom-select"
               [formControlName]="SELECTED_DURATION_FORM"
             >
@@ -87,6 +91,7 @@
         <div class="check-availability">
           <button
             matButton
+            id="btn-check-availability"
             class="check-availability-button"
             (click)="checkAvailability()"
             [disabled]="
@@ -109,7 +114,7 @@
     </ng-container>
 
     @if(isCheckAvailabilityLoading===true){
-    <mat-card class="card">
+    <mat-card id="card-loader" class="card">
       <app-search-by-application-loader></app-search-by-application-loader>
     </mat-card>
 
@@ -253,6 +258,7 @@
       <div class="confirm-reservation">
         <button
           matButton
+          id="btn-confirm-reservation"
           class="confirm-reservation-button"
           (click)="showConfirmationDialog()"
         >
