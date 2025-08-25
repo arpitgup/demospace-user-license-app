@@ -193,12 +193,26 @@ export function generateHoursList(
       minute: '2-digit',
       hour12: true,
     });
-
-    const isDisabled = expandRanges.some(
-      (range) => d >= range.start && d < range.end
-    );
-    hours.push({ date: d, display, isDisabled });
+    if (isSameDay(d, nextDayDateTime)) {
+      const isDisabled = expandRanges.some(
+        (range) => d >= range.start && d < range.end
+      );
+      hours.push({ date: d, display, isDisabled });
+    } else {
+      const isDisabled = expandRanges.some(
+        (range) => d > range.start && d < range.end
+      );
+      hours.push({ date: d, display, isDisabled });
+    }
   }
   const timeSlots = hours.filter((item) => !item.isDisabled);
   return timeSlots;
+}
+
+function isSameDay(selectedDate: Date, endDate: Date): boolean {
+  return (
+    selectedDate.getDate() === endDate.getDate() &&
+    selectedDate.getMonth() === endDate.getMonth() &&
+    selectedDate.getFullYear() === endDate.getFullYear()
+  );
 }
