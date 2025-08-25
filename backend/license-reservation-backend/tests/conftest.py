@@ -120,6 +120,7 @@ def app(db_session):
             "rollingWindowHours": 1,
             "reservationLeadDays": 7,
             "unavailableReservationDays": 7,
+            "reservationCoolOffHours": 24,
         }
 
     with patch(

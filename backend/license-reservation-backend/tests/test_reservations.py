@@ -228,3 +228,37 @@ def test_cancel_reservations_made_by_another_user(test_client, db_session):
 
     assert response.status_code == 401
     assert "You cannot cancel a reservation made by others" in response.json()["detail"]
+
+
+def test_make_reservation_cool_off_period(test_client, db_session):
+    """Test creating a reservation within the cool-off period of a previous one."""
+    # Create a completed reservation for the user that ended 1 hour ago.
+    # The cool-off period is 24 hrs.
+    previous_end_time = datetime.now(UTC) - timedelta(hours=1)
+    previous_start_time = previous_end_time - timedelta(hours=2)
+
+    previous_reservation = Reservation(
+        user_email=TEST_USER,
+        bot_id=101,
+        start_time=previous_start_time,
+        end_time=previous_end_time,
+        status=ReservationStatus.COMPLETED,
+    )
+    db_session.add(previous_reservation)
+    db_session.commit()
+
+    # Now, attempt to create a new reservation starting in 1 hour from now.
+    # This should fall within a typical cool-off period.
+    new_start_time = datetime.now(UTC) + timedelta(hours=1)
+    new_end_time = new_start_time + timedelta(hours=2)
+
+    request_data = {
+        "primaryApplicationId": 1,  # Jira
+        "secondaryApplicationIds": [],
+        "startTime": new_start_time.isoformat(),
+        "endTime": new_end_time.isoformat(),
+    }
+    response = test_client.post("/reservations", json=request_data)
+
+    assert response.status_code == 409
+    assert "hours after your previous reservation ends" in response.json()["detail"]

@@ -41,7 +41,7 @@ def test_get_availability_partial_availability(test_client, seed_data, db_sessio
     # Create a reservation for BotA for Slack
     slack_app = next(app for app in seed_data["apps"] if app.name == "Slack")
     reservation = Reservation(
-        user_email=TEST_USER,
+        user_email="another-user@example.com",
         bot_id=101,
         start_time=start,
         end_time=end,
@@ -81,7 +81,7 @@ def test_get_availability_suggests_next_slots(test_client, seed_data, db_session
     # Create a reservation for BotA for Jira (the requested app)
     jira_app = next(app for app in seed_data["apps"] if app.name == "Jira")
     reservation = Reservation(
-        user_email=TEST_USER,
+        user_email="another-user@example.com",
         bot_id=101,
         start_time=start,
         end_time=end,
@@ -145,7 +145,9 @@ def test_get_availability_by_date_v2_no_conflicts(test_client):
     assert len(bot_b_info["applications"]) == 2  # BotB supports 2 apps
 
 
-def test_get_availability_by_date_v2_partial_conflict(test_client, seed_data, db_session):
+def test_get_availability_by_date_v2_partial_conflict(
+    test_client, seed_data, db_session
+):
     """Test availability when one bot is partially busy."""
     start_time = datetime.now(UTC) + timedelta(days=2)
     end_time = start_time + timedelta(hours=2)
@@ -153,7 +155,7 @@ def test_get_availability_by_date_v2_partial_conflict(test_client, seed_data, db
     # Create a reservation for BotA for Slack
     slack_app = next(app for app in seed_data["apps"] if app.name == "Slack")
     reservation = Reservation(
-        user_email=TEST_USER,
+        user_email="another-user@example.com",
         bot_id=101,  # BotA
         start_time=start_time,
         end_time=end_time,
@@ -198,7 +200,7 @@ def test_get_availability_by_date_v2_full_conflict(test_client, seed_data, db_se
         next(app for app in seed_data["apps"] if app.name == "Salesforce"),
     ]
     reservation = Reservation(
-        user_email=TEST_USER,
+        user_email="another-user@example.com",
         bot_id=101,  # BotA
         start_time=start_time,
         end_time=end_time,
@@ -230,18 +232,22 @@ def test_get_availability_by_date_v2_no_bots_available(test_client, db_session):
 
     # First, reserve all apps for BotA
     res1 = Reservation(
-        user_email=TEST_USER, bot_id=101, start_time=start_time, end_time=end_time
+        user_email="another-user@example.com",
+        bot_id=101,
+        start_time=start_time,
+        end_time=end_time,
     )
     res1.applications.extend(
-        db_session.query(Application)
-        .filter(Application.id.in_([1, 2, 3]))
-        .all()
+        db_session.query(Application).filter(Application.id.in_([1, 2, 3])).all()
     )
     db_session.add(res1)
 
     # Then, reserve all apps for BotB
     res2 = Reservation(
-        user_email=TEST_USER, bot_id=102, start_time=start_time, end_time=end_time
+        user_email="another-user@example.com",
+        bot_id=102,
+        start_time=start_time,
+        end_time=end_time,
     )
     res2.applications.extend(
         db_session.query(Application).filter(Application.id.in_([3, 4])).all()
@@ -278,9 +284,7 @@ def test_get_availability_by_application_inactive_app_404(test_client, db_sessio
     assert "not found or is not active" in response.json()["detail"]
 
 
-def test_get_availability_by_application_filters_inactive_apps(
-    test_client, db_session
-):
+def test_get_availability_by_application_filters_inactive_apps(test_client, db_session):
     """Test that the response for a bot doesn't include its other inactive supported apps."""
     # Deactivate Slack, which BotA also supports
     slack_app = db_session.query(Application).filter(Application.name == "Slack").one()
@@ -344,3 +348,82 @@ def test_get_availability_by_date_v2_filters_inactive_apps(test_client, db_sessi
     # BotB should be unaffected
     bot_b_info = next(bot for bot in available_bots if bot["name"] == "BotB")
     assert len(bot_b_info["applications"]) == 2
+
+
+def test_get_availability_by_date_filters_inactive_apps(test_client, db_session):
+    """Test that the response for available apps doesn't include inactive ones."""
+    # Deactivate Slack
+    slack_app = db_session.query(Application).filter(Application.name == "Slack").one()
+    slack_app.is_active = False
+    db_session.commit()
+
+    request_data = {
+        "startTime": (datetime.now(UTC) + timedelta(days=1)).isoformat(),
+        "endTime": (datetime.now(UTC) + timedelta(days=1, hours=2)).isoformat(),
+    }
+    response = test_client.post("/availability/by-date", json=request_data)
+
+    assert response.status_code == 200
+    data = response.json()
+    # All apps except Slack should be available
+    assert len(data["applications"]) == 3
+    app_names = {app["name"] for app in data["applications"]}
+    assert "Slack" not in app_names
+
+
+def test_get_availability_by_date_v2_cool_off_period(test_client, db_session):
+    """Test that the v2 availability endpoint respects the cool-off period."""
+    # Create a recent reservation for the user
+    previous_end_time = datetime.now(UTC) - timedelta(hours=1)
+    previous_start_time = previous_end_time - timedelta(hours=2)
+    previous_reservation = Reservation(
+        user_email=TEST_USER,
+        bot_id=101,
+        start_time=previous_start_time,
+        end_time=previous_end_time,
+        status=ReservationStatus.COMPLETED,
+    )
+    db_session.add(previous_reservation)
+    db_session.commit()
+
+    # Request availability for a time that falls within the cool-off period
+    start_time = datetime.now(UTC) + timedelta(hours=1)
+    end_time = start_time + timedelta(hours=2)
+    request_data = {
+        "startTime": start_time.isoformat(),
+        "endTime": end_time.isoformat(),
+    }
+    response = test_client.post("/availability/by-date/v2", json=request_data)
+
+    assert response.status_code == 409
+    assert "hours after your previous reservation ends" in response.json()["detail"]
+
+
+def test_get_availability_by_application_cool_off_period(test_client, db_session):
+    """Test that the by-application availability endpoint respects the cool-off period."""
+    # Create a recent reservation for the user
+    previous_end_time = datetime.now(UTC) - timedelta(hours=1)
+    previous_start_time = previous_end_time - timedelta(hours=2)
+    previous_reservation = Reservation(
+        user_email=TEST_USER,
+        bot_id=101,
+        start_time=previous_start_time,
+        end_time=previous_end_time,
+        status=ReservationStatus.COMPLETED,
+    )
+    db_session.add(previous_reservation)
+    db_session.commit()
+
+    # Request availability for a time that falls within the cool-off period
+    start_time = datetime.now(UTC) + timedelta(hours=1)
+    request_data = {
+        "applicationId": 1,  # Jira
+        "startTime": start_time.isoformat(),
+        "durationHours": 2,
+    }
+    response = test_client.post("/availability/by-application", json=request_data)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["requestedSlotAvailable"] is False
+    assert len(data["nextAvailableSlots"]) == 0

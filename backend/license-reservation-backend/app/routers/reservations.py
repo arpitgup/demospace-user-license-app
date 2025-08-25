@@ -1,6 +1,6 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status
 from loguru import logger
-from shared_lib.dependencies import get_user_email, get_db
+from shared_lib.dependencies import get_user_email, get_db, get_app_config
 from typing import List
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
@@ -14,6 +14,7 @@ from shared_lib.db.models import (
 )
 from datetime import timezone
 
+from ..common.constants import RESERVATION_COOL_OFF_HOURS
 from ..common.schemas import (
     CreateReservationRequest,
     ReservationOut,
@@ -22,6 +23,7 @@ from ..utils.background_tasks import (
     schedule_reservation_tasks,
     delete_reservation_tasks,
 )
+from ..utils.crud import is_user_in_cool_off
 
 
 router = APIRouter()
@@ -50,11 +52,19 @@ def make_reservation(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     user_email: str = Depends(get_user_email),
+    app_config: dict = Depends(get_app_config),
 ):
     """
     Creates a single reservation if a single bot can serve all requested applications
     for the specified time range.
     """
+    if is_user_in_cool_off(
+        user_email, req.start_time, app_config[RESERVATION_COOL_OFF_HOURS], db
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"You can only make a new reservation {app_config[RESERVATION_COOL_OFF_HOURS]} hours after your previous reservation ends.",
+        )
     all_app_ids = [req.primary_application_id] + req.secondary_application_ids
     unique_app_ids = list(set(all_app_ids))
 

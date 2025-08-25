@@ -1,6 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends
-from datetime import datetime, timedelta
-from typing import List
+from fastapi import APIRouter, HTTPException, Depends, status
+from datetime import timedelta
 from sqlalchemy.orm import Session, joinedload
 from shared_lib.db.models import (
     Application,
@@ -9,15 +8,17 @@ from shared_lib.db.models import (
     Reservation,
     ReservationStatus,
 )
-from shared_lib.dependencies import get_db, get_app_config
+from shared_lib.dependencies import get_db, get_app_config, get_user_email
+
+from ..utils.crud import is_user_in_cool_off
 
 from ..common.constants import (
     ROLLING_WINDOW_HOURS,
     RESERVATION_LEAD_DAYS,
     MAX_SLOTS_TO_FIND,
+    RESERVATION_COOL_OFF_HOURS,
 )
 from ..common.schemas import (
-    ApplicationOut,
     AvailableBotInfo,
     AvailabilitySlot,
     AvailabilityByApplicationRequest,
@@ -88,12 +89,22 @@ def get_availability_by_date(
 
 @router.post("/availability/by-date/v2", response_model=AvailabilityByDateV2Response)
 def get_availability_by_date_v2(
-    req: AvailabilityByDateRequest, db: Session = Depends(get_db)
+    req: AvailabilityByDateRequest,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+    app_config: dict = Depends(get_app_config),
 ):
     """
     For a given time range, find all bots that have at least one available application.
     The response contains these bots, along with the applications they can serve in that timeframe.
     """
+    if is_user_in_cool_off(
+        user_email, req.start_time, app_config[RESERVATION_COOL_OFF_HOURS], db
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"You can only make a new reservation {app_config[RESERVATION_COOL_OFF_HOURS]} hours after your previous reservation ends.",
+        )
     all_bots = (
         db.query(Bot)
         .options(
@@ -132,6 +143,7 @@ def get_availability_by_application(
     req: AvailabilityByApplicationRequest,
     db: Session = Depends(get_db),
     app_config=Depends(get_app_config),
+    user_email: str = Depends(get_user_email),
 ):
     """
     Finds available bots and the applications they can serve for a given application and time.
@@ -139,9 +151,7 @@ def get_availability_by_application(
     """
     # Check if the requested application is active
     application = (
-        db.query(Application)
-        .filter(Application.id == req.application_id)
-        .one_or_none()
+        db.query(Application).filter(Application.id == req.application_id).one_or_none()
     )
     if not application or not application.is_active:
         raise HTTPException(
@@ -164,6 +174,18 @@ def get_availability_by_application(
         )
 
     req_end_time = req.start_time + timedelta(hours=req.duration_hours)
+
+    # Cool-off check for requested slot
+    if is_user_in_cool_off(
+        user_email,
+        req.start_time,
+        app_config[RESERVATION_COOL_OFF_HOURS],
+        db,
+    ):
+        return AvailabilityByApplicationResponse(
+            requested_slot_available=False,
+            next_available_slots=[],
+        )
 
     # Check availability for the requested time slot
     available_bots_in_req_slot = []
@@ -217,6 +239,16 @@ def get_availability_by_application(
 
         if potential_end > max_end_time:
             break
+
+        # Cool-off check for each next slot
+        if is_user_in_cool_off(
+            user_email,
+            potential_start,
+            app_config[RESERVATION_COOL_OFF_HOURS],
+            db,
+        ):
+            search_start_time += timedelta(hours=rolling_window_hours)
+            continue
 
         available_bots_in_potential_slot = []
         for bot in supporting_bots:

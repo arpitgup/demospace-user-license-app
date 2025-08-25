@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from sqlalchemy.orm import Session, selectinload, Query, joinedload
 from shared_lib.db.models import (
     Application,
@@ -79,7 +79,9 @@ def get_bot_availability_in_slot(
     all_supported_apps = [ba.application for ba in bot.supported_applications]
     all_supported_app_ids = {
         # Check for active applications only
-        app.id for app in all_supported_apps if app.is_active == True
+        app.id
+        for app in all_supported_apps
+        if app.is_active == True
     }
 
     # Find applications this bot is busy with during the slot
@@ -107,3 +109,45 @@ def get_bot_availability_in_slot(
     available_apps = [app for app in all_supported_apps if app.id in available_app_ids]
 
     return available_apps
+
+
+def is_user_in_cool_off(
+    user_email: str, req_start_time: datetime, cool_off_period_hours: int, db: Session
+) -> bool:
+    cool_off_window_start = req_start_time - timedelta(hours=cool_off_period_hours)
+    # Any reservation that ends after cool_off_window_start and before req_start_time
+    conflicting_reservation = (
+        db.query(Reservation)
+        .filter(
+            Reservation.user_email == user_email,
+            Reservation.status.in_(
+                [
+                    ReservationStatus.PENDING,
+                    ReservationStatus.ACTIVE,
+                    ReservationStatus.COMPLETED,
+                ]
+            ),
+            Reservation.end_time > cool_off_window_start,
+            Reservation.end_time <= req_start_time,
+        )
+        .first()
+    )
+    # Any pending/active reservation that overlaps with the cool-off window
+    future_conflict = (
+        db.query(Reservation)
+        .filter(
+            Reservation.user_email == user_email,
+            Reservation.status.in_(
+                [
+                    ReservationStatus.PENDING,
+                    ReservationStatus.ACTIVE,
+                ]
+            ),
+            Reservation.start_time
+            < req_start_time + timedelta(hours=cool_off_period_hours),
+            Reservation.end_time
+            > req_start_time - timedelta(hours=cool_off_period_hours),
+        )
+        .first()
+    )
+    return bool(conflicting_reservation or future_conflict)
