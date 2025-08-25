@@ -193,7 +193,7 @@ export function generateHoursList(
       minute: '2-digit',
       hour12: true,
     });
-    if (isSameDay(d, nextDayDateTime)) {
+    if (isSameDay(d, nextDayDateTime) && d.getHours()===0) {
       const isDisabled = expandRanges.some(
         (range) => d >= range.start && d < range.end
       );
