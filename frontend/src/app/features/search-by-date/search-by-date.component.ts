@@ -61,6 +61,7 @@ import {
   MAX_RESERVATION_APPLICATION,
   DEFAULT_START_DATE_TIME,
   MILLISECONDS_PER_HOUR,
+  MIN_LEAD_COOLDOWN_HOURS,
 } from './search-by-date.constants';
 
 import {
@@ -436,7 +437,7 @@ export class SearchByDateComponent implements OnInit {
 
   private getMinSelectableDateTime(now: Date): Date {
     const leadTimeDays = this.appConfigSignal()?.rollingWindowHours || 1;
-    const leadTimeHours = leadTimeDays * 24;
+    const leadTimeHours = leadTimeDays * MIN_LEAD_COOLDOWN_HOURS;
     return new Date(now.getTime() + leadTimeHours * MILLISECONDS_PER_HOUR);
   }
 

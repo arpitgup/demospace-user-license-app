@@ -5,6 +5,7 @@
 export interface Application {
   id: number;
   name: string;
+  isActive:boolean;
   isSelected: boolean;
   isEnabled: boolean;
 }

@@ -5,13 +5,14 @@
   flex-direction: column;
   padding-left: 2.8rem;
   padding-right: 2.8rem;
-  .title {
+  h1 {
     color: var(--Black, #161a1d);
     font-family: Roboto;
     font-size: 1.875rem;
     font-style: normal;
     font-weight: 500;
     line-height: 3rem; /* 160% */
+    padding: 0;
     margin-bottom: 2.69rem;
   }
 

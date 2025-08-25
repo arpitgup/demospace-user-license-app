@@ -28,7 +28,7 @@ export function onApplicationSelected(
   application: Application,
   secondaryApplications: Application[],
   selectedTimeSlot: NextAvailableSlots,
-  maxApplicationSelection:number
+  maxApplicationSelection: number
 ): Application[] {
   if (
     ((application.isSelected ?? false) === false &&
@@ -47,7 +47,8 @@ export function onApplicationSelected(
     );
   }
   if (
-    secondaryApplications.filter((item) => item.isSelected === true).length >= maxApplicationSelection
+    secondaryApplications.filter((item) => item.isSelected === true).length >=
+    maxApplicationSelection
   ) {
     return secondaryApplications.map((item) => ({
       ...item,
@@ -169,12 +170,13 @@ export function generateHoursList(
   nextDayDateTime: Date
 ): TimeSlot[] {
   const hours: TimeSlot[] = [];
-
   const expandRanges = disabledRanges.map((r) => ({
     start: new Date(r.start.getTime() - initialDuration * 60 * 60 * 1000),
     end: new Date(r.end.getTime() + blockTimePeriod * 60 * 60 * 1000),
   }));
-  expandRanges.push({ start: new Date(), end: nextDayDateTime });
+  const startDateTime = new Date();
+  startDateTime.setHours(0, 0, 0, 0);
+  expandRanges.push({ start: startDateTime, end: nextDayDateTime });
   for (let i = 0; i < 24; i++) {
     const d = new Date(
       day.getFullYear(),
@@ -193,7 +195,7 @@ export function generateHoursList(
     });
 
     const isDisabled = expandRanges.some(
-      (range) => d > range.start && d < range.end
+      (range) => d >= range.start && d < range.end
     );
     hours.push({ date: d, display, isDisabled });
   }
