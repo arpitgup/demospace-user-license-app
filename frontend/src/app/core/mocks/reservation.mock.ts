@@ -4,6 +4,7 @@ import { AppConfig } from '../models/appConfig.model';
 import { signal } from '@angular/core';
 import { Application } from '../models/application.model';
 import { AvalaibilityByApplication } from '../models/availabilityByApplication.model';
+import { MakeReservationResponse } from '../models/makeReservationResponse.model';
 
 export const MOCK_RESERVATIONS: Reservation[] = [
   {
@@ -297,6 +298,7 @@ export const mockReservationService = {
   application$: () => of(application$),
   checkAvailabilityByApplication: () =>
     of({} as AvalaibilityByApplication).pipe(delay(2000)),
+  callMakeReservation: () => of({} as MakeReservationResponse),
 };
 
 export const mockMatDialog = {
@@ -531,3 +533,24 @@ export const mockCheckAvailaibilityByApplication: AvalaibilityByApplication = {
     },
   ],
 };
+
+export const makeReservationMock: MakeReservationResponse = {};
+// {
+//   id: 176,
+//   userEmail: 'jagtars@1987984870407.altostrat.com',
+//   bot: {
+//     id: 1,
+//     name: 'demo.user1',
+//     email: 'demo.user1@1987984870407.altostrat.com',
+//   },
+//   applications: [
+//     {
+//       id: 4,
+//       name: 'Box',
+//       isActive: true,
+//     },
+//   ],
+//   startTime: '2025-08-29T08:00:00Z',
+//   endTime: '2025-08-30T08:00:00Z',
+//   status: 'PENDING',
+// };

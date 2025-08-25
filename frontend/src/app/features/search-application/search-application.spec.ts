@@ -10,16 +10,16 @@ import { ChangeDetectorRef, WritableSignal } from '@angular/core';
 import { ReservationService } from '../../core/services/reservation.service';
 import {
   application$,
+  makeReservationMock,
   MOCK_RESERVATIONS,
   mockAppConfig,
   mockApplication,
   mockCheckAvailaibilityByApplication,
-  mockMatDialog,
   mockReservationService,
   mockSearchApplicationReservation,
 } from '../../core/mocks/reservation.mock';
-import { MatDialog } from '@angular/material/dialog';
-import { BehaviorSubject, max, Observable, of } from 'rxjs';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { BehaviorSubject, max, Observable, of, Subject } from 'rxjs';
 import { Application } from '../../core/models/application.model';
 import { By } from '@angular/platform-browser';
 import { AppConfig } from '../../core/models/appConfig.model';
@@ -38,6 +38,7 @@ import { Reservation } from '../../core/models/reservation.model';
 import { MAX_CALENDAR_DAYS } from '../search-by-date/search-by-date.constants';
 import { AvalaibilityByApplication } from '../../core/models/availabilityByApplication.model';
 import { ConfirmationDialog } from '../../shared/dialogs/confirmation-dialog/confirmation-dialog';
+import { OverlayContainer } from '@angular/cdk/overlay';
 
 describe('SearchApplicationComponent', () => {
   let component: SearchApplicationComponent;
@@ -45,6 +46,7 @@ describe('SearchApplicationComponent', () => {
   let reservationService: ReservationService;
   let compiled: HTMLElement;
   const todayDate = new Date();
+  let overlayElement: HTMLElement;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -75,6 +77,7 @@ describe('SearchApplicationComponent', () => {
     fixture = TestBed.createComponent(SearchApplicationComponent);
     component = fixture.componentInstance;
     compiled = fixture.nativeElement as HTMLElement;
+    overlayElement = TestBed.inject(OverlayContainer).getContainerElement();
     reservationService = TestBed.inject(ReservationService);
     fixture.detectChanges();
     (reservationService.appConfigData as WritableSignal<AppConfig | null>).set(
@@ -284,18 +287,44 @@ describe('SearchApplicationComponent', () => {
         '#btn-confirm-reservation'
       );
       btnConfirmReservation.click();
-      // expect(mockMatDialog.open()).toHaveBeenCalledWith(
-      //   ConfirmationDialog,
-      //   expect.objectContaining({
-      //     data: {
-      //       title: 'Are You Sure ?',
-      //       message: 'Do you want to confirm the booking for',
-      //       licenseTitle: 'The requested license(s) will be available on',
-      //       confirmText: 'Confirm',
-      //       cancelText: 'Cancel',
-      //     },
-      //   })
-      // );
+      // jest
+      //   .spyOn(reservationService, 'callMakeReservation')
+      //   .mockReturnValue(of(makeReservationMock));
+      // const confirmSpy = jest.spyOn(component, 'callMakeReservation');
+      // const mockDialogRef = {
+      //   afterClosed: () => jest.fn().mockReturnValue(of(true)),
+      // };
+      // mockMatDialog.open.mockReturnValue(mockDialogRef as any);
+      expect(mockMatDialog.open).toHaveBeenCalledWith(ConfirmationDialog, {
+        data: {
+          applications: 'Box, Sharepoint?',
+          cancelText: 'Cancel',
+          confirmText: 'Confirm',
+          endDateTime: '2025-09-01T10:00:00Z',
+          licenseTitle: 'The requested license(s) will be available on',
+          message: 'Do you want to confirm the booking for',
+          startDateTime: '2025-09-01T08:00:00Z',
+          title: 'Are You Sure ?',
+        },
+        disableClose: true,
+        maxHeight: 'none',
+        maxWidth: 'none',
+        minHeight: 'none',
+        minWidth: 'none',
+        width: 'auto',
+      });
+      // fixture.detectChanges();
+      // const confirmBtn=overlayElement.querySelector('#btn-confirm') as HTMLElement;
+      //  expect(confirmBtn).toBeTruthy();
+      // expect(mockDialogRef.afterClosed).toHaveBeenCalled();
+      // expect(confirmSpy).toHaveBeenCalled();
+      // fixture.detectChanges();
+      // expect(mockMatDialog.open).toHaveBeenCalled();
+      component.callMakeReservation();
     }));
   });
 });
+
+const mockMatDialog = {
+  open: jest.fn(),
+};

@@ -136,19 +136,31 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.minDate = new Date(this.today);
-    this.minDate.setDate(this.today.getDate() + 1);
+    if (this.today.getHours() + 2 >= 24) {
+      this.minDate.setDate(this.today.getDate() + 1);
+    } else {
+      const minDateTime=this.minDate;
+      minDateTime.setHours(this.today.getHours() + 2, 0, 0, 0);
+      this.minDate=new Date(this.today.getTime()+2*60*60*1000);
+    }
+
+    // if (this.minDate.getMinutes() > 0) {
+    //   this.minDate.setHours(this.minDate.getHours() + 1, 0, 0, 0);
+    // } else {
+    //   this.minDate.setMinutes(0, 0, 0);
+    // }
+    // this.minDate.setHours(this.today.getHours() + 2);
     this.maxDate = new Date(this.today);
     this.maxDate.setDate(this.today.getDate() + this.MAX_CALENDAR_DAYS);
-    this.nextHour = (this.today.getHours() + 1) % 24;
-    const nextDate = new Date(this.today);
-    nextDate.setHours(0, 0, 0);
+    this.nextHour = (this.minDate.getHours() + 1) % 24;
+    // const nextDate = new Date(this.today);
+    // nextDate.setHours(0, 0, 0);
     this.hoursList = generateHoursList(
       new Date(),
       [],
       this.BLOC_HOUR_LIMIT,
       this.durations[0].value,
-      nextDate
+      this.minDate
     );
     this.applications$ = this.reservationService.applications$;
 
@@ -386,15 +398,16 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
           ...item,
           isDisabled: false,
         }));
-        const tomorrowDate = new Date(this.today);
-        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-        tomorrowDate.setHours(this.nextHour, 0, 0, 0);
+        // const tomorrowDate = new Date(this.today);
+        // tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+        const minDateTime = new Date(this.minDate);
+        minDateTime.setHours(this.nextHour, 0, 0, 0);
         this.hoursList = generateHoursList(
           startDateTime,
           this.normalizedReservations,
           this.BLOC_HOUR_LIMIT,
           this.durations[0].value,
-          tomorrowDate
+          minDateTime
         );
         if (this.hoursList.length > 0) {
           const displayTimeSlot = this.hoursList.find(
@@ -480,13 +493,13 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   dateFilter = (checkDate: Date | null): boolean => {
     if (!checkDate) return false;
 
-    const now = new Date();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // const now = new Date();
+    // const today = new Date();
+    // today.setHours(0, 0, 0, 0);
 
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
+    // const tomorrow = new Date(today);
+    // tomorrow.setDate(today.getDate() + 1);
+    // tomorrow.setHours(0, 0, 0, 0);
 
     const minGapHours = this.durations[0].value;
 
@@ -496,18 +509,32 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     const dayEnd = new Date(checkDate);
     dayEnd.setHours(23, 59, 59, 999);
 
-    if (checkDate.getTime() === tomorrow.getTime()) {
-      const minTomorrow = new Date(now);
-      minTomorrow.setDate(minTomorrow.getDate() + 1);
-      if (minTomorrow.getMinutes() > 0) {
-        minTomorrow.setHours(minTomorrow.getHours() + 1, 0, 0, 0);
-        if (minTomorrow.getHours() === 0) {
+    // if (checkDate.getTime() === min.getTime()) {
+    //   const minTomorrow = new Date(now);
+    //   minTomorrow.setDate(minTomorrow.getDate() + 1);
+    //   if (minTomorrow.getMinutes() > 0) {
+    //     minTomorrow.setHours(minTomorrow.getHours() + 1, 0, 0, 0);
+    //     if (minTomorrow.getHours() === 0) {
+    //       return false;
+    //     }
+    //   } else {
+    //     minTomorrow.setMinutes(0, 0, 0);
+    //   }
+    //   dayStart.setHours(minTomorrow.getHours(), 0, 0, 0);
+    // }
+
+    if (this.isSameDay(checkDate, this.minDate)) {
+      const minDateTime = new Date(this.minDate);
+      // minTomorrow.setDate(minTomorrow.getDate() + 1);
+      if (minDateTime.getMinutes() > 0) {
+        minDateTime.setHours(minDateTime.getHours() + 1, 0, 0, 0);
+        if (minDateTime.getHours() === 0) {
           return false;
         }
       } else {
-        minTomorrow.setMinutes(0, 0, 0);
+        minDateTime.setMinutes(0, 0, 0);
       }
-      dayStart.setHours(minTomorrow.getHours(), 0, 0, 0);
+      dayStart.setHours(minDateTime.getHours(), 0, 0, 0);
     }
 
     const slots = this.normalizedReservations.map((r) => ({
