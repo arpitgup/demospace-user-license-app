@@ -12,3 +12,4 @@ export const MAX_CALENDAR_DAYS = 30;
 export const MAX_RESERVATION_APPLICATION = 3;
 export const DEFAULT_START_DATE_TIME = 8;
 export const MILLISECONDS_PER_HOUR = 3600_000;
+export const MIN_LEAD_COOLDOWN_HOURS = 2;
