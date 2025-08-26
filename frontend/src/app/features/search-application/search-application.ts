@@ -113,12 +113,12 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   readonly today = new Date();
 
   durations = [
-    { value: 2, viewValue: '2 Hours', isDisabled: false },
-    { value: 4, viewValue: '4 Hours', isDisabled: false },
-    { value: 8, viewValue: '8 Hours', isDisabled: false },
-    { value: 12, viewValue: '12 Hours', isDisabled: false },
-    { value: 24, viewValue: '24 Hours', isDisabled: false },
-    { value: 48, viewValue: '48 Hours', isDisabled: false },
+    { value: 2, viewValue: '2 Hours', isDisabled: false, endTime: '' },
+    { value: 4, viewValue: '4 Hours', isDisabled: false, endTime: '' },
+    { value: 8, viewValue: '8 Hours', isDisabled: false, endTime: '' },
+    { value: 12, viewValue: '12 Hours', isDisabled: false, endTime: '' },
+    { value: 24, viewValue: '24 Hours', isDisabled: false, endTime: '' },
+    { value: 48, viewValue: '48 Hours', isDisabled: false, endTime: '' },
   ];
 
   private readonly reservationsSig = this.reservationService;
@@ -126,8 +126,14 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   applicationForm: FormGroup = this.fb.group({
     [this.PRIMARY_APPLICATION_FORM]: ['', Validators.required],
     [this.START_DATE_FORM]: ['', Validators.required],
-    [this.START_TIME_FORM]: ['', Validators.required],
-    [this.SELECTED_DURATION_FORM]: ['', [Validators.required]],
+    [this.START_TIME_FORM]: [
+      { value: '', disabled: true },
+      Validators.required,
+    ],
+    [this.SELECTED_DURATION_FORM]: [
+      { value: '', disabled: true },
+      [Validators.required],
+    ],
   });
 
   constructor() {
@@ -139,22 +145,13 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     if (this.today.getHours() + 2 >= 24) {
       this.minDate.setDate(this.today.getDate() + 1);
     } else {
-      const minDateTime=this.minDate;
+      const minDateTime = this.minDate;
       minDateTime.setHours(this.today.getHours() + 2, 0, 0, 0);
-      this.minDate=new Date(this.today.getTime()+2*60*60*1000);
+      this.minDate = new Date(this.today.getTime() + 2 * 60 * 60 * 1000);
     }
-
-    // if (this.minDate.getMinutes() > 0) {
-    //   this.minDate.setHours(this.minDate.getHours() + 1, 0, 0, 0);
-    // } else {
-    //   this.minDate.setMinutes(0, 0, 0);
-    // }
-    // this.minDate.setHours(this.today.getHours() + 2);
     this.maxDate = new Date(this.today);
     this.maxDate.setDate(this.today.getDate() + this.MAX_CALENDAR_DAYS);
     this.nextHour = (this.minDate.getHours() + 1) % 24;
-    // const nextDate = new Date(this.today);
-    // nextDate.setHours(0, 0, 0);
     this.hoursList = generateHoursList(
       new Date(),
       [],
@@ -170,6 +167,9 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
 
     this.listenDateChanges();
     this.listenTimeChanges();
+    const minDateTime = new Date(this.minDate);
+    minDateTime.setHours(this.nextHour, 0, 0, 0);
+    this.setDurationEndTime(minDateTime);
   }
 
   listenReservationChanges() {
@@ -393,13 +393,16 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     this.applicationForm
       .get(this.START_DATE_FORM)
       ?.valueChanges.subscribe((newValue) => {
+        if (newValue) {
+          this.applicationForm
+            ?.get(this.START_TIME_FORM)
+            ?.enable({ emitEvent: false });
+        }
         let startDateTime = new Date(newValue as Date);
         this.durations = this.durations.map((item) => ({
           ...item,
           isDisabled: false,
         }));
-        // const tomorrowDate = new Date(this.today);
-        // tomorrowDate.setDate(tomorrowDate.getDate() + 1);
         const minDateTime = new Date(this.minDate);
         minDateTime.setHours(this.nextHour, 0, 0, 0);
         this.hoursList = generateHoursList(
@@ -443,7 +446,9 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
         if (newValue === null) {
           return;
         }
-
+        this.applicationForm
+          ?.get(this.SELECTED_DURATION_FORM)
+          ?.enable({ emitEvent: false });
         const slotSart = new Date(newValue);
 
         for (let i = 0; i < this.durations.length; i++) {
@@ -458,7 +463,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
           );
           this.durations[i].isDisabled = isDisabled;
         }
-
+        this.setDurationEndTime(slotSart);
         this.applicationForm
           ?.get(this.SELECTED_DURATION_FORM)
           ?.patchValue(null);
@@ -604,8 +609,19 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     return false;
   };
 
-  stripTime(date: Date): Date {
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  setDurationEndTime(minDateTime: Date) {
+    this.durations = this.durations.map((item) => {
+      const newDate = new Date(
+        minDateTime.getTime() + item.value * 60 * 60 * 1000
+      );
+      newDate.setMinutes(0);
+      const endDateTime = newDate.toLocaleTimeString([], {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      });
+      return { ...item, endTime: endDateTime };
+    });
   }
 
   showConfirmationDialog() {
