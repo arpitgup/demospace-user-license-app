@@ -11,7 +11,6 @@ import { ReservationService } from '../../core/services/reservation.service';
 import {
   application$,
   makeReservationMock,
-  MOCK_RESERVATIONS,
   mockAppConfig,
   mockApplication,
   mockCheckAvailaibilityByApplication,
@@ -21,11 +20,7 @@ import {
 import {
   MatDialog,
   MatDialogModule,
-  MatDialogRef,
 } from '@angular/material/dialog';
-import { BehaviorSubject, max, Observable, of, Subject } from 'rxjs';
-import { Application } from '../../core/models/application.model';
-import { By } from '@angular/platform-browser';
 import { AppConfig } from '../../core/models/appConfig.model';
 import { SearchByApplicationLoader } from '../../loaders/search-by-application-loader/search-by-application-loader';
 import { AsyncPipe, DatePipe } from '@angular/common';
@@ -39,11 +34,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { Reservation } from '../../core/models/reservation.model';
-import { MAX_CALENDAR_DAYS } from '../search-by-date/search-by-date.constants';
 import { AvalaibilityByApplication } from '../../core/models/availabilityByApplication.model';
 import { ConfirmationDialog } from '../../shared/dialogs/confirmation-dialog/confirmation-dialog';
-import { OverlayContainer } from '@angular/cdk/overlay';
 import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
+import { of } from 'rxjs';
 
 describe('SearchApplicationComponent', () => {
   let component: SearchApplicationComponent;
@@ -51,10 +45,6 @@ describe('SearchApplicationComponent', () => {
   let reservationService: ReservationService;
   let compiled: HTMLElement;
   const todayDate = new Date();
-  let overlayContainer: OverlayContainer;
-  let overlayContainerElement: HTMLElement;
-  let dialog: MatDialog;
-
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
@@ -85,7 +75,6 @@ describe('SearchApplicationComponent', () => {
 
     fixture = TestBed.createComponent(SearchApplicationComponent);
     component = fixture.componentInstance;
-    dialog = TestBed.inject(MatDialog);
     compiled = fixture.nativeElement as HTMLElement;
     reservationService = TestBed.inject(ReservationService);
     fixture.detectChanges();
@@ -277,7 +266,7 @@ describe('SearchApplicationComponent', () => {
       expect(cardLoader).toBeTruthy();
     });
 
-    it('Check Availabili Api', fakeAsync(() => {
+    it('Check Availability Api', fakeAsync(() => {
       const spySaveData = jest.spyOn(component, 'callMakeReservation');
       mockDialogRef.afterClosed.mockReturnValue(of(true));
       jest
