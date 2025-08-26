@@ -5,4 +5,5 @@ export interface AppConfig {
   reservationLeadDays: number;
   unavailableReservationDays: number;
   maxSlotsToFind: number;
+  reservationCoolOffHours:number;
 }

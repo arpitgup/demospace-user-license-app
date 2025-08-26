@@ -51,6 +51,7 @@ import {
 } from '../../../utilities/utils';
 import { TimeSlot } from '../../../utilities/interfaces/time_slot';
 import { NormalizedReservation } from '../../../utilities/interfaces/normalized_reservation';
+import { DEFAULT_START_DATE_TIME, MIN_LEAD_COOLDOWN_HOURS } from '../search-by-date/search-by-date.constants';
 
 @Component({
   selector: 'app-search-application',
@@ -142,13 +143,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    if (this.today.getHours() + 2 >= 24) {
-      this.minDate.setDate(this.today.getDate() + 1);
-    } else {
-      const minDateTime = this.minDate;
-      minDateTime.setHours(this.today.getHours() + 2, 0, 0, 0);
-      this.minDate = new Date(this.today.getTime() + 2 * 60 * 60 * 1000);
-    }
+    this.minDate = new Date(this.today.getTime() + MIN_LEAD_COOLDOWN_HOURS * 60 * 60 * 1000); 
     this.maxDate = new Date(this.today);
     this.maxDate.setDate(this.today.getDate() + this.MAX_CALENDAR_DAYS);
     this.nextHour = (this.minDate.getHours() + 1) % 24;
@@ -192,7 +187,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   listenAppConfig() {
     effect(() => {
       const appConfig = this.reservationsSig.appConfigData();
-      this.BLOC_HOUR_LIMIT = appConfig?.rollingWindowHours || 48;
+      this.BLOC_HOUR_LIMIT = appConfig?.reservationCoolOffHours || 1;
       this.MAX_CALENDAR_DAYS = appConfig?.maxCalendarDays || 30;
       this.MAX_APPLICATION_SELECTION =
         appConfig?.maxReservationApplications || 3;
@@ -414,18 +409,18 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
         );
         if (this.hoursList.length > 0) {
           const displayTimeSlot = this.hoursList.find(
-            (item) => item.date.getHours() === 8
+            (item) => item.date.getHours() === DEFAULT_START_DATE_TIME
           );
           const beforeDisplayTimeSlot = [...this.hoursList]
             .reverse()
-            .find((item) => item.date.getHours() < 8);
+            .find((item) => item.date.getHours() < DEFAULT_START_DATE_TIME);
           const afterTimeSlot = this.hoursList.find(
-            (item) => item.date.getHours() > 8
+            (item) => item.date.getHours() > DEFAULT_START_DATE_TIME
           );
-          if (this.isSameDay(newValue, this.minDate)) {
-            startDateTime = this.hoursList[0].date;
-          } else if (displayTimeSlot) {
+          if (displayTimeSlot) {
             startDateTime = displayTimeSlot.date;
+          } else if (this.isSameDay(newValue, this.minDate)) {
+            startDateTime = this.hoursList[0].date;
           } else if (beforeDisplayTimeSlot) {
             startDateTime = beforeDisplayTimeSlot.date;
           } else if (afterTimeSlot) {
