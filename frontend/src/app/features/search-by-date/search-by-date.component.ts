@@ -51,9 +51,7 @@ import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
 import {
   TIME_SLOT_START_HOUR,
   TIME_SLOT_END_HOUR,
-  END_SLOT_INCREMENT,
   MIN_DURATION,
-  MAX_DURATION,
   SELF_COOLDOWN_HOURS,
   HIDE_CONFLICTING_END_SLOTS,
   SERVER_TIME_MODE,
@@ -114,6 +112,7 @@ export class SearchByDateComponent implements OnInit {
   @ViewChild(FormGroupDirective) private formDir?: FormGroupDirective;
 
   readonly HIDE_CONFLICTING_END_SLOTS = HIDE_CONFLICTING_END_SLOTS;
+  private readonly FIXED_END_DURATIONS: number[] = [2, 4, 8, 12, 24, 48];
 
   dailyAvailability = signal<DailyAvailabilityMap>({});
 
@@ -184,7 +183,7 @@ export class SearchByDateComponent implements OnInit {
     this.userReservations = filtered as Reservation[];
 
     const cooldownMs =
-      (this.appConfigSignal()?.rollingWindowHours || SELF_COOLDOWN_HOURS) *
+      (this.appConfigSignal()?.reservationCoolOffHours || SELF_COOLDOWN_HOURS) *
       MILLISECONDS_PER_HOUR;
     this.blockedIntervals = filtered.map((r) => {
       const start = normalizeServerTime(r.startTime, SERVER_TIME_MODE);
@@ -352,10 +351,11 @@ export class SearchByDateComponent implements OnInit {
 
     let hasValid = false;
 
-    for (let d = MIN_DURATION; d <= MAX_DURATION; d += END_SLOT_INCREMENT) {
+    for (const d of this.FIXED_END_DURATIONS) {
       const end = new Date(start.getTime() + d * MILLISECONDS_PER_HOUR);
       const endHour = end.getHours();
-      const label = `${formatTime12h(endHour)} (${d} hrs)`;
+      const endHourFormatted = formatTime12h(endHour);
+      const label = `${endHourFormatted} (${d} hrs)`;
 
       const conflicts = this.overlapsAnyBlockedInterval(start, end);
       newEndTimeSlots.push(label);
@@ -436,7 +436,7 @@ export class SearchByDateComponent implements OnInit {
   }
 
   private getMinSelectableDateTime(now: Date): Date {
-    const leadTimeDays = this.appConfigSignal()?.rollingWindowHours || 1;
+    const leadTimeDays = this.appConfigSignal()?.reservationCoolOffHours || 1;
     const leadTimeHours = leadTimeDays * MIN_LEAD_COOLDOWN_HOURS;
     return new Date(now.getTime() + leadTimeHours * MILLISECONDS_PER_HOUR);
   }
@@ -454,7 +454,7 @@ export class SearchByDateComponent implements OnInit {
   }
 
   private hasAtLeastOneEndOptionFrom(start: Date): boolean {
-    for (let d = MIN_DURATION; d <= MAX_DURATION; d += END_SLOT_INCREMENT) {
+    for (const d of this.FIXED_END_DURATIONS) {
       const end = new Date(start.getTime() + d * MILLISECONDS_PER_HOUR);
       if (!this.overlapsAnyBlockedInterval(start, end)) return true;
     }

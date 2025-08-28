@@ -17,18 +17,35 @@ import { ReservationApiStatus } from '../../../features/landing/landing.enums';
 import { ConfirmationDialog } from '../../dialogs/confirmation-dialog/confirmation-dialog';
 import { By } from '@angular/platform-browser';
 import { MatPaginator } from '@angular/material/paginator';
+import { TimezoneAbbrPipe } from '../../pipes/timezone-abbr.pipe';
 
 const mockBot1: BotWithApps = {
   id: 1,
   name: 'Automation Bot 01',
   email: 'bot1@example.com',
-  applications: [{ id: 1, name: 'App A', isEnabled: true, isSelected: false,isActive:true }],
+  applications: [
+    {
+      id: 1,
+      name: 'App A',
+      isEnabled: true,
+      isSelected: false,
+      isActive: true,
+    },
+  ],
 };
 const mockBot2: BotWithApps = {
   id: 2,
   name: 'Data Entry Bot 02',
   email: 'bot2@example.com',
-  applications: [{ id: 2, name: 'App B', isEnabled: true, isSelected: false,isActive:true }],
+  applications: [
+    {
+      id: 2,
+      name: 'App B',
+      isEnabled: true,
+      isSelected: false,
+      isActive: true,
+    },
+  ],
 };
 
 const mockReservations: Reservation[] = [
@@ -37,7 +54,13 @@ const mockReservations: Reservation[] = [
     userEmail: 'user1@example.com',
     bot: mockBot1,
     applications: [
-      { id: 1, name: 'App A', isEnabled: true, isSelected: false,isActive:true },
+      {
+        id: 1,
+        name: 'App A',
+        isEnabled: true,
+        isSelected: false,
+        isActive: true,
+      },
     ],
     startTime: '2025-08-21T10:00:00Z',
     endTime: '2025-08-21T14:00:00Z',
@@ -48,7 +71,13 @@ const mockReservations: Reservation[] = [
     userEmail: 'user2@example.com',
     bot: mockBot2,
     applications: [
-      { id: 2, name: 'App B', isEnabled: true, isSelected: false,isActive:true },
+      {
+        id: 2,
+        name: 'App B',
+        isEnabled: true,
+        isSelected: false,
+        isActive: true,
+      },
     ],
     startTime: '2025-09-01T22:00:00Z',
     endTime: '2025-09-02T02:00:00Z',
@@ -57,17 +86,25 @@ const mockReservations: Reservation[] = [
 ];
 
 const mockMatDialog = {
-  open: jest.fn(),
+  open: jasmine.createSpy('open'),
 };
 
 describe('ReservationTableComponent', () => {
   let component: ReservationTableComponent;
   let fixture: ComponentFixture<ReservationTableComponent>;
+  let mockTimezoneAbbrPipe: { transform: jasmine.Spy };
 
   beforeEach(async () => {
+    mockTimezoneAbbrPipe = {
+      transform: jasmine.createSpy('transform').and.returnValue('IST'),
+    };
+
     await TestBed.configureTestingModule({
       imports: [ReservationTableComponent],
-      providers: [{ provide: MatDialog, useValue: mockMatDialog }],
+      providers: [
+        { provide: MatDialog, useValue: mockMatDialog },
+        { provide: TimezoneAbbrPipe, useValue: mockTimezoneAbbrPipe },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ReservationTableComponent);
@@ -122,7 +159,7 @@ describe('ReservationTableComponent', () => {
 
     it('should call paginator firstPage method when data changes', () => {
       const mockPaginator: Partial<MatPaginator> = {
-        firstPage: jest.fn(),
+        firstPage: jasmine.createSpy('firstPage'),
       };
       component.dataSource.paginator = mockPaginator as MatPaginator;
 
@@ -138,14 +175,14 @@ describe('ReservationTableComponent', () => {
   describe('Utility Functions', () => {
     it('formatDateRange should format a range on the same day correctly', () => {
       const { startTime, endTime } = mockReservations[0];
-      const expected = 'August 21, 2025 at 10:00 AM – 2:00 PM';
+      const expected = 'August 21, 2025, 10:00 AM – 2:00 PM IST';
       expect(component.formatDateRange(startTime, endTime)).toMatch(expected);
     });
 
     it('formatDateRange should format a range spanning different days correctly', () => {
       const { startTime, endTime } = mockReservations[1];
       const expected =
-        'September 1, 2025 at 10:00 PM – September 2, 2025 at 2:00 AM';
+        'September 1, 2025 at 10:00 PM IST – September 2, 2025 at 2:00 AM IST';
       expect(component.formatDateRange(startTime, endTime)).toMatch(expected);
     });
 
@@ -167,7 +204,7 @@ describe('ReservationTableComponent', () => {
 
     it('showConfirmationDialog should open a dialog with correct data', () => {
       const reservation = mockReservations[0];
-      mockMatDialog.open.mockReturnValue({
+      mockMatDialog.open.and.returnValue({
         afterClosed: () => of(false),
       } as MatDialogRef<typeof ConfirmationDialog>);
 
@@ -188,8 +225,8 @@ describe('ReservationTableComponent', () => {
 
     it('should emit cancelReservation when confirmation dialog result is true', fakeAsync(() => {
       const reservation = mockReservations[0];
-      const cancelSpy = jest.spyOn(component.cancelReservation, 'emit');
-      mockMatDialog.open.mockReturnValue({
+      const cancelSpy = spyOn(component.cancelReservation, 'emit');
+      mockMatDialog.open.and.returnValue({
         afterClosed: () => of(true),
       } as MatDialogRef<typeof ConfirmationDialog>);
 
@@ -201,8 +238,8 @@ describe('ReservationTableComponent', () => {
 
     it('should NOT emit cancelReservation when confirmation dialog result is false', fakeAsync(() => {
       const reservation = mockReservations[0];
-      const cancelSpy = jest.spyOn(component.cancelReservation, 'emit');
-      mockMatDialog.open.mockReturnValue({
+      const cancelSpy = spyOn(component.cancelReservation, 'emit');
+      mockMatDialog.open.and.returnValue({
         afterClosed: () => of(false),
       } as MatDialogRef<typeof ConfirmationDialog>);
 
