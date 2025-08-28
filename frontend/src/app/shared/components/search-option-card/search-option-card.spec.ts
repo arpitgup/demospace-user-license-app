@@ -6,7 +6,6 @@ import { SearchType } from '../../../features/landing/landing.enums';
 describe('SearchOptionCard', () => {
   let component: SearchOptionCardComponent;
   let fixture: ComponentFixture<SearchOptionCardComponent>;
-  let compiled: HTMLElement;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -16,7 +15,6 @@ describe('SearchOptionCard', () => {
 
     fixture = TestBed.createComponent(SearchOptionCardComponent);
     component = fixture.componentInstance;
-    compiled = fixture.nativeElement as HTMLElement;
     fixture.detectChanges();
   });
 

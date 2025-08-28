@@ -322,7 +322,7 @@ export const mockAppConfig: AppConfig = {
   reservationLeadDays: 7,
   unavailableReservationDays: 7,
   maxSlotsToFind: 3,
-  reservationCoolOffHours: 1,
+  reservationCoolOffHours:1,
 };
 
 export const mockAvailableBots: BotWithApps = {
@@ -536,23 +536,23 @@ export const mockCheckAvailaibilityByApplication: AvalaibilityByApplication = {
   ],
 };
 
-export const makeReservationMock: MakeReservationResponse = {};
-// {
-//   id: 176,
-//   userEmail: 'jagtars@1987984870407.altostrat.com',
-//   bot: {
-//     id: 1,
-//     name: 'demo.user1',
-//     email: 'demo.user1@1987984870407.altostrat.com',
-//   },
-//   applications: [
-//     {
-//       id: 4,
-//       name: 'Box',
-//       isActive: true,
-//     },
-//   ],
-//   startTime: '2025-08-29T08:00:00Z',
-//   endTime: '2025-08-30T08:00:00Z',
-//   status: 'PENDING',
-// };
+export const makeReservationMock: MakeReservationResponse = {
+  id: 176,
+  userEmail: 'jagtars@1987984870407.altostrat.com',
+  bot: {
+    id: 1,
+    name: 'demo.user1',
+    email: 'demo.user1@1987984870407.altostrat.com',
+  },
+  applications: [
+    {
+      id: 4,
+      name: 'Box',
+      isActive: true,
+      isSelected: false,
+      isEnabled: true,
+    },
+  ],
+  startTime: '2025-08-29T08:00:00Z',
+  endTime: '2025-08-30T08:00:00Z',
+};

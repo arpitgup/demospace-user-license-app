@@ -1,5 +1,9 @@
 import { Application } from '../app/core/models/application.model';
 import { NextAvailableSlots } from '../app/core/models/availabilityByApplication.model';
+import {
+  TIME_SLOT_END_HOUR,
+  TIME_SLOT_START_HOUR,
+} from '../app/features/search-by-date/search-by-date.constants';
 import { NormalizedReservation } from './interfaces/normalized_reservation';
 import { TimeSlot } from './interfaces/time_slot';
 
@@ -193,7 +197,7 @@ export function generateHoursList(
       minute: '2-digit',
       hour12: true,
     });
-    if (isSameDay(d, nextDayDateTime) && d.getHours()===0) {
+    if (isSameDay(d, nextDayDateTime) && d.getHours() === 0) {
       const isDisabled = expandRanges.some(
         (range) => d >= range.start && d < range.end
       );
@@ -205,7 +209,12 @@ export function generateHoursList(
       hours.push({ date: d, display, isDisabled });
     }
   }
-  const timeSlots = hours.filter((item) => !item.isDisabled);
+  const timeSlots = hours.filter(
+    (item) =>
+      !item.isDisabled &&
+      item.date.getHours() >= TIME_SLOT_START_HOUR &&
+      item.date.getHours() <= TIME_SLOT_END_HOUR
+  );
   return timeSlots;
 }
 
