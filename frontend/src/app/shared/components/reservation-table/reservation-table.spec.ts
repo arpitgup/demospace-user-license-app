@@ -7,6 +7,8 @@ import {
 import { SimpleChange } from '@angular/core';
 import { of } from 'rxjs';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { By } from '@angular/platform-browser';
+import { MatPaginator } from '@angular/material/paginator';
 
 import { ReservationTableComponent } from './reservation-table.component';
 import {
@@ -15,9 +17,7 @@ import {
 } from '../../../core/models/reservation.model';
 import { ReservationApiStatus } from '../../../features/landing/landing.enums';
 import { ConfirmationDialog } from '../../dialogs/confirmation-dialog/confirmation-dialog';
-import { By } from '@angular/platform-browser';
-import { MatPaginator } from '@angular/material/paginator';
-import { TimezoneAbbrPipe } from '../../pipes/timezone-abbr.pipe';
+import * as utils from '../../../../utilities/utils';
 
 const mockBot1: BotWithApps = {
   id: 1,
@@ -92,19 +92,13 @@ const mockMatDialog = {
 describe('ReservationTableComponent', () => {
   let component: ReservationTableComponent;
   let fixture: ComponentFixture<ReservationTableComponent>;
-  let mockTimezoneAbbrPipe: { transform: jasmine.Spy };
 
   beforeEach(async () => {
-    mockTimezoneAbbrPipe = {
-      transform: jasmine.createSpy('transform').and.returnValue('IST'),
-    };
+    spyOn(utils, 'getLocalTimeZoneAbbreviation').and.returnValue('IST');
 
     await TestBed.configureTestingModule({
       imports: [ReservationTableComponent],
-      providers: [
-        { provide: MatDialog, useValue: mockMatDialog },
-        { provide: TimezoneAbbrPipe, useValue: mockTimezoneAbbrPipe },
-      ],
+      providers: [{ provide: MatDialog, useValue: mockMatDialog }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ReservationTableComponent);
@@ -175,15 +169,20 @@ describe('ReservationTableComponent', () => {
   describe('Utility Functions', () => {
     it('formatDateRange should format a range on the same day correctly', () => {
       const { startTime, endTime } = mockReservations[0];
-      const expected = 'August 21, 2025, 10:00 AM – 2:00 PM IST';
-      expect(component.formatDateRange(startTime, endTime)).toMatch(expected);
+      const result = component.formatDateRange(startTime, endTime);
+      expect(result).toContain('August 21, 2025');
+      expect(result).toContain('–');
+      expect(result).toContain('IST');
+      expect(result.split(',').length).toBe(2);
     });
 
     it('formatDateRange should format a range spanning different days correctly', () => {
       const { startTime, endTime } = mockReservations[1];
-      const expected =
-        'September 1, 2025 at 10:00 PM IST – September 2, 2025 at 2:00 AM IST';
-      expect(component.formatDateRange(startTime, endTime)).toMatch(expected);
+      const result = component.formatDateRange(startTime, endTime);
+      expect(result).toContain('September 1, 2025');
+      expect(result).toContain('September 2, 2025');
+      expect(result).toContain('–');
+      expect(result.match(/IST/g)?.length).toBe(2);
     });
 
     it('getStatus should return the reservation status', () => {

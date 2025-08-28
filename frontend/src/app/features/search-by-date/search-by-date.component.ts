@@ -12,7 +12,7 @@ import {
   signal,
   computed,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import {
   ReactiveFormsModule,
   FormBuilder,
@@ -24,7 +24,10 @@ import {
 } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
+import {
+  MatNativeDateModule,
+  provideNativeDateAdapter,
+} from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -71,7 +74,7 @@ import {
   intervalsOverlap,
   normalizeServerTime,
 } from './search-by-date.utils';
-import { TimezoneAbbrPipe } from '../../shared/pipes/timezone-abbr.pipe';
+import { getLocalTimeZoneAbbreviation } from '../../../utilities/utils';
 
 type DailyAvailabilityMap = { [date: string]: number };
 type BlockedInterval = { start: Date; end: Date };
@@ -93,13 +96,12 @@ type BlockedInterval = { start: Date; end: Date };
     MatButtonToggleModule,
     MatProgressSpinnerModule,
     SearchByApplicationLoader,
-    TimezoneAbbrPipe,
   ],
   templateUrl: './search-by-date.component.html',
   styleUrls: ['./search-by-date.component.scss'],
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [{ provide: MAT_DATE_LOCALE, useValue: 'en-GB' }],
+  providers: [provideNativeDateAdapter()],
 })
 export class SearchByDateComponent implements OnInit {
   private readonly reservationService = inject(ReservationService);
@@ -171,6 +173,30 @@ export class SearchByDateComponent implements OnInit {
     return this.selectedApps()
       .map((a) => a.name)
       .join(', ');
+  });
+
+  formattedAvailableDate = computed<string>(() => {
+    const date = this.availableDate();
+    if (!date) return '';
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const timeZoneAbbr = getLocalTimeZoneAbbreviation(date, userTimeZone);
+    const formattedDate = new DatePipe('en-US').transform(
+      date,
+      "MMMM dd, yyyy 'at' hh:mm a"
+    );
+    return `${formattedDate}, ${timeZoneAbbr}`;
+  });
+
+  formattedRevokeDate = computed<string>(() => {
+    const date = this.revokeDate();
+    if (!date) return '';
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const timeZoneAbbr = getLocalTimeZoneAbbreviation(date, userTimeZone);
+    const formattedDate = new DatePipe('en-US').transform(
+      date,
+      "MMMM dd, yyyy 'at' hh:mm a"
+    );
+    return `${formattedDate}, ${timeZoneAbbr}`;
   });
 
   private readonly syncFromReservations = effect(() => {

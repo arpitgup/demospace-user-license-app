@@ -63,41 +63,6 @@
         line-height: 1rem;
       }
 
-      .calendar-info-details {
-        display: flex;
-        margin-top: 2.63rem;
-        gap: 2.12rem;
-        flex-wrap: wrap;
-
-        .calendar-info-item {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-
-          .calendar-color {
-            width: 1.75rem;
-            height: 1.625rem;
-            flex-shrink: 0;
-          }
-
-          .available {
-            border: 1px solid $color-gray;
-          }
-
-          .not-available {
-            background: $color-disabled-bg;
-          }
-
-          .calendar-info-text {
-            color: rgba($color-black, 0.7);
-            font-family: $font-family-roboto;
-            font-size: 0.875rem;
-            font-weight: 400;
-            line-height: 1.25rem;
-          }
-        }
-      }
-
       .date-time-container {
         margin-top: 3.56rem;
 
@@ -147,7 +112,7 @@
     .actions-container {
       display: flex;
       justify-content: center;
-      margin-top: 7rem;
+      margin-top: 11.5rem;
 
       .check-availability-button {
         min-width: 13.1625rem;

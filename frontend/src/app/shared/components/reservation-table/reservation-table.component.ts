@@ -24,7 +24,7 @@ import { ReservationApiStatus } from '../../../features/landing/landing.enums';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialog } from '../../dialogs/confirmation-dialog/confirmation-dialog';
 import { ReservationTableLoader } from '../../../loaders/reservation-table-loader/reservation-table-loader';
-import { TimezoneAbbrPipe } from '../../pipes/timezone-abbr.pipe';
+import { getLocalTimeZoneAbbreviation } from '../../../../utilities/utils';
 
 @Component({
   selector: 'app-reservation-table',
@@ -48,7 +48,6 @@ export class ReservationTableComponent implements AfterViewInit, OnChanges {
   public readonly pageSizeOptions: number[] = [5];
   public readonly reservationStatus = ReservationApiStatus;
   private confirmationDialog = inject(MatDialog);
-  private timezoneAbbrPipe = new TimezoneAbbrPipe();
 
   displayedColumns: string[] = ['date', 'applications', 'status', 'action'];
   dataSource = new MatTableDataSource<Reservation>([]);
@@ -104,7 +103,8 @@ export class ReservationTableComponent implements AfterViewInit, OnChanges {
   formatDateRange(start: string, end: string): string {
     const startDate = new Date(start);
     const endDate = new Date(end);
-    const timeZoneAbbr = this.timezoneAbbrPipe.transform(startDate);
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const timeZoneAbbr = getLocalTimeZoneAbbreviation(startDate, userTimeZone);
 
     const isSameDay =
       startDate.getUTCFullYear() === endDate.getUTCFullYear() &&
