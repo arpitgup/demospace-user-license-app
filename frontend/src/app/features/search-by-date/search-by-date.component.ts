@@ -183,7 +183,7 @@ export class SearchByDateComponent implements OnInit {
     this.userReservations = filtered as Reservation[];
 
     const cooldownMs =
-      (this.appConfigSignal()?.rollingWindowHours || SELF_COOLDOWN_HOURS) *
+      (this.appConfigSignal()?.reservationCoolOffHours || SELF_COOLDOWN_HOURS) *
       MILLISECONDS_PER_HOUR;
     this.blockedIntervals = filtered.map((r) => {
       const start = normalizeServerTime(r.startTime, SERVER_TIME_MODE);
@@ -436,7 +436,7 @@ export class SearchByDateComponent implements OnInit {
   }
 
   private getMinSelectableDateTime(now: Date): Date {
-    const leadTimeDays = this.appConfigSignal()?.rollingWindowHours || 1;
+    const leadTimeDays = this.appConfigSignal()?.reservationCoolOffHours || 1;
     const leadTimeHours = leadTimeDays * MIN_LEAD_COOLDOWN_HOURS;
     return new Date(now.getTime() + leadTimeHours * MILLISECONDS_PER_HOUR);
   }

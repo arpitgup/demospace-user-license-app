@@ -25,8 +25,8 @@ describe('ReservationService', () => {
   const apiUrl = environment.apiUrl;
 
   const mockApplications: Application[] = [
-    { id: 1, name: 'App 1', isEnabled: true, isSelected: false },
-    { id: 2, name: 'App 2', isEnabled: true, isSelected: false },
+    { id: 1, name: 'App 1', isEnabled: true, isSelected: false, isActive: true },
+    { id: 2, name: 'App 2', isEnabled: true, isSelected: false, isActive: false },
   ];
 
   const mockReservations: Reservation[] = [
@@ -57,6 +57,7 @@ describe('ReservationService', () => {
     reservationLeadDays: 1,
     unavailableReservationDays: 0,
     maxSlotsToFind: 5,
+    reservationCoolOffHours: 1,
   };
 
   beforeEach(() => {

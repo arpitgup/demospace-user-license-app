@@ -292,6 +292,7 @@ export const mockReservationService = {
       rollingWindowHours: 1,
       maxCalendarDays: 30,
       maxReservationApplications: 3,
+      reservationCoolOffHours: 1,
     }),
   checkBotsAvailabilityByDate: () => of({ availableBots: [] }),
   createReservation: () => of({} as Reservation),
@@ -321,6 +322,7 @@ export const mockAppConfig: AppConfig = {
   reservationLeadDays: 7,
   unavailableReservationDays: 7,
   maxSlotsToFind: 3,
+  reservationCoolOffHours: 1,
 };
 
 export const mockAvailableBots: BotWithApps = {
