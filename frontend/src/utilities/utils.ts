@@ -154,16 +154,36 @@ export function getLocalTimeZoneAbbreviation(
   date: Date,
   timeZone: string
 ): string {
-  if (TIMEZONE_ABBREVIATIONS[timeZone]) {
-    return TIMEZONE_ABBREVIATIONS[timeZone];
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      timeZoneName: 'short',
+    });
+    const parts = formatter.formatToParts(date);
+    const tz = parts.find((p) => p.type === 'timeZoneName')?.value;
+    return tz?.includes('GMT')
+      ? `${TIMEZONE_ABBREVIATIONS[timeZone]} (${getGMTOffset(date, timeZone)})`
+      : `${tz ?? TIMEZONE_ABBREVIATIONS[timeZone]} (${getGMTOffset(
+          date,
+          timeZone
+        )})`;
+  } catch  {
+    return getGMTOffset(date, timeZone);
   }
+}
 
-  const formatter = new Intl.DateTimeFormat('en-US', {
+export function getGMTOffset(date: Date, timeZone: string): string {
+  const options: Intl.DateTimeFormatOptions = {
     timeZone,
-    timeZoneName: 'short',
-  });
+    hour12: false,
+    timeZoneName: 'longOffset',
+  };
+  const formatter = new Intl.DateTimeFormat('en-US', options);
   const parts = formatter.formatToParts(date);
-  return parts.find((p) => p.type === 'timeZoneName')?.value || timeZone;
+  return (
+    parts.find((p) => p.type === 'timeZoneName')?.value ||
+    TIMEZONE_ABBREVIATIONS[timeZone]
+  );
 }
 
 export function generateHoursList(
