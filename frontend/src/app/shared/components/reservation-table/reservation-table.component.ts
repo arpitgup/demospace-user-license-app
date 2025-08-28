@@ -39,7 +39,6 @@ import { TimezoneAbbrPipe } from '../../pipes/timezone-abbr.pipe';
     MatButtonModule,
     MatPaginatorModule,
     ReservationTableLoader,
-    TimezoneAbbrPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -55,7 +54,11 @@ export class ReservationTableComponent implements AfterViewInit, OnChanges {
   dataSource = new MatTableDataSource<Reservation>([]);
   public isLoading = signal(true);
 
-  @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild(MatSort) set sort(sort: MatSort) {
+  if (sort) {
+    this.dataSource.sort = sort;
+  }
+}
   @ViewChild(MatPaginator) set paginator(value: MatPaginator) {
     if (value) {
       this.dataSource.paginator = value;
@@ -66,13 +69,12 @@ export class ReservationTableComponent implements AfterViewInit, OnChanges {
   @Input() data: Reservation[] | null = [];
 
   ngAfterViewInit() {
-    this.dataSource.sort = this.sort;
     this.dataSource.sortingDataAccessor = (item, property) => {
       switch (property) {
         case 'date':
           return new Date(item.startTime).getTime();
         case 'status':
-          return this.getStatus(item);
+          return item.status;
         default:
           const value = item[property as keyof Reservation];
           return typeof value === 'string' || typeof value === 'number'
