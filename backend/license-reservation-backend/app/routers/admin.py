@@ -13,6 +13,7 @@ from shared_lib.db.models import (
 )
 from shared_lib.dependencies import get_user_email, get_db
 from typing import List
+from shared_lib.enums import DowntimeStatus
 
 from ..common.schemas import (
     ApplicationWithLicenseGroupOut,
