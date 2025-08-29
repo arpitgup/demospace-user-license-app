@@ -9,6 +9,7 @@ from shared_lib.db.models import (
     BotApplication,
     Reservation,
     ReservationStatus,
+    ApplicationDowntime
 )
 from shared_lib.dependencies import get_user_email, get_db
 from typing import List
@@ -24,6 +25,7 @@ from ..common.schemas import (
     UpdateBotApplicationsRequest,
     UpdateApplicationStatusRequest,
     BotsUpsertRequest,
+    ApplicationDowntimeRequest
 )
 from ..utils.background_tasks import (
     delete_reservation_tasks,
@@ -363,3 +365,52 @@ def upsert_bots(request: BotsUpsertRequest, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=500, detail="An internal server error occurred."
         )
+
+@router.post(
+    "/application_downtime", status_code=status.HTTP_201_CREATED
+)
+def create_application_downtime(
+    req: ApplicationDowntimeRequest,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+):
+    """
+    Records downtime for a list of applications.
+    """
+    logger.info(
+        f"Admin User {user_email}: Creating downtime entry for applications: {req.applications}"
+    )
+
+    app_ids = req.applications
+    
+    # Validate that all requested application IDs exist
+    existing_apps_count = db.query(Application).filter(Application.id.in_(app_ids)).count()
+    if existing_apps_count != len(app_ids):
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND, detail="One or more applications not found."
+        )
+
+    try:
+        # Iterate directly over the list of integers
+        for app_id in req.applications:
+            application_downtime = ApplicationDowntime(
+                application_id=app_id,
+                downtime_start=req.downtime_start,
+                downtime_end=req.downtime_end,
+                downtime_reason=req.downtime_reason,
+                created_by=user_email,
+                status=DowntimeStatus.PENDING,
+            )
+            db.add(application_downtime)
+
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"An unexpected error occurred during application downtime creation: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred during application downtime creation.",
+        )
+    return {"message": "Downtime entries created successfully."}
+
+

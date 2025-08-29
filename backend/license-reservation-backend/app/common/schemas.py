@@ -193,3 +193,11 @@ class UserInfo(CamelModel):
     given_name: str
     family_name: str
     full_name: str
+
+class ApplicationDowntimeRequest(CamelModel):
+    applications: List[int]
+    downtime_start: datetime
+    downtime_end: datetime
+    downtime_reason: str
+
+    _convert_to_utc = field_validator("downtime_start", "downtime_end")(convert_to_utc)
