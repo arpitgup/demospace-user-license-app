@@ -11,7 +11,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.dialects.postgresql import ENUM as PGEnum
-from ..enums import ReservationStatus, ApplicationLicenseType
+from ..enums import ReservationStatus, ApplicationLicenseType, DowntimeStatus
+
 
 
 Base = declarative_base()
@@ -127,3 +128,20 @@ class Reservation(Base):
         back_populates="reservations",
         lazy="joined",
     )
+
+class ApplicationDowntime(Base):
+    __tablename__ = "application_downtime"
+    id = Column(Integer, primary_key=True)
+    application_id = Column(Integer, ForeignKey("applications.id"))
+    downtime_start = Column(DateTime(timezone=True), nullable=False)
+    downtime_end = Column(DateTime(timezone=True), nullable=False)
+    downtime_reason = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc), nullable=False)
+    created_by = Column(String, nullable=False)
+    status = Column(
+        PGEnum(DowntimeStatus), default=DowntimeStatus.PENDING, index=True
+    )
+    start_task_id = Column(String, nullable=True)
+    end_task_id = Column(String, nullable=True)
+
+    application = relationship("Application")
