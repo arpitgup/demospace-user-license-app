@@ -3,11 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from shared_lib import admin_service
 from shared_lib.dependencies import get_db
-from shared_lib.db.models import ReservationStatus, Reservation
+from shared_lib.db.models import ReservationStatus, Reservation, DowntimeStatus, ApplicationDowntime
 from sqlalchemy.orm import Session
 
-from .schemas import DeprovisionLicensesRequest, ProvisionLicensesRequest
-from .utils import provision_app_licenses, deprovision_app_licenses
+from .schemas import DeprovisionLicensesRequest, ProvisionLicensesRequest, DowntimeEventRequest
+from .utils import provision_app_licenses, deprovision_app_licenses, activate_applications, deactivate_applications
 
 
 app = FastAPI(
@@ -73,3 +73,58 @@ def deprovision_licenses(
     db.refresh(reservation)
     logger.info(f"Licenses deprovisioned for reservation {reservation.id}.")
     return reservation
+
+@app.post("/admin/downtime/start")
+def start_downtime(req: DowntimeEventRequest, db: Session = Depends(get_db)):
+    """Updates the status of an application downtime to ACTIVE and deactivates the application."""
+    downtime_entry = (
+        db.query(ApplicationDowntime).filter(ApplicationDowntime.id == req.downtime_id).first()
+    )
+    if not downtime_entry:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Downtime entry {req.downtime_id} not found.",
+        )
+    if downtime_entry.status != DowntimeStatus.PENDING:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Cannot start downtime as the entry is in '{downtime_entry.status.value}' state.",
+        )
+    
+    # Deactivate the application
+    deactivate_applications(req.downtime_id, db)
+    
+    # Update downtime status
+    downtime_entry.status = DowntimeStatus.ACTIVE
+    db.commit()
+    db.refresh(downtime_entry)
+    logger.info(f"Downtime for application {downtime_entry.application_id} has started.")
+    return {"message": "Downtime started successfully."}
+
+
+@app.post("/admin/downtime/end")
+def end_downtime(req: DowntimeEventRequest, db: Session = Depends(get_db)):
+    """Updates the status of an application downtime to COMPLETED and activates the application."""
+    downtime_entry = (
+        db.query(ApplicationDowntime).filter(ApplicationDowntime.id == req.downtime_id).first()
+    )
+    if not downtime_entry:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Downtime entry {req.downtime_id} not found.",
+        )
+    if downtime_entry.status != DowntimeStatus.ACTIVE:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Cannot end downtime as the entry is in '{downtime_entry.status.value}' state.",
+        )
+    
+    # Activate the application
+    activate_applications(req.downtime_id, db)
+    
+    # Update downtime status
+    downtime_entry.status = DowntimeStatus.COMPLETED
+    db.commit()
+    db.refresh(downtime_entry)
+    logger.info(f"Downtime for application {downtime_entry.application_id} has ended.")
+    return {"message": "Downtime ended successfully."}

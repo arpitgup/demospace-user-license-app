@@ -141,5 +141,7 @@ class ApplicationDowntime(Base):
     status = Column(
         PGEnum(DowntimeStatus), default=DowntimeStatus.PENDING, index=True
     )
+    start_task_id = Column(String, nullable=True)
+    end_task_id = Column(String, nullable=True)
 
     application = relationship("Application")

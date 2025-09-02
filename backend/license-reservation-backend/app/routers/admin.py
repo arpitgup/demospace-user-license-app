@@ -9,7 +9,7 @@ from shared_lib.db.models import (
     BotApplication,
     Reservation,
     ReservationStatus,
-    ApplicationDowntime
+    ApplicationDowntime    
 )
 from shared_lib.dependencies import get_user_email, get_db
 from typing import List
@@ -26,12 +26,17 @@ from ..common.schemas import (
     UpdateBotApplicationsRequest,
     UpdateApplicationStatusRequest,
     BotsUpsertRequest,
-    ApplicationDowntimeRequest
+    ApplicationDowntimeRequest,
+    ApplicationDowntimeOut,
+    DowntimeBulkCancelRequest,
+    DowntimeBulkCancelResponse
 )
 from ..utils.background_tasks import (
     delete_reservation_tasks,
     schedule_deprovisioning_task,
     delete_license_deprovisioning_task,
+    schedule_downtime_tasks,
+    delete_downtime_tasks
 )
 from ..utils.crud import get_bot_with_supported_apps, upsert_bots_with_applications
 
@@ -367,16 +372,30 @@ def upsert_bots(request: BotsUpsertRequest, db: Session = Depends(get_db)):
             status_code=500, detail="An internal server error occurred."
         )
 
-@router.post(
-    "/application_downtime", status_code=status.HTTP_201_CREATED
-)
-def create_application_downtime(
-    req: ApplicationDowntimeRequest,
+@router.get("/downtimes", response_model=List[ApplicationDowntimeOut])
+def get_all_downtimes(
     db: Session = Depends(get_db),
     user_email: str = Depends(get_user_email),
 ):
     """
-    Records downtime for a list of applications.
+    Retrieves all application downtimes details.
+    """
+    logger.info(f"Admin user {user_email}: Fetching all application downtimes.")        
+    downtimes = db.query(ApplicationDowntime).all()
+    return downtimes
+
+@router.post(
+    "/schedule_downtime", status_code=200
+)
+def create_application_downtime(
+    req: ApplicationDowntimeRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+):
+    """
+    Records downtime for a list of applications and schedules tasks to manage them.
+    Checks for any overlapping downtimes or reservations before creation.
     """
     logger.info(
         f"Admin User {user_email}: Creating downtime entry for applications: {req.applications}"
@@ -384,15 +403,50 @@ def create_application_downtime(
 
     app_ids = req.applications
     
-    # Validate that all requested application IDs exist
-    existing_apps_count = db.query(Application).filter(Application.id.in_(app_ids)).count()
-    if existing_apps_count != len(app_ids):
+    apps_in_db = db.query(Application).filter(Application.id.in_(app_ids)).all()
+    if len(apps_in_db) != len(app_ids):
         raise HTTPException(
             status.HTTP_404_NOT_FOUND, detail="One or more applications not found."
         )
 
+    # Check for overlapping existing downtimes
+    overlapping_downtimes = (
+        db.query(ApplicationDowntime)
+        .filter(
+            ApplicationDowntime.application_id.in_(app_ids),
+            ApplicationDowntime.downtime_start < req.downtime_end,
+            ApplicationDowntime.downtime_end > req.downtime_start,
+            ApplicationDowntime.status.in_([DowntimeStatus.PENDING, DowntimeStatus.ACTIVE])
+        )
+        .first()
+    )
+    if overlapping_downtimes:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot schedule downtime. The requested time range overlaps with an ACTIVE or PENDING Downtime for one or more applications.",
+        )
+
+    # Check for overlapping existing reservations
+    overlapping_reservations = (
+        db.query(Reservation)
+        .join(Reservation.applications)
+        .filter(
+            Application.id.in_(app_ids),
+            Reservation.start_time < req.downtime_end,
+            Reservation.end_time > req.downtime_start,
+            Reservation.status.in_([ReservationStatus.PENDING, ReservationStatus.ACTIVE])
+        )
+        .first()
+    )
+    if overlapping_reservations:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot schedule downtime. The requested time range overlaps with an ACTIVE or PENDING Reservation for one or more applications.",
+        )
+
+    # All checks pass, proceed with creating the downtime entry
     try:
-        # Iterate directly over the list of integers
+        downtime_entries_to_schedule = []
         for app_id in req.applications:
             application_downtime = ApplicationDowntime(
                 application_id=app_id,
@@ -403,8 +457,18 @@ def create_application_downtime(
                 status=DowntimeStatus.PENDING,
             )
             db.add(application_downtime)
+            downtime_entries_to_schedule.append(application_downtime)
 
         db.commit()
+    
+        for entry in downtime_entries_to_schedule:
+            background_tasks.add_task(
+                schedule_downtime_tasks,
+                downtime_id=entry.id,
+                downtime_start=entry.downtime_start.replace(tzinfo=timezone.utc),
+                downtime_end=entry.downtime_end.replace(tzinfo=timezone.utc),
+            )
+
     except Exception as e:
         db.rollback()
         logger.error(f"An unexpected error occurred during application downtime creation: {e}")
@@ -412,6 +476,68 @@ def create_application_downtime(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred during application downtime creation.",
         )
-    return {"message": "Downtime entries created successfully."}
+        
+    return {"message": "Downtime entry created successfully."}
 
+@router.post(
+    "/downtime/bulk-cancel",
+    response_model=DowntimeBulkCancelResponse,
+)
+def bulk_cancel_downtime(
+    req: DowntimeBulkCancelRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+):
+    """
+    Cancels a list of application downtime entries by their IDs.
+    
+    This endpoint requires administrator privileges to access.
+    """
+    logger.info(
+        f"Admin user {user_email}: Bulk canceling downtimes: {req.downtime_ids}"
+    )
 
+    successfully_cancelled = []
+    failed_to_cancel = []
+    
+    # Query all downtimes to be cancelled in a single database hit
+    downtimes_to_cancel = (
+        db.query(ApplicationDowntime)
+        .filter(ApplicationDowntime.id.in_(req.downtime_ids))
+        .all()
+    )
+    downtime_map = {d.id: d for d in downtimes_to_cancel}
+
+    for downtime_id in req.downtime_ids:
+        downtime = downtime_map.get(downtime_id)
+        
+        # Check if the downtime exists and is in a cancellable state
+        if not downtime or downtime.status in [DowntimeStatus.COMPLETED, DowntimeStatus.ACTIVE, DowntimeStatus.CANCELLED]:
+            failed_to_cancel.append(downtime_id)
+            continue
+            
+        # Update the status to CANCELLED and add to successfully_cancelled list
+        downtime.status = DowntimeStatus.CANCELLED
+        successfully_cancelled.append(downtime_id)
+        
+    try:
+        db.commit()
+        # Add background task to cancel the Cloud Tasks for each successfully cancelled downtime
+        for downtime_id in successfully_cancelled:
+            background_tasks.add_task(delete_downtime_tasks, downtime_id)
+
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"Admin user {user_email}: An unexpected error occurred during bulk cancel: {e}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while canceling downtimes.",
+        )
+
+    return DowntimeBulkCancelResponse(
+        successfully_cancelled=successfully_cancelled,
+        failed_to_cancel=failed_to_cancel
+    )

@@ -9,7 +9,7 @@ from pydantic import (
 from pydantic.alias_generators import to_camel
 from typing import List, Optional
 from datetime import datetime, timezone
-from shared_lib.enums import ReservationStatus, ApplicationLicenseType
+from shared_lib.enums import ReservationStatus, ApplicationLicenseType, DowntimeStatus
 
 
 def convert_to_utc(v: datetime) -> datetime:
@@ -119,7 +119,6 @@ class BulkCancelReservationsResponse(CamelModel):
     successfully_cancelled: List[int]
     failed_to_cancel: List[int]
 
-
 class CreateReservationRequest(CamelModel):
     primary_application_id: int
     secondary_application_ids: list[int] = []
@@ -201,3 +200,19 @@ class ApplicationDowntimeRequest(CamelModel):
     downtime_reason: str
 
     _convert_to_utc = field_validator("downtime_start", "downtime_end")(convert_to_utc)
+
+class ApplicationDowntimeOut(BaseModel):
+    id: int
+    application: ApplicationOut
+    downtime_start: datetime
+    downtime_end: datetime
+    downtime_reason: str
+    created_by: str
+    status: DowntimeStatus
+
+class DowntimeBulkCancelRequest(CamelModel):
+    downtime_ids: List[int]
+
+class DowntimeBulkCancelResponse(CamelModel):   
+    successfully_cancelled: List[int]
+    failed_to_cancel: List[int]
