@@ -33,6 +33,7 @@ import { forkJoin } from 'rxjs';
 import { SearchOptionContentLoader } from '../../loaders/search-option-content-loader/search-option-content-loader';
 import { UserService } from '../../core/services/user.service';
 import { ErrorMessage } from '../../shared/components/error-message/error-message';
+import { MIN_LEAD_COOLDOWN_HOURS } from '../search-by-date/search-by-date.constants';
 
 @Component({
   selector: 'app-landing-page',
@@ -101,14 +102,14 @@ export class LandingPage implements OnInit {
       id: 1,
       icon: 'assets/svgs/date_icon.svg',
       title: 'Search by Date',
-      description: 'Reservations must be made 24 hours in advance.',
+      description: `Reservations must be made ${MIN_LEAD_COOLDOWN_HOURS} hours in advance.`,
       searchType: SearchType.ByDate,
     },
     {
       id: 2,
       icon: 'assets/svgs/application_icon.svg',
       title: 'Search by Application',
-      description: 'Reservations must be made 24 hours in advance.',
+     description: `Reservations must be made ${MIN_LEAD_COOLDOWN_HOURS} hours in advance.`,
       searchType: SearchType.ByApplication,
     },
   ];
