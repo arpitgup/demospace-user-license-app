@@ -15,6 +15,9 @@ export interface Reservation {
   startTime: string;
   endTime: string;
   status: string;
+  isSelect?:boolean;
+  isEditable?:boolean;
+  isSameDay?:boolean;
 }
 export interface NewReservation {
   primaryApplicationId: number;

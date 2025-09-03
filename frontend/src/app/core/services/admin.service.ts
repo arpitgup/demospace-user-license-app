@@ -1,0 +1,45 @@
+import { inject, Injectable } from '@angular/core';
+import { environment } from '../../../environments/environment';
+import { HttpClient } from '@angular/common/http';
+import { map, Observable } from 'rxjs';
+import { Reservation } from '../models/reservation.model';
+import { isSameDay } from '../../../utilities/utils';
+import { BulkCancelReservation } from '../models/bulk-cancel-reservation.model';
+import { BulkCancelReservationRequest } from '../models/bulk-cancel-reservation-request.model';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AdminService {
+  private http = inject(HttpClient);
+  private apiUrl = environment.apiUrl;
+
+  fetchAllReservations(): Observable<Reservation[]> {
+    return this.http
+      .get<Reservation[]>(`${this.apiUrl}/admin/reservations`)
+      .pipe(
+        map((elements) =>
+          elements.map((element) => {
+            return {
+              ...element,
+              isEditable: false,
+              isSelect: false,
+              isSameDay: isSameDay(
+                new Date(element.startTime),
+                new Date(element.endTime)
+              ),
+            };
+          })
+        )
+      );
+  }
+
+  bulkCancelreservations(
+    cancellationRequest: BulkCancelReservationRequest
+  ): Observable<BulkCancelReservation> {
+    return this.http.post<BulkCancelReservation>(
+      `${this.apiUrl}/admin/reservations/bulk-cancel`,
+      cancellationRequest
+    );
+  }
+}

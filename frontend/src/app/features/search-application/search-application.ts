@@ -29,12 +29,12 @@ import { map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { ReservationService } from '../../core/services/reservation.service';
 import { Application } from '../../core/models/application.model';
 import { AsyncPipe, DatePipe } from '@angular/common';
-import { AvailabilityByApplicationRequest } from '../../core/models/availabilityByApplicationRequest.model';
+import { AvailabilityByApplicationRequest } from '../../core/models/availability-by-application-request.model';
 import {
   AvalaibilityByApplication,
   NextAvailableSlots,
-} from '../../core/models/availabilityByApplication.model';
-import { MakeReservationRequest } from '../../core/models/makeReservationRequest.model';
+} from '../../core/models/availability-by-application.model';
+import { MakeReservationRequest } from '../../core/models/make-reservation-request.model';
 import { SearchByApplicationLoader } from '../../loaders/search-by-application-loader/search-by-application-loader';
 import { ConfirmationDialog } from '../../shared/dialogs/confirmation-dialog/confirmation-dialog';
 import { MatDialog } from '@angular/material/dialog';
