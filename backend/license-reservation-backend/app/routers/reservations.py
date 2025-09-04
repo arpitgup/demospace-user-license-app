@@ -14,7 +14,7 @@ from shared_lib.db.models import (
 )
 from datetime import timezone
 
-from ..common.constants import RESERVATION_COOL_OFF_HOURS
+from ..common.constants import RESERVATION_COOL_OFF_HOURS, RESERVATION_EMAIL_SENDER, BOOKED_RESERVATION_EMAIL_CONTENT, CANCELLED_RESERVATION_EMAIL_CONTENT
 from ..common.schemas import (
     CreateReservationRequest,
     ReservationOut,
@@ -148,8 +148,9 @@ def make_reservation(
         background_tasks.add_task(
             sendMakeReservationEmail,
             recipient_email=user_email,
-            sender_email="no-reply@1987984870407.altostrat.com",
-            reservation_id=new_reservation.id
+            sender_email=app_config[RESERVATION_EMAIL_SENDER],            
+            reservation_id=new_reservation.id,
+            email_content=format_email_for_reservation(BOOKED_RESERVATION_EMAIL_CONTENT, new_reservation)
         )
 
     except IntegrityError as e:
@@ -172,16 +173,16 @@ def make_reservation(
 
     return new_reservation
 
-
 @router.post(
     "/reservations/{reservation_id}/cancel",
-    response_model=ReservationOut,
+    response_model=ReservationOut,    
 )
 def cancel_reservation(
     reservation_id: int,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     user_email: str = Depends(get_user_email),
+    app_config: dict = Depends(get_app_config)
 ):
     """
     Cancels a specific reservation by its ID.
@@ -211,7 +212,27 @@ def cancel_reservation(
     background_tasks.add_task(
         sendCancelReservationEmail,
         recipient_email=user_email,
-        sender_email="no-reply@1987984870407.altostrat.com",
-        reservation_id=reservation_id
+        sender_email=app_config[RESERVATION_EMAIL_SENDER],
+        reservation_id=reservation_id,
+        email_content=format_email_for_reservation(CANCELLED_RESERVATION_EMAIL_CONTENT, reservation)
         )
     return reservation
+
+def format_email_for_reservation(emailContent, reservationDetails):
+    """
+    Replaces placeholders in the email template with reservation details.
+    """
+    start_time_str = reservationDetails.start_time.strftime("%B %d, %Y at %I:%M %p %Z")
+    end_time_str = reservationDetails.end_time.strftime("%B %d, %Y at %I:%M %p %Z")
+    
+    dynamic_details_html = ""
+    for app in reservationDetails.applications:
+        dynamic_details_html += f"""
+        <p style="margin: 0 0 5px 0; font-size: 16px;"><strong>{app.name}</strong></p>
+        <p style="margin: 0 0 15px 0;">&bull; <strong>Reservation Dates:</strong> Starting: {start_time_str} and Ending: {end_time_str}</p>
+        """
+    formatted_content = emailContent.replace(
+        "{{ dynamic_reservation_details }}", dynamic_details_html
+    )    
+    
+    return formatted_content
