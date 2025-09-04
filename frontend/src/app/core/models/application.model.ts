@@ -8,4 +8,5 @@ export interface Application {
   isActive:boolean;
   isSelected: boolean;
   isEnabled: boolean;
+  isRemove?:boolean
 }

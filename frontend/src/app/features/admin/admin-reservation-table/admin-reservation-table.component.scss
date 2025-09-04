@@ -57,7 +57,7 @@
       height: 4.59231rem;
       align-items: center;
       width: fit-content;
-      margin-left: 1rem;
+      margin-right: 1rem;
 
       .show-past-checkbox {
         display: block;
@@ -78,7 +78,7 @@
       backdrop-filter: blur(17.100000381469727px);
       margin-top: 0.3rem;
       width: fit-content;
-      margin-left: 1rem;
+      margin-right: 1rem;
 
       @include mat.form-field-overrides(
         (
@@ -103,6 +103,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      margin-top: 0.3rem;
       margin-bottom: 1rem;
       padding: 0rem 2rem;
       cursor: pointer;

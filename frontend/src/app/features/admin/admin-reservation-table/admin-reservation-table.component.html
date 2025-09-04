@@ -92,7 +92,9 @@
     </ng-container>
 
     <ng-container matColumnDef="reservationDate">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Reservation Date</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        Reservation Date
+      </th>
       <td mat-cell *matCellDef="let element">
         @if(element.isSameDay===true){
         {{ element.startTime | date : "MMMM d, y 'at' h a" }} -
@@ -117,6 +119,7 @@
       <td mat-cell *matCellDef="let element">
         <div class="app-chip-list">
           @for(app of element.applications; track app.id){
+          @if(app.isRemove!==true){
           <div class="app-chip-wrapper">
             <span class="app-chip-text">{{ app.name }}</span>
             @if(element.isEditable){
@@ -124,10 +127,11 @@
               src="assets/svgs/ic_cancel.svg"
               alt="cancel"
               class="cross-icon"
+              (click)="onRemoveApplication(element, app.id)"
             />
             }
           </div>
-          }
+          } }
         </div>
       </td>
     </ng-container>
@@ -142,7 +146,10 @@
       <td mat-cell *matCellDef="let element">
         @if(element.isEditable===true){
         <div class="action-wrapper">
-          <div class="edit-wrapper" (click)="onCancelCall(element.id)">
+          <div
+            class="edit-wrapper"
+            (click)="onCancelUpdateReservation(element.id)"
+          >
             <span class="edit-text">Cancel</span>
           </div>
           <div class="save-wrapper" (click)="onSaveCall(element.id)">

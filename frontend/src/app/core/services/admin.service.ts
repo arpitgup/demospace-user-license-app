@@ -6,6 +6,7 @@ import { Reservation } from '../models/reservation.model';
 import { isSameDay } from '../../../utilities/utils';
 import { BulkCancelReservation } from '../models/bulk-cancel-reservation.model';
 import { BulkCancelReservationRequest } from '../models/bulk-cancel-reservation-request.model';
+import { ReservationApplicationRequest } from '../models/reservation-application-request.model';
 
 @Injectable({
   providedIn: 'root',
@@ -40,6 +41,16 @@ export class AdminService {
     return this.http.post<BulkCancelReservation>(
       `${this.apiUrl}/admin/reservations/bulk-cancel`,
       cancellationRequest
+    );
+  }
+
+  updateReservation(
+    reservationApplicationRequest: ReservationApplicationRequest,
+    reservationId: number
+  ): Observable<Reservation> {
+    return this.http.patch<Reservation>(
+      `${this.apiUrl}/admin/reservations/${reservationId}`,
+      reservationApplicationRequest
     );
   }
 }

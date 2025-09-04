@@ -32,6 +32,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { TableLoaderComponent } from '../../../loaders/table-loader/table-loader.component';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { ReservationApplicationRequest } from '../../../core/models/reservation-application-request.model';
 
 @Component({
   selector: 'app-admin-reservation-table',
@@ -257,20 +258,65 @@ export class AdminReservationTableComponent {
     this.cdr.detectChanges();
   }
   onSaveCall(reservationId: number) {
+    const primaryApplicationId =
+      this.dataSource.data
+        .find((item) => item.id === reservationId)
+        ?.applications?.find((item) => item.isRemove !== true)?.id ?? 0;
+    const secordaryApplicationsIds =
+      this.dataSource.data
+        .find((item) => item.id === reservationId)
+        ?.applications?.filter(
+          (item) => item.isRemove !== true && item.id !== primaryApplicationId
+        )
+        ?.map((item) => item.id) ?? [];
+    const request: ReservationApplicationRequest = {
+      primaryApplicationId: primaryApplicationId,
+      secondaryApplicationIds: secordaryApplicationsIds,
+    };
+    this.loadingService.show();
+    this.adminService.updateReservation(request, reservationId).subscribe({
+      next: (data) => {
+        this.loadingService.hide();
+        this.dataSource.data = this.dataSource.data.map((item) => {
+          if (item.id === reservationId) {
+            item = data;
+            return { ...item };
+          }
+          return item;
+        });
+      },
+      error: (err) => {
+        this.loadingService.hide();
+        this.showErrorDialog(err?.error?.detail || 'Something went wrong');
+      },
+    });
+  }
+  onCancelUpdateReservation(reservationId: number) {
     this.dataSource.data = this.dataSource.data.map((item) => {
       if (item.id === reservationId) {
+        item.applications.forEach((element) => (element.isRemove = false));
         return { ...item, isEditable: false };
       }
       return item;
     });
   }
-  onCancelCall(reservationId: number) {
-    this.dataSource.data = this.dataSource.data.map((item) => {
-      if (item.id === reservationId) {
-        return { ...item, isEditable: false };
+  onRemoveApplication(reservation: Reservation, applicationId: number) {
+    const count = reservation.applications.filter(
+      (item) => (item.isRemove ?? false) === true
+    ).length;
+    if (count + 1 === reservation.applications.length) {
+      this.showErrorDialog(
+        'You cannot remove all the applications. Please cancel the reservation if you want to remove all the applications.'
+      );
+      return;
+    }
+    reservation.applications.map((item) => {
+      if (item.id === applicationId) {
+        item.isRemove = true;
       }
       return item;
     });
+    this.cdr.detectChanges();
   }
   updateShowCancelCta(value: boolean) {
     this.showCancelCta.set(value);
