@@ -1,0 +1,36 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    id: "Build"
+    args:
+      [
+        "build",
+        "-t",
+        "gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}",
+        "-f",
+        "Dockerfile",
+        ".",
+      ]
+
+  - name: "gcr.io/cloud-builders/docker"
+    id: "Push"
+    args: ["push", "gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}"]
+
+  - name: "gcr.io/cloud-builders/gcloud"
+    id: "Deploy to Cloud Run"
+    args:
+      [
+        "run",
+        "deploy",
+        "${_SERVICE_NAME}",
+        "--image=gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}",
+        "--project=${_PROJECT_ID}",
+        "--region=${_REGION}"
+      ]
+
+substitutions:
+  _SERVICE_NAME: "license-reservation-app-prod"
+  _PROJECT_ID: "sys-36807655692543323281329778"
+  _REGION: "us-central1"
+
+images:
+  - "gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}"
