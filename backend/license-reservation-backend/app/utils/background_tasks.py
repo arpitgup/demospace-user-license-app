@@ -304,7 +304,7 @@ async def delete_downtime_tasks(downtime_id: int):
                     downtime_id, downtime_entry.end_task_id
                 )
 
-async def sendMakeReservationEmail(recipient_email, sender_email, reservation_id, email_content):
+async def sendReservationEmail(recipient_email, sender_email, reservation_id, subject, email_content):
     email_service = get_email_service()
     try:
         message = EmailMessage()
@@ -312,7 +312,7 @@ async def sendMakeReservationEmail(recipient_email, sender_email, reservation_id
 
         message["To"] = recipient_email
         message["From"] = sender_email
-        message["Subject"] = "Your Agentspace SaaS License Reservation Confirmation"
+        message["Subject"] = subject
 
         encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
@@ -328,34 +328,6 @@ async def sendMakeReservationEmail(recipient_email, sender_email, reservation_id
         print(f"An error occurred: {error}")
         send_message = None
     logger.info(
-        f"Email Notification sent to {recipient_email} for successful reservation {reservation_id}"
-    )
-    return send_message
-
-async def sendCancelReservationEmail(recipient_email, sender_email, reservation_id, email_content):
-    email_service = get_email_service()
-    try:
-        message = EmailMessage()
-        message.add_alternative(email_content, subtype="html")
-
-        message["To"] = recipient_email
-        message["From"] = sender_email
-        message["Subject"] = "Your Agentspace SaaS License Cancellation Confirmation"
-
-        encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
-
-        create_message = {"raw": encoded_message}
-        send_message = (
-            email_service.users()
-            .messages()
-            .send(userId="me", body=create_message)
-            .execute()
-        )
-        print(f'Message Id: {send_message["id"]}')
-    except HttpError as error:
-        print(f"An error occurred: {error}")
-        send_message = None
-    logger.info(
-        f"Email Notification sent to {recipient_email} for cancel reservation {reservation_id}"
+        f"Email Notification sent to {recipient_email} for reservation {reservation_id} with subject {subject}"
     )
     return send_message

@@ -22,8 +22,7 @@ from ..common.schemas import (
 from ..utils.background_tasks import (
     schedule_reservation_tasks,
     delete_reservation_tasks,
-    sendMakeReservationEmail,
-    sendCancelReservationEmail
+    sendReservationEmail    
 )
 from ..utils.crud import is_user_in_cool_off
 
@@ -146,10 +145,11 @@ def make_reservation(
             new_reservation.end_time.replace(tzinfo=timezone.utc),
         )
         background_tasks.add_task(
-            sendMakeReservationEmail,
+            sendReservationEmail,
             recipient_email=user_email,
             sender_email=app_config[RESERVATION_EMAIL_SENDER],            
             reservation_id=new_reservation.id,
+            subject="Your Agentspace SaaS License Reservation Confirmation",
             email_content=format_email_for_reservation(BOOKED_RESERVATION_EMAIL_CONTENT, new_reservation)
         )
 
@@ -210,10 +210,11 @@ def cancel_reservation(
     )
     background_tasks.add_task(delete_reservation_tasks, reservation.id)
     background_tasks.add_task(
-        sendCancelReservationEmail,
+        sendReservationEmail,
         recipient_email=user_email,
         sender_email=app_config[RESERVATION_EMAIL_SENDER],
         reservation_id=reservation_id,
+        subject="Your Agentspace SaaS License Cancellation Confirmation",
         email_content=format_email_for_reservation(CANCELLED_RESERVATION_EMAIL_CONTENT, reservation)
         )
     return reservation
