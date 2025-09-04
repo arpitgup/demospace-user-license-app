@@ -656,7 +656,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
       data: {
         title: 'Success',
         message:
-          'A confirmation email has been sent to your inbox.<br> Please check your email for the booking details.<br> We’ll see you soon!',
+          `A confirmation email has been sent to your <b>DEMO USER's</b> email.<br> Please check email for the booking details.`,
         confirmText: 'OK',
       },
     });

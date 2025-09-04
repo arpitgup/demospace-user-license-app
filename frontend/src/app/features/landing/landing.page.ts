@@ -196,7 +196,7 @@ export class LandingPage implements OnInit {
       disableClose: true,
       data: {
         title: 'Success',
-        message: `Reservation ${reservation.id} cancelled successfully.`,
+        message: `Reservation cancelled successfully!`,
         confirmText: 'OK',
       },
     });
