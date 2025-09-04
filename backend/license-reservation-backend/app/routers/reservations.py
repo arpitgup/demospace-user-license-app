@@ -22,6 +22,8 @@ from ..common.schemas import (
 from ..utils.background_tasks import (
     schedule_reservation_tasks,
     delete_reservation_tasks,
+    sendMakeReservationEmail,
+    sendCancelReservationEmail
 )
 from ..utils.crud import is_user_in_cool_off
 
@@ -143,6 +145,12 @@ def make_reservation(
             new_reservation.start_time.replace(tzinfo=timezone.utc),
             new_reservation.end_time.replace(tzinfo=timezone.utc),
         )
+        background_tasks.add_task(
+            sendMakeReservationEmail,
+            recipient_email=user_email,
+            sender_email="no-reply@1987984870407.altostrat.com",
+            reservation_id=new_reservation.id
+        )
 
     except IntegrityError as e:
         db.rollback()
@@ -200,4 +208,10 @@ def cancel_reservation(
         f"Cancelling reservation {reservation.id}. Associated provisioning/deprovisioning tasks will be deleted."
     )
     background_tasks.add_task(delete_reservation_tasks, reservation.id)
+    background_tasks.add_task(
+        sendCancelReservationEmail,
+        recipient_email=user_email,
+        sender_email="no-reply@1987984870407.altostrat.com",
+        reservation_id=reservation_id
+        )
     return reservation

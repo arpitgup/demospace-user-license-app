@@ -1,12 +1,16 @@
 import asyncio
 import json
+import base64
 
 from datetime import datetime, timezone
 from google.cloud import tasks_v2
 from google.protobuf import timestamp_pb2
+from shared_lib.email_service import get_email_service
 from shared_lib.db.models import Reservation, ApplicationDowntime
 from shared_lib.db.session import SessionLocal
 from loguru import logger
+from email.message import EmailMessage
+from googleapiclient.errors import HttpError
 
 from ..common.constants import (
     GCP_PROJECT_ID,
@@ -299,3 +303,201 @@ async def delete_downtime_tasks(downtime_id: int):
                 await delete_end_downtime_task(
                     downtime_id, downtime_entry.end_task_id
                 )
+
+async def sendMakeReservationEmail(recipient_email, sender_email, reservation_id):    
+    email_service = get_email_service()
+    email_content = """
+                    <!DOCTYPE html> 
+                    <html lang="en"> 
+                    <style> 
+                    body { background-color: #f0f0f0; padding: 20px; font-family: Google Sans, Roboto, Arial, Helvetica, sans-serif; } 
+                    .digest-block { background-color: #ffffff; border: 1px solid #dcdcdc; border-radius: 12px; padding: 12px 25px; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); } 
+                    .digest-icon { height: 30px; width: auto; margin-right: 12px; vertical-align: middle; } 
+                    .digest-text { font-size: 18px; font-weight: bold; color: #000000; white-space: nowrap; } 
+                    </style> 
+                    <head> 
+                        <meta charset="UTF-8"> 
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+                        <title>SaaS Reservation Confirmation</title> 
+                    </head> 
+                    <body style="margin: 0; padding: 0; background-color: #f4f4f4;"> 
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%"> 
+                        <tr> 
+                            <td style="padding: 20px 0;">  
+                            <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; background-color: #ffffff; border-radius: 12px;"> 
+                                <tr> 
+                                <td align="center" style="padding: 15px 25px;">  
+                                    <div class="digest-block" style="background-color: transparent; border: none; box-shadow: none; padding: 0; display: inline-flex; align-items: center;"> 
+                                        <img src="REPLACE-IMAGE-SOURCE-HERE" alt="goldemos icon" class="digest-icon" style="vertical-align: middle;"> 
+                                        <span class="digest-text" style="font-size: 24px; vertical-align: middle; margin-left: 12px;">REPLACE-DIGEST-TEXT-HERE</span> 
+                                    </div> 
+                                </td> 
+                                </tr> 
+                            </table> 
+                            </td> 
+                        </tr> 
+                        </table> 
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%"> 
+                            <tr> 
+                                <td style="padding: 20px 0;"> 
+                                    <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; background-color: #ffffff; border-radius: 12px;"> 
+                                        <tr> 
+                                            <td align="left" bgcolor="#ffffff" style="padding: 10px 30px 20px 30px; border-bottom: 1px solid #eeeeee; border-top-left-radius: 12px; border-top-right-radius: 12px;">  
+                                            <div style="color: #5f6368; font-family: 'Google Sans', Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.5;"> 
+                                                    REPLACE-HEADER-SUBTEXT-HERE 
+                                                </div> 
+                                                <div style="color: #202124; font-family: 'Google Sans', Roboto, Arial, sans-serif; font-size: 22px; line-height: 1.3; padding-top: 4px;"> 
+                                                    REPLACE-HEADER-TITLE-HERE
+                                                </div> 
+                                            </td> 
+                                        </tr> 
+                                        <tr> 
+                                            <td bgcolor="#ffffff" style="padding: 20px 30px 40px 30px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;"> 
+                                                <p style="margin: 0 0 15px 0; color: #3c4043; font-family: Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.5;"> 
+                                                    Hello, REPLACE-RECIPIENT-NAME-HERE 
+                                                </p> 
+                                                <p style="margin: 0 0 15px 0; color: #3c4043; font-family: Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.5;"> 
+                                                    REPLACE-CONFIRMATION-MESSAGE-HERE 
+                                                </p> 
+                                                <div style="font-family: Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #3c4043;"> 
+                                                    REPLACE-RESERVATION-DETAILS-HTML-HERE
+                                                </div> 
+                                                <p style="margin: 20px 0 15px 0; color: #3c4043; font-family: Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.5;"> 
+                                                    You can view and manage your reservations here: <a href="REPLACE-LINK-URL-HERE" style="color:#4285F4;text-decoration:underline;">REPLACE-LINK-TEXT-HERE</a> 
+                                                </p> 
+                                                <p style="margin: 0; color: #5f6368; font-family: Roboto, Arial, sans-serif; font-size: 12px; line-height: 1.5;"> 
+                                                    This is an automated message. Please do not reply directly to this email. 
+                                                </p> 
+                                            </td> 
+                                        </tr> 
+                                    </table> 
+                                </td> 
+                            </tr> 
+                        </table> 
+                        </body> 
+                    </html>
+                    """
+    try:
+        message = EmailMessage()
+        message.add_alternative(email_content, subtype="html")
+
+        message["To"] = recipient_email
+        message["From"] = sender_email
+        message["Subject"] = "MakeReservationSubjectHere"
+
+        encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+
+        create_message = {"raw": encoded_message}
+        send_message = (
+            email_service.users()
+            .messages()
+            .send(userId="me", body=create_message)
+            .execute()
+        )
+        print(f'Message Id: {send_message["id"]}')
+    except HttpError as error:
+        print(f"An error occurred: {error}")
+        send_message = None
+    logger.info(
+        f"Email Notification sent to {recipient_email} for successful reservation {reservation_id}"
+    )
+    return send_message
+
+async def sendCancelReservationEmail(recipient_email, sender_email, reservation_id):    
+    email_service = get_email_service()
+    email_content = """
+                    <!DOCTYPE html> 
+                    <html lang="en"> 
+                    <style> 
+                    body { background-color: #f0f0f0; padding: 20px; font-family: Google Sans, Roboto, Arial, Helvetica, sans-serif; } 
+                    .digest-block { background-color: #ffffff; border: 1px solid #dcdcdc; border-radius: 12px; padding: 12px 25px; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); } 
+                    .digest-icon { height: 30px; width: auto; margin-right: 12px; vertical-align: middle; } 
+                    .digest-text { font-size: 18px; font-weight: bold; color: #000000; white-space: nowrap; } 
+                    </style> 
+                    <head> 
+                        <meta charset="UTF-8"> 
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+                        <title>SaaS Reservation Confirmation</title> 
+                    </head> 
+                    <body style="margin: 0; padding: 0; background-color: #f4f4f4;"> 
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%"> 
+                        <tr> 
+                            <td style="padding: 20px 0;">  
+                            <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; background-color: #ffffff; border-radius: 12px;"> 
+                                <tr> 
+                                <td align="center" style="padding: 15px 25px;">  
+                                    <div class="digest-block" style="background-color: transparent; border: none; box-shadow: none; padding: 0; display: inline-flex; align-items: center;"> 
+                                        <img src="REPLACE-IMAGE-SOURCE-HERE" alt="goldemos icon" class="digest-icon" style="vertical-align: middle;"> 
+                                        <span class="digest-text" style="font-size: 24px; vertical-align: middle; margin-left: 12px;">REPLACE-DIGEST-TEXT-HERE</span> 
+                                    </div> 
+                                </td> 
+                                </tr> 
+                            </table> 
+                            </td> 
+                        </tr> 
+                        </table> 
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%"> 
+                            <tr> 
+                                <td style="padding: 20px 0;"> 
+                                    <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; background-color: #ffffff; border-radius: 12px;"> 
+                                        <tr> 
+                                            <td align="left" bgcolor="#ffffff" style="padding: 10px 30px 20px 30px; border-bottom: 1px solid #eeeeee; border-top-left-radius: 12px; border-top-right-radius: 12px;">  
+                                            <div style="color: #5f6368; font-family: 'Google Sans', Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.5;"> 
+                                                    REPLACE-HEADER-SUBTEXT-HERE 
+                                                </div> 
+                                                <div style="color: #202124; font-family: 'Google Sans', Roboto, Arial, sans-serif; font-size: 22px; line-height: 1.3; padding-top: 4px;"> 
+                                                    REPLACE-HEADER-TITLE-HERE
+                                                </div> 
+                                            </td> 
+                                        </tr> 
+                                        <tr> 
+                                            <td bgcolor="#ffffff" style="padding: 20px 30px 40px 30px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;"> 
+                                                <p style="margin: 0 0 15px 0; color: #3c4043; font-family: Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.5;"> 
+                                                    Hello, REPLACE-RECIPIENT-NAME-HERE 
+                                                </p> 
+                                                <p style="margin: 0 0 15px 0; color: #3c4043; font-family: Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.5;"> 
+                                                    REPLACE-CONFIRMATION-MESSAGE-HERE 
+                                                </p> 
+                                                <div style="font-family: Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #3c4043;"> 
+                                                    REPLACE-RESERVATION-DETAILS-HTML-HERE
+                                                </div> 
+                                                <p style="margin: 20px 0 15px 0; color: #3c4043; font-family: Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.5;"> 
+                                                    You can view and manage your reservations here: <a href="REPLACE-LINK-URL-HERE" style="color:#4285F4;text-decoration:underline;">REPLACE-LINK-TEXT-HERE</a> 
+                                                </p> 
+                                                <p style="margin: 0; color: #5f6368; font-family: Roboto, Arial, sans-serif; font-size: 12px; line-height: 1.5;"> 
+                                                    This is an automated message. Please do not reply directly to this email. 
+                                                </p> 
+                                            </td> 
+                                        </tr> 
+                                    </table> 
+                                </td> 
+                            </tr> 
+                        </table> 
+                        </body> 
+                    </html>
+                    """
+    try:
+        message = EmailMessage()
+        message.add_alternative(email_content, subtype="html")
+
+        message["To"] = recipient_email
+        message["From"] = sender_email
+        message["Subject"] = "CancelEmailSubjectHere"
+
+        encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+
+        create_message = {"raw": encoded_message}
+        send_message = (
+            email_service.users()
+            .messages()
+            .send(userId="me", body=create_message)
+            .execute()
+        )
+        print(f'Message Id: {send_message["id"]}')
+    except HttpError as error:
+        print(f"An error occurred: {error}")
+        send_message = None
+    logger.info(
+        f"Email Notification sent to {recipient_email} for cancel reservation {reservation_id}"
+    )
+    return send_message
