@@ -1,12 +1,16 @@
 import asyncio
 import json
+import base64
 
 from datetime import datetime, timezone
 from google.cloud import tasks_v2
 from google.protobuf import timestamp_pb2
+from shared_lib.email_service import get_email_service
 from shared_lib.db.models import Reservation, ApplicationDowntime
 from shared_lib.db.session import SessionLocal
 from loguru import logger
+from email.message import EmailMessage
+from googleapiclient.errors import HttpError
 
 from ..common.constants import (
     GCP_PROJECT_ID,
@@ -299,3 +303,31 @@ async def delete_downtime_tasks(downtime_id: int):
                 await delete_end_downtime_task(
                     downtime_id, downtime_entry.end_task_id
                 )
+
+async def sendReservationEmail(recipient_email, sender_email, reservation_id, subject, email_content):
+    email_service = get_email_service()
+    try:
+        message = EmailMessage()
+        message.add_alternative(email_content, subtype="html")
+
+        message["To"] = recipient_email
+        message["From"] = sender_email
+        message["Subject"] = subject
+
+        encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+
+        create_message = {"raw": encoded_message}
+        send_message = (
+            email_service.users()
+            .messages()
+            .send(userId="me", body=create_message)
+            .execute()
+        )
+        print(f'Message Id: {send_message["id"]}')
+    except HttpError as error:
+        print(f"An error occurred: {error}")
+        send_message = None
+    logger.info(
+        f"Email Notification sent to {recipient_email} for reservation {reservation_id} with subject {subject}"
+    )
+    return send_message

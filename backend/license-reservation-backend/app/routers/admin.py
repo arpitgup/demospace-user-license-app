@@ -491,8 +491,6 @@ def bulk_cancel_downtime(
 ):
     """
     Cancels a list of application downtime entries by their IDs.
-    
-    This endpoint requires administrator privileges to access.
     """
     logger.info(
         f"Admin user {user_email}: Bulk canceling downtimes: {req.downtime_ids}"
