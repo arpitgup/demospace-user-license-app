@@ -6,7 +6,7 @@ steps:
       - "-c"
       - |
         cd frontend/
-        docker build -t "gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}" -f "license-reservation-backend/Dockerfile" .
+        docker build -t "gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}" -f "Dockerfile" .
 
   - name: "gcr.io/cloud-builders/docker"
     id: "Push"
