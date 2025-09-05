@@ -61,10 +61,6 @@ triggers:
   includedFiles: backend/license-management-api/*
   ignoredFiles:
   disabled: true
-  substitutions:
-    _PROJECT_ID: sys-36807655692543323281329778
-    _SERVICE_NAME: license-management-api-prod
-    _VPC_CONNECTOR: cloud-run-vpc-connector
 - name: licenseapp-backend-prod
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/backend-cloudbuild.yaml
@@ -75,10 +71,6 @@ triggers:
   includedFiles: backend/license-reservation-backend/*
   ignoredFiles:
   disabled: true
-  substitutions:
-    _PROJECT_ID: sys-36807655692543323281329778
-    _SERVICE_NAME: license-reservation-backend-prod
-    _VPC_CONNECTOR: cloud-run-vpc-connector
 - name: reservationApp-frontend-prod
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/frontend-cloudbuild.yaml
@@ -89,6 +81,3 @@ triggers:
   includedFiles: frontend/*
   ignoredFiles:
   disabled: true
-  substitutions:
-    _PROJECT_ID: sys-36807655692543323281329778    
-    _SERVICE_NAME: license-reservation-app-prod
