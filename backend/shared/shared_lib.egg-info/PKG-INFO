@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: shared_lib
+Version: 0.1.0
+Summary: Shared library functions for license reservation backend services
+Requires-Dist: google-api-python-client==2.*
+Requires-Dist: google-auth==2.*
+Requires-Dist: google-cloud-secret-manager==2.*
+Requires-Dist: cachetools==5.5.*
+Requires-Dist: loguru==0.7.3
+Requires-Dist: psycopg2-binary==2.9.*
+Requires-Dist: sqlalchemy==2.*
