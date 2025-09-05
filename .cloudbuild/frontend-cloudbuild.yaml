@@ -1,15 +1,12 @@
 steps:
   - name: "gcr.io/cloud-builders/docker"
     id: "Build"
+    entrypoint: "bash"
     args:
-      [
-        "build",
-        "-t",
-        "gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}",
-        "-f",
-        "Dockerfile",
-        ".",
-      ]
+      - "-c"
+      - |
+        cd frontend/
+        docker build -t "gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}" -f "license-reservation-backend/Dockerfile" .
 
   - name: "gcr.io/cloud-builders/docker"
     id: "Push"
