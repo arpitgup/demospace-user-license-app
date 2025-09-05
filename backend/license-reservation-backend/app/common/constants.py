@@ -56,7 +56,7 @@ BOOKED_RESERVATION_EMAIL_CONTENT = """
               <td align="center" style="padding: 15px 25px;">  
                  <div class="digest-block" style="background-color: transparent; border: none; box-shadow: none; padding: 0; display: inline-flex; align-items: center;"> 
                     <img src="https://www.gstatic.com/images/branding/product/1x/google_cloud_48dp.png" alt="goldemos icon" class="digest-icon" style="vertical-align: middle;"> 
-                    <span class="digest-text" style="font-size: 24px; vertical-align: middle; margin-left: 12px;">go/demos Update Digest</span> 
+                    <span class="digest-text" style="font-size: 24px; vertical-align: middle; margin-left: 12px;">Demo License Reservation</span> 
                  </div> 
               </td> 
             </tr> 
@@ -73,10 +73,7 @@ BOOKED_RESERVATION_EMAIL_CONTENT = """
                 <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; background-color: #ffffff; border-radius: 12px;"> 
                     <!-- Header within the white card --> 
                     <tr> 
-                        <td align="left" bgcolor="#ffffff" style="padding: 10px 30px 20px 30px; border-bottom: 1px solid #eeeeee; border-top-left-radius: 12px; border-top-right-radius: 12px;">  
-                           <div style="color: #5f6368; font-family: 'Google Sans', Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.5;"> 
-                                Demo License Reservation 
-                            </div> 
+                        <td align="left" bgcolor="#ffffff" style="padding: 10px 30px 20px 30px; border-bottom: 1px solid #eeeeee; border-top-left-radius: 12px; border-top-right-radius: 12px;">                            
                             <div style="color: #202124; font-family: 'Google Sans', Roboto, Arial, sans-serif; font-size: 22px; line-height: 1.3; padding-top: 4px;"> 
                                 Reservation Confirmation
                             </div> 
@@ -97,7 +94,7 @@ BOOKED_RESERVATION_EMAIL_CONTENT = """
                             </div>
                             
                             <p style="margin: 20px 0 15px 0; color: #3c4043; font-family: Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.5;"> 
-                                You can manage your reservation(s) by logging into the demo user licensing app. 
+                                You can manage your reservation(s) by logging into the demo user licensing app. Please follow the demo guide "How to log-in" section for details on how to access these applications.
                             </p> 
                             <p style="margin: 0; color: #5f6368; font-family: Roboto, Arial, sans-serif; font-size: 12px; line-height: 1.5;"> 
                                 This is an automated message, so please do not reply directly to this email. For assistance, click the Feedback button on the demo page or the demo app.
@@ -141,7 +138,7 @@ CANCELLED_RESERVATION_EMAIL_CONTENT = """
               <td align="center" style="padding: 15px 25px;">
                   <div class="digest-block" style="background-color: transparent; border: none; box-shadow: none; padding: 0; display: inline-flex; align-items: center;">
                     <img src="https://www.gstatic.com/images/branding/product/1x/google_cloud_48dp.png" alt="goldemos icon" class="digest-icon" style="vertical-align: middle;">
-                    <span class="digest-text" style="font-size: 24px; vertical-align: middle; margin-left: 12px;">go/demos Update Digest</span>
+                    <span class="digest-text" style="font-size: 24px; vertical-align: middle; margin-left: 12px;">Demo License Reservation</span>
                   </div>
               </td>
             </tr>
@@ -158,10 +155,7 @@ CANCELLED_RESERVATION_EMAIL_CONTENT = """
                 <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; background-color: #ffffff; border-radius: 12px;">
                     <!-- Header within the white card -->
                     <tr>
-                        <td align="left" bgcolor="#ffffff" style="padding: 10px 30px 20px 30px; border-bottom: 1px solid #eeeeee; border-top-left-radius: 12px; border-top-right-radius: 12px;">
-                            <div style="color: #5f6368; font-family: 'Google Sans', Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.5;">
-                                Demo License Reservation
-                            </div>
+                        <td align="left" bgcolor="#ffffff" style="padding: 10px 30px 20px 30px; border-bottom: 1px solid #eeeeee; border-top-left-radius: 12px; border-top-right-radius: 12px;">                            
                             <div style="color: #202124; font-family: 'Google Sans', Roboto, Arial, sans-serif; font-size: 22px; line-height: 1.3; padding-top: 4px;">
                                 Reservation Cancellation
                             </div>
@@ -182,7 +176,7 @@ CANCELLED_RESERVATION_EMAIL_CONTENT = """
                             </div>
                             
                             <p style="margin: 20px 0 15px 0; color: #3c4043; font-family: Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.5;">
-                                If this was a mistake, you can log in to the demo user licensing app to make a new reservation.
+                                You can manage your reservation(s) by logging into the demo user licensing app. Please follow the demo guide "How to log-in" section for details on how to access these applications.
                             </p>
                             <p style="margin: 0; color: #5f6368; font-family: Roboto, Arial, sans-serif; font-size: 12px; line-height: 1.5;">
                                 This is an automated message, so please do not reply directly to this email. For assistance, click the Feedback button on the demo page or the demo app.
