@@ -19,10 +19,10 @@ import {
 
 import { AppConfig } from '../models/appConfig.model';
 import { environment } from '../../../environments/environment';
-import { AvailabilityByApplicationRequest } from '../models/availabilityByApplicationRequest.model';
-import { AvalaibilityByApplication } from '../models/availabilityByApplication.model';
-import { MakeReservationRequest } from '../models/makeReservationRequest.model';
-import { MakeReservationResponse } from '../models/makeReservationResponse.model';
+import { AvailabilityByApplicationRequest } from '../models/availability-by-application-request.model';
+import { AvalaibilityByApplication } from '../models/availability-by-application.model';
+import { MakeReservationRequest } from '../models/make-reservation-request.model';
+import { MakeReservationResponse } from '../models/make-reservation-response.model';
 import { Application } from '../models/application.model';
 import { LoaderService } from './loading.service';
 

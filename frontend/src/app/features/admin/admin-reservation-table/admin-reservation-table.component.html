@@ -1,0 +1,179 @@
+<div class="table-wrapper">
+  @if (isLoading()) {
+  <app-table-loader />
+  } @else{ @if(showCancelCta()===true){
+  <div class="cancel-wrapper">
+    <div class="cancel-text-wrapper" (click)="showCancelConfirmationDialog()">
+      <img src="assets/svgs/ic_circle_cancel.svg" alt="circle_canel" />
+      <span class="cancel-text">Cancel</span>
+    </div>
+  </div>
+  }@else{
+  <form [formGroup]="searchForm" class="search-content">
+    <div class="show-past-checkbox-wrapper">
+      <mat-checkbox
+        class="show-past-checkbox"
+        (change)="onShowPastChange($event.checked)"
+        [checked]="showPastReservations()"
+      >
+        {{ adminReservationConstants.SHOW_PAST_CHECKBOX_LABEL }}
+      </mat-checkbox>
+    </div>
+    <div class="custom-form-field">
+      <mat-form-field class="custom-form-field" appearance="outline">
+        <mat-label class="custom-label">Search by user</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          [formControlName]="SEARCH_USER_FORM"
+          placeholder="Search by user"
+        />
+      </mat-form-field>
+    </div>
+    <div class="custom-form-field">
+      <mat-form-field appearance="outline">
+        <mat-label>Search by application</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          [formControlName]="SEARCH_APPLICATION_FORM"
+          placeholder="Search by application"
+        />
+      </mat-form-field>
+    </div>
+    <div class="custom-form-field">
+      <mat-form-field appearance="outline">
+        <mat-label>Search by date</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          id="date-picker"
+          matInput
+          [matDatepicker]="datePicker"
+          [min]="minDate"
+          [max]="maxDate"
+          readonly
+          [formControlName]="SEARCH_DATE_FORM"
+        />
+        <mat-datepicker-toggle
+          matIconSuffix
+          [for]="datePicker"
+        ></mat-datepicker-toggle>
+        <mat-datepicker #datePicker></mat-datepicker>
+      </mat-form-field>
+    </div>
+
+    <div class="custom-reset" (click)="onRefreshCall()">
+      <mat-icon class="refresh-icon">refresh</mat-icon>
+      <span class="reset-text">Refresh</span>
+    </div>
+  </form>
+  }
+
+  <table mat-table [dataSource]="dataSource" matSort class="custom-table">
+    <ng-container matColumnDef="select">
+      <th mat-header-cell *matHeaderCellDef>
+        <div class="show-past-checkbox-wrapper">
+          <mat-checkbox
+            class="show-past-checkbox"
+            (change)="onSelectAllReservations($event.checked)"
+            [checked]="selectAllReservations()"
+            [disabled]="showPastReservations() === true"
+          />
+        </div>
+      </th>
+      <td mat-cell *matCellDef="let element">
+        <mat-checkbox
+          class="show-past-checkbox"
+          (change)="onCancelledClicked($event.checked, element.id)"
+          [checked]="element.isSelect"
+          [disabled]="showPastReservations() === true"
+        />
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="reservationDate">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        Reservation Date
+      </th>
+      <td mat-cell *matCellDef="let element">
+        @if(element.isSameDay===true){
+        {{ element.startTime | date : "MMMM d, y 'at' h a" }} -
+        {{ element.endTime | date : " h a" }} {{ localTimeAbbrevation }}
+        }@else{
+        {{ element.startTime | date : "MMMM d, y 'at' h a" }} -
+        {{ element.endTime | date : "MMMM d, y 'at' h a" }}
+        {{ localTimeAbbrevation }}
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="reservedBy">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Reserved by</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.userEmail.split("@")[0] }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="applications">
+      <th mat-header-cell *matHeaderCellDef>Applications</th>
+      <td mat-cell *matCellDef="let element">
+        <div class="app-chip-list">
+          @for(app of element.applications; track app.id){
+          @if(app.isRemove!==true){
+          <div class="app-chip-wrapper">
+            <span class="app-chip-text">{{ app.name }}</span>
+            @if(element.isEditable){
+            <img
+              src="assets/svgs/ic_cancel.svg"
+              alt="cancel"
+              class="cross-icon"
+              (click)="onRemoveApplication(element, app.id)"
+            />
+            }
+          </div>
+          } }
+        </div>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let element">{{ element.status }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="action">
+      <th mat-header-cell *matHeaderCellDef>Action</th>
+      <td mat-cell *matCellDef="let element">
+        @if(element.isEditable===true){
+        <div class="action-wrapper">
+          <div
+            class="edit-wrapper"
+            (click)="onCancelUpdateReservation(element.id)"
+          >
+            <span class="edit-text">Cancel</span>
+          </div>
+          <div class="save-wrapper" (click)="onSaveCall(element.id)">
+            <img src="assets/svgs/ic_save.svg" alt="edit" class="edit-icon" />
+            <span class="save-text">Save</span>
+          </div>
+        </div>
+        }@else if(element.status===reservationApiStatus.PENDING){
+        <div class="edit-wrapper" (click)="onEditCall(element.id)">
+          <img src="assets/svgs/edit_square.svg" alt="edit" class="edit-icon" />
+          <span class="edit-text">Edit</span>
+        </div>
+        }
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+  <mat-paginator
+    [pageSizeOptions]="pageSizeOptions"
+    showFirstLastButtons
+    aria-label="Select page of reservations"
+  >
+  </mat-paginator>
+  }
+</div>

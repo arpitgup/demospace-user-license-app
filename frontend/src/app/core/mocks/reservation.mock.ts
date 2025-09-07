@@ -3,8 +3,8 @@ import { BotWithApps, Reservation } from '../models/reservation.model';
 import { AppConfig } from '../models/appConfig.model';
 import { signal } from '@angular/core';
 import { Application } from '../models/application.model';
-import { AvalaibilityByApplication } from '../models/availabilityByApplication.model';
-import { MakeReservationResponse } from '../models/makeReservationResponse.model';
+import { AvalaibilityByApplication } from '../models/availability-by-application.model';
+import { MakeReservationResponse } from '../models/make-reservation-response.model';
 
 export const MOCK_RESERVATIONS: Reservation[] = [
   {
