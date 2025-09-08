@@ -1,106 +1,199 @@
 <div class="table-wrapper">
   @if (isLoading()) {
-  <app-table-loader />
-  } @else { @if(showCancelCta()){
-  <div class="cancel-wrapper">
-    <div class="cancel-text-wrapper" (click)="showCancelConfirmationDialog()">
-      <img src="assets/svgs/ic_circle_cancel.svg" alt="Cancel Selected" />
-      <span class="cancel-text">Cancel Selected</span>
-    </div>
-  </div>
+    <app-table-loader />
   } @else {
-  <form [formGroup]="searchForm" class="search-content">
-    <div class="show-past-checkbox-wrapper">
-      <mat-checkbox class="show-past-checkbox" (change)="onShowPastChange($event.checked)"
-        [checked]="showPastDowntimes()">
-        Show Past Downtimes
-      </mat-checkbox>
-    </div>
 
-    <div class="custom-form-field">
-      <mat-form-field appearance="outline">
-        <mat-label>Search by user</mat-label>
-        <mat-icon matPrefix>search</mat-icon>
-        <input matInput [formControlName]="SEARCH_USER_FORM" placeholder="e.g., testuser" />
-      </mat-form-field>
-    </div>
-
-    <div class="custom-form-field">
-      <mat-form-field appearance="outline">
-        <mat-label>Search by application</mat-label>
-        <mat-icon matPrefix>search</mat-icon>
-        <input matInput [formControlName]="SEARCH_APP_FORM" placeholder="e.g., ServiceNow" />
-      </mat-form-field>
-    </div>
-
-    <div class="custom-form-field">
-      <mat-form-field appearance="outline">
-        <mat-label>Search by date</mat-label>
-        <mat-icon matPrefix>search</mat-icon>
-        <input matInput [matDatepicker]="datePicker" readonly [formControlName]="SEARCH_DATE_FORM" />
-        <mat-datepicker-toggle matIconSuffix [for]="datePicker"></mat-datepicker-toggle>
-        <mat-datepicker #datePicker></mat-datepicker>
-      </mat-form-field>
-    </div>
-
-    <div class="custom-reset" (click)="onRefreshCall()">
-      <mat-icon class="refresh-icon">refresh</mat-icon>
-      <span class="reset-text">Refresh</span>
-    </div>
-  </form>
-  }
-
-  <table mat-table [dataSource]="dataSource" matSort class="custom-table">
-    <ng-container matColumnDef="select">
-      <th mat-header-cell *matHeaderCellDef>
-        <mat-checkbox (change)="onSelectAll($event.checked)" [checked]="selectAll()"
-          [disabled]="showPastDowntimes()"></mat-checkbox>
-      </th>
-      <td mat-cell *matCellDef="let row">
-        <mat-checkbox (change)="onRowSelect($event.checked, row.id)" [checked]="row.isSelected"
-          [disabled]="showPastDowntimes()"></mat-checkbox>
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="dates">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Downtime Period</th>
-      <td mat-cell *matCellDef="let row">
-        {{ row.downtime_start | date:'MMMM d, y, h:mm a' }} - {{ row.downtime_end | date:'h:mm a (zzz)' }}
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="createdBy">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Created by</th>
-      <td mat-cell *matCellDef="let row">
-        {{ row.created_by.split('@')[0] }}
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="apps">
-      <th mat-header-cell *matHeaderCellDef>Applications</th>
-      <td mat-cell *matCellDef="let row">
-        <div class="app-chip-list">
-          <div class="app-chip-wrapper">
-            <span class="app-chip-text">{{ row.application.name }}</span>
-          </div>
+    @if (showCancelCta() && !showPastDowntimes()) {
+      <div class="cancel-wrapper">
+        <div class="cancel-text-wrapper" (click)="showCancelConfirmationDialog()">
+          <img src="assets/svgs/ic_circle_cancel.svg" alt="Cancel Selected" />
+          <span class="cancel-text">Cancel Selected</span>
         </div>
-      </td>
-    </ng-container>
+      </div>
+    } @else {
 
-    <ng-container matColumnDef="reason">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header="downtime_reason">Reason</th>
-      <td mat-cell *matCellDef="let row">{{ row.downtime_reason }}</td>
-    </ng-container>
+      <form [formGroup]="searchForm" class="search-content" autocomplete="off" novalidate>
+        <div class="show-past-checkbox-wrapper">
+          <mat-checkbox
+            class="show-past-checkbox"
+            (change)="onShowPastChange($event.checked)"
+            [checked]="showPastDowntimes()"
+            aria-label="Toggle past downtimes"
+          >
+            Show Past Downtimes
+          </mat-checkbox>
+        </div>
 
-    <ng-container matColumnDef="status">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
-      <td mat-cell *matCellDef="let row">{{ row.status }}</td>
-    </ng-container>
+        <div class="custom-form-field">
+          <mat-form-field appearance="outline">
+            <mat-label>Search by user</mat-label>
+            <mat-icon matPrefix>search</mat-icon>
+            <input
+              matInput
+              [formControlName]="SEARCH_USER_FORM"
+              placeholder="e.g., testuser"
+              aria-label="Search by user"
+              spellcheck="false"
+            />
+            @if (searchForm.get(SEARCH_USER_FORM)?.value) {
+              <button
+                mat-icon-button
+                matSuffix
+                (click)="clearSearchField(SEARCH_USER_FORM)"
+                aria-label="Clear user search"
+                type="button"
+              >
+                <mat-icon>clear</mat-icon>
+              </button>
+            }
+          </mat-form-field>
+        </div>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-  </table>
-  <mat-paginator [pageSizeOptions]="pageSizeOptions" showFirstLastButtons></mat-paginator>
+        <div class="custom-form-field">
+          <mat-form-field appearance="outline">
+            <mat-label>Search by application</mat-label>
+            <mat-icon matPrefix>search</mat-icon>
+            <input
+              matInput
+              [formControlName]="SEARCH_APP_FORM"
+              placeholder="e.g., ServiceNow"
+              aria-label="Search by application"
+              spellcheck="false"
+            />
+            @if (searchForm.get(SEARCH_APP_FORM)?.value) {
+              <button
+                mat-icon-button
+                matSuffix
+                (click)="clearSearchField(SEARCH_APP_FORM)"
+                aria-label="Clear application search"
+                type="button"
+              >
+                <mat-icon>clear</mat-icon>
+              </button>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="custom-form-field">
+          <mat-form-field appearance="outline">
+            <mat-label>Search by date</mat-label>
+            <mat-icon matPrefix>search</mat-icon>
+            <input
+              matInput
+              [matDatepicker]="datePicker"
+              readonly
+              [formControlName]="SEARCH_DATE_FORM"
+              aria-label="Search by date"
+            />
+            <mat-datepicker-toggle matIconSuffix [for]="datePicker"></mat-datepicker-toggle>
+            <mat-datepicker #datePicker></mat-datepicker>
+            @if (searchForm.get(SEARCH_DATE_FORM)?.value) {
+              <button
+                mat-icon-button
+                matSuffix
+                (click)="clearSearchField(SEARCH_DATE_FORM)"
+                aria-label="Clear date search"
+                type="button"
+              >
+                <mat-icon>clear</mat-icon>
+              </button>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="custom-reset" (click)="onRefreshCall()" role="button" tabindex="0">
+          <mat-icon class="refresh-icon">refresh</mat-icon>
+          <span class="reset-text">Refresh</span>
+        </div>
+      </form>
+    }
+
+    @if (dataSource.data.length > 0) {
+
+      <table mat-table [dataSource]="dataSource" matSort class="custom-table" aria-label="Downtime table">
+        <ng-container matColumnDef="select">
+          <th mat-header-cell *matHeaderCellDef>
+            <mat-checkbox
+              (change)="onSelectAll($event.checked)"
+              [checked]="selectAll()"
+              [disabled]="showPastDowntimes()"
+              aria-label="Select all visible rows"
+            ></mat-checkbox>
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <mat-checkbox
+              (change)="onRowSelect($event.checked, row.id)"
+              [checked]="row.isSelected"
+              [disabled]="showPastDowntimes()"
+              aria-label="Select this downtime"
+            ></mat-checkbox>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="dates">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            Downtime Period
+          </th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.downtime_start | date : 'MMMM d, y, h:mm a' }} –
+            {{ row.downtime_end | date : 'h:mm a (zzz)' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="createdBy">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            Created by
+          </th>
+          <td mat-cell *matCellDef="let row">
+            {{ (row.created_by || '').split('@')[0] || '—' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="apps">
+          <th mat-header-cell *matHeaderCellDef>Applications</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="app-chip-list">
+              <div class="app-chip-wrapper">
+                <span class="app-chip-text">{{ row.application.name }}</span>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="reason">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            Reason
+          </th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.downtime_reason }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header="status">
+            Status
+          </th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.status }}
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+
+      <mat-paginator
+        [pageSizeOptions]="pageSizeOptions"
+        showFirstLastButtons
+        aria-label="Table pagination"
+      ></mat-paginator>
+
+    } @else {
+      <div class="empty-data-message">
+        <mat-icon class="empty-data-icon">info_outline</mat-icon>
+        <span>{{ NO_DOWNTIMES_MSG }}</span>
+      </div>
+    }
   }
 </div>
 
