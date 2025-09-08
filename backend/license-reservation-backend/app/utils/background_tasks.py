@@ -304,6 +304,7 @@ async def delete_downtime_tasks(downtime_id: int):
                     downtime_id, downtime_entry.end_task_id
                 )
 
+# Send Notification email to agentspace demo user email for Create/Cancel reservations
 async def sendReservationEmail(recipient_email, sender_email, reservation_id, subject, email_content):
     email_service = get_email_service()
     try:
