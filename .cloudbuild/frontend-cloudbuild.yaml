@@ -27,7 +27,7 @@ steps:
       ]
 
 substitutions:
-  _SERVICE_NAME: "license-reservation-app-prod"
+  _SERVICE_NAME: "license-reservation-app-dev"
   _PROJECT_ID: "sys-36807655692543323281329778"
   _REGION: "us-central1"
 
