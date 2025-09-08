@@ -628,7 +628,7 @@ def bulk_cancel_downtime(
 def create_applications(
     req: ApplicationCreateRequest,
     db: Session = Depends(get_db),
-    user_email: str = Depends(get_user_email)    
+    user_email: str = Depends(get_user_email)
 ):
     """
     Creates multiple new application

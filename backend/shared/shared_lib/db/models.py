@@ -67,7 +67,7 @@ class Application(Base):
         PGEnum(ApplicationLicenseType), default=ApplicationLicenseType.SUBSCRIPTION
     )
     license_group = Column(String, nullable=True)
-    license_count = Column(String, nullable=True)    
+    license_count = Column(String, nullable=True)
 
     supported_by_bots = relationship("BotApplication", back_populates="application")
     reservations = relationship(
