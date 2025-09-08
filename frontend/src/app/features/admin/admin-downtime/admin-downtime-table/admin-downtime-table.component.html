@@ -1,0 +1,88 @@
+<div class="table-wrapper">
+  @if (isLoading()) {
+    <app-table-loader />
+  } @else { 
+    @if(showCancelCta()){
+      <div class="cancel-wrapper">
+        <div class="cancel-text-wrapper" (click)="showCancelConfirmationDialog()">
+          <img src="assets/svgs/ic_circle_cancel.svg" alt="circle_cancel" />
+          <span class="cancel-text">Cancel Selected</span>
+        </div>
+      </div>
+    } @else {
+      <form [formGroup]="searchForm" class="search-content">
+        <div class="custom-form-field">
+          <mat-form-field class="custom-form-field" appearance="outline">
+            <mat-label class="custom-label">Search by application</mat-label>
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput [formControlName]="SEARCH_APP_FORM" placeholder="e.g., ServiceNow" />
+          </mat-form-field>
+        </div>
+        <div class="custom-reset" (click)="onRefreshCall()">
+          <mat-icon class="refresh-icon">refresh</mat-icon>
+          <span class="reset-text">Refresh</span>
+        </div>
+      </form>
+    }
+
+    <table mat-table [dataSource]="dataSource" matSort class="custom-table">
+      <!-- Select Column -->
+      <ng-container matColumnDef="select">
+        <th mat-header-cell *matHeaderCellDef>
+          <mat-checkbox (change)="onSelectAll($event.checked)" [checked]="selectAll()"></mat-checkbox>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <mat-checkbox (change)="onRowSelect($event.checked, row.id)" [checked]="row.isSelected"></mat-checkbox>
+        </td>
+      </ng-container>
+
+      <!-- Dates Column -->
+      <ng-container matColumnDef="dates">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Downtime Period</th>
+        <td mat-cell *matCellDef="let row">
+          <!-- FIX: Changed from startAt/endAt to downtime_start/downtime_end -->
+          {{ row.downtime_start | date:'MMMM d, y, h:mm a' }} - {{ row.downtime_end | date:'h:mm a (zzz)' }}
+        </td>
+      </ng-container>
+
+      <!-- Created By Column -->
+      <ng-container matColumnDef="createdBy">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Created by</th>
+        <td mat-cell *matCellDef="let row">
+          <!-- FIX: Populated with created_by and formatted to show username -->
+          {{ row.created_by.split('@')[0] }}
+        </td>
+      </ng-container>
+
+      <!-- Applications Column -->
+      <ng-container matColumnDef="apps">
+        <th mat-header-cell *matHeaderCellDef>Applications</th>
+        <td mat-cell *matCellDef="let row">
+          <div class="app-chip-list">
+            <!-- FIX: Removed @for loop. Displaying the single application name directly. -->
+            <div class="app-chip-wrapper">
+              <span class="app-chip-text">{{ row.application.name }}</span>
+            </div>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Reason Column -->
+      <ng-container matColumnDef="reason">
+        <th mat-header-cell *matHeaderCellDef>Reason</th>
+        <!-- FIX: Changed from row.reason to row.downtime_reason -->
+        <td mat-cell *matCellDef="let row">{{ row.downtime_reason }}</td>
+      </ng-container>
+
+      <!-- Status Column -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let row">{{ row.status }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+    <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
+  }
+</div>

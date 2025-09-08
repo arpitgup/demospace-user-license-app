@@ -19,5 +19,8 @@
     @if(menuItemType()===menuItemsEnums.RESERVATION_OVERVIEW){
     <app-admin-reservation></app-admin-reservation>
     }
+    @else if(menuItemType()===menuItemsEnums.APPLICATION_DOWNTIME){
+    <app-admin-downtime ></app-admin-downtime>
+    }
   </mat-drawer-content>
 </mat-drawer-container>

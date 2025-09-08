@@ -1,0 +1,102 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/typography" as *;
+@use "@angular/material" as mat;
+@use "../../../../styles/mixins" as *;
+
+.downtime-container {
+  flex-shrink: 0;
+  margin: 5.19rem 2rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border: 1px solid #ccc;
+
+  ::ng-deep .downtime-tabs {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+
+    .mat-mdc-tab-body-wrapper {
+      flex-grow: 1;
+    }
+
+    .mat-mdc-tab {
+      flex: 0 0 25.6rem !important;
+      justify-content: center !important;
+      height: 4.59rem;
+      @include body-md;
+
+      .mdc-tab__text-label {
+        color: $color-black !important;
+      }
+
+      &.mdc-tab--active {
+        .mdc-tab__text-label {
+          color: var(--blue, $color-blue) !important;
+        }
+      }
+    }
+
+    .mdc-tab-indicator__content--underline {
+      border-color: var(--blue, $color-blue) !important;
+      border-width: 2px;
+      width: 100% !important;
+    }
+  }
+}
+
+.schedule-downtime-container {
+  margin: 2.62rem 1.19rem;
+  padding: 1.87rem 2.81rem;
+
+  .schedule-downtime-header {
+    color: var(--Black, #161a1d);
+    font-family: Roboto;
+    font-size: 1.5rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 1.5rem; /* 100% */
+  }
+}
+
+.schedule-form {
+  max-width: 880px;
+  display: grid;
+  gap: 16px;
+  margin: 16px 0;
+
+  .form-row {
+    display: grid;
+    gap: 12px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(240px, 1fr));
+    gap: 12px;
+  }
+
+  .w-full {
+    width: 100%;
+  }
+
+  .form-errors {
+    border: 1px solid #ffcccc;
+    background: #fff6f6;
+    color: #b30000;
+    border-radius: 8px;
+    padding: 8px 12px;
+
+    p {
+      margin: 4px 0;
+    }
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 4px;
+  }
+}
