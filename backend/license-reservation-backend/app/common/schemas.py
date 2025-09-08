@@ -166,13 +166,14 @@ class ApplicationCreateRequest(BaseModel):
     license_group: Optional[str] = None
     license_count: Optional[int] = None
 
-class ApplicationCreateResponse(BaseModel):    
+class ApplicationCreateResponse(BaseModel):
     id: int
     name: str
     is_active: bool
     license_type: ApplicationLicenseType
     license_group: Optional[str] = None
     license_count: Optional[int] = None
+    saml_attribute_name: str
 
 class ExtendReservationRequest(CamelModel):
     end_time: datetime

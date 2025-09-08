@@ -16,6 +16,8 @@ from shared_lib.db.models import (
 from shared_lib.dependencies import get_user_email, get_db
 from typing import List
 from shared_lib.enums import DowntimeStatus
+from shared_lib.admin_service import create_saml_attribute
+from ..common.constants import ACCOUNT_CUSTOMERID
 
 from ..common.schemas import (
     ApplicationWithLicenseGroupOut,
@@ -626,7 +628,7 @@ def bulk_cancel_downtime(
 def create_applications(
     req: ApplicationCreateRequest,
     db: Session = Depends(get_db),
-    user_email: str = Depends(get_user_email),
+    user_email: str = Depends(get_user_email)    
 ):
     """
     Creates multiple new application
@@ -641,8 +643,18 @@ def create_applications(
         # Refresh the object to get the generated ID
         db.refresh(new_application)
 
+        saml_attribute_name = create_saml_attribute(new_application.name, ACCOUNT_CUSTOMERID)
+
         logger.info(f"Successfully created application with ID: {new_application.id}")        
-        return new_application
+        return ApplicationCreateResponse(
+            id=new_application.id,
+            name=new_application.name,
+            is_active=req.is_active,
+            license_type=req.license_type,
+            license_group=req.license_group,
+            license_count=req.license_count,
+            saml_attribute_name=saml_attribute_name
+        )
         
     except IntegrityError as e:
         db.rollback()        
