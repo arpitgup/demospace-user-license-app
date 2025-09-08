@@ -8,7 +8,7 @@ triggers:
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
   includedFiles: backend/license-management-api/*
   ignoredFiles:
-  disabled: 
+  disabled: true
 - name: licenseapp-backend-dev
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/backend-cloudbuild.yaml
@@ -18,7 +18,7 @@ triggers:
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
   includedFiles: backend/license-reservation-backend/*
   ignoredFiles:
-  disabled: 
+  disabled: true
 - name: reservationApp-frontend-dev
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/frontend-cloudbuild.yaml
@@ -28,7 +28,7 @@ triggers:
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
   includedFiles: frontend/*
   ignoredFiles:
-  disabled: 
+  disabled: true
 - name: licenseapp-apimanagement-prod
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/apimanagement-cloudbuild.yaml
