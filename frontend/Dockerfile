@@ -8,7 +8,7 @@ RUN npm install -g @angular/cli
 
 RUN npm install
 
-# RUN npm ci CICD testing
+# RUN npm ci CICD testing environment basis
 
 COPY . .
 
