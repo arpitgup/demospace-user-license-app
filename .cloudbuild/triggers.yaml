@@ -75,6 +75,18 @@ triggers:
   includedFiles: backend/license-management-api/*
   ignoredFiles:
   disabled: 
+  substitutions:
+    _SERVICE_NAME: "license-management-api-prod"
+    _PROJECT_ID: "sys-36807655692543323281329778"
+    _REGION: "us-central1"
+    _VPC_CONNECTOR_NAME: "cloud-run-vpc-connector"
+    _DB_USER: "postgres"
+    _DB_HOST: "10.20.163.7"
+    _DB_PORT: "5432"
+    _DB_NAME: "license-reservation-db"
+    _DB_PASSWORD_SECRET_NAME: "license-reservation-db-password-prod"
+    _DELEGATED_ADMIN: "arpitgup@1987984870407.altostrat.com"
+    _ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME: "license-reservation-auth-sa-key"
 - name: licenseapp-backend-prod
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/backend-cloudbuild.yaml
@@ -85,6 +97,25 @@ triggers:
   includedFiles: backend/license-reservation-backend/*
   ignoredFiles:
   disabled: 
+  substitutions:
+    _SERVICE_NAME: "license-reservation-backend-prod"
+    _PROJECT_ID: "sys-36807655692543323281329778"
+    _REGION: "us-central1"
+    _VPC_CONNECTOR_NAME: "cloud-run-vpc-connector"
+    _LICENSE_ALLOCATION_QUEUE: "license-allocation-Queue"
+    _LICENSE_REVOCATION_QUEUE: "license-revocation-queue"
+    _DOWNTIME_START_QUEUE: "application-downtime-start-queue"
+    _DOWNTIME_END_QUEUE: "application-downtime-end-queue"
+    _LICENSE_MANAGEMENT_API_ENDPOINT: "https://license-management-api-prod-385039775654.us-central1.run.app"
+    _LICENSE_ENDPOINTS_INVOKER_SERVICE_ACCOUNT: "license-mgmt-api-invoker-sa@sys-36807655692543323281329778.iam.gserviceaccount.com"
+    _DB_USER: "postgres"
+    _DB_HOST: "10.20.163.7"
+    _DB_PORT: "5432"
+    _DB_NAME: "license-reservation-db"
+    _DB_PASSWORD_SECRET_NAME: "license-reservation-db-password-prod"
+    _DELEGATED_ADMIN: "arpitgup@1987984870407.altostrat.com"
+    _ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME: "license-reservation-auth-sa-key"
+    _PORTAL_ADMIN_GROUP_EMAIL: ""
 - name: reservationApp-frontend-prod
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/frontend-cloudbuild.yaml
