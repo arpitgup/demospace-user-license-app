@@ -9,7 +9,7 @@ from pydantic import (
 from pydantic.alias_generators import to_camel
 from typing import List, Optional
 from datetime import datetime, timezone
-from shared_lib.enums import ReservationStatus, ApplicationLicenseType
+from shared_lib.enums import ReservationStatus, ApplicationLicenseType, DowntimeStatus
 
 
 def convert_to_utc(v: datetime) -> datetime:
@@ -119,7 +119,6 @@ class BulkCancelReservationsResponse(CamelModel):
     successfully_cancelled: List[int]
     failed_to_cancel: List[int]
 
-
 class CreateReservationRequest(CamelModel):
     primary_application_id: int
     secondary_application_ids: list[int] = []
@@ -160,6 +159,20 @@ class BotUpsertData(BaseModel):
 class BotsUpsertRequest(BaseModel):
     bots: list[BotUpsertData]
 
+class ApplicationCreateRequest(BaseModel):
+    name: str
+    is_active: bool
+    license_type: ApplicationLicenseType
+    license_group: Optional[str] = None
+    license_count: Optional[int] = None
+
+class ApplicationCreateResponse(BaseModel):    
+    id: int
+    name: str
+    is_active: bool
+    license_type: ApplicationLicenseType
+    license_group: Optional[str] = None
+    license_count: Optional[int] = None
 
 class ExtendReservationRequest(CamelModel):
     end_time: datetime
@@ -174,6 +187,8 @@ class UpdateApplicationStatusRequest(CamelModel):
 class ApplicationWithLicenseGroupOut(ApplicationOut):
     license_type: ApplicationLicenseType
     license_group: Optional[str] = None
+    license_count: Optional[int] = None
+    license_assigned_to_Bots: int
 
 
 class ApplicationUpdate(CamelModel):
@@ -193,3 +208,31 @@ class UserInfo(CamelModel):
     given_name: str
     family_name: str
     full_name: str
+
+class ApplicationDowntimeRequest(CamelModel):
+    applications: List[int]
+    downtime_start: datetime
+    downtime_end: datetime
+    downtime_reason: str
+
+    _convert_to_utc = field_validator("downtime_start", "downtime_end")(convert_to_utc)
+
+class ApplicationDowntimeOut(BaseModel):
+    id: int
+    application: ApplicationOut
+    downtime_start: datetime
+    downtime_end: datetime
+    downtime_reason: str
+    created_by: str
+    status: DowntimeStatus
+
+class DowntimeBulkCancelRequest(CamelModel):
+    downtime_ids: List[int]
+
+class DowntimeBulkCancelResponse(CamelModel):   
+    successfully_cancelled: List[int]
+    failed_to_cancel: List[int]
+
+class RemoveAppFromReservationsRequest(CamelModel):
+    primary_application_id: int
+    secondary_application_ids: Optional[List[int]] = []

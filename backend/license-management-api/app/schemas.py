@@ -13,6 +13,8 @@ class CamelModel(BaseModel):
 class ProvisionLicensesRequest(CamelModel):
     reservation_id: int
 
-
 class DeprovisionLicensesRequest(CamelModel):
     reservation_id: int
+
+class DowntimeEventRequest(CamelModel):
+    downtime_id: int

@@ -1,7 +1,9 @@
 from datetime import timezone
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status
 from loguru import logger
+from sqlalchemy import func
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from shared_lib.db.models import (
     Application,
     ApplicationLicenseType,
@@ -9,9 +11,11 @@ from shared_lib.db.models import (
     BotApplication,
     Reservation,
     ReservationStatus,
+    ApplicationDowntime    
 )
 from shared_lib.dependencies import get_user_email, get_db
 from typing import List
+from shared_lib.enums import DowntimeStatus
 
 from ..common.schemas import (
     ApplicationWithLicenseGroupOut,
@@ -24,11 +28,20 @@ from ..common.schemas import (
     UpdateBotApplicationsRequest,
     UpdateApplicationStatusRequest,
     BotsUpsertRequest,
+    ApplicationDowntimeRequest,
+    ApplicationDowntimeOut,
+    DowntimeBulkCancelRequest,
+    DowntimeBulkCancelResponse,
+    ApplicationCreateRequest,
+    ApplicationCreateResponse,
+    RemoveAppFromReservationsRequest
 )
 from ..utils.background_tasks import (
     delete_reservation_tasks,
     schedule_deprovisioning_task,
     delete_license_deprovisioning_task,
+    schedule_downtime_tasks,
+    delete_downtime_tasks
 )
 from ..utils.crud import get_bot_with_supported_apps, upsert_bots_with_applications
 
@@ -58,10 +71,22 @@ def build_response(bots: List[Bot]) -> List[BotWithApplicationsOut]:
 @router.get("/applications", response_model=List[ApplicationWithLicenseGroupOut])
 def get_applications(db: Session = Depends(get_db)):
     """
-    Retrieves all applications with their license group information.
-    """
-    return db.query(Application).all()
+    Retrieves all applications with their total licenses, allocated license & license group.
+    """    
+    query_result = (
+        db.query(Application, func.count(Bot.id).label('license_assigned_to_Bots'))
+        .outerjoin(Application.bots)
+        .group_by(Application.id)
+        .all()
+    )
 
+    applications_with_count = []
+    for application, count in query_result:        
+        app_data = application.__dict__        
+        app_data['license_assigned_to_Bots'] = count        
+        applications_with_count.append(ApplicationWithLicenseGroupOut.model_validate(app_data))
+
+    return applications_with_count
 
 @router.patch("/applications", status_code=status.HTTP_204_NO_CONTENT)
 def update_applications(
@@ -111,6 +136,68 @@ def update_applications(
             detail="An unexpected error occurred during application update.",
         )
 
+@router.patch("/reservations/{reservation_id}", response_model=ReservationOut)
+def remove_app_from_reservations(
+    reservation_id: int,
+    req: RemoveAppFromReservationsRequest,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+):
+    """
+    Remove the applications associated with a specific reservation.
+    """
+    logger.info(
+        f"Admin User {user_email}: Removing applications for reservation ID {reservation_id}"
+    )
+
+    reservation = (
+        db.query(Reservation)
+        .filter(Reservation.id == reservation_id)
+        .one_or_none()
+    )
+
+    if not reservation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Reservation not found.",
+        )
+
+    if reservation.status not in [ReservationStatus.PENDING]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only pending reservations can be modified."
+        )
+
+    new_app_ids = {req.primary_application_id} | set(req.secondary_application_ids)
+
+    try:        
+        reservation.applications.clear()
+        
+        new_applications = (
+            db.query(Application).filter(Application.id.in_(new_app_ids)).all()
+        )
+        reservation.applications.extend(new_applications)
+        # Update the primary_application_id in reservation table also
+        reservation.primary_application_id = req.primary_application_id
+
+        db.commit()
+        db.refresh(reservation)
+
+        logger.info(
+            f"Successfully removed application for reservation {reservation_id}."
+        )
+        
+        return reservation
+
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"An unexpected error occurred while removing app from reservation: {e}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while removing app from reservation.",
+        )
 
 @router.patch("/applications/{application_id}", status_code=status.HTTP_204_NO_CONTENT)
 def update_application_status(
@@ -362,4 +449,214 @@ def upsert_bots(request: BotsUpsertRequest, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(
             status_code=500, detail="An internal server error occurred."
+        )
+
+@router.get("/downtimes", response_model=List[ApplicationDowntimeOut])
+def get_all_downtimes(
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+):
+    """
+    Retrieves all application downtimes details.
+    """
+    logger.info(f"Admin user {user_email}: Fetching all application downtimes.")        
+    downtimes = db.query(ApplicationDowntime).all()
+    return downtimes
+
+@router.post(
+    "/schedule_downtime", status_code=200
+)
+def create_application_downtime(
+    req: ApplicationDowntimeRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+):
+    """
+    Records downtime for a list of applications and schedules tasks to manage them.
+    Checks for any overlapping downtimes or reservations before creation.
+    """
+    logger.info(
+        f"Admin User {user_email}: Creating downtime entry for applications: {req.applications}"
+    )
+
+    app_ids = req.applications
+    
+    apps_in_db = db.query(Application).filter(Application.id.in_(app_ids)).all()
+    if len(apps_in_db) != len(app_ids):
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND, detail="One or more applications not found."
+        )
+
+    # Check for overlapping existing downtimes
+    overlapping_downtimes = (
+        db.query(ApplicationDowntime)
+        .filter(
+            ApplicationDowntime.application_id.in_(app_ids),
+            ApplicationDowntime.downtime_start < req.downtime_end,
+            ApplicationDowntime.downtime_end > req.downtime_start,
+            ApplicationDowntime.status.in_([DowntimeStatus.PENDING, DowntimeStatus.ACTIVE])
+        )
+        .first()
+    )
+    if overlapping_downtimes:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot schedule downtime. The requested time range overlaps with an ACTIVE or PENDING Downtime for one or more applications.",
+        )
+
+    # Check for overlapping existing reservations
+    overlapping_reservations = (
+        db.query(Reservation)
+        .join(Reservation.applications)
+        .filter(
+            Application.id.in_(app_ids),
+            Reservation.start_time < req.downtime_end,
+            Reservation.end_time > req.downtime_start,
+            Reservation.status.in_([ReservationStatus.PENDING, ReservationStatus.ACTIVE])
+        )
+        .first()
+    )
+    if overlapping_reservations:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot schedule downtime. The requested time range overlaps with an ACTIVE or PENDING Reservation for one or more applications.",
+        )
+
+    # All checks pass, proceed with creating the downtime entry
+    try:
+        downtime_entries_to_schedule = []
+        for app_id in req.applications:
+            application_downtime = ApplicationDowntime(
+                application_id=app_id,
+                downtime_start=req.downtime_start,
+                downtime_end=req.downtime_end,
+                downtime_reason=req.downtime_reason,
+                created_by=user_email,
+                status=DowntimeStatus.PENDING,
+            )
+            db.add(application_downtime)
+            downtime_entries_to_schedule.append(application_downtime)
+
+        db.commit()
+    
+        for entry in downtime_entries_to_schedule:
+            background_tasks.add_task(
+                schedule_downtime_tasks,
+                downtime_id=entry.id,
+                downtime_start=entry.downtime_start.replace(tzinfo=timezone.utc),
+                downtime_end=entry.downtime_end.replace(tzinfo=timezone.utc),
+            )
+
+    except Exception as e:
+        db.rollback()
+        logger.error(f"An unexpected error occurred during application downtime creation: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred during application downtime creation.",
+        )
+        
+    return {"message": "Downtime entry created successfully."}
+
+@router.post(
+    "/downtime/bulk-cancel",
+    response_model=DowntimeBulkCancelResponse,
+)
+def bulk_cancel_downtime(
+    req: DowntimeBulkCancelRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+):
+    """
+    Cancels a list of application downtime entries by their IDs.
+    """
+    logger.info(
+        f"Admin user {user_email}: Bulk canceling downtimes: {req.downtime_ids}"
+    )
+
+    successfully_cancelled = []
+    failed_to_cancel = []
+    
+    # Query all downtimes to be cancelled in a single database hit
+    downtimes_to_cancel = (
+        db.query(ApplicationDowntime)
+        .filter(ApplicationDowntime.id.in_(req.downtime_ids))
+        .all()
+    )
+    downtime_map = {d.id: d for d in downtimes_to_cancel}
+
+    for downtime_id in req.downtime_ids:
+        downtime = downtime_map.get(downtime_id)
+        
+        # Check if the downtime exists and is in a cancellable state
+        if not downtime or downtime.status in [DowntimeStatus.COMPLETED, DowntimeStatus.ACTIVE, DowntimeStatus.CANCELLED]:
+            failed_to_cancel.append(downtime_id)
+            continue
+            
+        # Update the status to CANCELLED and add to successfully_cancelled list
+        downtime.status = DowntimeStatus.CANCELLED
+        successfully_cancelled.append(downtime_id)
+        
+    try:
+        db.commit()
+        # Add background task to cancel the Cloud Tasks for each successfully cancelled downtime
+        for downtime_id in successfully_cancelled:
+            background_tasks.add_task(delete_downtime_tasks, downtime_id)
+
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"Admin user {user_email}: An unexpected error occurred during bulk cancel: {e}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while canceling downtimes.",
+        )
+
+    return DowntimeBulkCancelResponse(
+        successfully_cancelled=successfully_cancelled,
+        failed_to_cancel=failed_to_cancel
+    )
+
+@router.post(
+    "/applications",
+    response_model=ApplicationCreateResponse
+)
+def create_applications(
+    req: ApplicationCreateRequest,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+):
+    """
+    Creates multiple new application
+    """
+    logger.info(f"Admin user {user_email}: Creating a new application with name: {req.name}")
+    
+    try:       
+        new_application = Application(**req.model_dump())                
+        db.add(new_application)
+        db.commit()
+        
+        # Refresh the object to get the generated ID
+        db.refresh(new_application)
+
+        logger.info(f"Successfully created application with ID: {new_application.id}")        
+        return new_application
+        
+    except IntegrityError as e:
+        db.rollback()        
+        logger.error(f"IntegrityError during application creation - {e}")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Application with name '{req.name}' already exists."
+        )
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"Failed to create application {req.name} - {e}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while creating the application.",
         )

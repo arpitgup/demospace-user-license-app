@@ -10,11 +10,11 @@ from shared_lib.db.models import (
     Bot,
     BotApplication,
     Reservation,
-    ReservationStatus,
+    ReservationStatus
 )
 from datetime import timezone
 
-from ..common.constants import RESERVATION_COOL_OFF_HOURS
+from ..common.constants import RESERVATION_COOL_OFF_HOURS, RESERVATION_EMAIL_SENDER, BOOKED_RESERVATION_EMAIL_CONTENT, CANCELLED_RESERVATION_EMAIL_CONTENT
 from ..common.schemas import (
     CreateReservationRequest,
     ReservationOut,
@@ -22,6 +22,7 @@ from ..common.schemas import (
 from ..utils.background_tasks import (
     schedule_reservation_tasks,
     delete_reservation_tasks,
+    sendReservationEmail    
 )
 from ..utils.crud import is_user_in_cool_off
 
@@ -143,6 +144,14 @@ def make_reservation(
             new_reservation.start_time.replace(tzinfo=timezone.utc),
             new_reservation.end_time.replace(tzinfo=timezone.utc),
         )
+        background_tasks.add_task(
+            sendReservationEmail,
+            recipient_email=user_email,
+            sender_email=app_config[RESERVATION_EMAIL_SENDER],            
+            reservation_id=new_reservation.id,
+            subject="Your Agentspace SaaS License Reservation Confirmation",
+            email_content=format_email_for_reservation(BOOKED_RESERVATION_EMAIL_CONTENT, new_reservation)
+        )
 
     except IntegrityError as e:
         db.rollback()
@@ -164,16 +173,16 @@ def make_reservation(
 
     return new_reservation
 
-
 @router.post(
     "/reservations/{reservation_id}/cancel",
-    response_model=ReservationOut,
+    response_model=ReservationOut,    
 )
 def cancel_reservation(
     reservation_id: int,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     user_email: str = Depends(get_user_email),
+    app_config: dict = Depends(get_app_config)
 ):
     """
     Cancels a specific reservation by its ID.
@@ -200,4 +209,32 @@ def cancel_reservation(
         f"Cancelling reservation {reservation.id}. Associated provisioning/deprovisioning tasks will be deleted."
     )
     background_tasks.add_task(delete_reservation_tasks, reservation.id)
+    background_tasks.add_task(
+        sendReservationEmail,
+        recipient_email=user_email,
+        sender_email=app_config[RESERVATION_EMAIL_SENDER],
+        reservation_id=reservation_id,
+        subject="Your Agentspace SaaS License Cancellation Confirmation",
+        email_content=format_email_for_reservation(CANCELLED_RESERVATION_EMAIL_CONTENT, reservation)
+        )
     return reservation
+
+def format_email_for_reservation(emailContent, reservationDetails):
+    """
+    Replaces placeholders in the email template with reservation details.
+    """
+    start_time_str = reservationDetails.start_time.strftime("%B %d, %Y at %I:%M %p %Z")
+    end_time_str = reservationDetails.end_time.strftime("%B %d, %Y at %I:%M %p %Z")
+    
+    dynamic_details_html = ""
+    app_names = " - ".join([app.name for app in reservationDetails.applications])
+    dynamic_details_html += f"""
+    <p style="margin: 0 0 5px 0; font-size: 16px;"><strong>{app_names}</strong></p>
+    <p style="margin: 0 0 5px 0; padding-left: 20px;">&bull; Starting: {start_time_str}</p>
+    <p style="margin: 0 0 15px 0; padding-left: 20px;">&bull; Ending: {end_time_str}</p>
+    """
+    formatted_content = emailContent.replace(
+        "{{ dynamic_reservation_details }}", dynamic_details_html
+    )    
+    
+    return formatted_content
