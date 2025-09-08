@@ -12,7 +12,7 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build -- --output-path=./dist/frontend --configuration=production
+RUN npm run build -- --output-path=./dist/frontend --configuration=$APP_ENV
 
 FROM nginx:alpine
 
