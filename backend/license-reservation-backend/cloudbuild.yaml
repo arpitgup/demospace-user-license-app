@@ -31,7 +31,7 @@ steps:
       ]
 
 substitutions:
-  _SERVICE_NAME: "license-reservation-backend"
+  _SERVICE_NAME: "license-reservation-backend-dev"
   _PROJECT_ID: "sys-36807655692543323281329778"
   _REGION: "us-central1"
   _VPC_CONNECTOR_NAME: "cloud-run-vpc-connector"
@@ -39,7 +39,7 @@ substitutions:
   _LICENSE_REVOCATION_QUEUE: "license-revocation-queue"
   _DOWNTIME_START_QUEUE: "application-downtime-start-queue"
   _DOWNTIME_END_QUEUE: "application-downtime-end-queue"
-  _LICENSE_MANAGEMENT_API_ENDPOINT: "https://license-management-api-385039775654.us-central1.run.app"
+  _LICENSE_MANAGEMENT_API_ENDPOINT: "https://license-management-api-dev-385039775654.us-central1.run.app"
   _LICENSE_ENDPOINTS_INVOKER_SERVICE_ACCOUNT: "license-mgmt-api-invoker-sa@sys-36807655692543323281329778.iam.gserviceaccount.com"
   _DB_USER: "postgres"
   _DB_HOST: "10.20.163.4"

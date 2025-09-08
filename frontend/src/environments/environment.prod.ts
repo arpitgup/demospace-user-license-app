@@ -4,5 +4,7 @@
  */
 export const environment = {
   production: true,
-  apiUrl: ''
+  apiUrl:
+    'https://license-reservation-backend-prod-385039775654.us-central1.run.app',
+  emailId: '',
 };
