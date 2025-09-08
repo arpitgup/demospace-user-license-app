@@ -51,14 +51,31 @@
     flex-direction: row;
     justify-content: flex-start;
     min-height: 3.62rem;
-    border-radius: 0.25rem;
     align-items: center;
     flex-wrap: wrap;
+    padding: 0.5rem 0;
+
+    .show-past-checkbox-wrapper {
+      display: flex;
+      align-items: center;
+      height: 4.59rem;
+      margin-right: 1rem;
+      padding-left: 1rem;
+
+      .show-past-checkbox {
+        ::ng-deep .mat-mdc-checkbox label {
+          color: var(--Black, #161a1d);
+          font-family: Roboto;
+          font-size: 1.125rem;
+          font-weight: 400;
+        }
+      }
+    }
 
     .custom-form-field {
-      margin-top: 0.3rem;
-      width: 25rem;
-      margin: 1rem;
+      width: fit-content;
+      min-width: 250px;
+      margin-right: 1rem;
 
       @include mat.form-field-overrides(
         (
@@ -100,6 +117,8 @@
 
   .custom-table {
     width: 100%;
+    border: 1px solid #ccc;
+    
     th.mat-mdc-header-cell {
       @include table-header-text;
       color: $color-black;
@@ -115,31 +134,15 @@
       padding: 0 1rem;
     }
 
-    .mat-column-select {
-      width: 5%;
-    }
-    .mat-column-dates {
-      width: 25%;
-    }
-    .mat-column-createdBy {
-      width: 15%;
-    }
-    .mat-column-apps {
-      width: 30%;
-    }
-    .mat-column-reason {
-      width: 15%;
-    }
-    .mat-column-status {
-      width: 10%;
-    }
+    .mat-column-select { width: 5%; }
+    .mat-column-dates { width: 25%; }
+    .mat-column-createdBy { width: 15%; }
+    .mat-column-apps { width: 30%; }
+    .mat-column-reason { width: 15%; }
+    .mat-column-status { width: 10%; }
 
-    .mat-mdc-row:nth-child(odd) {
-      background-color: $color-white;
-    }
-    .mat-mdc-row:nth-child(even) {
-      background-color: $color-bg-lighter;
-    }
+    .mat-mdc-row:nth-child(odd) { background-color: $color-white; }
+    .mat-mdc-row:nth-child(even) { background-color: $color-bg-lighter; }
 
     td.mat-mdc-cell {
       @include table-cell-text;
@@ -181,3 +184,4 @@
     background-color: #ecf3fe;
   }
 }
+
