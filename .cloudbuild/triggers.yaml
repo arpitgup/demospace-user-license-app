@@ -127,7 +127,7 @@ triggers:
   ignoredFiles:
   disabled: 
   substitutions:
-    _SERVICE_NAME: "license-reservation-app-dev"
+    _SERVICE_NAME: "license-reservation-app-prod"
     _PROJECT_ID: "sys-36807655692543323281329778"
     _REGION: "us-central1"
     _APP_ENV: "production"
