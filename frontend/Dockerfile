@@ -8,11 +8,13 @@ RUN npm install -g @angular/cli
 
 RUN npm install
 
-# RUN npm ci CICD testing
+# RUN npm ci CICD testing environment basis
 
 COPY . .
 
-RUN npm run build -- --output-path=./dist/frontend --configuration=production
+ARG APP_ENV=production
+ENV APP_ENV=$APP_ENV
+RUN npm run build -- --output-path=./dist/frontend --configuration=$APP_ENV
 
 FROM nginx:alpine
 

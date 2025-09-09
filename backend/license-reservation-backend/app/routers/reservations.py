@@ -10,7 +10,7 @@ from shared_lib.db.models import (
     Bot,
     BotApplication,
     Reservation,
-    ReservationStatus,
+    ReservationStatus
 )
 from datetime import timezone
 

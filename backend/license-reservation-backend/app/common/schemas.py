@@ -159,6 +159,21 @@ class BotUpsertData(BaseModel):
 class BotsUpsertRequest(BaseModel):
     bots: list[BotUpsertData]
 
+class ApplicationCreateRequest(BaseModel):
+    name: str
+    is_active: bool
+    license_type: ApplicationLicenseType
+    license_group: Optional[str] = None
+    license_count: Optional[int] = None
+
+class ApplicationCreateResponse(BaseModel):
+    id: int
+    name: str
+    is_active: bool
+    license_type: ApplicationLicenseType
+    license_group: Optional[str] = None
+    license_count: Optional[int] = None
+    saml_attribute_name: str
 
 class ExtendReservationRequest(CamelModel):
     end_time: datetime
@@ -173,6 +188,8 @@ class UpdateApplicationStatusRequest(CamelModel):
 class ApplicationWithLicenseGroupOut(ApplicationOut):
     license_type: ApplicationLicenseType
     license_group: Optional[str] = None
+    license_count: Optional[int] = None
+    license_assigned_to_Bots: int
 
 
 class ApplicationUpdate(CamelModel):
@@ -216,3 +233,7 @@ class DowntimeBulkCancelRequest(CamelModel):
 class DowntimeBulkCancelResponse(CamelModel):   
     successfully_cancelled: List[int]
     failed_to_cancel: List[int]
+
+class RemoveAppFromReservationsRequest(CamelModel):
+    primary_application_id: int
+    secondary_application_ids: Optional[List[int]] = []

@@ -6,7 +6,7 @@ steps:
       - "-c"
       - |
         cd frontend/
-        docker build -t "gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}" -f "Dockerfile" .
+        docker build --build-arg APP_ENV=${_APP_ENV} -t "gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}" -f "Dockerfile" .
 
   - name: "gcr.io/cloud-builders/docker"
     id: "Push"
@@ -25,11 +25,6 @@ steps:
         "--allow-unauthenticated",
         "--port=80"
       ]
-
-substitutions:
-  _SERVICE_NAME: "license-reservation-app-prod"
-  _PROJECT_ID: "sys-36807655692543323281329778"
-  _REGION: "us-central1"
 
 images:
   - "gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}"
