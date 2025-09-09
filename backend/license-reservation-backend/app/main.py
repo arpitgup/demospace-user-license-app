@@ -14,7 +14,8 @@ from .routers import admin, applications, availability, config, reservations
 app = FastAPI(
     title="Agentspace License Reservation API",
     summary="API for reserving and managing SaaS licenses for the Agentspace demo environment. This API is designed for a global user base, using UTC for all date-time operations and a hybrid real-time/scheduled model for license provisioning.",
-    dependencies=[Depends(get_user_email), Depends(get_user_current_time)],
+    # dependencies=[Depends(get_user_email), Depends(get_user_current_time)],
+    dependencies=[Depends(get_user_email)],
 )
 
 # Add the CORSMiddleware to the application
@@ -26,7 +27,8 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 app.add_middleware(UserValidationMiddleware)
-app.add_middleware(UserCurrentTimeValidationMiddleware)
+# app.add_middleware(UserCurrentTimeValidationMiddleware)
+
 # TODO: uncomment below line to enable admin validation middleware,
 # ensure that the PORTAL_ADMIN_GROUP_EMAIL environment variable is updated
 # app.add_middleware(AdminValidationMiddleware)
