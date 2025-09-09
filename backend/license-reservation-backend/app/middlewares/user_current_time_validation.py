@@ -5,8 +5,6 @@ from starlette.responses import JSONResponse
 from ..common.constants import X_USER_CURRENT_TIME_HEADER
 from datetime import datetime, timezone, timedelta
 
-DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-
 class UserCurrentTimeValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         if request.method == "OPTIONS":
@@ -28,17 +26,16 @@ class UserCurrentTimeValidationMiddleware(BaseHTTPMiddleware):
         server_now_utc = datetime.now(timezone.utc)
 
         try:
-            user_datetime = datetime.strptime(user_datetime_str, DATETIME_FORMAT)
-            user_datetime_utc = user_datetime.replace(tzinfo=timezone.utc)            
+            dt_object = datetime.fromisoformat(user_datetime_str)            
 
         except ValueError:
             return JSONResponse(
                 status_code=400,
-                content={"detail": "Invalid datetime format. Please use YYYY-MM-DD HH:MM:SS."}
+                content={"detail": "Invalid datetime."}
             )
 
         # Calculate the time difference between the user and server timestamps
-        time_difference = abs(server_now_utc - user_datetime_utc)
+        time_difference = abs(server_now_utc - dt_object)
         time_tolerance = timedelta(minutes=2)        
         if time_difference > time_tolerance:
             return JSONResponse(

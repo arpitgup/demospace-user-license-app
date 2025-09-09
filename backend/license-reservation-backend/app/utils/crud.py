@@ -161,7 +161,7 @@ def is_valid_reservation_lead_time(
     server_now = datetime.now(timezone.utc)   
     rounded_server_time = server_now.replace(
         minute=0, second=0, microsecond=0
-    ) + timedelta(hours=1)    
+    ) + timedelta(hours=1)
 
     min_allowed_start_time = rounded_server_time + timedelta(hours=min_lead_hours)
     if req_start_time < min_allowed_start_time:
