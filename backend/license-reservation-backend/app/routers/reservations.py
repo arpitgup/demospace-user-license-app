@@ -1,6 +1,6 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status
 from loguru import logger
-from shared_lib.dependencies import get_user_email, get_db, get_app_config
+from shared_lib.dependencies import get_user_email, get_user_current_time, get_db, get_app_config
 from typing import List
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
@@ -14,7 +14,7 @@ from shared_lib.db.models import (
 )
 from datetime import timezone
 
-from ..common.constants import RESERVATION_COOL_OFF_HOURS, RESERVATION_EMAIL_SENDER, BOOKED_RESERVATION_EMAIL_CONTENT, CANCELLED_RESERVATION_EMAIL_CONTENT
+from ..common.constants import RESERVATION_COOL_OFF_HOURS, RESERVATION_EMAIL_SENDER, BOOKED_RESERVATION_EMAIL_CONTENT, CANCELLED_RESERVATION_EMAIL_CONTENT, MIN_LEAD_COOLDOWN_HOURS, MAX_RESERVATION_LEAD_DAYS
 from ..common.schemas import (
     CreateReservationRequest,
     ReservationOut,
@@ -24,7 +24,7 @@ from ..utils.background_tasks import (
     delete_reservation_tasks,
     sendReservationEmail    
 )
-from ..utils.crud import is_user_in_cool_off
+from ..utils.crud import is_user_in_cool_off, is_valid_reservation_lead_time
 
 
 router = APIRouter()
@@ -65,6 +65,14 @@ def make_reservation(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"You can only make a new reservation {app_config[RESERVATION_COOL_OFF_HOURS]} hours after your previous reservation ends.",
+        )    
+    error_detail = is_valid_reservation_lead_time(
+        req.start_time, app_config[MIN_LEAD_COOLDOWN_HOURS], app_config[MAX_RESERVATION_LEAD_DAYS]
+    )    
+    if error_detail:
+        raise HTTPException(
+            status_code=status.HTTP_412_PRECONDITION_FAILED,
+            detail=error_detail
         )
     all_app_ids = [req.primary_application_id] + req.secondary_application_ids
     unique_app_ids = list(set(all_app_ids))

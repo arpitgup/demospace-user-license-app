@@ -1,0 +1,49 @@
+from fastapi import Request, HTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
+
+from ..common.constants import X_USER_CURRENT_TIME_HEADER
+from datetime import datetime, timezone, timedelta
+
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+class UserCurrentTimeValidationMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if request.method == "OPTIONS":
+            return await call_next(request)
+        
+         # Skip swagger documentation endpoints
+        if request.url.path.startswith("/docs") or request.url.path.startswith("/openapi.json"):
+            return await call_next(request)
+
+        if (
+            X_USER_CURRENT_TIME_HEADER not in request.headers
+            or not request.headers[X_USER_CURRENT_TIME_HEADER]
+        ):
+            return JSONResponse(
+                status_code=400,
+                content={"detail": f"Missing required header: {X_USER_CURRENT_TIME_HEADER}."}
+            )
+        user_datetime_str = request.headers.get(X_USER_CURRENT_TIME_HEADER)        
+        server_now_utc = datetime.now(timezone.utc)
+
+        try:
+            user_datetime = datetime.strptime(user_datetime_str, DATETIME_FORMAT)
+            user_datetime_utc = user_datetime.replace(tzinfo=timezone.utc)            
+
+        except ValueError:
+            return JSONResponse(
+                status_code=400,
+                content={"detail": "Invalid datetime format. Please use YYYY-MM-DD HH:MM:SS."}
+            )
+
+        # Calculate the time difference between the user and server timestamps
+        time_difference = abs(server_now_utc - user_datetime_utc)
+        time_tolerance = timedelta(minutes=2)        
+        if time_difference > time_tolerance:
+            return JSONResponse(
+                status_code=400,
+                content={"detail": "Your system date time is incorrect. Please correct it & try again."}
+            )                
+        response = await call_next(request)
+        return response
