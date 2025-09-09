@@ -153,7 +153,7 @@ def is_user_in_cool_off(
     return bool(conflicting_reservation or future_conflict)
 
 def is_valid_reservation_lead_time(
-    req_start_time: datetime, min_lead_hours: int
+    req_start_time: datetime, min_lead_hours: int, max_reservation_lead_days: int
 ) -> bool:
     """
     Checks if a requested reservation start time is valid based on lead time and a maximum future window.
@@ -169,9 +169,9 @@ def is_valid_reservation_lead_time(
         print(f"Validation failed: {error_message}")
         return error_message
 
-    max_allowed_start_time = server_now + timedelta(days=30)
+    max_allowed_start_time = server_now + timedelta(days=max_reservation_lead_days)
     if req_start_time > max_allowed_start_time:
-        error_message = "Requested start time is too far in the future. Must be within 30 days."
+        error_message = f"Requested start time is too far in the future. Must be within {max_reservation_lead_days} days."
         print(f"Validation failed: {error_message}")
         return error_message
 
