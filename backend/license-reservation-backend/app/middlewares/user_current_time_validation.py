@@ -10,37 +10,43 @@ class UserCurrentTimeValidationMiddleware(BaseHTTPMiddleware):
         if request.method == "OPTIONS":
             return await call_next(request)
         
-         # Skip swagger documentation endpoints
+        # Skip swagger documentation endpoints
         if request.url.path.startswith("/docs") or request.url.path.startswith("/openapi.json"):
             return await call_next(request)
 
-        if (
-            X_USER_CURRENT_TIME_HEADER not in request.headers
-            or not request.headers[X_USER_CURRENT_TIME_HEADER]
-        ):
-            return JSONResponse(
-                status_code=400,
-                content={"detail": f"Missing required header: {X_USER_CURRENT_TIME_HEADER}."}
-            )
-        user_datetime_str = request.headers.get(X_USER_CURRENT_TIME_HEADER)        
-        server_now_utc = datetime.now(timezone.utc)
-
         try:
-            dt_object = datetime.fromisoformat(user_datetime_str)            
+            if (
+                X_USER_CURRENT_TIME_HEADER not in request.headers
+                or not request.headers[X_USER_CURRENT_TIME_HEADER]
+            ):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Missing required header: {X_USER_CURRENT_TIME_HEADER}.",
+                )
 
-        except ValueError:
+            user_datetime_str = request.headers.get(X_USER_CURRENT_TIME_HEADER)        
+            server_now_utc = datetime.now(timezone.utc)
+
+            try:
+                dt_object = datetime.fromisoformat(user_datetime_str)            
+            except ValueError:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid datetime format. Please use ISO 8601 format (e.g., YYYY-MM-DDTHH:MM:SS.ffffff).",
+                )
+
+            # Calculate the time difference between the user and server timestamps
+            time_difference = abs(server_now_utc - dt_object)
+            time_tolerance = timedelta(minutes=2)        
+            if time_difference > time_tolerance:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Your system date time is incorrect. Please correct it & try again.",
+                )
+        except HTTPException as http_exc:
             return JSONResponse(
-                status_code=400,
-                content={"detail": "Invalid datetime."}
+                status_code=http_exc.status_code, content={"detail": http_exc.detail}
             )
 
-        # Calculate the time difference between the user and server timestamps
-        time_difference = abs(server_now_utc - dt_object)
-        time_tolerance = timedelta(minutes=2)        
-        if time_difference > time_tolerance:
-            return JSONResponse(
-                status_code=400,
-                content={"detail": "Your system date time is incorrect. Please correct it & try again."}
-            )                
         response = await call_next(request)
         return response
