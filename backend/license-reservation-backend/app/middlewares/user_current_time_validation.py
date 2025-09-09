@@ -36,7 +36,7 @@ class UserCurrentTimeValidationMiddleware(BaseHTTPMiddleware):
 
         # Calculate the time difference between the user and server timestamps
         time_difference = abs(server_now_utc - dt_object)
-        time_tolerance = timedelta(minutes=5)        
+        time_tolerance = timedelta(minutes=2)        
         if time_difference > time_tolerance:
             return JSONResponse(
                 status_code=400,
