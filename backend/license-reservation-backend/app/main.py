@@ -17,9 +17,9 @@ app = FastAPI(
     dependencies=[Depends(get_user_email), Depends(get_user_current_time)],    
 )
 origins = [
-    "http://localhost:4200/",
-    "https://license-reservation-app-prod-385039775654.us-central1.run.app/",
-    "https://license-reservation-app-dev-385039775654.us-central1.run.app/"
+    "http://localhost:4200",
+    "https://license-reservation-app-prod-385039775654.us-central1.run.app",
+    "https://license-reservation-app-dev-385039775654.us-central1.run.app"
 ]
     
 # Add the CORSMiddleware to the application
