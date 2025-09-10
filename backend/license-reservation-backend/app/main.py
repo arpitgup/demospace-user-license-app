@@ -34,8 +34,8 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 app.add_middleware(UserValidationMiddleware)
-@app.add_middleware("http")
-async def dispatch(self, request: Request, call_next):
+@app.middleware("http")
+async def user_current_time(request: Request, call_next):
     if request.method == "OPTIONS":
         return await call_next(request)
     
