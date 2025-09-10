@@ -99,6 +99,7 @@ def update_bot(request: BotsUpsertRequest, db: Session) -> list[Bot]:
             raise ValueError(f"Bot with email '{bot_data.email}' does not exist and cannot be updated.")
         
         existing_bot.name = bot_data.name
+        existing_bot.is_admin = bot_data.is_admin
 
         # Delete all existing application associations for this bot
         db.query(BotApplication).filter(
