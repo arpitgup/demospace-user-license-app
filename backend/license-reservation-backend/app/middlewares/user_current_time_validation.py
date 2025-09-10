@@ -43,9 +43,10 @@ class UserCurrentTimeValidationMiddleware(BaseHTTPMiddleware):
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Your system date time is incorrect. Please correct it & try again.",
                 )
-            response = await call_next(request)
-            return response
-        except Exception as http_exc:
+        except HTTPException as http_exc:
             return JSONResponse(
-                status_code=http_exc.status_code, content={"detail": str(http_exc)}
+                status_code=http_exc.status_code, content={"detail": http_exc.detail}
             )
+
+        response = await call_next(request)
+        return response
