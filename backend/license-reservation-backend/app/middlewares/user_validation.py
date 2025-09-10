@@ -33,9 +33,10 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
                 )
 
         except HTTPException as http_exc:
-            return JSONResponse(
+            response = JSONResponse(
                 status_code=http_exc.status_code, content={"detail": http_exc.detail}
             )
+            return response
 
         response = await call_next(request)
         return response
