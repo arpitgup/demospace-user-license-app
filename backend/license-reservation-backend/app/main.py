@@ -4,8 +4,9 @@ from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from shared_lib.dependencies import get_user_email, get_user_current_time
 from shared_lib import admin_service
-
+from datetime import datetime, timezone, timedelta
 from .common.constants import ALLOWED_ORIGINS
+from .common.constants import X_USER_CURRENT_TIME_HEADER
 from .common.schemas import UserInfo
 from .middlewares.user_validation import UserValidationMiddleware
 from .middlewares.admin_validation import AdminValidationMiddleware
@@ -69,7 +70,7 @@ async def user_current_time(request: Request, call_next):
         time_tolerance = timedelta(minutes=2)
         if time_difference > time_tolerance:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=400,
                 detail="Your system date time is incorrect. Please correct it & try again.",
             )
     except HTTPException as http_exc:
