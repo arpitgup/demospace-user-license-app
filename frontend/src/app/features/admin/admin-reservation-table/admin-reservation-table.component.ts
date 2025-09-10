@@ -81,13 +81,15 @@ export class AdminReservationTableComponent {
     'reservationDate',
     'reservedBy',
     'applications',
+    'botId',
     'status',
     'action',
   ];
   dataSource = new MatTableDataSource<Reservation>([]);
-  readonly SEARCH_USER_FORM = 'primaryApplication';
-  readonly SEARCH_APPLICATION_FORM = 'startDate';
-  readonly SEARCH_DATE_FORM = 'startTime';
+  readonly SEARCH_USER_FORM = 'searchUser';
+  readonly SEARCH_APPLICATION_FORM = 'searchApplication';
+  readonly SEARCH_DATE_FORM = 'searchDate';
+  readonly SEARCH_BOTID_FORM = 'searchBotId';
 
   @ViewChild(MatSort) set sort(sort: MatSort) {
     if (sort) {
@@ -105,6 +107,7 @@ export class AdminReservationTableComponent {
     [this.SEARCH_USER_FORM]: [''],
     [this.SEARCH_APPLICATION_FORM]: [''],
     [this.SEARCH_DATE_FORM]: [''],
+    [this.SEARCH_BOTID_FORM]: [''],
   });
 
   ngOnInit(): void {
@@ -177,6 +180,13 @@ export class AdminReservationTableComponent {
               new Date(this.searchForm.get(this.SEARCH_DATE_FORM)?.value)
             )
           : true
+      )
+      .filter((item) =>
+        this.searchForm.get(this.SEARCH_BOTID_FORM)?.value !== ''
+          ? item.bot.id
+              .toString()
+              .includes(this.searchForm.get(this.SEARCH_BOTID_FORM)?.value)
+          : true
       );
   }
 
@@ -208,6 +218,7 @@ export class AdminReservationTableComponent {
 
   onShowPastChange(checked: boolean): void {
     this.showPastReservations.set(checked);
+    this.clearSearchValues();
     this.updateReservationDataSource();
   }
   onSelectAllReservations(checked: boolean): void {
@@ -323,12 +334,15 @@ export class AdminReservationTableComponent {
   }
 
   onRefreshCall() {
+    this.clearSearchValues();
+    this.getAllReservations(true);
+  }
+  clearSearchValues() {
     this.isRefreshCall.set(true);
     this.searchForm.get(this.SEARCH_USER_FORM)?.patchValue('');
     this.searchForm.get(this.SEARCH_APPLICATION_FORM)?.patchValue('');
     this.searchForm.get(this.SEARCH_DATE_FORM)?.patchValue('');
     this.isRefreshCall.set(false);
-    this.getAllReservations(true);
   }
 
   showCancelConfirmationDialog() {
