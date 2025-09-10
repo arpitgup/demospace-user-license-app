@@ -40,7 +40,7 @@ class UserCurrentTimeValidationMiddleware(BaseHTTPMiddleware):
             time_tolerance = timedelta(minutes=2)        
             if time_difference > time_tolerance:
                 raise HTTPException(
-                    status_code=400,
+                    status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Your system date time is incorrect. Please correct it & try again.",
                 )
         except HTTPException as http_exc:
