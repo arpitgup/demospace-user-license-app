@@ -425,34 +425,6 @@ def update_bot_applications(
     bot = get_bot_with_supported_apps(db).filter(Bot.id == bot_id).one()
     return build_response([bot])[0]
 
-
-# @router.post(
-#     "/bots/upsert", response_model=list[BotWithApplicationsOut], status_code=200
-# )
-# def upsert_bots(request: BotsCreateRequest, db: Session = Depends(get_db)):
-#     """
-#     Updates existing bots or creates new ones in a batch.
-
-#     - If a bot with the provided email exists, its name and supported applications are updated.
-#     - If it does not exist, a new bot is created.
-#     """
-#     try:
-#         processed_bots = upsert_bots_with_applications(request, db)
-#         db.commit()
-
-#         for bot in processed_bots:
-#             db.refresh(bot)
-
-#         return processed_bots
-#     except ValueError as e:
-#         db.rollback()
-#         raise HTTPException(status_code=404, detail=str(e))
-#     except Exception as e:
-#         db.rollback()
-#         raise HTTPException(
-#             status_code=500, detail="An internal server error occurred."
-#         )
-
 @router.post(
     "/bots/create", response_model=List[BotWithApplicationsOut], status_code=200
 )
