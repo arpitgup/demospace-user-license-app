@@ -140,8 +140,8 @@ export class LandingPage implements OnInit {
       },
       error: (error) => {
         this.errorMessage =
-          error?.error?.detail || 'Something went wrong. Please try again.';
-        this.setLoadingErrorValues(false, true, '');
+          error.error.detail || 'Something went wrong. Please try again.';
+        this.setLoadingErrorValues(false, true, this.errorMessage);
         this.cdr.detectChanges();
       },
     });
