@@ -24,11 +24,11 @@ class UserCurrentTimeValidationMiddleware(BaseHTTPMiddleware):
                     detail=f"Missing required header: {X_USER_CURRENT_TIME_HEADER}.",
                 )
 
-            user_datetime_str = request.headers.get(X_USER_CURRENT_TIME_HEADER)        
+            user_datetime_str = request.headers.get(X_USER_CURRENT_TIME_HEADER)
             server_now_utc = datetime.now(timezone.utc)
 
             try:
-                dt_object = datetime.fromisoformat(user_datetime_str)            
+                dt_object = datetime.fromisoformat(user_datetime_str)
             except ValueError:
                 raise HTTPException(
                     status_code=400,
@@ -37,7 +37,7 @@ class UserCurrentTimeValidationMiddleware(BaseHTTPMiddleware):
 
             # Calculate the time difference between the user and server timestamps
             time_difference = abs(server_now_utc - dt_object)
-            time_tolerance = timedelta(minutes=2)        
+            time_tolerance = timedelta(minutes=2)
             if time_difference > time_tolerance:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
