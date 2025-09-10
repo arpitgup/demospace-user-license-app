@@ -68,6 +68,52 @@ def upsert_bots_with_applications(request: BotsUpsertRequest, db: Session) -> li
 
     return processed_bots
 
+def create_bot(request: BotsUpsertRequest, db: Session) -> list[Bot]:
+    """
+    Creates multiple new bots and links each to their specified applications.
+    """
+    newly_created_bots = []
+    
+    for bot_data in request.bots:
+        new_bot = Bot(name=bot_data.name, email=bot_data.email)
+        db.add(new_bot)
+        db.flush()
+
+        for app_id in bot_data.application_ids:
+            db.add(BotApplication(bot_id=new_bot.id, application_id=app_id))
+        
+        newly_created_bots.append(new_bot)
+
+    return newly_created_bots
+
+def update_bot(request: BotsUpsertRequest, db: Session) -> list[Bot]:
+    """
+    Updates existing bots' details and replaces their linked applications.
+    """
+    updated_bots = []
+    
+    for bot_data in request.bots:
+        existing_bot = db.query(Bot).filter(Bot.email == bot_data.email).one_or_none()
+        
+        if not existing_bot:
+            raise ValueError(f"Bot with email '{bot_data.email}' does not exist and cannot be updated.")
+        
+        existing_bot.name = bot_data.name
+
+        # Delete all existing application associations for this bot
+        db.query(BotApplication).filter(
+            BotApplication.bot_id == existing_bot.id
+        ).delete()
+
+        # Add new application associations from the provided list
+        for app_id in bot_data.application_ids:
+            db.add(BotApplication(bot_id=existing_bot.id, application_id=app_id))
+
+        existing_bot.updated_at = datetime.now(timezone.utc)
+        updated_bots.append(existing_bot)
+            
+    return updated_bots
+
 
 def get_bot_availability_in_slot(
     bot: Bot, start_time: datetime, end_time: datetime, db: Session

@@ -154,7 +154,7 @@ class BotUpsertData(BaseModel):
     name: str
     email: EmailStr
     application_ids: List[int]
-
+    is_admin: bool = False
 
 class BotsUpsertRequest(BaseModel):
     bots: list[BotUpsertData]
