@@ -54,6 +54,7 @@ class BotOut(CamelModel):
     id: int
     name: str
     email: str
+    is_admin: bool
     created_at: datetime
     updated_at: datetime
 
@@ -150,14 +151,22 @@ class UpdateBotApplicationsRequest(CamelModel):
     application_ids: List[int]
 
 
-class BotUpsertData(BaseModel):
+class BotCreateData(BaseModel):
     name: str
     email: EmailStr
     application_ids: List[int]
-    is_admin: bool = False
+    is_admin: bool
 
-class BotsUpsertRequest(BaseModel):
-    bots: list[BotUpsertData]
+class BotsUpdateData(BaseModel):
+    id: int    
+    application_ids: List[int]
+    is_admin: bool
+
+class BotsCreateRequest(BaseModel):
+    bots: list[BotCreateData]
+
+class BotsUpdateRequest(BaseModel):
+    bots: list[BotsUpdateData]
 
 class ApplicationCreateRequest(BaseModel):
     name: str

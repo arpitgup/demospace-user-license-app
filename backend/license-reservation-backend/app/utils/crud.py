@@ -10,7 +10,8 @@ from shared_lib.db.models import (
 from typing import List
 
 from ..common.schemas import (
-    BotsUpsertRequest,
+    BotsCreateRequest,
+    BotsUpdateRequest    
 )
 
 
@@ -21,61 +22,65 @@ def get_bot_with_supported_apps(db: Session) -> Query:
     return db.query(Bot).options(selectinload(Bot.applications))
 
 
-def upsert_bots_with_applications(request: BotsUpsertRequest, db: Session) -> list[Bot]:
-    """
-    Updates existing bots or creates new ones based on their email.
-    Replaces their supported applications with the provided list.
-    """
-    processed_bots = []
+# def upsert_bots_with_applications(request: BotsUpsertRequest, db: Session) -> list[Bot]:
+#     """
+#     Updates existing bots or creates new ones based on their email.
+#     Replaces their supported applications with the provided list.
+#     """
+#     processed_bots = []
 
-    all_required_app_ids = {
-        app_id for bot_data in request.bots for app_id in bot_data.application_ids
-    }
+#     all_required_app_ids = {
+#         app_id for bot_data in request.bots for app_id in bot_data.application_ids
+#     }
 
-    apps_in_db = (
-        db.query(Application).filter(Application.id.in_(all_required_app_ids)).all()
-    )
+#     apps_in_db = (
+#         db.query(Application).filter(Application.id.in_(all_required_app_ids)).all()
+#     )
 
-    if len(apps_in_db) != len(all_required_app_ids):
-        found_ids = {app.id for app in apps_in_db}
-        missing_ids = all_required_app_ids - found_ids
-        raise ValueError(f"Applications with these IDs do not exist: {missing_ids}")
+#     if len(apps_in_db) != len(all_required_app_ids):
+#         found_ids = {app.id for app in apps_in_db}
+#         missing_ids = all_required_app_ids - found_ids
+#         raise ValueError(f"Applications with these IDs do not exist: {missing_ids}")
 
-    for bot_data in request.bots:
-        existing_bot = db.query(Bot).filter(Bot.email == bot_data.email).one_or_none()
+#     for bot_data in request.bots:
+#         existing_bot = db.query(Bot).filter(Bot.email == bot_data.email).one_or_none()
 
-        if existing_bot:
-            existing_bot.name = bot_data.name
+#         if existing_bot:
+#             existing_bot.name = bot_data.name
 
-            db.query(BotApplication).filter(
-                BotApplication.bot_id == existing_bot.id
-            ).delete()
+#             db.query(BotApplication).filter(
+#                 BotApplication.bot_id == existing_bot.id
+#             ).delete()
 
-            for app_id in bot_data.application_ids:
-                db.add(BotApplication(bot_id=existing_bot.id, application_id=app_id))
+#             for app_id in bot_data.application_ids:
+#                 db.add(BotApplication(bot_id=existing_bot.id, application_id=app_id))
 
-            existing_bot.updated_at = datetime.now(timezone.utc)
-            processed_bots.append(existing_bot)
-        else:
-            new_bot = Bot(name=bot_data.name, email=bot_data.email)
-            db.add(new_bot)
-            db.flush()  # Flush the session to assign an ID to new_bot
+#             existing_bot.updated_at = datetime.now(timezone.utc)
+#             processed_bots.append(existing_bot)
+#         else:
+#             new_bot = Bot(name=bot_data.name, email=bot_data.email)
+#             db.add(new_bot)
+#             db.flush()  # Flush the session to assign an ID to new_bot
 
-            for app_id in bot_data.application_ids:
-                db.add(BotApplication(bot_id=new_bot.id, application_id=app_id))
+#             for app_id in bot_data.application_ids:
+#                 db.add(BotApplication(bot_id=new_bot.id, application_id=app_id))
 
-            processed_bots.append(new_bot)
+#             processed_bots.append(new_bot)
 
-    return processed_bots
+#     return processed_bots
 
-def create_bot(request: BotsUpsertRequest, db: Session) -> list[Bot]:
+def create_bot(request: BotsCreateRequest, db: Session) -> list[Bot]:
     """
     Creates multiple new bots and links each to their specified applications.
     """
     newly_created_bots = []
     
     for bot_data in request.bots:
-        new_bot = Bot(name=bot_data.name, email=bot_data.email)
+        new_bot = Bot(
+            name=bot_data.name, 
+            email=bot_data.email,
+            is_admin=bot_data.is_admin
+        )
         db.add(new_bot)
         db.flush()
 
@@ -86,27 +91,25 @@ def create_bot(request: BotsUpsertRequest, db: Session) -> list[Bot]:
 
     return newly_created_bots
 
-def update_bot(request: BotsUpsertRequest, db: Session) -> list[Bot]:
+def update_bot(request: BotsUpdateRequest, db: Session) -> list[Bot]:
     """
     Updates existing bots' details and replaces their linked applications.
     """
     updated_bots = []
     
     for bot_data in request.bots:
-        existing_bot = db.query(Bot).filter(Bot.email == bot_data.email).one_or_none()
+        existing_bot = db.query(Bot).filter(Bot.id == bot_data.id).one_or_none()
         
         if not existing_bot:
-            raise ValueError(f"Bot with email '{bot_data.email}' does not exist and cannot be updated.")
+            raise ValueError(f"Bot with ID '{bot_data.id}' does not exist and cannot be updated.")
         
-        existing_bot.name = bot_data.name
+        # existing_bot.name = bot_data.name
         existing_bot.is_admin = bot_data.is_admin
 
-        # Delete all existing application associations for this bot
         db.query(BotApplication).filter(
             BotApplication.bot_id == existing_bot.id
         ).delete()
-
-        # Add new application associations from the provided list
+        
         for app_id in bot_data.application_ids:
             db.add(BotApplication(bot_id=existing_bot.id, application_id=app_id))
 

@@ -16,18 +16,12 @@ app = FastAPI(
     summary="API for reserving and managing SaaS licenses for the Agentspace demo environment. This API is designed for a global user base, using UTC for all date-time operations and a hybrid real-time/scheduled model for license provisioning.",
     dependencies=[Depends(get_user_email), Depends(get_user_current_time)],    
 )
-origins = [
-    "http://localhost:4200",
-    "https://license-reservation-app-prod-385039775654.us-central1.run.app",
-    "https://license-reservation-app-dev-385039775654.us-central1.run.app"
-]
     
 # Add the CORSMiddleware to the application
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,  # List of allowed origins
-    # allow_origins=origins
-    allow_credentials=False,  # Allow cookies/authorization headers
+    allow_origins=ALLOWED_ORIGINS,  # List of allowed origins    
+    allow_credentials=True,  # Allow cookies/authorization headers
     allow_methods=["*"],  # Allow all standard methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
 )
