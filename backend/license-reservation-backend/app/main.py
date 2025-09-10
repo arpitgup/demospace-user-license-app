@@ -26,14 +26,14 @@ origins = [
 ]
     
 # Add the CORSMiddleware to the application
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,  # List of allowed origins
-    # allow_origins=origins
-    allow_credentials=False,  # Allow cookies/authorization headers
-    allow_methods=["*"],  # Allow all standard methods (GET, POST, etc.)
-    allow_headers=["*"],  # Allow all headers
-)
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=ALLOWED_ORIGINS,  # List of allowed origins
+#     # allow_origins=origins
+#     allow_credentials=False,  # Allow cookies/authorization headers
+#     allow_methods=["*"],  # Allow all standard methods (GET, POST, etc.)
+#     allow_headers=["*"],  # Allow all headers
+# )
 app.add_middleware(UserValidationMiddleware)
 @app.middleware("http")
 async def user_current_time(request: Request, call_next):
