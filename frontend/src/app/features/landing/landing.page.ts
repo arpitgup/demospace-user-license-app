@@ -82,13 +82,19 @@ export class LandingPage implements OnInit {
     const showPast = this.showPastReservations();
     const reservations = this.reservationsSignal();
 
-    return reservations.filter((res) =>
-      showPast
-        ? res.status === ReservationApiStatus.COMPLETED ||
-          res.status === ReservationApiStatus.CANCELLED
-        : res.status === ReservationApiStatus.PENDING ||
-          res.status === ReservationApiStatus.ACTIVE
-    );
+    return reservations
+      .filter((res) =>
+        showPast
+          ? res.status === ReservationApiStatus.COMPLETED ||
+            res.status === ReservationApiStatus.CANCELLED
+          : res.status === ReservationApiStatus.PENDING ||
+            res.status === ReservationApiStatus.ACTIVE
+      )
+      .sort((a, b) =>
+        showPast
+          ? new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+          : new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+      );
   });
 
   public readonly resrevations$ = toObservable(this.filteredReservations);
@@ -109,7 +115,7 @@ export class LandingPage implements OnInit {
       id: 2,
       icon: 'assets/svgs/application_icon.svg',
       title: 'Search by Application',
-     description: `Reservations must be made ${MIN_LEAD_COOLDOWN_HOURS} hours in advance.`,
+      description: `Reservations must be made ${MIN_LEAD_COOLDOWN_HOURS} hours in advance.`,
       searchType: SearchType.ByApplication,
     },
   ];
@@ -134,8 +140,8 @@ export class LandingPage implements OnInit {
       },
       error: (error) => {
         this.errorMessage =
-          error?.error?.detail || 'Something went wrong. Please try again.';
-        this.setLoadingErrorValues(false, true, '');
+          error.error.detail || 'Something went wrong. Please try again.';
+        this.setLoadingErrorValues(false, true, this.errorMessage);
         this.cdr.detectChanges();
       },
     });

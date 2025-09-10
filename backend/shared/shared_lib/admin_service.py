@@ -11,7 +11,6 @@ from typing import List
 from .utils import get_secret_value
 from .db.models import Application, Bot
 
-
 USER_CACHE_SIZE = 128
 USER_CACHE_TTL_SECONDS = 3600
 
@@ -21,6 +20,7 @@ def setup_admin_service():
     SCOPES = [
         "https://www.googleapis.com/auth/admin.directory.group",
         "https://www.googleapis.com/auth/admin.directory.user",
+        "https://www.googleapis.com/auth/admin.directory.userschema"
     ]
     project_id = os.getenv("GCP_PROJECT_ID")
     secret_name = os.getenv("ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME")
@@ -198,4 +198,46 @@ def remove_user_from_group(user_email: str, group_email: str):
         logger.error(
             f"An unexpected error occurred while removing {user_email} from {group_email}: {e}"
         )
+        raise e
+
+
+def create_saml_attribute(application_name, account_customerID):
+    """
+    Creates a custom SAML attribute schema for a given application using a synchronous insert API.
+    """
+    admin_service = setup_admin_service()
+    schema_name = f"SAML_{application_name.upper()}"
+
+    request_body = {
+        "displayName": schema_name,
+        "fields": [
+            {
+                "displayName": "Email",
+                "fieldName": "Email",
+                "fieldType": "STRING"
+            },
+            {
+                "displayName": "Given Name",
+                "fieldName": "Given_Name",
+                "fieldType": "STRING"
+            }
+        ],
+        "schemaName": schema_name
+    }
+
+    try:
+        logger.info(f"Creating new SAML attribute schema: {schema_name}.")
+        response = admin_service.schemas().insert(
+            customerId=account_customerID,
+            body=request_body
+        ).execute()
+        logger.info(
+            f"Successfully created SAML attribute schema for {application_name}."
+            f" Response: {response}"
+        )
+        return response.get("schemaName")
+    except Exception as e:
+        logger.error(
+            f"Error occurred while creating SAML attribute schema for {application_name}: {e}"
+        )        
         raise e

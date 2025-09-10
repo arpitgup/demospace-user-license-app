@@ -54,6 +54,7 @@ class BotOut(CamelModel):
     id: int
     name: str
     email: str
+    is_admin: bool
     created_at: datetime
     updated_at: datetime
 
@@ -150,14 +151,22 @@ class UpdateBotApplicationsRequest(CamelModel):
     application_ids: List[int]
 
 
-class BotUpsertData(BaseModel):
+class BotCreateData(BaseModel):
     name: str
     email: EmailStr
     application_ids: List[int]
+    is_admin: bool
 
+class BotsUpdateData(BaseModel):
+    id: int    
+    application_ids: List[int]
+    is_admin: bool
 
-class BotsUpsertRequest(BaseModel):
-    bots: list[BotUpsertData]
+class BotsCreateRequest(BaseModel):
+    bots: list[BotCreateData]
+
+class BotsUpdateRequest(BaseModel):
+    bots: list[BotsUpdateData]
 
 class ApplicationCreateRequest(BaseModel):
     name: str
@@ -166,13 +175,14 @@ class ApplicationCreateRequest(BaseModel):
     license_group: Optional[str] = None
     license_count: Optional[int] = None
 
-class ApplicationCreateResponse(BaseModel):    
+class ApplicationCreateResponse(BaseModel):
     id: int
     name: str
     is_active: bool
     license_type: ApplicationLicenseType
     license_group: Optional[str] = None
     license_count: Optional[int] = None
+    saml_attribute_name: str
 
 class ExtendReservationRequest(CamelModel):
     end_time: datetime

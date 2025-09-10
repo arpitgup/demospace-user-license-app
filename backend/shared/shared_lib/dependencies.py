@@ -19,6 +19,12 @@ async def get_user_email(x_demo_user_email: str = Header(...)):
         raise HTTPException(status_code=400, detail="Missing X-Demo-User-Email")
     return x_demo_user_email
 
+async def get_user_current_time(x_user_current_time: str = Header(...)):
+    """Dependency to get the custom user current time header."""
+    if not x_user_current_time:
+        raise HTTPException(status_code=400, detail="Missing X-User-Current-Time")
+    return x_user_current_time
+
 
 app_config = {}
 
