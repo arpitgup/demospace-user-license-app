@@ -1,7 +1,7 @@
 <!-- Root container for the entire Admin Downtime feature. -->
 <div class="downtime-container">
   <!-- Main tab navigation for switching between the list of scheduled downtimes and the form to create a new one. -->
-  <mat-tab-group class="downtime-tabs" [selectedIndex]="1">
+  <mat-tab-group class="downtime-tabs">
     <mat-tab [label]="constants.LISTED_DOWNTIME_TAB_LABEL">
       <app-admin-downtime-table></app-admin-downtime-table>
     </mat-tab>
