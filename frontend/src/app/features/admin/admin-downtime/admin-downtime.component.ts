@@ -46,19 +46,17 @@ type DowntimeReason = string;
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule, // still used for Start/End Time selects
+    MatSelectModule,
     MatDatepickerModule,
     MatButtonModule,
-    MatChipsModule, // NEW
-    MatIconModule, // NEW (chip remove icon)
+    MatChipsModule,
+    MatIconModule,
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './admin-downtime.component.html',
   styleUrl: './admin-downtime.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: {
-    ngSkipHydration: 'true',
-  },
+  host: { ngSkipHydration: 'true' },
 })
 export class AdminDowntimeComponent {
   private readonly fb = inject(FormBuilder);
@@ -70,16 +68,12 @@ export class AdminDowntimeComponent {
 
   readonly constants = ADMIN_DOWNTIME_CONSTANTS;
   readonly minHours = MIN_DOWNTIME_HOURS;
-
-  // UI state
   readonly isSubmitting = signal(false);
 
-  // Data
   readonly apps = signal<Application[]>([]);
-  private readonly appMap = computed<Map<number, Application>>(
+  private readonly appMap = computed(
     () => new Map(this.apps().map((a) => [a.id, a]))
   );
-
   readonly reasons = signal<DowntimeReason[]>([
     'Maintenance',
     'Version Update',
@@ -87,11 +81,8 @@ export class AdminDowntimeComponent {
     'Planned Outage',
     'Other',
   ]);
-
-  // Hours [0..23]
   readonly HOURS = Array.from({ length: 24 }, (_, h) => h);
 
-  // Form model
   readonly form = this.fb.group(
     {
       applications: this.fb.control<number[]>([], {
@@ -117,47 +108,18 @@ export class AdminDowntimeComponent {
     { validators: [rangeValidator(() => this.minHours)] }
   );
 
-  // --- New: pill-based application selection state ---
   readonly selectedIds = signal<number[]>([]);
-  readonly appQuery = signal<string>('');
+  readonly filteredApps = computed(() => this.apps());
 
-  // Keep selectedIds in sync with the form control
-  private readonly syncEffect = effect(() => {
-    const formVal = this.form.controls.applications.value ?? [];
-    if (JSON.stringify(formVal) !== JSON.stringify(this.selectedIds())) {
-      this.selectedIds.set([...formVal]);
-    }
-  });
-
-  readonly filteredApps = computed(() => {
-    const q = this.appQuery().toLowerCase();
-    const ids = new Set(this.selectedIds());
-    return this.apps()
-      .filter(
-        (a) => (q ? a.name.toLowerCase().includes(q) : true)
-        // show all apps; selected ones will be greyed/disabled in UI
-      )
-      .sort((a, b) => {
-        // sort: selected last (grey), then alpha
-        const aSel = ids.has(a.id) ? 1 : 0;
-        const bSel = ids.has(b.id) ? 1 : 0;
-        return aSel - bSel || a.name.localeCompare(b.name);
-      });
-  });
-
-  // End-hour options depend on selected dates/times & minHours
   readonly endHourOptions = computed<number[]>(() => {
     const sDate = this.form.controls.startDate.value;
     const sHour = this.form.controls.startTime.value;
     const eDate = this.form.controls.endDate.value;
-
     if (!sDate || sHour == null || !eDate) return this.HOURS;
     if (!isSameYMD(sDate, eDate)) return this.HOURS;
-
     return this.HOURS.filter((h) => h >= sHour + this.minHours);
   });
 
-  // Datepicker filters
   readonly startDateFilter = (d: Date | null): boolean => {
     if (!d) return false;
     const today = startOfDay(new Date());
@@ -175,25 +137,27 @@ export class AdminDowntimeComponent {
   };
 
   constructor() {
-    // Load apps once
     this.reservationService
       .getApplications()
-      .subscribe((fetchedApps) => this.apps.set(fetchedApps));
+      .subscribe((apps) => this.apps.set(apps));
 
-    // Auto-correct end when user picks a combo that violates min duration.
+    effect(() => {
+      const formVal = this.form.controls.applications.value ?? [];
+      if (JSON.stringify(formVal) !== JSON.stringify(this.selectedIds())) {
+        this.selectedIds.set([...formVal]);
+      }
+    });
+
     effect(() => {
       const sDate = this.form.controls.startDate.value;
       const sHour = this.form.controls.startTime.value;
       const eDate = this.form.controls.endDate.value;
       const eHour = this.form.controls.endTime.value;
-
       if (sDate != null && sHour != null) {
         const minEnd = addHours(startOfHour(sDate, sHour), this.minHours);
-
         const endMissing = !eDate || eHour == null;
         const endTooEarly =
           !endMissing && startOfHour(eDate as Date, eHour as number) < minEnd;
-
         if (endMissing || endTooEarly) {
           this.form.patchValue(
             { endDate: minEnd, endTime: minEnd.getHours() },
@@ -202,12 +166,6 @@ export class AdminDowntimeComponent {
         }
       }
     });
-  }
-
-  /* ---------- App pill interactions ---------- */
-
-  onAppQuery(q: string): void {
-    this.appQuery.set(q);
   }
 
   isSelected(id: number): boolean {
@@ -231,16 +189,9 @@ export class AdminDowntimeComponent {
     this.form.controls.applications.markAsTouched();
   }
 
-  selectFirstMatch(): void {
-    const first = this.filteredApps().find((a) => !this.isSelected(a.id));
-    if (first) this.addApp(first);
-  }
-
   appById(id: number): Application | undefined {
     return this.appMap().get(id);
   }
-
-  /* ---------- Template hooks for dates/times ---------- */
 
   onStartDateChanged(): void {
     const sDate = this.form.controls.startDate.value;
@@ -253,13 +204,10 @@ export class AdminDowntimeComponent {
   onEndDateChanged(): void {}
   onStartTimeChanged(): void {}
 
-  /* ---------- Form actions ---------- */
-
   resetForm(): void {
     this.form.reset();
     this.form.controls.applications.setValue([]);
     this.selectedIds.set([]);
-    this.appQuery.set('');
     this.isSubmitting.set(false);
   }
 
@@ -303,27 +251,21 @@ export class AdminDowntimeComponent {
   }
 }
 
-/* ---------------- Utilities ---------------- */
-
 function rangeValidator(minHoursGetter: () => number): ValidatorFn {
   return (group: AbstractControl) => {
     const sDate: Date | null = group.get('startDate')?.value ?? null;
     const sHour: number | null = group.get('startTime')?.value ?? null;
     const eDate: Date | null = group.get('endDate')?.value ?? null;
     const eHour: number | null = group.get('endTime')?.value ?? null;
-
-    if (sDate == null || sHour == null || eDate == null || eHour == null) {
+    if (sDate == null || sHour == null || eDate == null || eHour == null)
       return null;
-    }
 
     const start = startOfHour(sDate, sHour);
     const end = startOfHour(eDate, eHour);
-
     if (end <= start) return { orderInvalid: true };
 
     const diffHours = (end.getTime() - start.getTime()) / 36e5;
     const min = minHoursGetter();
-
     if (diffHours < min) return { minDuration: { min } };
     if (Math.round(diffHours) !== diffHours) return { stepInvalid: true };
     return null;

@@ -1,101 +1,184 @@
-@use "../../../../styles/variables" as *;
-@use "../../../../styles/typography" as *;
 @use "@angular/material" as mat;
-@use "../../../../styles/mixins" as *;
 
+// --- Main Layout ---
 .downtime-container {
-  flex-shrink: 0;
-  margin: 5.19rem 2rem;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-
-  ::ng-deep .downtime-tabs {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    overflow: hidden;
-
-    .mat-mdc-tab-body-wrapper {
-      flex-grow: 1;
-    }
-
-    .mat-mdc-tab {
-      flex: 0 0 25.6rem !important;
-      justify-content: center !important;
-      height: 4.59rem;
-      @include body-md;
-
-      .mdc-tab__text-label {
-        color: $color-black !important;
-      }
-
-      &.mdc-tab--active {
-        .mdc-tab__text-label {
-          color: var(--blue, $color-blue) !important;
-        }
-      }
-    }
-
-    .mdc-tab-indicator__content--underline {
-      border-color: var(--blue, $color-blue) !important;
-      border-width: 2px;
-      width: 100% !important;
-    }
-  }
+  margin: 3rem 4rem;
 }
 
 .schedule-downtime-container {
-  margin: 2.62rem 1.19rem;
-  padding: 1.87rem 2.81rem;
-
-  .schedule-downtime-header {
-    color: var(--Black, #161a1d);
-    font-family: Roboto;
-    font-size: 1.5rem;
-    font-style: normal;
-    font-weight: 500;
-    line-height: 1.5rem; /* 100% */
-  }
+  margin-top: 1rem;
+  padding: 2.5rem 2.8rem;
+  border-radius: 1.5rem; // 24px
+  border: 1px solid rgba(190, 191, 192, 0.5);
 }
 
 .schedule-form {
-  max-width: 880px;
-  display: grid;
-  gap: 16px;
-  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
 
-  .form-row {
-    display: grid;
-    gap: 12px;
+.section-header {
+  color: #161a1d;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-size: 1.5rem; // 24px
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+  margin-top: 2rem;
+
+  .application-input {
+    max-width: 67.5625rem;
+  }
+}
+
+section:first-of-type .section-header {
+  margin-top: 0;
+}
+
+.w-full {
+  width: 100%;
+}
+
+// --- Date & Time Grid ---
+.date-time-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; // Space between the "start" and "end" rows
+}
+
+.date-time-row {
+  display: flex;
+  gap: 1.25rem; // Space between date and time fields
+  align-items: flex-start;
+
+  .date-field {
+    flex-basis: 60%; // Date field takes more space
   }
 
-  .form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(240px, 1fr));
-    gap: 12px;
+  .time-field {
+    flex-basis: 40%; // Time field takes less space
+  }
+}
+
+// --- Application Pill Selector ---
+.selected-chipbox {
+  padding-left: 0.5rem;
+}
+
+.pill-bank {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1rem 0 0.75rem;
+}
+
+.pill {
+  appearance: none;
+  min-width: 141px;
+  height: 51px;
+  padding: 0 20.8px;
+  border-radius: 25px;
+  border: none;
+  background: rgba(66, 133, 244, 0.2);
+  color: rgba(66, 133, 244, 0.7);
+  font: 500 18px/31.2px Roboto, system-ui, -apple-system, "Segoe UI", Arial,
+    sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.18s ease;
+}
+
+.pill:hover:not(:disabled) {
+  background: rgba(66, 133, 244, 0.28);
+}
+
+.pill:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+}
+
+.pill.pill--selected,
+.pill:disabled {
+  background: #e6e6e6;
+  color: #cccccc;
+  cursor: default;
+}
+
+// --- Footer & Form Actions ---
+.form-errors {
+  border: 1px solid #ffcccc;
+  background: #fff6f6;
+  color: #b30000;
+  border-radius: 8px;
+  padding: 8px 12px;
+
+  p {
+    margin: 4px 0;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 3rem;
+}
+
+.cancel-button {
+  border-radius: 2.56rem !important;
+  padding: 1rem 2rem !important;
+  color: #8d8f90 !important;
+  border-color: #8d8f90 !important;
+}
+
+.submit-button {
+  border-radius: 2.56rem !important;
+  padding: 1rem 2rem !important;
+}
+
+.app-input-field {
+  width: 67.5625rem;
+}
+
+// --- Tab Styles ---
+:host ::ng-deep .downtime-tabs {
+  .mat-mdc-tab {
+    flex: 0 0 23.125rem !important;
+    height: 3.5rem;
   }
 
-  .w-full {
-    width: 100%;
+  .mdc-tab-indicator__content--underline {
+    border-top-width: 4px !important;
   }
 
-  .form-errors {
-    border: 1px solid #ffcccc;
-    background: #fff6f6;
-    color: #b30000;
-    border-radius: 8px;
-    padding: 8px 12px;
+  .mat-mdc-standard-chip .mdc-evolution-chip__action--primary::before {
+    border: none !important;
+    border-radius: 1.5625rem;
+    background: rgba(66, 133, 244, 0.2);
+    height: 2.5625rem;
+    padding: 0 1.3rem;
+  }
 
-    p {
-      margin: 4px 0;
+  .mdc-evolution-chip__text-label .mat-mdc-chip-action-label {
+    color: rgba(66, 133, 244, 0.7);
+    font-family: Roboto;
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1.95rem;
+  }
+
+  .app-input-field {
+
+    .mat-mdc-text-field-wrapper  {
+      height: 3.5rem !important;
+    }
+
+    .mat-mdc-form-field-infix {
+      padding: 0px !important;
     }
   }
 
-  .form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 4px;
-  }
 }
