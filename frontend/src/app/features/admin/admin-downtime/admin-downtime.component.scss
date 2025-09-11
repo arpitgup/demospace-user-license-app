@@ -1,29 +1,67 @@
 @use '@angular/material' as mat;
 
+// =============================================================================
+// Component Variables
+// =============================================================================
+
+// Colors
+$color-text-primary: #161a1d;
+$color-text-disabled: #cccccc;
+$color-primary: #4285f4;
+$color-primary-light-bg: rgba(66, 133, 244, 0.2);
+$color-primary-light-hover: rgba(66, 133, 244, 0.28);
+$color-primary-light-text: rgba(66, 133, 244, 0.7);
+$color-border-default: rgba(190, 191, 192, 0.5);
+$color-border-stroked: #8d8f90;
+$color-bg-disabled: #e6e6e6;
+$color-error: #d93025; // A common Google error red
+$color-error-bg: #fce8e6;
+$color-error-border: #fce8e6;
+
+// Typography
+$font-family-base: Roboto, 'Helvetica Neue', sans-serif;
+$font-size-header: 1.5rem;
+$font-size-pill: 1.125rem;
+
+// Spacing & Dimensions
+$spacing-xl: 3rem;
+$spacing-lg: 2.5rem;
+$spacing-md: 1.5rem;
+$spacing-sm: 1rem;
+$spacing-xs: 0.75rem;
+
+// Borders
+$border-radius-container: 1.5rem;
+$border-radius-pill: 25px;
+$border-radius-action: 2.56rem;
+
+// =============================================================================
+// Component Styles
+// =============================================================================
+
 .downtime-container {
-  margin: 3rem 4rem;
+  margin: $spacing-xl 4rem;
 }
 
 .schedule-downtime-container {
-  margin-top: 1rem;
-  padding: 2.5rem 2.8rem;
-  border-radius: 1.5rem;
-  border: 1px solid rgba(190, 191, 192, 0.5);
+  margin-top: $spacing-sm;
+  padding: $spacing-lg 2.8rem;
+  border-radius: $border-radius-container;
+  border: 1px solid $color-border-default;
 }
 
 .schedule-form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: $spacing-sm;
 }
 
 .section-header {
-  color: #161a1d;
-  font-family: Roboto, 'Helvetica Neue', sans-serif;
-  font-size: 1.5rem;
+  color: $color-text-primary;
+  font-family: $font-family-base;
+  font-size: $font-size-header;
   font-weight: 500;
-  margin-bottom: 1.5rem;
-  margin-top: 2rem;
+  margin: 2rem 0 $spacing-md;
 
   .application-input {
     max-width: 67.5625rem;
@@ -45,7 +83,7 @@ section:first-of-type .section-header {
 .date-time-grid {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: $spacing-md;
 }
 
 .date-time-row {
@@ -62,90 +100,91 @@ section:first-of-type .section-header {
   }
 }
 
-.selected-chipbox {
-  padding-left: 0.5rem;
-}
-
 .pill-bank {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  padding: 1rem 0 0.75rem;
+  gap: $spacing-xs;
+  padding: $spacing-sm 0 $spacing-xs;
 }
 
 .pill {
   appearance: none;
   min-width: 141px;
-  border-radius: 25px;
-  border: none;
-  background: rgba(66, 133, 244, 0.2);
-  cursor: pointer;
-  transition: background-color 0.18s ease;
-  display: flex;
   height: 3.1875rem;
   padding: 0 1.3rem;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
-  color: rgba(66, 133, 244, 0.7);
-  font-family: Roboto;
-  font-size: 1.125rem;
-  font-style: normal;
+  border-radius: $border-radius-pill;
+  border: none;
+  background: $color-primary-light-bg;
+  color: $color-primary-light-text;
+  font-family: $font-family-base;
+  font-size: $font-size-pill;
   font-weight: 500;
   line-height: 1.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.18s ease;
 
   &:hover:not(:disabled) {
-    background: rgba(66, 133, 244, 0.28);
+    background: $color-primary-light-hover;
   }
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+    box-shadow: 0 0 0 2px rgba($color-primary, 0.2);
   }
 
   &.pill--selected,
   &:disabled {
-    background: #e6e6e6;
-    color: #cccccc;
+    background: $color-bg-disabled;
+    color: $color-text-disabled;
     cursor: default;
   }
 }
 
 .form-errors {
-  border: 1px solid #ffcccc;
-  background: #fff6f6;
-  color: #b30000;
+  border: 1px solid $color-error-border;
+  background: $color-error-bg;
+  color: $color-error;
   border-radius: 8px;
   padding: 8px 12px;
 
   p {
     margin: 4px 0;
   }
+  
+  &--range {
+    margin-top: $spacing-sm;
+  }
 }
 
 .form-actions {
   display: flex;
   justify-content: center;
-  gap: 1rem;
-  margin-top: 3rem;
+  gap: $spacing-sm;
+  margin-top: $spacing-xl;
 }
 
 .cancel-button {
-  border-radius: 2.56rem !important;
-  padding: 1rem 2rem !important;
-  color: #8d8f90 !important;
-  border-color: #8d8f90 !important;
+  border-radius: $border-radius-action !important;
+  padding: $spacing-sm 2rem !important;
+  color: $color-border-stroked !important;
+  border-color: $color-border-stroked !important;
 }
 
 .submit-button {
-  border-radius: 2.56rem !important;
-  padding: 1rem 2rem !important;
+  border-radius: $border-radius-action !important;
+  padding: $spacing-sm 2rem !important;
 }
 
 .app-input-field {
   width: 67.5625rem;
 }
 
+// =============================================================================
+// Angular Material Component Overrides
+// =============================================================================
 :host ::ng-deep {
   .downtime-tabs {
     .mat-mdc-tab {
@@ -160,17 +199,16 @@ section:first-of-type .section-header {
 
   .mat-mdc-standard-chip .mdc-evolution-chip__action--primary::before {
     border: none !important;
-    border-radius: 1.5625rem;
-    background: rgba(66, 133, 244, 0.2);
+    border-radius: $border-radius-pill;
+    background: $color-primary-light-bg;
     height: 2.5625rem;
     padding: 0 1.3rem;
   }
 
   .mdc-evolution-chip__text-label .mat-mdc-chip-action-label {
-    color: rgba(66, 133, 244, 0.7);
-    font-family: Roboto;
+    color: $color-primary-light-text;
+    font-family: $font-family-base;
     font-size: 0.875rem;
-    font-style: normal;
     font-weight: 400;
     line-height: 1.95rem;
   }
@@ -181,7 +219,8 @@ section:first-of-type .section-header {
     }
 
     .mat-mdc-form-field-infix {
-      padding: 0px !important;
+      padding: 0 !important;
     }
   }
 }
+

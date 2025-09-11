@@ -1,10 +1,13 @@
+<!-- Root container for the entire Admin Downtime feature. -->
 <div class="downtime-container">
+  <!-- Main tab navigation for switching between the list of scheduled downtimes and the form to create a new one. -->
   <mat-tab-group class="downtime-tabs" [selectedIndex]="1">
     <mat-tab [label]="constants.LISTED_DOWNTIME_TAB_LABEL">
       <app-admin-downtime-table></app-admin-downtime-table>
     </mat-tab>
 
     <mat-tab [label]="constants.SCHEDULE_DOWNTIME_TAB_LABEL">
+      <!-- Container for the "Schedule Application Downtime" form, providing padding and a bordered frame. -->
       <div class="schedule-downtime-container">
         <form
           class="schedule-form"
@@ -14,6 +17,9 @@
           aria-describedby="scheduleFormErrors"
           autocomplete="off"
         >
+          <!-- ====================================================== -->
+          <!-- SECTION 1: APPLICATION SELECTION                       -->
+          <!-- ====================================================== -->
           <section>
             <div class="section-header">Select the Applications</div>
 
@@ -77,9 +83,18 @@
             </div>
           </section>
 
+          <!-- ====================================================== -->
+          <!-- SECTION 2: DOWNTIME DATE & TIME RANGE                  -->
+          <!-- ====================================================== -->
           <section>
             <div class="section-header">Select Downtime Date Range</div>
-            <div class="date-time-grid">
+            <div
+              class="date-time-grid"
+              [class.has-range-error]="
+                form.hasError('orderInvalid') && form.touched
+              "
+            >
+              <!-- Start Date & Time Row -->
               <div class="date-time-row">
                 <mat-form-field appearance="outline" class="date-field">
                   <mat-label>Start Date</mat-label>
@@ -118,6 +133,7 @@
                 </mat-form-field>
               </div>
 
+              <!-- End Date & Time Row -->
               <div class="date-time-row">
                 <mat-form-field appearance="outline" class="date-field">
                   <mat-label>End Date</mat-label>
@@ -153,8 +169,18 @@
                 </mat-form-field>
               </div>
             </div>
+
+            <!-- Standalone error for the date range validation -->
+            @if(form.hasError('orderInvalid') && form.touched) {
+            <div class="form-errors form-errors--range" role="alert">
+              <p>End date and time must be after the start date and time.</p>
+            </div>
+            }
           </section>
 
+          <!-- ====================================================== -->
+          <!-- SECTION 3: DOWNTIME REASON                             -->
+          <!-- ====================================================== -->
           <section>
             <div class="section-header">Downtime Reason</div>
             <mat-form-field appearance="outline" class="downtime-reason-form">
@@ -171,12 +197,11 @@
             </mat-form-field>
           </section>
 
+          <!-- Other form-level validation errors -->
           <ng-container>
-            @let e = form.errors; @if (e) {
+            @let e = form.errors; @if (e && !e['orderInvalid']) {
             <div id="scheduleFormErrors" class="form-errors" role="alert">
-              @if (e['orderInvalid']) {
-              <p>End must be after start.</p>
-              } @if (e['minDuration']) {
+              @if (e['minDuration']) {
               <p>Minimum downtime is {{ minHours }} hour(s).</p>
               } @if (e['stepInvalid']) {
               <p>Duration must be in whole hours.</p>
@@ -185,6 +210,7 @@
             }
           </ng-container>
 
+          <!-- Form action buttons -->
           <footer class="form-actions">
             <button
               type="button"
