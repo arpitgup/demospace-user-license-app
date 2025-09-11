@@ -323,6 +323,7 @@ export const mockAppConfig: AppConfig = {
   unavailableReservationDays: 7,
   maxSlotsToFind: 3,
   reservationCoolOffHours:1,
+  minLeadCooldownHours:2
 };
 
 export const mockAvailableBots: BotWithApps = {

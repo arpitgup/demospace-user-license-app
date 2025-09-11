@@ -10,7 +10,8 @@ from shared_lib.db.models import (
 from typing import List
 
 from ..common.schemas import (
-    BotsUpsertRequest,
+    BotsCreateRequest,
+    BotsUpdateRequest    
 )
 
 
@@ -20,53 +21,54 @@ def get_bot_with_supported_apps(db: Session) -> Query:
     """
     return db.query(Bot).options(selectinload(Bot.applications))
 
-
-def upsert_bots_with_applications(request: BotsUpsertRequest, db: Session) -> list[Bot]:
+def create_bot(request: BotsCreateRequest, db: Session) -> list[Bot]:
     """
-    Updates existing bots or creates new ones based on their email.
-    Replaces their supported applications with the provided list.
+    Creates multiple new bots and links each to their specified applications.
     """
-    processed_bots = []
-
-    all_required_app_ids = {
-        app_id for bot_data in request.bots for app_id in bot_data.application_ids
-    }
-
-    apps_in_db = (
-        db.query(Application).filter(Application.id.in_(all_required_app_ids)).all()
-    )
-
-    if len(apps_in_db) != len(all_required_app_ids):
-        found_ids = {app.id for app in apps_in_db}
-        missing_ids = all_required_app_ids - found_ids
-        raise ValueError(f"Applications with these IDs do not exist: {missing_ids}")
-
+    newly_created_bots = []
+    
     for bot_data in request.bots:
-        existing_bot = db.query(Bot).filter(Bot.email == bot_data.email).one_or_none()
+        new_bot = Bot(
+            name=bot_data.name, 
+            email=bot_data.email,
+            is_admin=bot_data.is_admin
+        )
+        db.add(new_bot)
+        db.flush()
 
-        if existing_bot:
-            existing_bot.name = bot_data.name
+        for app_id in bot_data.application_ids:
+            db.add(BotApplication(bot_id=new_bot.id, application_id=app_id))
+        
+        newly_created_bots.append(new_bot)
 
-            db.query(BotApplication).filter(
-                BotApplication.bot_id == existing_bot.id
-            ).delete()
+    return newly_created_bots
 
-            for app_id in bot_data.application_ids:
-                db.add(BotApplication(bot_id=existing_bot.id, application_id=app_id))
+def update_bot(request: BotsUpdateRequest, db: Session) -> list[Bot]:
+    """
+    Updates existing bots' details and replaces their linked applications.
+    """
+    updated_bots = []
+    
+    for bot_data in request.bots:
+        existing_bot = db.query(Bot).filter(Bot.id == bot_data.id).one_or_none()
+        
+        if not existing_bot:
+            raise ValueError(f"Bot with ID '{bot_data.id}' does not exist and cannot be updated.")
+        
+        # existing_bot.name = bot_data.name
+        existing_bot.is_admin = bot_data.is_admin
 
-            existing_bot.updated_at = datetime.now(timezone.utc)
-            processed_bots.append(existing_bot)
-        else:
-            new_bot = Bot(name=bot_data.name, email=bot_data.email)
-            db.add(new_bot)
-            db.flush()  # Flush the session to assign an ID to new_bot
+        db.query(BotApplication).filter(
+            BotApplication.bot_id == existing_bot.id
+        ).delete()
+        
+        for app_id in bot_data.application_ids:
+            db.add(BotApplication(bot_id=existing_bot.id, application_id=app_id))
 
-            for app_id in bot_data.application_ids:
-                db.add(BotApplication(bot_id=new_bot.id, application_id=app_id))
-
-            processed_bots.append(new_bot)
-
-    return processed_bots
+        existing_bot.updated_at = datetime.now(timezone.utc)
+        updated_bots.append(existing_bot)
+            
+    return updated_bots
 
 
 def get_bot_availability_in_slot(
@@ -151,3 +153,29 @@ def is_user_in_cool_off(
         .first()
     )
     return bool(conflicting_reservation or future_conflict)
+
+def is_valid_reservation_lead_time(
+    req_start_time: datetime, min_lead_hours: int, max_reservation_lead_days: int
+) -> bool:
+    """
+    Checks if a requested reservation start time is valid based on lead time and a maximum future window.
+    """
+    server_now = datetime.now(timezone.utc)   
+    rounded_server_time = server_now.replace(
+        minute=0, second=0, microsecond=0
+    ) + timedelta(hours=1)
+
+    min_allowed_start_time = rounded_server_time + timedelta(hours=min_lead_hours)
+    if req_start_time < min_allowed_start_time:
+        error_message = f"Requested start time is too soon. Must be after {min_allowed_start_time}."
+        print(f"Validation failed: {error_message}")
+        return error_message
+
+    max_allowed_start_time = server_now + timedelta(days=max_reservation_lead_days)
+    if req_start_time > max_allowed_start_time:
+        error_message = f"Requested start time is too far in the future. Must be within {max_reservation_lead_days} days."
+        print(f"Validation failed: {error_message}")
+        return error_message
+
+    print(f"Validation successful: {req_start_time} is a valid reservation time.")
+    return None

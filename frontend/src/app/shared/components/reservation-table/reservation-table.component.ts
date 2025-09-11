@@ -23,8 +23,10 @@ import { RESERVATION_TABLE_CONSTANTS } from './reservation-table.constant';
 import { ReservationApiStatus } from '../../../features/landing/landing.enums';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialog } from '../../dialogs/confirmation-dialog/confirmation-dialog';
-import { ReservationTableLoader } from '../../../loaders/reservation-table-loader/reservation-table-loader';
 import { getLocalTimeZoneAbbreviation } from '../../../../utilities/utils';
+import { ReservationService } from '../../../core/services/reservation.service';
+import { ErrorMessage } from '../error-message/error-message';
+import { ReservationTableLoader } from '../../../loaders/reservation-table-loader/reservation-table-loader';
 
 @Component({
   selector: 'app-reservation-table',
@@ -38,7 +40,8 @@ import { getLocalTimeZoneAbbreviation } from '../../../../utilities/utils';
     MatIconModule,
     MatButtonModule,
     MatPaginatorModule,
-    ReservationTableLoader,
+    ErrorMessage,
+    ReservationTableLoader
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -51,13 +54,13 @@ export class ReservationTableComponent implements AfterViewInit, OnChanges {
 
   displayedColumns: string[] = ['date', 'applications', 'status', 'action'];
   dataSource = new MatTableDataSource<Reservation>([]);
-  public isLoading = signal(true);
+  // public isLoading = signal(true);
 
   @ViewChild(MatSort) set sort(sort: MatSort) {
-  if (sort) {
-    this.dataSource.sort = sort;
+    if (sort) {
+      this.dataSource.sort = sort;
+    }
   }
-}
   @ViewChild(MatPaginator) set paginator(value: MatPaginator) {
     if (value) {
       this.dataSource.paginator = value;
@@ -66,6 +69,11 @@ export class ReservationTableComponent implements AfterViewInit, OnChanges {
   private _paginator!: MatPaginator;
 
   @Input() data: Reservation[] | null = [];
+  private readonly reservationService = inject(ReservationService);
+  public readonly reservationErrorSignal =
+    this.reservationService.reservationErrorMessage;
+  public readonly isLoading =
+    this.reservationService.isReservationLoading;
 
   ngAfterViewInit() {
     this.dataSource.sortingDataAccessor = (item, property) => {
@@ -84,10 +92,10 @@ export class ReservationTableComponent implements AfterViewInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    this.isLoading.set(true);
+    // this.isLoading.set(true);
     if (changes['data'] && this.data) {
       this.dataSource.data = this.data;
-      this.isLoading.set(false);
+      // this.isLoading.set(false);
       if (this.dataSource.paginator) {
         this.dataSource.paginator.firstPage();
       }
@@ -189,5 +197,9 @@ export class ReservationTableComponent implements AfterViewInit, OnChanges {
         this.onCancel(reservation);
       }
     });
+  }
+
+  onRetryCall() {
+    this.reservationService.fetchReservations().subscribe();
   }
 }

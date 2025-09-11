@@ -29,7 +29,8 @@ from ..common.schemas import (
     UpdateApplicationsRequest,
     UpdateBotApplicationsRequest,
     UpdateApplicationStatusRequest,
-    BotsUpsertRequest,
+    BotsCreateRequest,
+    BotsUpdateRequest,
     ApplicationDowntimeRequest,
     ApplicationDowntimeOut,
     DowntimeBulkCancelRequest,
@@ -45,8 +46,7 @@ from ..utils.background_tasks import (
     schedule_downtime_tasks,
     delete_downtime_tasks
 )
-from ..utils.crud import get_bot_with_supported_apps, upsert_bots_with_applications
-
+from ..utils.crud import get_bot_with_supported_apps, create_bot, update_bot
 
 router = APIRouter(prefix="/admin")
 
@@ -425,25 +425,21 @@ def update_bot_applications(
     bot = get_bot_with_supported_apps(db).filter(Bot.id == bot_id).one()
     return build_response([bot])[0]
 
-
 @router.post(
-    "/bots/upsert", response_model=list[BotWithApplicationsOut], status_code=200
+    "/bots/create", response_model=List[BotWithApplicationsOut], status_code=200
 )
-def upsert_bots(request: BotsUpsertRequest, db: Session = Depends(get_db)):
+def create_bots(request: BotsCreateRequest, db: Session = Depends(get_db)):
     """
-    Updates existing bots or creates new ones in a batch.
-
-    - If a bot with the provided email exists, its name and supported applications are updated.
-    - If it does not exist, a new bot is created.
+    Creates one or more new bots with their associated applications.
     """
     try:
-        processed_bots = upsert_bots_with_applications(request, db)
+        newly_created_bots = create_bot(request, db)
         db.commit()
 
-        for bot in processed_bots:
+        for bot in newly_created_bots:
             db.refresh(bot)
 
-        return processed_bots
+        return newly_created_bots
     except ValueError as e:
         db.rollback()
         raise HTTPException(status_code=404, detail=str(e))
@@ -452,6 +448,31 @@ def upsert_bots(request: BotsUpsertRequest, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=500, detail="An internal server error occurred."
         )
+
+@router.patch(
+    "/bots/update", response_model=List[BotWithApplicationsOut], status_code=200
+)
+def update_bots(request: BotsUpdateRequest, db: Session = Depends(get_db)):
+    """
+    Updates one or more existing bots and their associated applications.
+    """
+    try:
+        updated_bots = update_bot(request, db)
+        db.commit()
+
+        for bot in updated_bots:
+            db.refresh(bot)
+
+        return updated_bots
+    except ValueError as e:
+        db.rollback()
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500, detail="An internal server error occurred."
+        )
+
 
 @router.get("/downtimes", response_model=List[ApplicationDowntimeOut])
 def get_all_downtimes(
