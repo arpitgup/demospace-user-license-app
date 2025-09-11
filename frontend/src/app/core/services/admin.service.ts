@@ -7,6 +7,9 @@ import { isSameDay } from '../../../utilities/utils';
 import { BulkCancelReservation } from '../models/bulk-cancel-reservation.model';
 import { BulkCancelReservationRequest } from '../models/bulk-cancel-reservation-request.model';
 import { ReservationApplicationRequest } from '../models/reservation-application-request.model';
+import { AdminBotsResponse } from '../models/admin-bots-response.model';
+import { Application } from '../models/application.model';
+import { UpdateBotRequest } from '../models/update-bot-request.model';
 
 @Injectable({
   providedIn: 'root',
@@ -51,6 +54,20 @@ export class AdminService {
     return this.http.patch<Reservation>(
       `${this.apiUrl}/admin/reservations/${reservationId}`,
       reservationApplicationRequest
+    );
+  }
+  fetchAllAdminBots(): Observable<AdminBotsResponse[]> {
+    return this.http.get<AdminBotsResponse[]>(`${this.apiUrl}/admin/bots`);
+  }
+  fetchAllApplications(): Observable<Application[]> {
+    return this.http.get<Application[]>(`${this.apiUrl}/admin/applications`);
+  }
+  updateBots(
+    updateBotRequest: UpdateBotRequest
+  ): Observable<AdminBotsResponse[]> {
+    return this.http.post<AdminBotsResponse[]>(
+      `${this.apiUrl}/admin/bots/upsert`,
+      updateBotRequest
     );
   }
 }
