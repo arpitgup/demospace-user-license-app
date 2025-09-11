@@ -39,6 +39,10 @@ section:first-of-type .section-header {
   width: 100%;
 }
 
+.downtime-reason-form {
+  width: 30.5625rem;
+}
+
 // --- Date & Time Grid ---
 .date-time-grid {
   display: flex;
@@ -52,11 +56,11 @@ section:first-of-type .section-header {
   align-items: flex-start;
 
   .date-field {
-    flex-basis: 60%; // Date field takes more space
+    width: 16.375rem;
   }
 
   .time-field {
-    flex-basis: 40%; // Time field takes less space
+    width: 12.375rem;
   }
 }
 
@@ -75,19 +79,24 @@ section:first-of-type .section-header {
 .pill {
   appearance: none;
   min-width: 141px;
-  height: 51px;
-  padding: 0 20.8px;
   border-radius: 25px;
   border: none;
   background: rgba(66, 133, 244, 0.2);
-  color: rgba(66, 133, 244, 0.7);
-  font: 500 18px/31.2px Roboto, system-ui, -apple-system, "Segoe UI", Arial,
-    sans-serif;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
   transition: background-color 0.18s ease;
+  display: flex;
+  height: 3.1875rem;
+  padding: 0 1.3rem;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  color: rgba(66, 133, 244, 0.7);
+
+  font-family: Roboto;
+  font-size: 1.125rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 1.95rem;
 }
 
 .pill:hover:not(:disabled) {
@@ -121,7 +130,7 @@ section:first-of-type .section-header {
 
 .form-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 1rem;
   margin-top: 3rem;
 }
@@ -171,8 +180,7 @@ section:first-of-type .section-header {
   }
 
   .app-input-field {
-
-    .mat-mdc-text-field-wrapper  {
+    .mat-mdc-text-field-wrapper {
       height: 3.5rem !important;
     }
 
@@ -180,5 +188,4 @@ section:first-of-type .section-header {
       padding: 0px !important;
     }
   }
-
 }

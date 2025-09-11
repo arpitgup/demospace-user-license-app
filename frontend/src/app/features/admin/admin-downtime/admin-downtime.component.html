@@ -33,7 +33,7 @@
                     (removed)="removeApp(id)"
                     aria-label="Remove {{ appById(id)?.name }}"
                   >
-                    {{ appById(id)?.name || '#' + id }}
+                    {{ appById(id)?.name || "#" + id }}
                     <button matChipRemove type="button" aria-label="Remove">
                       <mat-icon>close</mat-icon>
                     </button>
@@ -50,7 +50,6 @@
                 class="application-input"
               />
 
-              <mat-hint>Pick one or more apps</mat-hint>
               @if (form.controls.applications.invalid &&
               form.controls.applications.touched) {
               <mat-error>At least one application is required</mat-error>
@@ -158,7 +157,7 @@
 
           <section>
             <div class="section-header">Downtime Reason</div>
-            <mat-form-field appearance="outline" class="w-full">
+            <mat-form-field appearance="outline" class="downtime-reason-form">
               <mat-label>Select reason</mat-label>
               <mat-select formControlName="reason">
                 @for (r of reasons(); track r) {
@@ -204,7 +203,7 @@
               [attr.aria-busy]="isSubmitting()"
             >
               {{
-                isSubmitting() ? 'Scheduling…' : 'Schedule Application Downtime'
+                isSubmitting() ? "Scheduling…" : "Schedule Application Downtime"
               }}
             </button>
           </footer>
