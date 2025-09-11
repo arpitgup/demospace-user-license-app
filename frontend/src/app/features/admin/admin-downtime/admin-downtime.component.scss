@@ -1,6 +1,5 @@
-@use "@angular/material" as mat;
+@use '@angular/material' as mat;
 
-// --- Main Layout ---
 .downtime-container {
   margin: 3rem 4rem;
 }
@@ -8,7 +7,7 @@
 .schedule-downtime-container {
   margin-top: 1rem;
   padding: 2.5rem 2.8rem;
-  border-radius: 1.5rem; // 24px
+  border-radius: 1.5rem;
   border: 1px solid rgba(190, 191, 192, 0.5);
 }
 
@@ -20,8 +19,8 @@
 
 .section-header {
   color: #161a1d;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
-  font-size: 1.5rem; // 24px
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  font-size: 1.5rem;
   font-weight: 500;
   margin-bottom: 1.5rem;
   margin-top: 2rem;
@@ -43,16 +42,15 @@ section:first-of-type .section-header {
   width: 30.5625rem;
 }
 
-// --- Date & Time Grid ---
 .date-time-grid {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem; // Space between the "start" and "end" rows
+  gap: 1.5rem;
 }
 
 .date-time-row {
   display: flex;
-  gap: 1.25rem; // Space between date and time fields
+  gap: 1.25rem;
   align-items: flex-start;
 
   .date-field {
@@ -64,7 +62,6 @@ section:first-of-type .section-header {
   }
 }
 
-// --- Application Pill Selector ---
 .selected-chipbox {
   padding-left: 0.5rem;
 }
@@ -91,31 +88,29 @@ section:first-of-type .section-header {
   align-items: center;
   flex-shrink: 0;
   color: rgba(66, 133, 244, 0.7);
-
   font-family: Roboto;
   font-size: 1.125rem;
   font-style: normal;
   font-weight: 500;
   line-height: 1.95rem;
+
+  &:hover:not(:disabled) {
+    background: rgba(66, 133, 244, 0.28);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+  }
+
+  &.pill--selected,
+  &:disabled {
+    background: #e6e6e6;
+    color: #cccccc;
+    cursor: default;
+  }
 }
 
-.pill:hover:not(:disabled) {
-  background: rgba(66, 133, 244, 0.28);
-}
-
-.pill:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
-}
-
-.pill.pill--selected,
-.pill:disabled {
-  background: #e6e6e6;
-  color: #cccccc;
-  cursor: default;
-}
-
-// --- Footer & Form Actions ---
 .form-errors {
   border: 1px solid #ffcccc;
   background: #fff6f6;
@@ -151,15 +146,16 @@ section:first-of-type .section-header {
   width: 67.5625rem;
 }
 
-// --- Tab Styles ---
-:host ::ng-deep .downtime-tabs {
-  .mat-mdc-tab {
-    flex: 0 0 23.125rem !important;
-    height: 3.5rem;
-  }
+:host ::ng-deep {
+  .downtime-tabs {
+    .mat-mdc-tab {
+      flex: 0 0 23.125rem !important;
+      height: 3.5rem;
+    }
 
-  .mdc-tab-indicator__content--underline {
-    border-top-width: 4px !important;
+    .mdc-tab-indicator__content--underline {
+      border-top-width: 4px !important;
+    }
   }
 
   .mat-mdc-standard-chip .mdc-evolution-chip__action--primary::before {
