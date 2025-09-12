@@ -44,7 +44,7 @@
             <mat-datepicker #datePicker></mat-datepicker>
           </mat-form-field>
           <mat-form-field appearance="outline" class="custom-time-drop-down">
-            <mat-label>Start Time</mat-label>
+            <mat-label>Next Available Start Time</mat-label>
             <mat-select
               id="time-picker"
               class="custom-select"
@@ -60,6 +60,10 @@
               }
             </mat-select>
           </mat-form-field>
+        </div>
+        <div class="time-wrapper">
+          <div class="invisible-time-field"></div>
+          <span class="time-note">* Time in {{ localTimeAbbrevation }}.</span>
         </div>
 
         <div class="custom-form-field">
