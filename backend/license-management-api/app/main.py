@@ -62,13 +62,19 @@ def deprovision_licenses(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Reservation not found."
         )
-    if reservation.status not in [ReservationStatus.ACTIVE, ReservationStatus.CANCELLED]:
+
+    original_status = reservation.status
+    if original_status not in [ReservationStatus.ACTIVE, ReservationStatus.CANCELLED]:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Cannot deprovision licenses as reservation is in '{reservation.status.value}' state.",
+            detail=f"Cannot deprovision licenses as reservation is in '{original_status.value}' state.",
         )
     deprovision_app_licenses(reservation)
-    reservation.status = ReservationStatus.COMPLETED
+    if original_status == ReservationStatus.ACTIVE:
+        reservation.status = ReservationStatus.COMPLETED        
+    elif original_status == ReservationStatus.CANCELLED:        
+        reservation.status = ReservationStatus.CANCELLED        
+
     db.commit()
     db.refresh(reservation)
     logger.info(f"Licenses deprovisioned for reservation {reservation.id}.")
