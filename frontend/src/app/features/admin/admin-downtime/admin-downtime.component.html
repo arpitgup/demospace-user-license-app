@@ -1,5 +1,6 @@
 <div class="downtime-container">
-  <mat-tab-group class="downtime-tabs">
+  <mat-tab-group class="downtime-tabs" [selectedIndex]="selectedTabIndex()" 
+  (selectedIndexChange)="selectedTabIndex.set($event)">
     <mat-tab [label]="constants.LISTED_DOWNTIME_TAB_LABEL">
       <app-admin-downtime-table></app-admin-downtime-table>
     </mat-tab>

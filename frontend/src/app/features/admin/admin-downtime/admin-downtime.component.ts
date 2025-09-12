@@ -72,7 +72,6 @@ type DowntimeReason = string;
 export class AdminDowntimeComponent {
   private readonly fb = inject(FormBuilder);
   private readonly downtimeService = inject(DowntimeService);
-  // Inject AdminService
   private readonly adminService = inject(AdminService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -96,6 +95,9 @@ export class AdminDowntimeComponent {
   readonly HOURS: readonly number[] = Array.from({ length: 24 }, (_, h) => h);
 
   readonly selectedIds = signal<number[]>([]);
+  
+  // New signal to control the selected tab index
+  readonly selectedTabIndex = signal(0);
 
   readonly form = this.fb.group(
     {
@@ -264,6 +266,7 @@ export class AdminDowntimeComponent {
         next: () => {
           this.resetForm();
           this.downtimeTable?.getAllDowntimes(true);
+          this.selectedTabIndex.set(1);
         },
         error: (err: unknown) => {
           console.error('scheduleDowntime error', err);
