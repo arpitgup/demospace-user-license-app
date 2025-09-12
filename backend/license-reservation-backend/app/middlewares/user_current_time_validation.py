@@ -1,4 +1,4 @@
-from fastapi import Request, HTTPException
+from fastapi import Request, HTTPException, status
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
@@ -44,9 +44,11 @@ class UserCurrentTimeValidationMiddleware(BaseHTTPMiddleware):
                     detail="Your system date time is incorrect. Please correct it & try again.",
                 )
         except HTTPException as http_exc:
-            return JSONResponse(
+            response= JSONResponse(
                 status_code=http_exc.status_code, content={"detail": http_exc.detail}
             )
+            response.headers["Access-Control-Allow-Origin"]="*"
+            return response
 
         response = await call_next(request)
         return response

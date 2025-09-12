@@ -32,7 +32,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { TableLoaderComponent } from '../../../loaders/table-loader/table-loader.component';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
-import { ReservationApplicationRequest } from '../../../core/models/reservation-application-request.model';
 
 @Component({
   selector: 'app-admin-reservation-table',
@@ -280,7 +279,7 @@ export class AdminReservationTableComponent {
           (item) => item.isRemove !== true && item.id !== primaryApplicationId
         )
         ?.map((item) => item.id) ?? [];
-    const request: ReservationApplicationRequest = {
+    const request: any = {
       primaryApplicationId: primaryApplicationId,
       secondaryApplicationIds: secordaryApplicationsIds,
     };

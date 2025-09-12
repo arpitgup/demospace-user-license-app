@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MenuItems } from './admin-home.enums';
 import { AdminReservation } from '../admin-reservation/admin-reservation';
+import { AdminDowntimeComponent } from '../admin-downtime/admin-downtime.component';
 import { AdminBotsComponent } from '../admin-bots/admin-bots.component';
 
 export interface AdminMenuItems {
@@ -13,7 +14,7 @@ export interface AdminMenuItems {
 }
 @Component({
   selector: 'app-admin-home',
-  imports: [MatSidenavModule, AdminReservation,AdminBotsComponent],
+  imports: [MatSidenavModule, AdminReservation,AdminBotsComponent, AdminDowntimeComponent],
   templateUrl: './admin-home.component.html',
   styleUrl: './admin-home.component.scss',
 })
