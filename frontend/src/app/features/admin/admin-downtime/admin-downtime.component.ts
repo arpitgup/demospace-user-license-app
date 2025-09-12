@@ -33,7 +33,7 @@ import {
   DowntimeService,
   ScheduleDowntimeRequest,
 } from '../../../core/services/downtime.service';
-import { ReservationService } from '../../../core/services/reservation.service';
+import { AdminService } from '../../../core/services/admin.service';
 import { Application } from '../../../core/models/application.model';
 import { MIN_DOWNTIME_HOURS } from './min-downtime.token';
 import { ADMIN_DOWNTIME_CONSTANTS } from './admin-downtime.constants';
@@ -72,17 +72,16 @@ type DowntimeReason = string;
 export class AdminDowntimeComponent {
   private readonly fb = inject(FormBuilder);
   private readonly downtimeService = inject(DowntimeService);
-  private readonly reservationService = inject(ReservationService);
+  // Inject AdminService
+  private readonly adminService = inject(AdminService);
   private readonly destroyRef = inject(DestroyRef);
 
   @ViewChild(AdminDowntimeTableComponent)
   private downtimeTable!: AdminDowntimeTableComponent;
 
-  // Crucial: capture the form directive to clear the "submitted" error state
   @ViewChild(FormGroupDirective)
   private formDirective!: FormGroupDirective;
 
-  // Constants / options
   readonly constants = ADMIN_DOWNTIME_CONSTANTS;
   readonly minHours = MIN_DOWNTIME_HOURS;
   readonly isSubmitting = signal(false);
@@ -96,10 +95,8 @@ export class AdminDowntimeComponent {
   ]);
   readonly HOURS: readonly number[] = Array.from({ length: 24 }, (_, h) => h);
 
-  // App selection state (chips)
   readonly selectedIds = signal<number[]>([]);
 
-  // Typed reactive form
   readonly form = this.fb.group(
     {
       applications: this.fb.nonNullable.control<number[]>([], {
@@ -124,7 +121,6 @@ export class AdminDowntimeComponent {
     { validators: [rangeValidator(() => this.minHours)] }
   );
 
-  // Derived maps / filters
   private readonly appMap = computed(
     () => new Map(this.apps().map((a) => [a.id, a]))
   );
@@ -141,7 +137,6 @@ export class AdminDowntimeComponent {
     return this.HOURS.filter((h) => h >= sHour + this.minHours);
   });
 
-  // Datepicker filters
   readonly startDateFilter = (d: Date | null): boolean =>
     d ? startOfDay(d) >= startOfDay(new Date()) : false;
 
@@ -153,20 +148,17 @@ export class AdminDowntimeComponent {
   };
 
   constructor() {
-    // Load applications
-    this.reservationService
-      .getApplications()
+    this.adminService
+      .fetchAllApplications()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((apps) => this.apps.set(apps));
 
-    // Keep form applications in sync with chips
     effect(() => {
       this.form.controls.applications.setValue(this.selectedIds(), {
         emitEvent: false,
       });
     });
 
-    // Auto-correct end date/time to satisfy min duration & ordering
     effect(() => {
       const { startDate, startTime, endDate, endTime } =
         this.form.getRawValue();
@@ -190,7 +182,6 @@ export class AdminDowntimeComponent {
     });
   }
 
-  /* ---------- Apps (chips) ---------- */
   isSelected(id: number): boolean {
     return this.selectedIds().includes(id);
   }
@@ -212,7 +203,6 @@ export class AdminDowntimeComponent {
     return this.appMap().get(id);
   }
 
-  /* ---------- Date/time handlers ---------- */
   onStartDateChanged(): void {
     const sDate = this.form.controls.startDate.value;
     const eDate = this.form.controls.endDate.value;
@@ -224,12 +214,9 @@ export class AdminDowntimeComponent {
   onEndDateChanged(): void {}
   onStartTimeChanged(): void {}
 
-  /* ---------- Reset & Submit ---------- */
   resetForm(): void {
-    // Clear selected chips first
     this.selectedIds.set([]);
 
-    // Explicit defaults for all fields
     const defaults = {
       applications: [] as number[],
       startDate: null as Date | null,
@@ -239,15 +226,12 @@ export class AdminDowntimeComponent {
       reason: null as DowntimeReason | null,
     };
 
-    // ✅ Reset the FormGroupDirective to clear the "submitted" flag and all errors
     this.formDirective?.resetForm(defaults);
 
-    // Safety: ensure form state is clean
     this.form.markAsPristine();
     this.form.markAsUntouched();
     this.form.updateValueAndValidity({ emitEvent: false });
 
-    // Ensure submit UI returns to idle
     this.isSubmitting.set(false);
   }
 
@@ -278,19 +262,15 @@ export class AdminDowntimeComponent {
       )
       .subscribe({
         next: () => {
-          // ✅ Full reset clears the red borders (error state)
           this.resetForm();
-          // Refresh the list tab
           this.downtimeTable?.getAllDowntimes(true);
         },
         error: (err: unknown) => {
-          // Keep values for correction; submitting flag cleared by finalize()
           console.error('scheduleDowntime error', err);
         },
       });
   }
 
-  /* ---------- Utils ---------- */
   formatHour(h: number): string {
     const d = new Date();
     d.setHours(h, 0, 0, 0);
