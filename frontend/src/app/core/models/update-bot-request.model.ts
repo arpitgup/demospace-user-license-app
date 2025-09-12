@@ -3,7 +3,7 @@ export interface UpdateBotRequest {
 }
 
 export interface BotRequest {
-  name: string;
-  email: string;
+  id: number;
+  is_admin:boolean
   application_ids: number[];
 }

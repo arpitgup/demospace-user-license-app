@@ -40,7 +40,10 @@
               @for(application of adminApplications; track application.id){
               <mat-option
                 [value]="application.id"
-                [disabled]="application.isEnabled === false && !(element.applicationIds.includes(application.id))"
+                [disabled]="
+                  application.isEnabled === false &&
+                  !element.applicationIds.includes(application.id)
+                "
               >
                 {{ application.name }} ({{ application.remainingLicenseCount }})
               </mat-option>
@@ -56,18 +59,23 @@
       <th mat-header-cell *matHeaderCellDef>Status</th>
       <td mat-cell *matCellDef="let element">
         @if(element.isEditable){
-            <div class="show-past-checkbox-wrapper">
+        <div class="show-past-checkbox-wrapper">
           <mat-checkbox
             class="show-past-checkbox"
-            (change)="onSelectAdminReserved($event.checked,element.id)"
-            [checked]="element.isAdminReserved || false">
+            (change)="onSelectAdminReserved($event.checked, element.id)"
+            [checked]="element.isAdmin || false"
+          >
             Bot reserved for admin
           </mat-checkbox>
         </div>
         }@else{
         <div class="status-wrapper">
+          @if(element.isAdmin===true){
           <img src="assets/svgs/ic_admin.svg" alt="admin" class="admin-icon" />
+          <span class="status-text">Admin</span>
+          }@else{
           <span class="status-text">Open</span>
+          }
         </div>
         }
       </td>

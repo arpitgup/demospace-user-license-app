@@ -1,0 +1,91 @@
+<div class="create-bot-wrapper">
+  <h2>Add Bot Details</h2>
+
+  <div class="bot-details-wrapper">
+    <mat-form-field appearance="outline" class="custom-form-field">
+    <mat-label>Bot Name</mat-label>
+    <input matInput placeholder="Bot Name*" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="custom-form-field">
+    <mat-label>Bot Email ID</mat-label>
+    <input matInput placeholder="Bot Email ID*" />
+  </mat-form-field>
+  </div>
+
+
+  <h2>Add Applications</h2>
+
+  <mat-form-field
+    appearance="outline"
+    class="w-full app-input-field figma-field"
+    floatLabel="always"
+  >
+    <mat-label>Application</mat-label>
+
+    <div class="selected-chipbox">
+      <mat-chip-set>
+        @for (id of selectedIds(); track id) {
+        <mat-chip
+          appearance="outlined"
+          removable
+          (removed)="removeApp(id)"
+          aria-label="Remove {{ appById(id)?.name }}"
+        >
+          {{ appById(id)?.name || "#" + id }}
+          <button matChipRemove type="button" aria-label="Remove">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-chip>
+        }
+      </mat-chip-set>
+    </div>
+
+    <input
+      matInput
+      readonly
+      placeholder=""
+      aria-label="Application"
+      class="application-input"
+    />
+    <mat-hint>Pick one or more apps</mat-hint>
+  </mat-form-field>
+
+  <div class="pill-bank" role="list" aria-label="Available applications">
+    @for (a of filteredApps(); track a.id) {
+    <button
+      type="button"
+      class="pill"
+      role="listitem"
+      [class.pill--selected]="isSelected(a.id)"
+      [disabled]="isSelected(a.id)"
+      (click)="addApp(a)"
+      [attr.aria-pressed]="isSelected(a.id) ? true : false"
+    >
+      {{ a.name }}
+    </button>
+    }
+  </div>
+
+  <div class="show-past-checkbox-wrapper">
+    <mat-checkbox
+      class="show-past-checkbox"
+      (change)="onSelectAdminReserved($event.checked)"
+      [checked]="isAdmin() || false"
+    >
+      Bot reserved for admin
+    </mat-checkbox>
+  </div>
+
+  <div class="button-wrapper">
+    <button matButton class="cancel-button" (click)="onCancel()">Cancel</button>
+    <button
+      matButton
+      id="btn-confirm"
+      class="confirm-button"
+      (click)="onConfirm()"
+    >
+      Add
+    </button>
+  </div>
+</div>

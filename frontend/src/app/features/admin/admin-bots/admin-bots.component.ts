@@ -6,6 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { AdminBotsTableComponent } from '../admin-bots-table/admin-bots-table.component';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { AdminCreateBotComponent } from '../admin-create-bot/admin-create-bot.component';
 
 @Component({
   selector: 'app-admin-bots',
@@ -15,7 +16,8 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
     MatInputModule,
     MatIconModule,
     AdminBotsTableComponent,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    AdminCreateBotComponent
   ],
   templateUrl: './admin-bots.component.html',
   styleUrl: './admin-bots.component.scss',

@@ -159,14 +159,14 @@ export class AdminBotsTableComponent {
       return item;
     });
     const adminBot = this.adminBotsList.filter((item) => item.id === botId);
-    this.updateBotApplications(botId, adminBot[0]);
+    this.updateBot(botId, adminBot[0]);
   }
-  updateBotApplications(botId: number, botResponse: AdminBotsResponse) {
+  updateBot(botId: number, botResponse: AdminBotsResponse) {
     this.loadingService.show();
     const bots: BotRequest[] = [
       {
-        name: botResponse.name,
-        email: botResponse.email,
+        id:botId,
+        is_admin: botResponse.isAdmin,
         application_ids: botResponse.applicationIds,
       },
     ];
@@ -252,7 +252,7 @@ export class AdminBotsTableComponent {
   onSelectAdminReserved(checked: boolean, botId: number) {
     this.dataSource.data = this.adminBotsList.map((item) => {
       if (item.id === botId) {
-        item.isAdminReserved = checked;
+        item.isAdmin = checked;
       }
       return item;
     });

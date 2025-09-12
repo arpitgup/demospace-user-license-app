@@ -65,8 +65,8 @@ export class AdminService {
   updateBots(
     updateBotRequest: UpdateBotRequest
   ): Observable<AdminBotsResponse[]> {
-    return this.http.post<AdminBotsResponse[]>(
-      `${this.apiUrl}/admin/bots/upsert`,
+    return this.http.patch<AdminBotsResponse[]>(
+      `${this.apiUrl}/admin/bots/update`,
       updateBotRequest
     );
   }

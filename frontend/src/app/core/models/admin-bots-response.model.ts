@@ -9,5 +9,5 @@ export interface AdminBotsResponse {
   applications: Application[];
   isEditable?: boolean;
   applicationIds: number[];
-  isAdminReserved: boolean;
+  isAdmin: boolean;
 }
