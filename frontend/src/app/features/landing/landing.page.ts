@@ -77,6 +77,9 @@ export class LandingPage implements OnInit {
   isFetchingData: boolean = true;
   isError: boolean = false;
   errorMessage: string = '';
+  public readonly reservationErrorSignal =
+    this.reservationService.reservationErrorMessage;
+
 
   public filteredReservations = computed(() => {
     const showPast = this.showPastReservations();

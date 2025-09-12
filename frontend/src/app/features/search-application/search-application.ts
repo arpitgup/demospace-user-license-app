@@ -51,7 +51,7 @@ import {
 } from '../../../utilities/utils';
 import { TimeSlot } from '../../../utilities/interfaces/time_slot';
 import { NormalizedReservation } from '../../../utilities/interfaces/normalized_reservation';
-import { DEFAULT_START_DATE_TIME, MIN_LEAD_COOLDOWN_HOURS } from '../search-by-date/search-by-date.constants';
+import { DEFAULT_START_DATE_TIME } from '../search-by-date/search-by-date.constants';
 
 @Component({
   selector: 'app-search-application',
@@ -97,6 +97,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   BLOC_HOUR_LIMIT: number = 48;
   MAX_CALENDAR_DAYS: number = 30;
   MAX_APPLICATION_SELECTION = 3;
+  MIN_LEAD_COOLDOWN_HOURS = 2;
   nextHour: number = 0;
   minDate: Date = new Date();
   maxDate: Date = new Date();
@@ -143,7 +144,9 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.minDate = new Date(this.today.getTime() + MIN_LEAD_COOLDOWN_HOURS * 60 * 60 * 1000); 
+    this.minDate = new Date(
+      this.today.getTime() + this.MIN_LEAD_COOLDOWN_HOURS * 60 * 60 * 1000
+    );
     this.maxDate = new Date(this.today);
     this.maxDate.setDate(this.today.getDate() + this.MAX_CALENDAR_DAYS);
     this.nextHour = (this.minDate.getHours() + 1) % 24;
@@ -191,6 +194,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
       this.MAX_CALENDAR_DAYS = appConfig?.maxCalendarDays || 30;
       this.MAX_APPLICATION_SELECTION =
         appConfig?.maxReservationApplications || 3;
+      this.MIN_LEAD_COOLDOWN_HOURS = appConfig?.minLeadCooldownHours || 2;
     });
   }
 
@@ -655,8 +659,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
       disableClose: true,
       data: {
         title: 'Success',
-        message:
-          `A confirmation email has been sent to your <b>DEMO USER's</b> email.<br> Please check email for the booking details.`,
+        message: `A confirmation email has been sent to your <b>DEMO USER's</b> email.<br> Please check email for the booking details.`,
         confirmText: 'OK',
       },
     });

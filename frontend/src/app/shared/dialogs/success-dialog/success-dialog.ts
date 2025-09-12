@@ -25,6 +25,6 @@ export class SuccessDialog {
   }
 
   onCancel(): void {
-    this.dialogRef.close(false);
+    this.dialogRef.close(true);
   }
 }
