@@ -97,11 +97,11 @@
         }
 
         .invisible-field {
-          flex: 4;
+          flex: 4.5;
           visibility: hidden;
         }
         .custom-time-drop-down {
-          flex: 4;
+          flex: 4.5;
           margin-left: 0;
           margin-right: 0;
         }
@@ -129,6 +129,28 @@
         line-height: 1rem; /* 100% */
         margin-left: 2.81rem;
         margin-top: 0.81rem;
+      }
+
+      .time-wrapper {
+        display: flex;
+        align-items: stretch;
+        flex-wrap: wrap;
+        gap: 2rem;
+        margin-top: 0.5rem;
+        .invisible-time-field {
+          flex: 6;
+          margin-left: 0;
+          margin-right: 0;
+        }
+        .time-note {
+          flex: 4.5;
+          color: rgba(0, 0, 0, 0.5);
+          font-family: Roboto;
+          font-size: 1rem;
+          font-style: normal;
+          font-weight: 400;
+          line-height: 1rem; /* 100% */
+        }
       }
 
       .check-availability {
