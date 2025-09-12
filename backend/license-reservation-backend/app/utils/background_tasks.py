@@ -163,6 +163,30 @@ async def delete_reservation_tasks(reservation_id: int):
             reservation_id, reservation.deprovisioning_task_id
         )
 
+
+async def force_reservation_tasks(reservation_id: int):
+    """Force license allocation and revocation tasks for a reservation."""
+    with SessionLocal() as db:
+        reservation = (
+            db.query(Reservation).filter(Reservation.id == reservation_id).first()
+        )
+        await force_deprovision_task(
+            reservation_id, reservation.deprovisioning_task_id
+        )
+
+async def force_deprovision_task(reservation_id: int, task_id: str):
+    """Helper function to execute the license de-provisioning task for a reservation."""
+    client = tasks_v2.CloudTasksAsyncClient()
+    try:
+        await client.run_task(name=task_id)
+        logger.info(
+            f"Executed license deprovisioning task for reservation {reservation_id}."
+        )
+    except Exception as e:
+        logger.error(
+            f"Failed to execute license deprovisioning task for reservation {reservation_id}: {e}"
+        )
+
 # Application downtime tasks
 
 async def schedule_start_downtime_task(downtime_id: int, run_at: datetime):
