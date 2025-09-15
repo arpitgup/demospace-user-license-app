@@ -1,8 +1,9 @@
 import {
-  ChangeDetectorRef,
+  AfterViewInit,
   Component,
   inject,
   Input,
+  OnInit,
   signal,
   ViewChild,
 } from '@angular/core';
@@ -13,20 +14,20 @@ import { TableLoaderComponent } from '../../../loaders/table-loader/table-loader
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { Application } from '../../../core/models/application.model';
-import { concat, concatMap, forkJoin, map, of } from 'rxjs';
-import {
-  MatSelect,
-  MatSelectChange,
-  MatSelectModule,
-} from '@angular/material/select';
+import { concatMap, forkJoin, map, of } from 'rxjs';
+import { MatSelectChange, MatSelectModule } from '@angular/material/select';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatIcon } from '@angular/material/icon';
 import {
   BotRequest,
   UpdateBotRequest,
 } from '../../../core/models/update-bot-request.model';
 import { LoaderService } from '../../../core/services/loading.service';
 import { MatCheckbox } from '@angular/material/checkbox';
+import { BotService } from '../../../core/services/bot.service';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { ErrorDialog } from '../../../shared/dialogs/error-dialog/error-dialog';
+import { MatDialog } from '@angular/material/dialog';
+import { ErrorMessage } from '../../../shared/components/error-message/error-message';
 
 @Component({
   selector: 'app-admin-bots-table',
@@ -38,20 +39,24 @@ import { MatCheckbox } from '@angular/material/checkbox';
     ReactiveFormsModule,
     MatSortModule,
     MatCheckbox,
+    ErrorMessage,
   ],
   templateUrl: './admin-bots-table.component.html',
   styleUrl: './admin-bots-table.component.scss',
 })
-export class AdminBotsTableComponent {
+export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   readonly adminService = inject(AdminService);
+  readonly botsService = inject(BotService);
   public isLoading = signal(true);
   readonly loadingService = inject(LoaderService);
   @Input() searchBotControl?: FormControl;
   dataSource = new MatTableDataSource<AdminBotsResponse>([]);
   public readonly pageSizeOptions: number[] = [5];
-  private cdr = inject(ChangeDetectorRef);
   adminApplications: Application[] = [];
   adminBotsList: AdminBotsResponse[] = [];
+  public readonly botsResponse = this.adminService.bots;
+  public readonly errorMessage = signal<string>('');
+  private dialog = inject(MatDialog);
 
   @ViewChild(MatSort) set sort(sort: MatSort) {
     if (sort) {
@@ -73,6 +78,10 @@ export class AdminBotsTableComponent {
     'action',
   ];
 
+  constructor() {
+    this.listenBotsChanges();
+  }
+
   ngOnInit(): void {
     this.getAllAdminBots();
     this.listenSearchBotValues();
@@ -92,6 +101,15 @@ export class AdminBotsTableComponent {
       }
     });
   }
+
+  listenBotsChanges() {
+    toObservable(this.botsService.refreshBots).subscribe((value) => {
+      if (value === true) {
+        this.getAllAdminBots();
+      }
+    });
+  }
+
   ngAfterViewInit() {
     this.dataSource.sortingDataAccessor = (item, property) => {
       switch (property) {
@@ -110,7 +128,7 @@ export class AdminBotsTableComponent {
 
   getAllAdminBots() {
     forkJoin({
-      adminBots: this.adminService.fetchAllAdminBots(),
+      adminBots: this.botsService.fetchAllAdminBots(),
       applications: this.adminService.fetchAllApplications(),
     }).subscribe({
       next: (data) => {
@@ -126,9 +144,11 @@ export class AdminBotsTableComponent {
       },
       error: (error) => {
         this.isLoading.set(false);
+        this.errorMessage.set(error?.error?.detail || 'Something went wrong');
       },
     });
   }
+
   updateApplicationAvailability(applications: Application[]) {
     this.adminApplications = applications.map((element) => ({
       ...element,
@@ -151,6 +171,7 @@ export class AdminBotsTableComponent {
       return item;
     });
   }
+
   onSaveBotDetails(botId: number) {
     this.dataSource.data = this.adminBotsList.map((item) => {
       if (item.id === botId) {
@@ -161,11 +182,12 @@ export class AdminBotsTableComponent {
     const adminBot = this.adminBotsList.filter((item) => item.id === botId);
     this.updateBot(botId, adminBot[0]);
   }
+
   updateBot(botId: number, botResponse: AdminBotsResponse) {
     this.loadingService.show();
     const bots: BotRequest[] = [
       {
-        id:botId,
+        id: botId,
         is_admin: botResponse.isAdmin,
         application_ids: botResponse.applicationIds,
       },
@@ -176,7 +198,7 @@ export class AdminBotsTableComponent {
     of(null)
       .pipe(
         concatMap(() =>
-          this.adminService
+          this.botsService
             .updateBots(botsRequest)
             .pipe(map((bots) => ({ bots })))
         ),
@@ -201,13 +223,14 @@ export class AdminBotsTableComponent {
           this.dataSource.data = this.adminBotsList;
         },
         error: (error) => {
-          console.log('error=', error);
+          this.showErrorDialog(error?.error?.detail || 'Something went wrong');
         },
         complete: () => {
           this.loadingService.hide();
         },
       });
   }
+
   onCancelUpdateBot(botId: number) {
     this.dataSource.data = this.adminBotsList.map((item) => {
       if (item.id === botId) {
@@ -256,5 +279,23 @@ export class AdminBotsTableComponent {
       }
       return item;
     });
+  }
+
+  showErrorDialog(errorMessage: string) {
+    this.dialog.open(ErrorDialog, {
+      width: 'auto',
+      minWidth: '41.86rem',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        message: errorMessage,
+      },
+    });
+  }
+
+  onRetryCall() {
+    this.getAllAdminBots();
   }
 }

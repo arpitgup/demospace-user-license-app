@@ -184,7 +184,7 @@ export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
         this.showCancelCta.set(false);
         this.selectAll.set(false);
       },
-      error: (err) => this.showErrorDialog((err as any)?.error?.detail ?? 'Could not load downtimes.'),
+      error: (err) => this.showErrorDialog(err?.error?.detail ?? 'Could not load downtimes.'),
       complete: () => this.isLoading.set(false),
     });
   }
@@ -264,7 +264,7 @@ export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
         }
         this.getAllDowntimes(false);
       },
-      error: (err) => this.showErrorDialog((err as any)?.error?.detail ?? 'An error occurred during cancellation.'),
+      error: (err) => this.showErrorDialog(err?.error?.detail ?? 'An error occurred during cancellation.'),
     });
   }
 

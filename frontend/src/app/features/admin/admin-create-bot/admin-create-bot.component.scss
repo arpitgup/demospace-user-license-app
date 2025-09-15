@@ -42,6 +42,11 @@ $spacing-xs: 0.75rem;
   padding: 2.75rem;
   display: flex;
   flex-direction: column;
+  .form-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
   h2 {
     color: var(--Black, #161a1d);
     font-family: Roboto;
@@ -50,7 +55,7 @@ $spacing-xs: 0.75rem;
     font-weight: 500;
     line-height: 1.5rem; /* 100% */
   }
-  .bot-details-wrapper{
+  .bot-details-wrapper {
     display: flex;
     flex-direction: row;
     gap: 4rem;
@@ -133,8 +138,11 @@ $spacing-xs: 0.75rem;
     &:disabled {
       background: $color-bg-disabled;
       color: $color-text-disabled;
-      cursor: default;
+      cursor: not-allowed;
     }
+  }
+  .application-input {
+    visibility: hidden;
   }
   .show-past-checkbox-wrapper {
     background-color: $color-bg-lighter;
@@ -201,6 +209,10 @@ $spacing-xs: 0.75rem;
       letter-spacing: 0.025rem;
       border: none;
       cursor: pointer;
+      &:disabled {
+        background: rgba(66, 133, 244, 0.2) !important;
+        cursor: not-allowed;
+      }
     }
   }
 }
@@ -208,6 +220,10 @@ $spacing-xs: 0.75rem;
 :host ::ng-deep {
   .mat-mdc-floating-label {
     padding-bottom: 0.6rem;
+  }
+
+  .mdc-evolution-chip-set__chips{
+    margin-top: 5px;
   }
   .mat-mdc-input-element {
     padding-top: 0.2rem;

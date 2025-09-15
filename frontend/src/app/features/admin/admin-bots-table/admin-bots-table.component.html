@@ -1,7 +1,12 @@
 <div class="table-wrapper">
   @if (isLoading()) {
   <app-table-loader />
-  }@else{
+  }@else if(errorMessage()!==''){
+  <app-error-message
+    [errorMessage]="errorMessage()"
+    (retryClicked)="onRetryCall()"
+  ></app-error-message>
+  } @else{
   <table mat-table [dataSource]="dataSource" matSort class="custom-table">
     <ng-container matColumnDef="botId">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Bot ID</th>
