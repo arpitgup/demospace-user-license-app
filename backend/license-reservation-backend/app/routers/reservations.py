@@ -22,6 +22,7 @@ from ..common.schemas import (
 from ..utils.background_tasks import (
     schedule_reservation_tasks,
     delete_reservation_tasks,
+    force_reservation_tasks,
     sendReservationEmail    
 )
 from ..utils.crud import is_user_in_cool_off, is_valid_reservation_lead_time
@@ -65,15 +66,15 @@ def make_reservation(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"You can only make a new reservation {app_config[RESERVATION_COOL_OFF_HOURS]} hours after your previous reservation ends.",
-        )    
-    error_detail = is_valid_reservation_lead_time(
-        req.start_time, app_config[MIN_LEAD_COOLDOWN_HOURS], app_config[MAX_RESERVATION_LEAD_DAYS]
-    )    
-    if error_detail:
-        raise HTTPException(
-            status_code=status.HTTP_412_PRECONDITION_FAILED,
-            detail=error_detail
         )
+    # error_detail = is_valid_reservation_lead_time(
+    #     req.start_time, app_config[MIN_LEAD_COOLDOWN_HOURS], app_config[MAX_RESERVATION_LEAD_DAYS]
+    # )    
+    # if error_detail:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_412_PRECONDITION_FAILED,
+    #         detail=error_detail
+    #     )
     all_app_ids = [req.primary_application_id] + req.secondary_application_ids
     unique_app_ids = list(set(all_app_ids))
 
@@ -183,7 +184,7 @@ def make_reservation(
 
 @router.post(
     "/reservations/{reservation_id}/cancel",
-    response_model=ReservationOut,    
+    response_model=ReservationOut,
 )
 def cancel_reservation(
     reservation_id: int,
@@ -210,22 +211,43 @@ def cancel_reservation(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Reservation is already in '{reservation.status.value}' state and cannot be cancelled.",
         )
-    reservation.status = ReservationStatus.CANCELLED
-    db.commit()
-    db.refresh(reservation)
-    logger.info(
-        f"Cancelling reservation {reservation.id}. Associated provisioning/deprovisioning tasks will be deleted."
-    )
-    background_tasks.add_task(delete_reservation_tasks, reservation.id)
-    background_tasks.add_task(
-        sendReservationEmail,
-        recipient_email=user_email,
-        sender_email=app_config[RESERVATION_EMAIL_SENDER],
-        reservation_id=reservation_id,
-        subject="Your Agentspace SaaS License Cancellation Confirmation",
-        email_content=format_email_for_reservation(CANCELLED_RESERVATION_EMAIL_CONTENT, reservation)
+
+    # Corrected logic using if/elif to handle different states
+    if reservation.status == ReservationStatus.ACTIVE:
+        reservation.status = ReservationStatus.CANCELLED
+        db.commit()
+        db.refresh(reservation)
+        logger.info(
+            f"Cancelling active reservation {reservation.id}. Associated deprovisioning tasks will be executed."
         )
-    return reservation
+        background_tasks.add_task(force_reservation_tasks, reservation.id)
+        background_tasks.add_task(
+            sendReservationEmail,
+            recipient_email=user_email,
+            sender_email=app_config[RESERVATION_EMAIL_SENDER],
+            reservation_id=reservation_id,
+            subject="Your Agentspace SaaS License Cancellation Confirmation",
+            email_content=format_email_for_reservation(CANCELLED_RESERVATION_EMAIL_CONTENT, reservation)
+        )
+        return reservation
+
+    elif reservation.status == ReservationStatus.PENDING:
+        reservation.status = ReservationStatus.CANCELLED
+        db.commit()
+        db.refresh(reservation)
+        logger.info(
+            f"Cancelling pending reservation {reservation.id}. Associated provisioning/deprovisioning tasks will be deleted."
+        )
+        background_tasks.add_task(delete_reservation_tasks, reservation.id)
+        background_tasks.add_task(
+            sendReservationEmail,
+            recipient_email=user_email,
+            sender_email=app_config[RESERVATION_EMAIL_SENDER],
+            reservation_id=reservation_id,
+            subject="Your Agentspace SaaS License Cancellation Confirmation",
+            email_content=format_email_for_reservation(CANCELLED_RESERVATION_EMAIL_CONTENT, reservation)
+        )
+        return reservation
 
 def format_email_for_reservation(emailContent, reservationDetails):
     """

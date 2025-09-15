@@ -7,7 +7,7 @@ WORKDIR /app
 COPY license-reservation-backend/requirements.txt /app/requirements.txt
 COPY shared /app/shared
 
-# Install any needed packages specified in requirements.txt
+# Installs any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir /app/shared
 

@@ -109,7 +109,10 @@ export class SearchByDateComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly confirmationDialog = inject(MatDialog);
-
+  readonly localTimeAbbrevation = getLocalTimeZoneAbbreviation(
+    new Date(),
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
   bookingSuccess = output<void>();
   @ViewChild(FormGroupDirective) private formDir?: FormGroupDirective;
 
@@ -463,7 +466,9 @@ export class SearchByDateComponent implements OnInit {
 
   private getMinSelectableDateTime(now: Date): Date {
     const leadTimeDays = this.appConfigSignal()?.reservationCoolOffHours || 1;
-    const leadTimeHours = leadTimeDays * MIN_LEAD_COOLDOWN_HOURS;
+    const leadTimeHours =
+      leadTimeDays *
+      (this.appConfigSignal()?.minLeadCooldownHours || MIN_LEAD_COOLDOWN_HOURS);
     return new Date(now.getTime() + leadTimeHours * MILLISECONDS_PER_HOUR);
   }
 
@@ -520,13 +525,13 @@ export class SearchByDateComponent implements OnInit {
         this.showResultsCard.set(true);
         this.cdr.markForCheck();
       },
-      error: (err: unknown) => {
-        console.error('Error checking bot availability:', err);
+      error: (error) => {
         this.availableApplications.set([]);
         this.botsWithApps.set([]);
         this.isLoading.set(false);
         this.showResultsCard.set(true);
         this.cdr.markForCheck();
+        this.showErrorDialog(error?.error?.detail || 'Something went wrong');
       },
     });
   }
@@ -579,8 +584,7 @@ export class SearchByDateComponent implements OnInit {
       disableClose: true,
       data: {
         title: 'Success',
-        message:
-          `A confirmation email has been sent to your <b>DEMO USER's</b> email.<br> Please check email for the booking details.`,
+        message: `A confirmation email has been sent to your <b>DEMO USER's</b> email.<br> Please check email for the booking details.`,
         confirmText: 'OK',
       },
     });

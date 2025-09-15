@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {
   BehaviorSubject,
+  catchError,
   concatMap,
   defaultIfEmpty,
   filter,
@@ -10,6 +11,7 @@ import {
   Observable,
   take,
   tap,
+  throwError,
 } from 'rxjs';
 import {
   BotWithApps,
@@ -41,6 +43,10 @@ export class ReservationService {
   private configState = signal<AppConfig | null>(null);
   public readonly appConfigData = this.configState.asReadonly();
   loadingService = inject(LoaderService);
+  private readonly reservationErrorMessageState = signal<string>('');
+  public readonly reservationErrorMessage = this.reservationErrorMessageState.asReadonly();
+  private readonly isReservationLoadingState = signal<boolean>(false);
+  public readonly isReservationLoading = this.isReservationLoadingState.asReadonly();
 
   /**
    * API call to check application availability for a given time range.
@@ -123,9 +129,19 @@ export class ReservationService {
    * to this to know when the fetch operation is complete.
    */
   fetchReservations(): Observable<Reservation[]> {
+    this.isReservationLoadingState.set(true);
     return this.http.get<Reservation[]>(`${this.apiUrl}/reservations`).pipe(
       tap((fetchedReservations) => {
+        this.reservationErrorMessageState.set('');
         this.reservationsState.set(fetchedReservations);
+         this.isReservationLoadingState.set(false);
+      }),
+      catchError((error) => {
+         this.isReservationLoadingState.set(false);
+        this.reservationErrorMessageState.set(
+          error?.error?.detail || 'Something went wrong'
+        );
+        return throwError(() => error);
       })
     );
   }

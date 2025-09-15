@@ -1,17 +1,19 @@
 <div class="table-component-wrapper">
   @if (isLoading()) {
   <app-reservation-table-loader />
-  }
-
-  @if (!isLoading() && (!dataSource.data || dataSource.data.length === 0)) {
+  }@else if(reservationErrorSignal().trim()!==''){
+  <app-error-message
+    [errorMessage]="reservationErrorSignal()"
+    (retryClicked)="onRetryCall()"
+  ></app-error-message>
+  }@else if (!isLoading() && (!dataSource.data || dataSource.data.length === 0))
+  {
   <!-- Display this message when there is no data. -->
   <div class="empty-data-message">
     <mat-icon class="empty-data-icon">info_outline</mat-icon>
     <span>{{ reservationTableConstants.NO_RESERVATIONS_MSG }}</span>
   </div>
-  }
-
-  @if (!isLoading() && dataSource.data && dataSource.data.length > 0) {
+  } @else if (!isLoading() && dataSource.data && dataSource.data.length > 0) {
   <!-- This container is only shown when there is data to display -->
   <ng-container>
     <div class="table-scroll-container">

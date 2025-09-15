@@ -71,6 +71,7 @@
       <!-- Tab 2: Your Reservations -->
       <mat-tab [label]="landingPageConstants.YOUR_RESERVATION_TAB_LABEL">
         <div class="tab-content">
+          @if(reservationErrorSignal()===''){
           <div class="show-past-checkbox-wrapper">
             <mat-checkbox
               class="show-past-checkbox"
@@ -80,6 +81,8 @@
               {{ landingPageConstants.SHOW_PAST_CHECKBOX_LABEL }}
             </mat-checkbox>
           </div>
+          }
+
           <div class="table-scroll-wrapper">
             <app-reservation-table
               [data]="filteredReservations()"
