@@ -430,12 +430,13 @@ def update_bot_applications(
 )
 def create_bots(request: BotsCreateRequest, db: Session = Depends(get_db)):
     """
-    Creates one or more new bots with their associated applications.
+    Creates one or more new bots with their associated applications , checking for license count first.
     """
     new_app_ids = set()
     for bot_data in request.bots:
         new_app_ids.update(bot_data.application_ids)
 
+    # Check for license count for apps first if elegible to allocate or not
     if new_app_ids:
         license_counts = (
             db.query(
@@ -480,7 +481,7 @@ def update_bots(request: BotsUpdateRequest, db: Session = Depends(get_db)):
     Updates one or more existing bots and their associated applications,
     checking for license and reservation conflicts first.
     """
-    # CHECK 1: Check for remaining licenses for apps
+    # CHECK 1: # Check for license count for apps first if elegible to allocate or not.
     new_app_ids = set()
     for bot_data in request.bots:
         new_app_ids.update(bot_data.application_ids)
