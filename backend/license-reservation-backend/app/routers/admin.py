@@ -1,7 +1,7 @@
 from datetime import timezone
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status
 from loguru import logger
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from shared_lib.db.models import (
@@ -432,46 +432,143 @@ def create_bots(request: BotsCreateRequest, db: Session = Depends(get_db)):
     """
     Creates one or more new bots with their associated applications.
     """
+    new_app_ids = set()
+    for bot_data in request.bots:
+        new_app_ids.update(bot_data.application_ids)
+
+    if new_app_ids:
+        license_counts = (
+            db.query(
+                Application.id,
+                Application.name,
+                Application.license_count,
+                func.count(Bot.id).label("assigned_licenses"),
+            )
+            .join(Application.bots, isouter=True)
+            .filter(Application.id.in_(new_app_ids))
+            .group_by(Application.id, Application.name, Application.license_count)
+            .all()
+        )
+
+        for app_id, app_name, total_licenses, assigned_licenses in license_counts:            
+            total_licenses = int(total_licenses) if total_licenses is not None else 0                        
+            if (total_licenses - assigned_licenses) <= 0:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"No licenses left for application '{app_name}'. Total: {total_licenses}, Assigned: {assigned_licenses}",
+                )
+
     try:
         newly_created_bots = create_bot(request, db)
         db.commit()
-
-        for bot in newly_created_bots:
-            db.refresh(bot)
-
-        return newly_created_bots
-    except ValueError as e:
-        db.rollback()
-        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         db.rollback()
         raise HTTPException(
-            status_code=500, detail="An internal server error occurred."
+            status_code=500, detail=f"Failed to create bots: {str(e)}"
         )
+
+    for bot in newly_created_bots:
+        db.refresh(bot)
+
+    return newly_created_bots
 
 @router.patch(
     "/bots/update", response_model=List[BotWithApplicationsOut], status_code=200
 )
 def update_bots(request: BotsUpdateRequest, db: Session = Depends(get_db)):
     """
-    Updates one or more existing bots and their associated applications.
+    Updates one or more existing bots and their associated applications,
+    checking for license and reservation conflicts first.
     """
+    # CHECK 1: Check for remaining licenses for apps
+    new_app_ids = set()
+    for bot_data in request.bots:
+        new_app_ids.update(bot_data.application_ids)
+
+    if new_app_ids:
+        license_counts = (
+            db.query(
+                Application.id,
+                Application.name,
+                Application.license_count,
+                func.count(Bot.id).label("assigned_licenses"),
+            )
+            .join(Application.bots, isouter=True)
+            .filter(Application.id.in_(new_app_ids))
+            .group_by(Application.id, Application.name, Application.license_count)
+            .all()
+        )
+
+        for app_id, app_name, total_licenses, assigned_licenses in license_counts:
+            try:
+                total_licenses = int(total_licenses) if total_licenses is not None else 0
+            except (ValueError, TypeError):
+                total_licenses = 0
+            
+            remaining_licenses = total_licenses - assigned_licenses
+            
+            if remaining_licenses <= 0:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=f"No licenses left for application '{app_name}'. Total: {total_licenses}, Assigned: {assigned_licenses}",
+                )
+
+    # CHECK 2: Per-Bot Conflict Check for removed applications
+    for bot_data in request.bots:
+        existing_bot = db.query(Bot).filter(Bot.id == bot_data.id).one_or_none()
+        
+        if not existing_bot:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Bot with ID '{bot_data.id}' does not exist and cannot be updated."
+            )
+            
+        current_app_ids = {app.id for app in existing_bot.applications}        
+        updated_app_ids = set(bot_data.application_ids)
+        removed_app_ids = current_app_ids - updated_app_ids
+        
+        if removed_app_ids:
+            conflicting_reservations = db.query(Reservation).filter(
+                Reservation.bot_id == existing_bot.id,
+                or_(
+                    Reservation.status == ReservationStatus.ACTIVE,
+                    Reservation.status == ReservationStatus.PENDING
+                ),
+                Reservation.applications.any(Application.id.in_(removed_app_ids))
+            ).all()
+
+            if conflicting_reservations:
+                conflicting_apps = set()
+                for res in conflicting_reservations:
+                    for app in res.applications:
+                        if app.id in removed_app_ids:
+                            conflicting_apps.add(app.name)
+                
+                conflicting_app_names = ", ".join(conflicting_apps)
+                
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=(
+                        f"Cannot remove applications {conflicting_app_names} "
+                        f"from bot '{existing_bot.name}' because there are "
+                        "existing active or pending reservations assigned to them."
+                    )
+                )
+
     try:
         updated_bots = update_bot(request, db)
         db.commit()
-
-        for bot in updated_bots:
-            db.refresh(bot)
-
-        return updated_bots
-    except ValueError as e:
-        db.rollback()
-        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         db.rollback()
         raise HTTPException(
-            status_code=500, detail="An internal server error occurred."
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update bots: {str(e)}",
         )
+
+    for bot in updated_bots:
+        db.refresh(bot)
+
+    return updated_bots
 
 
 @router.get("/downtimes", response_model=List[ApplicationDowntimeOut])
