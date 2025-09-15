@@ -1,0 +1,70 @@
+@use '../../../styles/variables' as *;
+@use '../../../styles/typography' as *;
+@use '../../../styles/mixins' as *;
+
+.table-scroll-container {
+  overflow-y: hidden;
+}
+
+.reservation-table {
+  width: 100%;
+  table-layout: fixed;
+  border-radius: 0.25rem;
+  overflow: hidden;
+  border-spacing: 0;
+  border-collapse: collapse;
+
+  .mat-column-date { width: 28%; }
+  .mat-column-applications { width: 32%; }
+  .mat-column-status { width: 15%; }
+  .mat-column-action { width: 25%; }
+
+  &.skeleton-table {
+    .skeleton-header-row {
+      height: 4.875rem;
+      background: $color-bg-light;
+      
+      .skeleton-header-cell {
+        @include table-header-text;
+        color: $color-black;
+        background: $color-bg-light;
+        border-bottom: none;
+        padding: 0 16px;
+      }
+    }
+  
+    .skeleton-row {
+      height: 4.59231rem;
+
+      &:nth-child(odd) {
+        background-color: $color-white;
+      }
+      &:nth-child(even) {
+        background-color: $color-bg-lighter;
+      }
+    }
+  
+
+    .skeleton-cell {
+      padding: 0 16px;
+      vertical-align: middle;
+      border-bottom: none;
+
+      :host {
+        display: block;
+      }
+    }
+  
+    .app-chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+  
+      ngx-skeleton-loader {
+        width: 100px;
+        height: 30px;
+        border-radius: 15px;
+      }
+    }
+  }
+}

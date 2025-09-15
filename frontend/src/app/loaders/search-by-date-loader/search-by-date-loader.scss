@@ -1,0 +1,21 @@
+.pill-group-skeleton {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    border: none;
+    width: 29.125rem;
+    min-height: 9rem;
+    margin-top: 1.94rem;
+}
+
+.confirmation-actions-container-skeleton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pill-wrapper-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

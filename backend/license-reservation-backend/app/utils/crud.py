@@ -1,0 +1,184 @@
+from datetime import datetime, timezone, timedelta
+from sqlalchemy.orm import Session, selectinload, Query, joinedload
+from sqlalchemy import or_
+from fastapi import HTTPException, status
+from shared_lib.db.models import (
+    Application,
+    Bot,
+    BotApplication,
+    Reservation,
+    ReservationStatus,
+)
+from typing import List
+
+from ..common.schemas import (
+    BotsCreateRequest,
+    BotsUpdateRequest    
+)
+
+
+def get_bot_with_supported_apps(db: Session) -> Query:
+    """
+    Query to fetch bots with supported applications.
+    """
+    return db.query(Bot).options(selectinload(Bot.applications))
+
+def create_bot(request: BotsCreateRequest, db: Session) -> list[Bot]:
+    """
+    Creates multiple new bots and links each to their specified applications.
+    """
+    newly_created_bots = []
+    
+    for bot_data in request.bots:
+        new_bot = Bot(
+            name=bot_data.name, 
+            email=bot_data.email,
+            is_admin=bot_data.is_admin
+        )
+        db.add(new_bot)
+        db.flush()
+
+        for app_id in bot_data.application_ids:
+            db.add(BotApplication(bot_id=new_bot.id, application_id=app_id))
+        
+        newly_created_bots.append(new_bot)
+
+    return newly_created_bots
+
+
+def update_bot(request: BotsUpdateRequest, db: Session) -> list[Bot]:
+    """
+    Updates existing bots' details.
+    """
+    updated_bots = []
+    
+    for bot_data in request.bots:
+        existing_bot = db.query(Bot).filter(Bot.id == bot_data.id).one_or_none()
+        
+        if not existing_bot:
+            raise ValueError(f"Bot with ID '{bot_data.id}' does not exist and cannot be updated.")
+        
+        # existing_bot.name = bot_data.name
+        existing_bot.is_admin = bot_data.is_admin
+
+        db.query(BotApplication).filter(
+            BotApplication.bot_id == existing_bot.id
+        ).delete()
+        
+        for app_id in bot_data.application_ids:
+            db.add(BotApplication(bot_id=existing_bot.id, application_id=app_id))
+
+        existing_bot.updated_at = datetime.now(timezone.utc)
+        updated_bots.append(existing_bot)
+            
+    return updated_bots
+
+
+def get_bot_availability_in_slot(
+    bot: Bot, start_time: datetime, end_time: datetime, db: Session
+) -> List[Application]:
+    """
+    Calculates which applications a specific bot can serve during a given time slot.
+    """
+    # Get all applications this bot supports. The relationship is now eagerly loaded.
+    all_supported_apps = [ba.application for ba in bot.supported_applications]
+    all_supported_app_ids = {
+        # Check for active applications only
+        app.id
+        for app in all_supported_apps
+        if app.is_active == True
+    }
+
+    # Find applications this bot is busy with during the slot
+    conflicting_reservations = (
+        db.query(Reservation)
+        .filter(
+            Reservation.bot_id == bot.id,
+            Reservation.status.in_(
+                [ReservationStatus.PENDING, ReservationStatus.ACTIVE]
+            ),
+            Reservation.start_time < end_time,
+            Reservation.end_time > start_time,
+        )
+        .options(joinedload(Reservation.applications))
+        .all()
+    )
+
+    busy_app_ids = set()
+    for res in conflicting_reservations:
+        for app in res.applications:
+            busy_app_ids.add(app.id)
+
+    # Determine available applications
+    available_app_ids = all_supported_app_ids - busy_app_ids
+    available_apps = [app for app in all_supported_apps if app.id in available_app_ids]
+
+    return available_apps
+
+
+def is_user_in_cool_off(
+    user_email: str, req_start_time: datetime, cool_off_period_hours: int, db: Session
+) -> bool:
+    cool_off_window_start = req_start_time - timedelta(hours=cool_off_period_hours)
+    # Any reservation that ends after cool_off_window_start and before req_start_time
+    conflicting_reservation = (
+        db.query(Reservation)
+        .filter(
+            Reservation.user_email == user_email,
+            Reservation.status.in_(
+                [
+                    ReservationStatus.PENDING,
+                    ReservationStatus.ACTIVE,
+                    ReservationStatus.COMPLETED,
+                ]
+            ),
+            Reservation.end_time > cool_off_window_start,
+            Reservation.end_time <= req_start_time,
+        )
+        .first()
+    )
+    # Any pending/active reservation that overlaps with the cool-off window
+    future_conflict = (
+        db.query(Reservation)
+        .filter(
+            Reservation.user_email == user_email,
+            Reservation.status.in_(
+                [
+                    ReservationStatus.PENDING,
+                    ReservationStatus.ACTIVE,
+                ]
+            ),
+            Reservation.start_time
+            < req_start_time + timedelta(hours=cool_off_period_hours),
+            Reservation.end_time
+            > req_start_time - timedelta(hours=cool_off_period_hours),
+        )
+        .first()
+    )
+    return bool(conflicting_reservation or future_conflict)
+
+def is_valid_reservation_lead_time(
+    req_start_time: datetime, min_lead_hours: int, max_reservation_lead_days: int
+) -> bool:
+    """
+    Checks if a requested reservation start time is valid based on lead time and a maximum future window.
+    """
+    server_now = datetime.now(timezone.utc)   
+    rounded_server_time = server_now.replace(
+        minute=0, second=0, microsecond=0
+    ) + timedelta(hours=1)
+
+    min_allowed_start_time = rounded_server_time + timedelta(hours=min_lead_hours)
+    if req_start_time < min_allowed_start_time:
+        error_message = f"Requested start time is too soon. Must be after {min_allowed_start_time}."
+        print(f"Validation failed: {error_message}")
+        return error_message
+
+    max_allowed_start_time = server_now + timedelta(days=max_reservation_lead_days)
+    if req_start_time > max_allowed_start_time:
+        error_message = f"Requested start time is too far in the future. Must be within {max_reservation_lead_days} days."
+        print(f"Validation failed: {error_message}")
+        return error_message
+
+    print(f"Validation successful: {req_start_time} is a valid reservation time.")
+    return None

@@ -1,0 +1,58 @@
+.header {
+  display: flex;
+  position: relative;
+  justify-content: center;
+  margin-top: 1rem;
+  margin-bottom: 3.01rem;
+  .close-button {
+    width: 4rem;
+    height: 4rem;
+    position: absolute;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    background: transparent;
+    right: 0;
+    cursor: pointer;
+    margin-right: 1.81rem;
+  }
+  .close-button mat-icon {
+    width: 2rem;
+    height: 2rem;
+    color: #5c5f6199;
+  }
+  .header-content {
+    display: flex;
+    margin-top: 6.63rem;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    .header-image {
+      width: 10.58rem;
+      height: 8.23rem;
+      justify-content: center;
+    }
+  }
+}
+
+mat-dialog-content {
+  display: flex;
+  flex-direction: column;
+  margin-left: 5.06rem;
+  margin-right: 5.06rem;
+  justify-content: center;
+  text-align: center;
+  margin-bottom: 6rem;
+}
+
+p {
+  margin: 0;
+  padding: 0;
+  color: #161a1d;
+  font-family: Roboto;
+  font-size: 1.25rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.5rem; /* 120% */
+  text-align: center;
+}

@@ -1,0 +1,17 @@
+<mat-card
+  id="card-option-search"
+  class="search-option-card"
+  [class.selected]="isSelected"
+  (click)="onCardSelected()"
+>
+  <img
+    mat-card-image
+    [src]="searchOption?.icon"
+    alt="searchOption?.title"
+    class="logo"
+  />
+  <mat-card-content class="card-content">
+    <span class="logo-title">{{ searchOption?.title }}</span>
+    <span class="logo-desc">{{ searchOption?.description }}</span>
+  </mat-card-content>
+</mat-card>

@@ -1,0 +1,96 @@
+<section class="landing-content">
+  <h1 class="welcome-title">
+    {{ landingPageConstants.WELCOME_GREETING }}
+    <span class="user-name">{{ userFullName() }}</span>
+  </h1>
+  <span class="welcome-subtitle">{{
+    landingPageConstants.WELCOME_SUBTITLE
+  }}</span>
+
+  <div class="reservation-table-container">
+    <!-- The refresh button is positioned absolutely relative to this container -->
+    <button
+      matButton
+      class="refresh-button"
+      (click)="onRefreshData()"
+      aria-label="Refresh reservation data"
+    >
+      <mat-icon>cached</mat-icon>
+    </button>
+
+    <mat-tab-group
+      class="reservation-tabs"
+      (selectedTabChange)="onTabChange($event)"
+    >
+      <!-- Tab 1: Book Reservation -->
+      <mat-tab [label]="landingPageConstants.BOOK_RESERVATION_TAB_LABEL">
+        @if(selectedIndex===0){
+        <div class="tab-content book-reservation-content">
+          @if(isError){
+          <app-error-message
+            [errorMessage]="errorMessage"
+            (retryClicked)="onRetryCall()"
+          ></app-error-message>
+          }@else{
+          <div class="card-container">
+            @for (searchOption of searchOptionCards; track searchOption.id) {
+            @if(isFetchingData){
+            <app-search-option-content-loader></app-search-option-content-loader>
+
+            }@else{
+
+            <app-search-option-card
+              [searchOption]="searchOption"
+              (cardClicked)="onCardSelected(searchOption)"
+              [isSelected]="selectedSearchType() === searchOption.searchType"
+              [class.is-selected]="
+                selectedSearchType() === searchOption.searchType
+              "
+            ></app-search-option-card>
+
+            } }
+          </div>
+
+          @if (selectedSearchType() === SearchType.ByDate) {
+          <div class="content-by-date">
+            <app-search-by-date
+              (bookingSuccess)="bookingSuccess()"
+            ></app-search-by-date>
+          </div>
+          } @if (selectedSearchType() === SearchType.ByApplication) {
+          <div class="search-content">
+            <app-search-application
+              (bookingSuccess)="bookingSuccess()"
+            ></app-search-application>
+          </div>
+          } }
+        </div>
+        }
+      </mat-tab>
+
+      <!-- Tab 2: Your Reservations -->
+      <mat-tab [label]="landingPageConstants.YOUR_RESERVATION_TAB_LABEL">
+        <div class="tab-content">
+          @if(reservationErrorSignal()===''){
+          <div class="show-past-checkbox-wrapper">
+            <mat-checkbox
+              class="show-past-checkbox"
+              (change)="onShowPastChange($event.checked)"
+              [checked]="showPastReservations()"
+            >
+              {{ landingPageConstants.SHOW_PAST_CHECKBOX_LABEL }}
+            </mat-checkbox>
+          </div>
+          }
+
+          <div class="table-scroll-wrapper">
+            <app-reservation-table
+              [data]="filteredReservations()"
+              (cancelReservation)="handleCancelReservation($event)"
+            ></app-reservation-table>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+</section>

@@ -1,0 +1,438 @@
+.card-content {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  flex-direction: column;
+  padding-left: 2.8rem;
+  padding-right: 2.8rem;
+  h1 {
+    color: var(--Black, #161a1d);
+    font-family: Roboto;
+    font-size: 1.875rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 3rem; /* 160% */
+    padding: 0;
+    margin-bottom: 2.69rem;
+  }
+
+  .cards-containers {
+    display: flex;
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 2rem;
+    position: relative;
+
+    .arrow-container {
+      position: absolute;
+      right: 47%;
+      top: 50%;
+      align-items: center;
+      .forward-icon {
+        width: 6.6875rem;
+        display: block;
+        height: 4.875rem;
+        flex-shrink: 0;
+      }
+    }
+
+    .card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-radius: 1.5rem;
+      border: 1px solid rgba(190, 191, 192, 0.5);
+      background: #fff;
+      padding-top: 2.5rem;
+      position: relative;
+      grid-template-rows: 1fr auto;
+      box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2),
+        0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
+
+      .sub-title {
+        color: var(--Black, #161a1d);
+        font-family: Roboto;
+        font-size: 1.5rem;
+        font-style: normal;
+        font-weight: 500;
+        line-height: 1.5rem; /* 100% */
+        margin-bottom: 1.63rem;
+        margin-left: 2.19rem;
+      }
+
+      .custom-form-field {
+        display: flex;
+        align-items: stretch;
+        flex-wrap: wrap;
+        gap: 2rem;
+        margin-left: 2.81rem;
+        margin-right: 2.81rem;
+        margin-top: 2.31rem;
+
+        .mat-mdc-form-field {
+          flex-direction: unset;
+          width: auto;
+        }
+
+        .mat-form-field-outline {
+          color: #5c5f6199;
+          border-radius: 0.25rem;
+        }
+        .mat-form-field-outline-thick {
+          stroke-width: 1px;
+        }
+
+        .mat-form-field-outline:focus {
+          color: #4285f4;
+          border-radius: 0.25rem;
+        }
+        .mat-form-field-outline-thick:focus {
+          stroke-width: 1px;
+        }
+
+        .custom-drop-down-field {
+          flex: 6;
+          margin-left: 0;
+          margin-right: 0;
+        }
+
+        .invisible-field {
+          flex: 4.5;
+          visibility: hidden;
+        }
+        .custom-time-drop-down {
+          flex: 4.5;
+          margin-left: 0;
+          margin-right: 0;
+        }
+        // .custom-label {
+        //   color: #49454f;
+        //   font-family: Roboto;
+        //   font-size: 1rem;
+        //   font-style: normal;
+        //   font-weight: 400;
+        //   line-height: 1.5rem; /* 150% */
+        // }
+
+        .custom-date-field {
+          flex: 6;
+          margin-left: 0;
+          margin-right: 0;
+        }
+      }
+      .duration-note {
+        color: rgba(0, 0, 0, 0.5);
+        font-family: Roboto;
+        font-size: 1rem;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 1rem; /* 100% */
+        margin-left: 2.81rem;
+        margin-top: 0.81rem;
+      }
+
+      .time-wrapper {
+        display: flex;
+        align-items: stretch;
+        flex-wrap: wrap;
+        gap: 2rem;
+        margin-top: 0.5rem;
+        .invisible-time-field {
+          flex: 6;
+          margin-left: 0;
+          margin-right: 0;
+        }
+        .time-note {
+          flex: 4.5;
+          color: rgba(0, 0, 0, 0.5);
+          font-family: Roboto;
+          font-size: 1rem;
+          font-style: normal;
+          font-weight: 400;
+          line-height: 1rem; /* 100% */
+        }
+      }
+
+      .check-availability {
+        display: flex;
+        margin-top: auto;
+        justify-content: center;
+        margin-bottom: 2.62rem;
+        justify-self: center;
+        .check-availability-button {
+          display: inline-flex;
+          padding: 0.75rem 1.8rem;
+          align-items: flex-start;
+          gap: 0.75rem;
+          border-radius: 3.075rem;
+          border: 1.2px solid var(--Blue, #4285f4);
+          background: #4285f4;
+          color: #fff;
+          font-family: Roboto;
+          font-size: 1rem;
+          font-style: normal;
+          font-weight: 500;
+          line-height: 1.8rem; /* 180% */
+          letter-spacing: 0.03rem;
+          cursor: pointer;
+        }
+
+        .check-availability-button:disabled {
+          border-radius: 3.075rem !important;
+          background: rgba(66, 133, 244, 0.2) !important;
+          border: 0;
+        }
+      }
+
+      h3 {
+        color: #161a1d;
+        font-family: Roboto;
+        font-size: 1.125rem;
+        font-style: normal;
+        font-weight: 500;
+        line-height: 1.875rem; /* 166.667% */
+        white-space: normal;
+        word-break: normal;
+        overflow-wrap: normal;
+        margin-right: 2.25rem;
+        margin-left: 2.25rem;
+        margin-top: 0rem;
+        margin-bottom: 0rem;
+      }
+
+      h4 {
+        color: rgba(22, 26, 29, 0.7);
+        font-family: Roboto;
+        font-size: 0.875rem;
+        font-style: normal;
+        font-weight: 500;
+        line-height: 1.5625rem;
+        white-space: normal;
+        word-break: normal;
+        overflow-wrap: normal;
+        margin-right: 2.25rem;
+        margin-left: 2.25rem;
+        margin-top: 0rem;
+        margin-bottom: 0rem;
+      }
+      .custom-grid {
+        margin-right: 2.25rem;
+        margin-left: 2.25rem;
+        margin-top: 1.19rem;
+
+        .grid-tile {
+          border-radius: 0.625rem;
+          background: rgba(66, 133, 244, 0.1);
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          box-sizing: border-box;
+          cursor: pointer;
+
+          &.selected {
+            border-radius: 0.625rem;
+            background: #4285f4;
+          }
+
+          .slot-time {
+            color: #4285f4;
+            text-align: center;
+            font-family: Roboto;
+            font-size: 1.125rem;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 1.95rem; /* 173.333% */
+            text-align: center;
+            &.selected {
+              color: #fff;
+            }
+          }
+        }
+      }
+
+      .custom-divider {
+        border-top-width: 1px;
+        border-color: #00000033;
+        margin-top: 1rem;
+        margin-bottom: 2.69rem;
+      }
+      h2 {
+        color: var(--Black, #161a1d);
+        font-family: Roboto;
+        font-size: 1.5rem;
+        font-style: normal;
+        font-weight: 500;
+        line-height: 1.5rem; /* 100% */
+        margin-left: 2.25rem;
+        margin-right: 2.25rem;
+        margin-bottom: 0.94rem;
+        margin-top: 0rem;
+      }
+      h5 {
+        color: rgba(0, 0, 0, 0.5);
+        font-family: Roboto;
+        font-size: 1rem;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 1rem;
+        margin-left: 2.25rem;
+        margin-right: 2.25rem;
+        margin-bottom: 0rem;
+        margin-top: 0rem;
+      }
+      .application-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.56rem;
+        margin-top: 2.69rem;
+        margin-left: 2.25rem;
+        margin-right: 2.25rem;
+        margin-bottom: 2.69rem;
+        .application-item {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          border-radius: 1.5625rem;
+          background: rgba(66, 133, 244, 0.1);
+          padding: 0.5rem 1.3rem;
+          gap: 0.8125rem;
+          flex-shrink: 0;
+          cursor: pointer;
+          flex-direction: row;
+
+          .secondary-text {
+            color: #4285f4;
+            justify-content: center;
+            align-items: center;
+            font-family: Roboto;
+            font-size: 1.125rem;
+            font-style: normal;
+            font-weight: 500;
+            line-height: 1.95rem; /* 173.333% */
+            text-align: center;
+          }
+          .tick-icon {
+            font-family: Roboto;
+            font-size: 1.125rem;
+            font-style: normal;
+            font-weight: 500;
+            line-height: 1.95rem; /* 173.333% */
+            text-align: center;
+            display: none;
+          }
+          &.selected {
+            background: #4285f4;
+            color: #fff;
+            .tick-icon {
+              visibility: visible;
+              display: inline-block;
+            }
+
+            .secondary-text {
+              color: #fff;
+            }
+          }
+          &.disabled {
+            border-radius: 1.5625rem;
+            background: #e6e6e6;
+            cursor: not-allowed;
+            .secondary-text {
+              &.disabled {
+                color: rgba(128, 128, 128, 0.6);
+              }
+            }
+          }
+        }
+      }
+
+      .sized-box {
+        height: 15rem;
+      }
+      .sized-box-reservation {
+        height: 4rem;
+      }
+      .booking-details {
+        display: flex;
+        flex-direction: column;
+        margin-left: 2.81rem;
+        margin-right: 2.81rem;
+        color: #4285f4;
+        font-family: Roboto;
+        font-size: 1rem;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 1.125rem; /* 112.5% */
+
+        .booking-time {
+          color: #4285f4;
+          font-family: Roboto;
+          font-size: 1rem;
+          font-style: normal;
+          font-weight: 700;
+          line-height: 1.875rem;
+        }
+        .booking-sized-box {
+          height: 0.5rem;
+        }
+      }
+
+      .confirm-reservation {
+        display: flex;
+        margin-top: auto;
+        justify-content: center;
+        margin-bottom: 2.62rem;
+        justify-content: center;
+        .confirm-reservation-button {
+          display: inline-flex;
+          padding: 1rem 2.125rem;
+          align-items: flex-start;
+          gap: 0.625rem;
+          border-radius: 2.5625rem;
+          border-width: 0;
+          background: var(
+            --grad,
+            linear-gradient(
+              90deg,
+              rgba(66, 133, 244, 0.95) 7.88%,
+              #7051ca 83.78%,
+              rgba(188, 18, 4, 0.88) 152.54%
+            )
+          );
+          color: var(--Color-2, #fff);
+          font-family: Roboto;
+          font-size: 1.25rem;
+          font-style: normal;
+          font-weight: 500;
+          line-height: 1.5rem; /* 120% */
+          letter-spacing: 0.025rem;
+          cursor: pointer;
+        }
+      }
+    }
+    .invisible-mat-card {
+      flex: 1;
+      display: flex;
+      visibility: hidden;
+    }
+  }
+}
+
+::ng-deep .mat-mdc-outlined-button {
+  border-width: 0px;
+}
+::ng-deep .mat-grid-tile-content {
+  flex-direction: column;
+}
+
+::ng-deep .mat-mdc-select-panel {
+  background-color: #fff !important;
+}
+
+p {
+  margin: 0;
+  padding: 0;
+}
+
+:host ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  width: auto !important;
+}

@@ -1,0 +1,395 @@
+@use "../../../styles/variables" as *;
+@use "../../../styles/typography" as *;
+
+.mat-calendar-body-cell {
+  &.date-available .mat-calendar-body-cell-content {
+    background-color: $color-blue !important;
+    color: $color-white !important;
+    border-radius: 50%;
+  }
+
+  &.date-unavailable .mat-calendar-body-cell-content {
+    background-color: $color-disabled-bg !important;
+    color: $color-text-muted !important;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+}
+
+.search-by-date-container {
+  width: 95.1875rem;
+  height: 54.0625rem;
+  background: $color-bg-light;
+  padding: 2.8rem 3.75rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+
+  .main-title {
+    @include heading-lg;
+    font-size: 1.875rem;
+    line-height: 3rem;
+    flex-shrink: 0;
+  }
+
+  .card-wrapper {
+    display: flex;
+    gap: 6.06rem;
+    align-items: flex-start;
+
+    .main-content {
+      flex: 0 0 40.625rem;
+      height: 42.4375rem;
+      border-radius: 1.5rem;
+      border: 1px solid rgba($color-text-muted, 0.5);
+      background: $color-white;
+      margin-top: 2.31rem;
+      padding: 3rem 2.88rem;
+      box-sizing: border-box;
+      overflow-y: auto;
+      padding-bottom: 0;
+
+      .content-header {
+        @include body-md;
+        line-height: 1.5rem;
+      }
+
+      .content-header-note {
+        margin-top: 0.56rem;
+        color: rgba($color-black, 0.5);
+        font-family: $font-family-roboto;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1rem;
+      }
+
+      .date-time-container {
+        margin-top: 3.56rem;
+        .start-date-time-container,
+        .end-date-time-container {
+          display: flex;
+          gap: 1.75rem;
+          flex-wrap: wrap;
+          align-items: stretch;
+          .mat-mdc-form-field {
+            flex-direction: unset;
+            width: auto;
+          }
+
+          .mat-form-field-outline {
+            color: #5c5f6199;
+            border-radius: 0.25rem;
+          }
+          .mat-form-field-outline-thick {
+            stroke-width: 1px;
+          }
+
+          .mat-form-field-outline:focus {
+            color: #4285f4;
+            border-radius: 0.25rem;
+          }
+
+          .mat-form-field-outline-thick:focus {
+            stroke-width: 1px;
+          }
+        }
+
+        .start-date-time-container {
+          .start-date-field {
+            flex: 6;
+            margin-left: 0;
+            margin-right: 0;
+          }
+          .start-time-field {
+            flex: 5.2;
+            margin-left: 0;
+            margin-right: 0;
+          }
+        }
+
+        .time-note-container {
+          display: flex;
+          gap: 1.75rem;
+          flex-wrap: wrap;
+          margin-top: 0.5rem;
+          margin-bottom: 2.5rem;
+
+          .invisible-time-field {
+            flex: 6;
+          }
+          .time-note {
+            flex: 5.2;
+            color: rgba(0, 0, 0, 0.5);
+            font-family: Roboto;
+            font-size: 1rem;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 1rem;
+          }
+        }
+
+        .end-date-time-container {
+          .end-time-field {
+            flex: 6;
+            margin-left: 0;
+            margin-right: 0;
+          }
+
+          .end-date-field {
+            flex: 5.2;
+            margin-left: 0;
+            margin-right: 0;
+          }
+
+          .end-date-field {
+            .mdc-text-field--disabled {
+              background: #e6e6e6;
+            }
+          }
+        }
+      }
+
+      .side-arrow-container {
+        position: absolute;
+        right: 51%;
+        top: 50%;
+        align-items: center;
+      }
+    }
+
+    .actions-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 11.5rem;
+
+      .check-availability-button {
+        min-width: 13.1625rem;
+        height: 3.3125rem;
+        border-radius: 3.075rem;
+        border: 1.2px solid var(--Blue, #4285f4);
+        background: #4285f4;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 500;
+        line-height: 1.8rem;
+        letter-spacing: 0.03rem;
+
+        &:disabled {
+          background-color: #ccc !important;
+          color: #666 !important;
+          cursor: not-allowed;
+          border: none;
+        }
+
+        mat-icon {
+          margin-left: 0.5rem;
+        }
+      }
+    }
+
+    .loading-container {
+      flex: 0 0 40.625rem;
+      height: 42.4375rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-top: 2.31rem;
+      gap: 1rem;
+
+      p {
+        font-family: Roboto;
+        font-size: 1.2rem;
+        color: rgba(0, 0, 0, 0.7);
+      }
+    }
+
+    .availability-results-container {
+      flex: 0 0 40.625rem;
+      height: 42.4375rem;
+      flex-shrink: 0;
+      border-radius: 1.5rem;
+      border: 1px solid rgba(190, 191, 192, 0.5);
+      background: #fff;
+      margin-top: 2.31rem;
+
+      mat-card-title {
+        color: var(--Black, #161a1d);
+        font-family: Roboto;
+        font-size: 1.5rem;
+        font-weight: 500;
+        line-height: 1.5rem;
+        margin-top: 2.37rem;
+        margin-left: 2.25rem;
+      }
+
+      mat-card-subtitle {
+        color: rgba(0, 0, 0, 0.5);
+        font-family: Roboto;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1rem;
+        margin-left: 2.44rem;
+        margin-top: 1.06rem;
+      }
+
+      .pill-container {
+        width: 100%;
+        display: flex;
+        min-height: 9rem;
+        margin-top: 2.94rem;
+        align-items: center;
+        justify-content: center;
+
+        .pill-group {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 1rem;
+          border: none;
+          border-radius: inherit;
+
+          .app-toggle {
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 1.5625rem;
+            min-width: 9.8125rem;
+            border-radius: 30px;
+            background: rgba(66, 133, 244, 0.20);
+            color: #4285F4;
+
+            &.mat-button-toggle-disabled {
+              color: black;
+              opacity: 0.5;
+              background: #E6E6E6;
+            }
+
+
+            .mat-button-toggle-button {
+              display: flex;
+              height: 3.1875rem;
+              padding: 0 1.3rem;
+              justify-content: center;
+              align-items: center;
+              gap: 7.44rem;
+              flex-shrink: 0;
+              border-radius: 1.5625rem;
+
+              &:hover {
+                background: rgba(66, 133, 244, 0.10);
+              }
+            }
+
+            &.mat-button-toggle-checked .mat-button-toggle-button {
+              background-color: #1a73e8;
+              color: white;
+              border-color: #1a73e8;
+            }
+
+            .mat-pseudo-checkbox-minimal.mat-pseudo-checkbox-checked::after {
+              color: white;
+            }
+          }
+        }
+      }
+
+      .horizontal-line {
+        width: 38.9375rem;
+        height: 1px;
+
+        background-color: rgba(0, 0, 0, 0.2);
+        border: none;
+
+        margin-top: 7.12rem;
+        margin-left: 0.56rem;
+      }
+
+      .license-info {
+        margin-top: 1.62rem;
+        margin-left: 2.44rem;
+        color: #4285f4;
+        font-family: Roboto;
+        font-size: 1rem;
+        line-height: 1.125rem;
+
+        .date-avilable {
+          font-weight: 600;
+        }
+      }
+
+      .selected-app-info {
+        margin-top: 0.63rem;
+        margin-left: 2.44rem;
+        width: 31.3125rem;
+        min-height: 2.5625rem;
+        color: #4285f4;
+        font-family: Roboto;
+        font-size: 1rem;
+
+        .selected-app-data {
+          font-weight: 600;
+        }
+      }
+
+      .confirmation-actions-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 1rem;
+
+        .confirm-btn.mat-mdc-raised-button {
+          height: 3.5rem;
+          width: 18.25rem;
+          border-radius: 2.5625rem;
+
+          background: linear-gradient(90deg,
+              rgba(66, 133, 244, 0.95) 7.88%,
+              #7051ca 83.78%,
+              rgba(188, 18, 4, 0.88) 152.54%);
+
+          color: white;
+          font-family: Roboto;
+          font-size: 1.25rem;
+          font-weight: 500;
+          line-height: 1.5rem;
+          letter-spacing: 0.025rem;
+
+          &[disabled] {
+            background: #ccc !important;
+            color: #666 !important;
+          }
+
+          .btn-text-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+
+            .arrow-icon-container {
+              position: relative;
+              top: 1px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.mat-timepicker-content {
+  background-color: $color-white;
+}
+
+.mat-timepicker-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.start-time-field {
+  .mat-form-field-wrapper {
+    padding-bottom: 0;
+  }
+}
+
+:host ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  width: auto !important;
+}
