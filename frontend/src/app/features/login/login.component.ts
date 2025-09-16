@@ -28,7 +28,7 @@ export class LoginComponent {
     if (typeof google === 'undefined') {
       return;
     }
-    sessionStorage.clear();
+    localStorage.clear();
     google.accounts.id.initialize({
       client_id:
         '385039775654-deso4nja1vond0f98j0p4vic6uvt91su.apps.googleusercontent.com', // ⚠️ Replace with your actual Client ID
@@ -47,8 +47,9 @@ export class LoginComponent {
       const token = response.credential;
       const decodedToken: any = jwtDecode(token);
       if (decodedToken) {
-        sessionStorage.setItem('userEmail', decodedToken.email);
-        sessionStorage.setItem('googleIdToken', token);
+        localStorage.setItem('userEmail', decodedToken.email);
+        localStorage.setItem('googleIdToken', token);
+        console.log('///////', sessionStorage.getItem('googleIdToken'));
         this.router.navigate(['/admin']);
       }
     });

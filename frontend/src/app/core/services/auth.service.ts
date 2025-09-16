@@ -6,9 +6,9 @@ import { environment } from '../../../environments/environment';
 })
 export class AuthService {
   private userEmail =
-    sessionStorage.getItem('userEmail') || environment.emailId;
+    localStorage.getItem('userEmail') || environment.emailId;
   private userToken =
-    sessionStorage.getItem('googleIdToken') || '';
+    localStorage.getItem('googleIdToken') || '';
   /**
    * Returns the authenticated user's email.
    * @returns The user's email string or null if not authenticated.

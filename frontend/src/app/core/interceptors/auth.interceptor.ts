@@ -10,7 +10,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const userToken = authService.getToken();
   const router = inject(Router);
 
-  if (!userToken && !req.url.includes('/login')) {
+  if (!userEmail && !req.url.includes('/login')) {
     console.log('///////===invalid');
     router.navigate(['/login']);
 
