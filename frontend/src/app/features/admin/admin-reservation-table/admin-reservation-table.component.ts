@@ -121,11 +121,12 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
         Intl.DateTimeFormat().resolvedOptions().timeZone
       ) ?? '';
     if (isPlatformBrowser(this.platformId)) {
-      this.userEmail =
-        (sessionStorage?.getItem('userEmail')?.split('@')[0] as string) ?? null;
-      if (this.userEmail) {
-        this.getAllReservations(true);
-      }
+      // this.userEmail =
+      //   (sessionStorage?.getItem('userEmail')?.split('@')[0] as string) ?? null;
+      // if (this.userEmail) {
+      //   this.getAllReservations(true);
+      // }
+      this.getAllReservations(true);
     }
 
     this.listenFormChanges();

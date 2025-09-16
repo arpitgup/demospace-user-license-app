@@ -4,6 +4,7 @@ import { MenuItems } from './admin-home.enums';
 import { AdminReservation } from '../admin-reservation/admin-reservation';
 import { AdminDowntimeComponent } from '../admin-downtime/admin-downtime.component';
 import { AdminBotsComponent } from '../admin-bots/admin-bots.component';
+import { AdminApplicationsComponent } from '../admin-applications/admin-applications.component';
 
 export interface AdminMenuItems {
   id: number;
@@ -14,7 +15,13 @@ export interface AdminMenuItems {
 }
 @Component({
   selector: 'app-admin-home',
-  imports: [MatSidenavModule, AdminReservation,AdminBotsComponent, AdminDowntimeComponent],
+  imports: [
+    MatSidenavModule,
+    AdminReservation,
+    AdminBotsComponent,
+    AdminDowntimeComponent,
+    AdminApplicationsComponent,
+  ],
   templateUrl: './admin-home.component.html',
   styleUrl: './admin-home.component.scss',
 })
