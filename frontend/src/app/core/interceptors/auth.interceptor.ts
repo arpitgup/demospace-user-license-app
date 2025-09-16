@@ -6,11 +6,11 @@ import { throwError } from 'rxjs';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
-  const userEmail = authService.getUserEmail();
+  const userEmail = localStorage?.getItem('userEmail');
   const userToken = authService.getToken();
   const router = inject(Router);
 
-  if (!userEmail && !req.url.includes('/login')) {
+  if (!localStorage?.getItem('googleIdToken') && !req.url.includes('/login')) {
     console.log('///////===invalid');
     router.navigate(['/login']);
 
