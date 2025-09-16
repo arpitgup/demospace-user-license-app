@@ -47,14 +47,14 @@ export class App implements OnInit {
   ngOnInit(): void {
     if (typeof window !== 'undefined') {
       // sessionStorage.clear();
-      // this.route.queryParams.subscribe((params) => {
-      //   if (params) {
-      //     const userEmail = params['userEmail'] || null;
-      //     if (userEmail) {
-      //       sessionStorage.setItem('userEmail', userEmail);
-      //     }
-      //   }
-      // });
+      this.route.queryParams.subscribe((params) => {
+        if (params) {
+          const userEmail = params['userEmail'] || null;
+          if (userEmail) {
+            localStorage.setItem('userEmail', userEmail);
+          }
+        }
+      });
     }
   }
 }
