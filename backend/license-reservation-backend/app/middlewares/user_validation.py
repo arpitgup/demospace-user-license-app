@@ -1,7 +1,6 @@
 from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from shared_lib import admin_servicels
-cd 
 from starlette.responses import JSONResponse
 
 from ..common.constants import X_DEMO_USER_EMAIL_HEADER
