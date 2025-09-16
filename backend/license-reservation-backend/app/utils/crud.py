@@ -1,5 +1,7 @@
 from datetime import datetime, timezone, timedelta
 from sqlalchemy.orm import Session, selectinload, Query, joinedload
+from sqlalchemy import or_
+from fastapi import HTTPException, status
 from shared_lib.db.models import (
     Application,
     Bot,
@@ -43,9 +45,10 @@ def create_bot(request: BotsCreateRequest, db: Session) -> list[Bot]:
 
     return newly_created_bots
 
+
 def update_bot(request: BotsUpdateRequest, db: Session) -> list[Bot]:
     """
-    Updates existing bots' details and replaces their linked applications.
+    Updates existing bots' details.
     """
     updated_bots = []
     
