@@ -6,6 +6,8 @@ from shared_lib.db.models import (
     Bot,
     BotApplication,
     Reservation,
+    ApplicationDowntime,
+    DowntimeStatus,
     ReservationStatus,
 )
 from shared_lib.dependencies import get_db, get_app_config, get_user_email
@@ -114,6 +116,16 @@ def get_availability_by_date_v2(
         )
         .all()
     )
+
+    # CHECK: Find all applications with scheduled downtime in the requested time range
+    downtime_apps = db.query(ApplicationDowntime).filter(
+        ApplicationDowntime.status.in_([DowntimeStatus.PENDING, DowntimeStatus.ACTIVE]),
+        ApplicationDowntime.downtime_start < req.end_time,
+        ApplicationDowntime.downtime_end > req.start_time,
+    ).all()
+        
+    unavailable_app_ids = {dt.application_id for dt in downtime_apps}
+
     response_bots = []
 
     for bot in all_bots:
@@ -122,13 +134,18 @@ def get_availability_by_date_v2(
             bot, req.start_time, req.end_time, db
         )
 
-        if available_apps:
+        # Filter out applications that have scheduled downtime
+        updated_available_apps = [
+            app for app in available_apps if app.id not in unavailable_app_ids
+        ]
+
+        if updated_available_apps:
             response_bots.append(
                 AvailableBotInfo(
                     id=bot.id,
                     name=bot.name,
                     email=bot.email,
-                    applications=available_apps,
+                    applications=updated_available_apps,
                 )
             )
 
@@ -157,6 +174,26 @@ def get_availability_by_application(
         raise HTTPException(
             status_code=404,
             detail=f"Application with ID {req.application_id} not found or is not active.",
+        )
+    
+    # Check for scheduled downtime for the requested application
+    conflicting_downtime = (
+        db.query(ApplicationDowntime)
+        .filter(
+            ApplicationDowntime.application_id == req.application_id,
+            ApplicationDowntime.status.in_(
+                [DowntimeStatus.PENDING, DowntimeStatus.ACTIVE]
+            ),
+            ApplicationDowntime.downtime_start < (req.start_time + timedelta(hours=req.duration_hours)),
+            ApplicationDowntime.downtime_end > req.start_time,
+        )
+        .first()
+    )
+
+    if conflicting_downtime:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Application '{application.name}' has scheduled downtime that conflicts with your requested time.",
         )
 
     # Find all bots that support the requested application
