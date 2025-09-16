@@ -152,7 +152,7 @@ export class LandingPage implements OnInit {
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.userEmail =
-        (sessionStorage?.getItem('userEmail')?.split('@')[0] as string) ?? null;
+        (localStorage?.getItem('userEmail')?.split('@')[0] as string) ?? null;
       if (this.userEmail) {
         this.onRefreshData();
       }

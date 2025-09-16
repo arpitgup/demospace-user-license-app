@@ -10,7 +10,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   // const userToken = authService.getToken();
   const router = inject(Router);
 
-  if (!localStorage?.getItem('googleIdToken') && req.url.includes('/admin')) {
+  if (!localStorage?.getItem('googleIdToken') && req.url.includes('admin')) {
     router.navigate(['/login']);
 
     return throwError(() => new Error('Invalid request'));
