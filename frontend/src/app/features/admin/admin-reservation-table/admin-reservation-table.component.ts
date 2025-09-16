@@ -124,7 +124,7 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
       // this.userEmail =
       //   (localStorage?.getItem('userEmail')?.split('@')[0] as string) ?? null;
       // if (this.userEmail) {
-        
+
       // }
       this.getAllReservations(true);
     }
@@ -432,5 +432,9 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
 
   onRetryCall() {
     this.getAllReservations(true);
+  }
+
+  formatDate(dateTime: string) {
+    return new Date(dateTime);
   }
 }

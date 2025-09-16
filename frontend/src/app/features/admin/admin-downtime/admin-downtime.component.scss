@@ -1,5 +1,7 @@
-@use '@angular/material' as mat;
-
+@use "@angular/material" as mat;
+@use "../../../../styles/mixins" as *;
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/typography" as *;
 // =============================================================================
 // Component Variables
 // =============================================================================
@@ -19,7 +21,7 @@ $color-error-bg: #fce8e6;
 $color-error-border: #fce8e6;
 
 // Typography
-$font-family-base: Roboto, 'Helvetica Neue', sans-serif;
+$font-family-base: Roboto, "Helvetica Neue", sans-serif;
 $font-size-header: 1.5rem;
 $font-size-pill: 1.125rem;
 
@@ -153,7 +155,7 @@ section:first-of-type .section-header {
   p {
     margin: 4px 0;
   }
-  
+
   &--range {
     margin-top: $spacing-sm;
   }
@@ -187,13 +189,38 @@ section:first-of-type .section-header {
 // =============================================================================
 :host ::ng-deep {
   .downtime-tabs {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+    margin-top: 5.19rem;
+
+    @include mat.tabs-overrides(
+      (
+        divider-color: #ecf3fe,
+        divider-height: 0.25rem,
+      )
+    );
+
     .mat-mdc-tab {
-      flex: 0 0 23.125rem !important;
-      height: 3.5rem;
+      justify-content: center !important;
+      @include body-md;
+
+      .mdc-tab__text-label {
+        color: $color-black !important;
+      }
+
+      &.mdc-tab--active {
+        .mdc-tab__text-label {
+          color: var(--blue, $color-blue) !important;
+        }
+      }
     }
 
     .mdc-tab-indicator__content--underline {
-      border-top-width: 4px !important;
+      border-color: var(--blue, $color-blue) !important;
+      border-width: 2px;
+      width: 100% !important;
     }
   }
 
@@ -223,4 +250,3 @@ section:first-of-type .section-header {
     }
   }
 }
-

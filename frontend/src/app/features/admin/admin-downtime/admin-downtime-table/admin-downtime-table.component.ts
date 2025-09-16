@@ -39,7 +39,10 @@ import {
 import { TableLoaderComponent } from '../../../../loaders/table-loader/table-loader.component';
 import { ConfirmationDialog } from '../../../../shared/dialogs/confirmation-dialog/confirmation-dialog';
 import { ErrorDialog } from '../../../../shared/dialogs/error-dialog/error-dialog';
-import { isSameDay } from '../../../../../utilities/utils';
+import {
+  getLocalTimeZoneAbbreviation,
+  isSameDay,
+} from '../../../../../utilities/utils';
 
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 
@@ -138,6 +141,7 @@ export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
   private _sort!: MatSort;
   private _paginator!: MatPaginator;
   private _initialSortApplied = false;
+  localTimeAbbrevation: string = '';
 
   @ViewChild(MatSort)
   set matSort(sort: MatSort) {
@@ -225,6 +229,11 @@ export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.getAllDowntimes();
     this.listenToSearchChanges();
+    this.localTimeAbbrevation =
+      getLocalTimeZoneAbbreviation(
+        new Date(new Date()) ?? new Date(),
+        Intl.DateTimeFormat().resolvedOptions().timeZone
+      ) ?? '';
   }
 
   ngAfterViewInit(): void {
@@ -337,7 +346,6 @@ export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
     }
   }
 
-
   onShowPastChange(checked: boolean): void {
     this.showPastDowntimes.set(checked);
     this.selectAll.set(false);
@@ -381,6 +389,11 @@ export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
         message: `Do you want to cancel the selected (${selectedIds.length}) downtimes?`,
         confirmText: 'Confirm',
         cancelText: 'Cancel',
+        applications: '',
+        licenseTitle: '',
+        startDateTime:'',
+        endDateTime:''
+
       },
     });
 
@@ -413,5 +426,9 @@ export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
   /* ---------------- Utilities ---------------- */
   private showErrorDialog(message: string): void {
     this.dialog.open(ErrorDialog, { data: { message } });
+  }
+
+  formatDate(dateTime: string) {
+    return new Date(dateTime);
   }
 }

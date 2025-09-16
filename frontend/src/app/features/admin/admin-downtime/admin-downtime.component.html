@@ -1,5 +1,5 @@
 <div class="downtime-container">
-  <mat-tab-group class="downtime-tabs" [selectedIndex]="selectedTabIndex()" 
+  <mat-tab-group  mat-stretch-tabs="false" class="downtime-tabs" [selectedIndex]="selectedTabIndex()" 
   (selectedIndexChange)="selectedTabIndex.set($event)">
     <mat-tab [label]="constants.LISTED_DOWNTIME_TAB_LABEL">
       <app-admin-downtime-table></app-admin-downtime-table>
@@ -195,7 +195,7 @@
               type="button"
               mat-stroked-button
               class="cancel-button"
-              (click)="resetForm()"
+              (click)="resetForm(true)"
             >
               Cancel
             </button>
