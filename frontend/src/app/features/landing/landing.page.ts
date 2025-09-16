@@ -80,7 +80,6 @@ export class LandingPage implements OnInit {
   public readonly reservationErrorSignal =
     this.reservationService.reservationErrorMessage;
 
-
   public filteredReservations = computed(() => {
     const showPast = this.showPastReservations();
     const reservations = this.reservationsSignal();
@@ -152,11 +151,12 @@ export class LandingPage implements OnInit {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.userEmail =
-        (sessionStorage?.getItem('userEmail')?.split('@')[0] as string) ?? null;
-      if (this.userEmail) {
-        this.onRefreshData();
-      }
+      // this.userEmail =
+      //   (sessionStorage?.getItem('userEmail')?.split('@')[0] as string) ?? null;
+      // if (this.userEmail) {
+
+      // }
+      this.onRefreshData();
     }
   }
 
@@ -183,7 +183,7 @@ export class LandingPage implements OnInit {
     this.reservationService.cancelReservation(reservation.id).subscribe({
       next: () => {
         console.log(`Reservation ${reservation.id} cancelled successfully.`);
-        this.showSuccessDialog(reservation);
+        this.showSuccessDialog();
       },
       error: (err) => {
         console.error('Failed to cancel reservation:', err);
@@ -195,7 +195,7 @@ export class LandingPage implements OnInit {
     this.tabGroup.selectedIndex = 1;
   }
 
-  showSuccessDialog(reservation: Reservation) {
+  showSuccessDialog() {
     const dialogRef = this.confirmationDialog.open(SuccessDialog, {
       width: 'auto',
       minWidth: 'none',

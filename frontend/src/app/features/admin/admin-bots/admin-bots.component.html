@@ -10,7 +10,13 @@
       ></app-admin-bots-table>
     </mat-tab>
 
-    <mat-tab [label]="adminBotsConstants.ADD_NEW_BOT_TAB_LABEL"> </mat-tab>
+    <mat-tab [label]="adminBotsConstants.ADD_NEW_BOT_TAB_LABEL">
+      @if(selectedIndex===1){
+      <app-admin-create-bot
+        (botCreationSuccess)="botCreation()"
+      ></app-admin-create-bot>
+      }
+    </mat-tab>
   </mat-tab-group>
   <div class="custom-form-field">
     <mat-form-field class="custom-form-field" appearance="outline">

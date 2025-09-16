@@ -1,7 +1,9 @@
 import {
+  AfterViewInit,
   ChangeDetectorRef,
   Component,
   inject,
+  OnInit,
   PLATFORM_ID,
   signal,
   ViewChild,
@@ -13,7 +15,7 @@ import { ReservationApiStatus } from '../../landing/landing.enums';
 import { MatDialog } from '@angular/material/dialog';
 import { Reservation } from '../../../core/models/reservation.model';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
+import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import {
   getLocalTimeZoneAbbreviation,
@@ -31,7 +33,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { TableLoaderComponent } from '../../../loaders/table-loader/table-loader.component';
-import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { ReservationApplicationRequest } from '../../../core/models/reservation-application-request.model';
+import { ErrorMessage } from '../../../shared/components/error-message/error-message';
 
 @Component({
   selector: 'app-admin-reservation-table',
@@ -48,13 +51,13 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
     MatPaginatorModule,
     TableLoaderComponent,
     MatSortModule,
+    ErrorMessage,
   ],
   templateUrl: './admin-reservation-table.component.html',
   styleUrl: './admin-reservation-table.component.scss',
 })
-export class AdminReservationTableComponent {
+export class AdminReservationTableComponent implements OnInit, AfterViewInit {
   private platformId = inject(PLATFORM_ID);
-  private _liveAnnouncer = inject(LiveAnnouncer);
   private readonly adminService = inject(AdminService);
   private fb = inject(FormBuilder);
   readonly adminReservationConstants = ADMIN_RESERVATION_CONSTANTS;
@@ -74,6 +77,7 @@ export class AdminReservationTableComponent {
   today: Date = new Date();
   public readonly pageSizeOptions: number[] = [5];
   private cdr = inject(ChangeDetectorRef);
+  public readonly errorMessage = signal<string>('');
 
   displayedColumns: string[] = [
     'select',
@@ -117,11 +121,12 @@ export class AdminReservationTableComponent {
         Intl.DateTimeFormat().resolvedOptions().timeZone
       ) ?? '';
     if (isPlatformBrowser(this.platformId)) {
-      this.userEmail =
-        (sessionStorage?.getItem('userEmail')?.split('@')[0] as string) ?? null;
-      if (this.userEmail) {
-        this.getAllReservations(true);
-      }
+      // this.userEmail =
+      //   (sessionStorage?.getItem('userEmail')?.split('@')[0] as string) ?? null;
+      // if (this.userEmail) {
+      //   this.getAllReservations(true);
+      // }
+      this.getAllReservations(true);
     }
 
     this.listenFormChanges();
@@ -205,7 +210,8 @@ export class AdminReservationTableComponent {
         }
       },
       error: (err) => {
-        console.log('error=', err);
+        const errorMessage = err?.error?.detail || 'Something went wrong';
+        this.errorMessage.set(errorMessage);
         if (isRefresh) {
           this.isLoading.set(false);
         } else {
@@ -279,7 +285,7 @@ export class AdminReservationTableComponent {
           (item) => item.isRemove !== true && item.id !== primaryApplicationId
         )
         ?.map((item) => item.id) ?? [];
-    const request: any = {
+    const request: ReservationApplicationRequest = {
       primaryApplicationId: primaryApplicationId,
       secondaryApplicationIds: secordaryApplicationsIds,
     };
@@ -422,5 +428,9 @@ export class AdminReservationTableComponent {
         message: message,
       },
     });
+  }
+
+  onRetryCall() {
+    this.getAllReservations(true);
   }
 }
