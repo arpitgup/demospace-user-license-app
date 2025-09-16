@@ -45,6 +45,9 @@ import {
   startOfDay,
   startOfHour,
 } from './admin-downtime.utils';
+import { ErrorDialog } from '../../../shared/dialogs/error-dialog/error-dialog';
+import { MatDialog } from '@angular/material/dialog';
+import { SuccessDialog } from '../../../shared/dialogs/success-dialog/success-dialog';
 
 type DowntimeReason = string;
 
@@ -71,6 +74,7 @@ type DowntimeReason = string;
 })
 export class AdminDowntimeComponent {
   private readonly fb = inject(FormBuilder);
+  private readonly dialog = inject(MatDialog);
   private readonly downtimeService = inject(DowntimeService);
   private readonly adminService = inject(AdminService);
   private readonly destroyRef = inject(DestroyRef);
@@ -95,7 +99,7 @@ export class AdminDowntimeComponent {
   readonly HOURS: readonly number[] = Array.from({ length: 24 }, (_, h) => h);
 
   readonly selectedIds = signal<number[]>([]);
-  
+
   // New signal to control the selected tab index
   readonly selectedTabIndex = signal(0);
 
@@ -216,7 +220,7 @@ export class AdminDowntimeComponent {
   onEndDateChanged(): void {}
   onStartTimeChanged(): void {}
 
-  resetForm(): void {
+  resetForm(isChangeTab: boolean): void {
     this.selectedIds.set([]);
 
     const defaults = {
@@ -235,6 +239,9 @@ export class AdminDowntimeComponent {
     this.form.updateValueAndValidity({ emitEvent: false });
 
     this.isSubmitting.set(false);
+    if (isChangeTab === true) {
+      this.selectedTabIndex.set(0);
+    }
   }
 
   submit(): void {
@@ -264,12 +271,12 @@ export class AdminDowntimeComponent {
       )
       .subscribe({
         next: () => {
-          this.resetForm();
+          this.resetForm(false);
           this.downtimeTable?.getAllDowntimes(true);
-          this.selectedTabIndex.set(1);
+          this.showSuccessDialog();
         },
-        error: (err: unknown) => {
-          console.error('scheduleDowntime error', err);
+        error: (err) => {
+          this.showErrorDialog(err.error.detail || 'Something went wrong');
         },
       });
   }
@@ -282,5 +289,40 @@ export class AdminDowntimeComponent {
       minute: '2-digit',
       hour12: true,
     }).format(d);
+  }
+
+  showErrorDialog(message: string) {
+    this.dialog.open(ErrorDialog, {
+      width: 'auto',
+      minWidth: '41.86rem',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        message: message,
+      },
+    });
+  }
+
+  showSuccessDialog() {
+    const dialogRef = this.dialog.open(SuccessDialog, {
+      width: 'auto',
+      minWidth: 'none',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        title: 'Success',
+        message: 'Downtime successfully created',
+        confirmText: 'OK',
+      },
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.selectedTabIndex.set(0);
+      }
+    });
   }
 }
