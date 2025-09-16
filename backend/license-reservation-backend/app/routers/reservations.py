@@ -10,7 +10,9 @@ from shared_lib.db.models import (
     Bot,
     BotApplication,
     Reservation,
-    ReservationStatus
+    ApplicationDowntime,
+    ReservationStatus,
+    DowntimeStatus
 )
 from datetime import timezone
 
@@ -78,12 +80,37 @@ def make_reservation(
     all_app_ids = [req.primary_application_id] + req.secondary_application_ids
     unique_app_ids = list(set(all_app_ids))
 
-    # Check if all requested applications exist
+    # CHECK 1: Check if all requested applications exist
     apps_in_db = db.query(Application).filter(Application.id.in_(unique_app_ids)).all()
     if len(apps_in_db) != len(unique_app_ids):
         raise HTTPException(
             status_code=404,
             detail="One or more requested application IDs do not exist.",
+        )
+
+    # CHECK 2: Check for scheduled downtime for the requested applications
+    conflicting_downtime = (
+        db.query(ApplicationDowntime)
+        .filter(
+            ApplicationDowntime.application_id.in_(unique_app_ids),
+            ApplicationDowntime.status.in_(
+                [DowntimeStatus.PENDING, DowntimeStatus.ACTIVE]
+            ),
+            ApplicationDowntime.downtime_start < req.end_time,
+            ApplicationDowntime.downtime_end > req.start_time,
+        )
+        .first()
+    )
+
+    if conflicting_downtime:
+        conflicting_app_name = (
+            db.query(Application.name)
+            .filter(Application.id == conflicting_downtime.application_id)
+            .scalar()
+        )
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Cannot make a reservation. Application '{conflicting_app_name}' has scheduled downtime that conflicts with your requested time.",
         )
 
     # Find a bot that supports ALL requested applications
