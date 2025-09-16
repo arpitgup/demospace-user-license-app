@@ -5,13 +5,12 @@ import { Router } from '@angular/router';
 import { throwError } from 'rxjs';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
+  // const authService = inject(AuthService);
   const userEmail = localStorage?.getItem('userEmail');
-  const userToken = authService.getToken();
+  // const userToken = authService.getToken();
   const router = inject(Router);
 
-  if (!localStorage?.getItem('googleIdToken') && !req.url.includes('/login')) {
-    console.log('///////===invalid');
+  if (!localStorage?.getItem('googleIdToken') && req.url.includes('/admin')) {
     router.navigate(['/login']);
 
     return throwError(() => new Error('Invalid request'));

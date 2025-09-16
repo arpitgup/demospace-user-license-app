@@ -69,13 +69,13 @@ export class DowntimeService {
    * @returns An Observable of the downtime list.
    */
   listDowntimes(): Observable<Downtime[]> {
-    this.loaderService.show();
+    // this.loaderService.show();
     return this.http.get<Downtime[]>(`${this.apiUrl}/admin/downtimes`).pipe(
       tap((fetchedDowntimes) => {
         this.downtimesState.set(fetchedDowntimes);
       }),
       finalize(() => {
-        this.loaderService.hide();
+        // this.loaderService.hide();
       })
     );
   }
