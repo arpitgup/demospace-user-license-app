@@ -158,7 +158,7 @@ def make_reservation(
             recipient_email=user_email,
             sender_email=app_config[RESERVATION_EMAIL_SENDER],            
             reservation_id=new_reservation.id,
-            subject="Your Agentspace SaaS License Reservation Confirmation",
+            subject="Your Agentspace License Reservation Confirmation",
             email_content=format_email_for_reservation(BOOKED_RESERVATION_EMAIL_CONTENT, new_reservation)
         )
 
@@ -226,7 +226,7 @@ def cancel_reservation(
             recipient_email=user_email,
             sender_email=app_config[RESERVATION_EMAIL_SENDER],
             reservation_id=reservation_id,
-            subject="Your Agentspace SaaS License Cancellation Confirmation",
+            subject="Your Agentspace License Reservation Cancellation",
             email_content=format_email_for_reservation(CANCELLED_RESERVATION_EMAIL_CONTENT, reservation)
         )
         return reservation
