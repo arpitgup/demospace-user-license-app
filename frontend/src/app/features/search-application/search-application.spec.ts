@@ -34,7 +34,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { Reservation } from '../../core/models/reservation.model';
-import { AvalaibilityByApplication } from '../../core/models/availabilityByApplication.model';
+import { AvalaibilityByApplication } from '../../core/models/availability-by-application.model';
 import { ConfirmationDialog } from '../../shared/dialogs/confirmation-dialog/confirmation-dialog';
 import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
 import { of } from 'rxjs';

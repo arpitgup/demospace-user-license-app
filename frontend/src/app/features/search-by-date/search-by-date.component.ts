@@ -109,7 +109,10 @@ export class SearchByDateComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly confirmationDialog = inject(MatDialog);
-
+  readonly localTimeAbbrevation = getLocalTimeZoneAbbreviation(
+    new Date(),
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
   bookingSuccess = output<void>();
   @ViewChild(FormGroupDirective) private formDir?: FormGroupDirective;
 

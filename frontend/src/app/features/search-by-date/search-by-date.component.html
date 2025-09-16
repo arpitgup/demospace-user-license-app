@@ -25,8 +25,6 @@
               [max]="maxSelectableDate"
               placeholder="MM/DD/YYYY"
               formControlName="startDate"
-              aria-describedby="start-date-help"
-              aria-label="Start date"
             />
 
             <mat-datepicker-toggle
@@ -53,12 +51,11 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="start-time-field">
-            <mat-label>Start Time</mat-label>
+            <mat-label>Next Available Start Time</mat-label>
             <mat-select
+              class="custom-select"
               formControlName="startTime"
               (selectionChange)="onStartTimeChange()"
-              aria-label="Start time"
-              aria-describedby="start-time-help"
             >
               @for (time of startTimeSlots(); track time) {
 
@@ -90,6 +87,10 @@
             >
             }
           </mat-form-field>
+        </div>
+        <div class="time-note-container">
+          <div class="invisible-time-field"></div>
+          <span class="time-note">* Time in {{ localTimeAbbrevation }}.</span>
         </div>
 
         <div class="end-date-time-container">
@@ -144,6 +145,8 @@
               aria-readonly="true"
             />
           </mat-form-field>
+          }@else{
+          <div class="end-date-field"></div>
           }
         </div>
 
@@ -186,8 +189,9 @@
       <mat-card-title>Available Applications by Selected Date</mat-card-title>
 
       <mat-card-subtitle>
-        * You may select up to <strong>THREE</strong> applications from the list
-        below.
+        <!-- * You may select up to <strong>THREE</strong> applications from the list
+        below. -->
+        * Select application(s) from the list below:
       </mat-card-subtitle>
 
       <div class="pill-container">
