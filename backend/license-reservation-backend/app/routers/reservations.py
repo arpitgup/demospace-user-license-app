@@ -244,7 +244,7 @@ def cancel_reservation(
             recipient_email=user_email,
             sender_email=app_config[RESERVATION_EMAIL_SENDER],
             reservation_id=reservation_id,
-            subject="Your Agentspace SaaS License Cancellation Confirmation",
+            subject="Your Agentspace License Reservation Cancellation",
             email_content=format_email_for_reservation(CANCELLED_RESERVATION_EMAIL_CONTENT, reservation)
         )
         return reservation
