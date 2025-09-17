@@ -178,7 +178,7 @@ def get_availability_by_application(
 
     req_end_time = req.start_time + timedelta(hours=req.duration_hours)
 
-    # Check for a cool-off period
+    # Cool-off check for requested slot
     if is_user_in_cool_off(
         user_email,
         req.start_time,
