@@ -8,6 +8,7 @@ import {
 import { Router } from '@angular/router';
 
 import { jwtDecode } from 'jwt-decode';
+import { timer } from 'rxjs';
 
 declare const google: any;
 
@@ -22,24 +23,31 @@ export class LoginComponent {
   token: string | null = null;
   private ngZone = inject(NgZone);
   private router = inject(Router);
+  isGoogleLoginInitialized: boolean = false;
 
   ngOnInit(): void {
-    // Initialize the Google client with your Client ID and a callback function
+    this.initializeGoogleLogin();
+    timer(1000).subscribe(() => {
+      if (this.isGoogleLoginInitialized === false) {
+        this.initializeGoogleLogin();
+      }
+    });
+  }
+  initializeGoogleLogin() {
     if (typeof google === 'undefined') {
       return;
     }
     localStorage.clear();
     google.accounts.id.initialize({
       client_id:
-        '385039775654-deso4nja1vond0f98j0p4vic6uvt91su.apps.googleusercontent.com', // ⚠️ Replace with your actual Client ID
+        '385039775654-deso4nja1vond0f98j0p4vic6uvt91su.apps.googleusercontent.com',
       callback: (response: any) => this.handleCredentialResponse(response),
     });
-
-    // Render the Google Sign-In button
     google.accounts.id.renderButton(
       document.getElementById('google-signin-button'),
       { theme: 'outline', size: 'large' }
     );
+    this.isGoogleLoginInitialized = true;
   }
 
   handleCredentialResponse(response: any): void {
