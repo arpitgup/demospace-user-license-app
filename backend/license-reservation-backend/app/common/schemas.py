@@ -88,6 +88,7 @@ class AvailabilityByApplicationRequest(CamelModel):
 
 class AvailabilityByApplicationResponse(CamelModel):
     requested_slot_available: bool
+    is_downtime_conflict: bool
     next_available_slots: list[AvailabilitySlot]
 
 

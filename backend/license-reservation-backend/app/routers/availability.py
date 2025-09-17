@@ -187,10 +187,11 @@ def get_availability_by_application(
     ):
         return AvailabilityByApplicationResponse(
             requested_slot_available=False,
+            is_downtime_conflict=False,
             next_available_slots=[],
         )
 
-    # Check for scheduled downtime for the requested application
+    # Check for scheduled downtime for the requested applications
     downtime_conflict = (
         db.query(ApplicationDowntime)
         .filter(
@@ -236,10 +237,12 @@ def get_availability_by_application(
                     )
                 )
 
+    # It can be empty in either cases whether downtime_conflict is there or not.
     # If bots are available in previous 'if' block then return it OR else If its empty because Downtime conflict is there, move to next execution.
     if available_bots_in_req_slot:
         return AvailabilityByApplicationResponse(
             requested_slot_available=True,
+            is_downtime_conflict=False,
             next_available_slots=[
                 AvailabilitySlot(
                     start_time=req.start_time,
@@ -252,10 +255,18 @@ def get_availability_by_application(
     # `get_next_slots` is false, return an empty response.
     # `get_next_slots` is true, move to next executions.
     if not req.get_next_slots:
-        return AvailabilityByApplicationResponse(
-            requested_slot_available=False,
-            next_available_slots=[],
-        )
+        if not downtime_conflict:
+            return AvailabilityByApplicationResponse(
+                requested_slot_available=False,
+                is_downtime_conflict=False,
+                next_available_slots=[],
+            )
+        else:
+            return AvailabilityByApplicationResponse(
+                requested_slot_available=False,
+                is_downtime_conflict=True,
+                next_available_slots=[],
+            )
 
     # Find the next N available slots
     next_slots = []
@@ -275,10 +286,18 @@ def get_availability_by_application(
     )
     if not supporting_bots:
         # If no bots support the app at all, we can't find any future slots
-        return AvailabilityByApplicationResponse(
-            requested_slot_available=False,
-            next_available_slots=[],
-        )
+        if not downtime_conflict:
+            return AvailabilityByApplicationResponse(
+                requested_slot_available=False,
+                is_downtime_conflict=False,
+                next_available_slots=[],
+            )
+        else:
+            return AvailabilityByApplicationResponse(
+                requested_slot_available=False,
+                is_downtime_conflict=True,
+                next_available_slots=[],
+            )
 
     while len(next_slots) < max_slots and search_start_time < max_end_time:
         potential_start = search_start_time
@@ -341,5 +360,5 @@ def get_availability_by_application(
         search_start_time += timedelta(hours=rolling_window_hours)
 
     return AvailabilityByApplicationResponse(
-        requested_slot_available=False, next_available_slots=next_slots
+        requested_slot_available=False, is_downtime_conflict=False, next_available_slots=next_slots
     )
