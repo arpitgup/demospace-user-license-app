@@ -191,7 +191,7 @@ def get_availability_by_application(
             next_available_slots=[],
         )
 
-    # Check for scheduled downtime for the requested application
+    # Check for scheduled downtime for the requested applications
     downtime_conflict = (
         db.query(ApplicationDowntime)
         .filter(
