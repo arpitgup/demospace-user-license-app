@@ -1,0 +1,34 @@
+<div class="bot-table-container">
+  <mat-tab-group
+    mat-stretch-tabs="false"
+    class="bot-tabs"
+    (selectedTabChange)="onTabChange($event)"
+  >
+    <mat-tab [label]="adminBotsConstants.CURRENT_BOT_TAB_LABEL">
+      <app-admin-bots-table
+        [searchBotControl]="searchBotControl"
+      ></app-admin-bots-table>
+    </mat-tab>
+
+    <mat-tab [label]="adminBotsConstants.ADD_NEW_BOT_TAB_LABEL">
+      @if(selectedIndex===1){
+      <app-admin-create-bot
+        (botCreationSuccess)="botCreation()"
+      ></app-admin-create-bot>
+      }
+    </mat-tab>
+  </mat-tab-group>
+  <div class="custom-form-field">
+    <mat-form-field class="custom-form-field" appearance="outline">
+      <mat-label class="custom-label">{{
+        adminBotsConstants.SEARCH_BOT
+      }}</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        matInput
+        [formControl]="searchBotControl"
+        [placeholder]="adminBotsConstants.SEARCH_BOT"
+      />
+    </mat-form-field>
+  </div>
+</div>

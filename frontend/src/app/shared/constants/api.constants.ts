@@ -5,4 +5,6 @@ export const EXCLUDED_URLS = [
   '/applications',
   '/reservations',
   '/config',
+  '/admin/bots',
+  '/admin/downtimes'
 ];

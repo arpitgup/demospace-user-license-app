@@ -1,5 +1,7 @@
 <app-app-tag></app-app-tag>
+@if(showHeaderFooter){
 <app-header></app-header>
+}
 
 <!-- Page content from routing -->
 <app-common-loader></app-common-loader>
@@ -7,6 +9,7 @@
   <main class="page-content">
     <router-outlet></router-outlet>
   </main>
-
+  @if(showHeaderFooter){
   <app-footer></app-footer>
+  }
 </div>

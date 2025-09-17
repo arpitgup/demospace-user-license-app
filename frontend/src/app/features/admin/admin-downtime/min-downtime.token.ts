@@ -1,0 +1,1 @@
+export const MIN_DOWNTIME_HOURS = 2;
