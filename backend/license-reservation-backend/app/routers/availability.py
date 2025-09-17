@@ -187,7 +187,7 @@ def get_availability_by_application(
     ):
         return AvailabilityByApplicationResponse(
             requested_slot_available=False,
-            is_downtime_conflict=False, # No downtime conflict, just cool-off
+            is_downtime_conflict=False,
             next_available_slots=[],
         )
 
