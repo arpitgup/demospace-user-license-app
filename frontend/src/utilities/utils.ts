@@ -1,5 +1,5 @@
 import { Application } from '../app/core/models/application.model';
-import { NextAvailableSlots } from '../app/core/models/availabilityByApplication.model';
+import { NextAvailableSlots } from '../app/core/models/availability-by-application.model';
 import {
   TIME_SLOT_END_HOUR,
   TIME_SLOT_START_HOUR,
@@ -238,7 +238,7 @@ export function generateHoursList(
   return timeSlots;
 }
 
-function isSameDay(selectedDate: Date, endDate: Date): boolean {
+export function isSameDay(selectedDate: Date, endDate: Date): boolean {
   return (
     selectedDate.getDate() === endDate.getDate() &&
     selectedDate.getMonth() === endDate.getMonth() &&

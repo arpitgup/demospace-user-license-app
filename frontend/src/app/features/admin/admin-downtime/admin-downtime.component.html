@@ -1,0 +1,218 @@
+<div class="downtime-container">
+  <mat-tab-group  mat-stretch-tabs="false" class="downtime-tabs" [selectedIndex]="selectedTabIndex()" 
+  (selectedIndexChange)="selectedTabIndex.set($event)">
+    <mat-tab [label]="constants.LISTED_DOWNTIME_TAB_LABEL">
+      <app-admin-downtime-table></app-admin-downtime-table>
+    </mat-tab>
+
+    <mat-tab [label]="constants.SCHEDULE_DOWNTIME_TAB_LABEL">
+      <div class="schedule-downtime-container">
+        <form
+          class="schedule-form"
+          [formGroup]="form"
+          (ngSubmit)="submit()"
+          novalidate
+          aria-describedby="scheduleFormErrors"
+          autocomplete="off"
+        >
+          <!-- ====================================================== -->
+          <!-- SECTION 1: APPLICATION SELECTION                       -->
+          <!-- ====================================================== -->
+          <section>
+            <div class="section-header">Select the Applications</div>
+
+            <mat-form-field
+              appearance="outline"
+              class="w-full app-input-field figma-field"
+              floatLabel="always"
+            >
+              <mat-label>Application</mat-label>
+
+              <div class="selected-chipbox" *ngIf="selectedIds().length">
+                <mat-chip-set>
+                  @for (id of selectedIds(); track id) {
+                    <mat-chip
+                      appearance="outlined"
+                      removable
+                      (removed)="removeApp(id)"
+                      aria-label="Remove {{ appById(id)?.name }}"
+                    >
+                      {{ appById(id)?.name || ('#' + id) }}
+                      <button matChipRemove type="button" aria-label="Remove">
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    </mat-chip>
+                  }
+                </mat-chip-set>
+              </div>
+
+              <input
+                matInput
+                readonly
+                placeholder=""
+                aria-label="Application"
+                class="application-input"
+              />
+
+              @if (form.controls.applications.invalid && form.controls.applications.touched) {
+                <mat-error>At least one application is required</mat-error>
+              }
+            </mat-form-field>
+
+            <div class="pill-bank" role="list" aria-label="Available applications">
+              @for (a of filteredApps(); track a.id) {
+                <button
+                  type="button"
+                  class="pill"
+                  role="listitem"
+                  [class.pill--selected]="isSelected(a.id)"
+                  [disabled]="isSelected(a.id)"
+                  (click)="addApp(a)"
+                  [attr.aria-pressed]="isSelected(a.id) ? true : false"
+                >
+                  {{ a.name }}
+                </button>
+              }
+            </div>
+          </section>
+
+          <!-- ====================================================== -->
+          <!-- SECTION 2: DOWNTIME DATE & TIME RANGE                  -->
+          <!-- ====================================================== -->
+          <section>
+            <div class="section-header">Select Downtime Date Range</div>
+            <div
+              class="date-time-grid"
+              [class.has-range-error]="form.hasError('orderInvalid') && form.touched"
+            >
+              <!-- Start Date & Time Row -->
+              <div class="date-time-row">
+                <mat-form-field appearance="outline" class="date-field">
+                  <mat-label>Start Date</mat-label>
+                  <input
+                    matInput
+                    [matDatepicker]="startPicker"
+                    formControlName="startDate"
+                    (dateChange)="onStartDateChanged()"
+                    [matDatepickerFilter]="startDateFilter"
+                  />
+                  <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #startPicker></mat-datepicker>
+                  @if (form.controls.startDate.invalid && form.controls.startDate.touched) {
+                    <mat-error>Start date is required</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="time-field">
+                  <mat-label>Start Time</mat-label>
+                  <mat-select formControlName="startTime" (selectionChange)="onStartTimeChanged()">
+                    @for (h of HOURS; track h) {
+                      <mat-option [value]="h">{{ formatHour(h) }}</mat-option>
+                    }
+                  </mat-select>
+                  @if (form.controls.startTime.invalid && form.controls.startTime.touched) {
+                    <mat-error>Start time is required</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+
+              <!-- End Date & Time Row -->
+              <div class="date-time-row">
+                <mat-form-field appearance="outline" class="date-field">
+                  <mat-label>End Date</mat-label>
+                  <input
+                    matInput
+                    [matDatepicker]="endPicker"
+                    formControlName="endDate"
+                    (dateChange)="onEndDateChanged()"
+                    [matDatepickerFilter]="endDateFilter"
+                  />
+                  <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #endPicker></mat-datepicker>
+                  @if (form.controls.endDate.invalid && form.controls.endDate.touched) {
+                    <mat-error>End date is required</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="time-field">
+                  <mat-label>End Time</mat-label>
+                  <mat-select formControlName="endTime">
+                    @for (h of endHourOptions(); track h) {
+                      <mat-option [value]="h">{{ formatHour(h) }}</mat-option>
+                    }
+                  </mat-select>
+                  @if (form.controls.endTime.invalid && form.controls.endTime.touched) {
+                    <mat-error>End time is required</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Standalone error for the date range validation -->
+            @if (form.hasError('orderInvalid') && form.touched) {
+              <div class="form-errors form-errors--range" role="alert">
+                <p>End date and time must be after the start date and time.</p>
+              </div>
+            }
+          </section>
+
+          <!-- ====================================================== -->
+          <!-- SECTION 3: DOWNTIME REASON                             -->
+          <!-- ====================================================== -->
+          <section>
+            <div class="section-header">Downtime Reason</div>
+            <mat-form-field appearance="outline" class="downtime-reason-form">
+              <mat-label>Select reason</mat-label>
+              <mat-select formControlName="reason">
+                @for (r of reasons(); track r) {
+                  <mat-option [value]="r">{{ r }}</mat-option>
+                }
+              </mat-select>
+              @if (form.controls.reason.invalid && form.controls.reason.touched) {
+                <mat-error>Reason is required</mat-error>
+              }
+            </mat-form-field>
+          </section>
+
+          <!-- Other form-level validation errors -->
+          <ng-container>
+            @let e = form.errors;
+            @if (e && !e['orderInvalid']) {
+              <div id="scheduleFormErrors" class="form-errors" role="alert">
+                @if (e['minDuration']) {
+                  <p>Minimum downtime is {{ minHours }} hour(s).</p>
+                }
+                @if (e['stepInvalid']) {
+                  <p>Duration must be in whole hours.</p>
+                }
+              </div>
+            }
+          </ng-container>
+
+          <!-- Form action buttons -->
+          <footer class="form-actions">
+            <button
+              type="button"
+              mat-stroked-button
+              class="cancel-button"
+              (click)="resetForm(true)"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              mat-flat-button
+              color="primary"
+              class="submit-button"
+              [disabled]="form.invalid || isSubmitting()"
+              [attr.aria-busy]="isSubmitting()"
+            >
+              {{ isSubmitting() ? 'Scheduling…' : 'Schedule Application Downtime' }}
+            </button>
+          </footer>
+        </form>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
