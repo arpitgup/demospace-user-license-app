@@ -175,44 +175,10 @@ def get_availability_by_application(
             status_code=404,
             detail=f"Application with ID {req.application_id} not found or is not active.",
         )
-    
-    # Check for scheduled downtime for the requested application
-    conflicting_downtime = (
-        db.query(ApplicationDowntime)
-        .filter(
-            ApplicationDowntime.application_id == req.application_id,
-            ApplicationDowntime.status.in_(
-                [DowntimeStatus.PENDING, DowntimeStatus.ACTIVE]
-            ),
-            ApplicationDowntime.downtime_start < (req.start_time + timedelta(hours=req.duration_hours)),
-            ApplicationDowntime.downtime_end > req.start_time,
-        )
-        .first()
-    )
-
-    if conflicting_downtime:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Application '{application.name}' has scheduled downtime that conflicts with your requested time.",
-        )
-
-    # Find all bots that support the requested application
-    supporting_bots = (
-        db.query(Bot)
-        .join(BotApplication)
-        .filter(BotApplication.application_id == req.application_id)
-        .all()
-    )
-
-    if not supporting_bots:
-        raise HTTPException(
-            status_code=404,
-            detail=f"No bots found that support application ID {req.application_id}",
-        )
 
     req_end_time = req.start_time + timedelta(hours=req.duration_hours)
 
-    # Cool-off check for requested slot
+    # Check for a cool-off period
     if is_user_in_cool_off(
         user_email,
         req.start_time,
@@ -224,24 +190,53 @@ def get_availability_by_application(
             next_available_slots=[],
         )
 
-    # Check availability for the requested time slot
-    available_bots_in_req_slot = []
-    for bot in supporting_bots:
-        available_apps = get_bot_availability_in_slot(
-            bot, req.start_time, req_end_time, db
+    # Check for scheduled downtime for the requested application
+    downtime_conflict = (
+        db.query(ApplicationDowntime)
+        .filter(
+            ApplicationDowntime.application_id == req.application_id,
+            ApplicationDowntime.status.in_(
+                [DowntimeStatus.PENDING, DowntimeStatus.ACTIVE]
+            ),
+            ApplicationDowntime.downtime_start < req_end_time,
+            ApplicationDowntime.downtime_end > req.start_time,
         )
-        # Check if the bot is available for the *specifically requested* application
-        if any(app.id == req.application_id for app in available_apps):
-            available_bots_in_req_slot.append(
-                AvailableBotInfo(
-                    id=bot.id,
-                    name=bot.name,
-                    email=bot.email,
-                    applications=available_apps,
-                )
-            )
+        .first()
+    )
 
-    # If bots are available for the requested slot, return that single slot
+    # Check for bot availability for the requested time slot
+    available_bots_in_req_slot = []
+    # Only perform this check if there is no downtime conflict
+    if not downtime_conflict:
+        supporting_bots = (
+            db.query(Bot)
+            .join(BotApplication)
+            .filter(BotApplication.application_id == req.application_id)
+            .all()
+        )
+
+        if not supporting_bots:
+            # If no bots support the app, raise an exception
+            raise HTTPException(
+                status_code=404,
+                detail=f"No bots found that support application ID {req.application_id}",
+            )
+            
+        for bot in supporting_bots:
+            available_apps = get_bot_availability_in_slot(
+                bot, req.start_time, req_end_time, db
+            )
+            if any(app.id == req.application_id for app in available_apps):
+                available_bots_in_req_slot.append(
+                    AvailableBotInfo(
+                        id=bot.id,
+                        name=bot.name,
+                        email=bot.email,
+                        applications=available_apps,
+                    )
+                )
+
+    # If bots are available for the requested slot, or if the slot is unavailable but `get_next_slots` is false
     if available_bots_in_req_slot:
         return AvailabilityByApplicationResponse(
             requested_slot_available=True,
@@ -254,21 +249,37 @@ def get_availability_by_application(
             ],
         )
 
+    # If the requested slot is unavailable (due to downtime, cool-off, or other conflicts)
+    # and `get_next_slots` is false, return an empty response
     if not req.get_next_slots:
         return AvailabilityByApplicationResponse(
             requested_slot_available=False,
             next_available_slots=[],
         )
 
-    # If no bots are available, find the next N available slots
+    # Find the next N available slots
     next_slots = []
-
     rolling_window_hours = app_config[ROLLING_WINDOW_HOURS]
     reservation_lead_days = app_config[RESERVATION_LEAD_DAYS]
     max_slots = app_config[MAX_SLOTS_TO_FIND]
 
-    search_start_time = req.start_time + timedelta(hours=rolling_window_hours)
+    # Start searching from the next logical time after the requested slot
+    search_start_time = req_end_time + timedelta(hours=rolling_window_hours)
     max_end_time = req.start_time + timedelta(days=reservation_lead_days)
+
+    # Find all bots that support the requested application for the upcoming search loop
+    supporting_bots = (
+        db.query(Bot)
+        .join(BotApplication)
+        .filter(BotApplication.application_id == req.application_id)
+        .all()
+    )
+    if not supporting_bots:
+        # If no bots support the app at all, we can't find any future slots
+        return AvailabilityByApplicationResponse(
+            requested_slot_available=False,
+            next_available_slots=[],
+        )
 
     while len(next_slots) < max_slots and search_start_time < max_end_time:
         potential_start = search_start_time
@@ -284,6 +295,23 @@ def get_availability_by_application(
             app_config[RESERVATION_COOL_OFF_HOURS],
             db,
         ):
+            search_start_time += timedelta(hours=rolling_window_hours)
+            continue
+
+        # Check for downtime on the next potential slot
+        downtime_conflict_next = (
+            db.query(ApplicationDowntime)
+            .filter(
+                ApplicationDowntime.application_id == req.application_id,
+                ApplicationDowntime.status.in_([DowntimeStatus.PENDING, DowntimeStatus.ACTIVE]),
+                ApplicationDowntime.downtime_start < potential_end,
+                ApplicationDowntime.downtime_end > potential_start,
+            )
+            .first()
+        )
+        
+        # Skip this slot if downtime is found
+        if downtime_conflict_next:
             search_start_time += timedelta(hours=rolling_window_hours)
             continue
 
