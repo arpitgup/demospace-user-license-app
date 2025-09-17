@@ -236,7 +236,7 @@ def get_availability_by_application(
                     )
                 )
 
-    # If bots are available in previous 'if' block then return it OR else If its empty because Downtime conflict is there, move to next execution.
+    # If bots are available in previous 'if' block then return it OR else If its empty because Downtime conflict is there, move to next executions.
     if available_bots_in_req_slot:
         return AvailabilityByApplicationResponse(
             requested_slot_available=True,
