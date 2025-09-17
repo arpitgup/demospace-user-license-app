@@ -204,8 +204,8 @@ def get_availability_by_application(
         .first()
     )
 
-    # Check for bot availability for the requested time slot
     available_bots_in_req_slot = []
+    
     # Only perform this check if there is no downtime conflict
     if not downtime_conflict:
         supporting_bots = (
@@ -236,7 +236,7 @@ def get_availability_by_application(
                     )
                 )
 
-    # If bots are available for the requested slot, or if the slot is unavailable but `get_next_slots` is false
+    # If bots are available in previous 'if' block then return it OR else If its empty because Downtime conflict is there, move to next execution.
     if available_bots_in_req_slot:
         return AvailabilityByApplicationResponse(
             requested_slot_available=True,
@@ -249,8 +249,8 @@ def get_availability_by_application(
             ],
         )
 
-    # If the requested slot is unavailable (due to downtime, cool-off, or other conflicts)
-    # and `get_next_slots` is false, return an empty response
+    # `get_next_slots` is false, return an empty response.
+    # `get_next_slots` is true, move to next executions.
     if not req.get_next_slots:
         return AvailabilityByApplicationResponse(
             requested_slot_available=False,
@@ -266,8 +266,7 @@ def get_availability_by_application(
     # Start searching from the next logical time after the requested slot
     search_start_time = req_end_time + timedelta(hours=rolling_window_hours)
     max_end_time = req.start_time + timedelta(days=reservation_lead_days)
-
-    # Find all bots that support the requested application for the upcoming search loop
+    
     supporting_bots = (
         db.query(Bot)
         .join(BotApplication)
@@ -310,7 +309,7 @@ def get_availability_by_application(
             .first()
         )
         
-        # Skip this slot if downtime is found
+        # Skip this slot if downtime is found & continue looking next slots.
         if downtime_conflict_next:
             search_start_time += timedelta(hours=rolling_window_hours)
             continue
