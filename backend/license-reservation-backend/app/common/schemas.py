@@ -247,3 +247,15 @@ class DowntimeBulkCancelResponse(CamelModel):
 class RemoveAppFromReservationsRequest(CamelModel):
     primary_application_id: int
     secondary_application_ids: Optional[List[int]] = []
+
+class UserValidationRequest(BaseModel):
+    token: str
+
+class UserDetails(BaseModel):
+    email: EmailStr
+    name: str    
+    is_present: bool
+
+class UserValidationResponse(BaseModel):    
+    token_valid: bool
+    user_details: Optional[UserDetails] = None    
