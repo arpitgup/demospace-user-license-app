@@ -42,13 +42,28 @@ app.include_router(config.router, tags=["App Config"])
 app.include_router(admin.router, tags=["Admin"])
 
 
+
+def get_user_ldap(user_email: str) -> str:   
+    try:
+        local_part = user_email.split('@')[0]        
+        dash_index = local_part.find('-')
+        
+        if dash_index != -1:
+            return local_part[:dash_index]
+        else:
+            return ""
+            
+    except IndexError:
+        return ""
+
 @app.get("/api/me", tags=["User"])
 def get_user_info(user_email: str = Depends(get_user_email)):
-    user = admin_service.get_user(user_email)
-    user_name_info = user["name"]
+    # user = admin_service.get_user(user_email)
+    # user_name_info = user["name"]
+    user_ldap = get_user_ldap(user_email)
     return UserInfo(
-        email=user["primaryEmail"],
-        given_name=user_name_info["givenName"],
-        family_name=user_name_info["familyName"],
-        full_name=user_name_info["fullName"],
+        email=user_email,
+        given_name=user_ldap,
+        family_name="",
+        full_name=""
     )
