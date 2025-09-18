@@ -4,8 +4,16 @@
     class="application-tabs"
     (selectedTabChange)="onTabChange($event)"
   >
-    <mat-tab label="Listed Applications"> </mat-tab>
+    <mat-tab label="Listed Applications">
+      <app-admin-application-table></app-admin-application-table>
+    </mat-tab>
 
-    <mat-tab label="Add New Application"> </mat-tab>
+    <mat-tab label="Add New Application">
+      @if(selectedIndex===1){
+      <app-admin-create-application
+        (applicationCreationSuccess)="applicationCreationSuccess()"
+      ></app-admin-create-application>
+      }
+    </mat-tab>
   </mat-tab-group>
 </div>

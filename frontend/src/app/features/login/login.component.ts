@@ -9,6 +9,10 @@ import { Router } from '@angular/router';
 
 import { jwtDecode } from 'jwt-decode';
 import { timer } from 'rxjs';
+import { LoginService } from '../../core/services/login.service';
+import { LoginRequest } from '../../core/models/login-request.model';
+import { MatDialog } from '@angular/material/dialog';
+import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
 
 declare const google: any;
 
@@ -24,6 +28,8 @@ export class LoginComponent {
   private ngZone = inject(NgZone);
   private router = inject(Router);
   isGoogleLoginInitialized: boolean = false;
+  readonly loginService = inject(LoginService);
+  readonly dialog = inject(MatDialog);
 
   ngOnInit(): void {
     this.initializeGoogleLogin();
@@ -41,6 +47,7 @@ export class LoginComponent {
     google.accounts.id.initialize({
       client_id:
         '385039775654-deso4nja1vond0f98j0p4vic6uvt91su.apps.googleusercontent.com',
+      hosted_domain: 'google.com',
       callback: (response: any) => this.handleCredentialResponse(response),
     });
     google.accounts.id.renderButton(
@@ -53,13 +60,42 @@ export class LoginComponent {
   handleCredentialResponse(response: any): void {
     this.ngZone.run(() => {
       const token = response.credential;
-      const decodedToken: any = jwtDecode(token);
-      if (decodedToken) {
-        localStorage.setItem('userEmail', decodedToken.email);
-        localStorage.setItem('googleIdToken', token);
-        console.log('///////', sessionStorage.getItem('googleIdToken'));
-        this.router.navigate(['/admin']);
+      if (token) {
+        this.callUserLoginApi(token);
       }
+    });
+  }
+  callUserLoginApi(token: string) {
+    const request: LoginRequest = { token: token };
+    this.loginService.userLogin(request).subscribe({
+      next: (res) => {
+        if (res.token_valid && res.user_details && res.user_details.email) {
+          localStorage.setItem('userEmail', res.user_details.email);
+          localStorage.setItem('googleIdToken', token);
+          this.router.navigate(['/admin']);
+        } else {
+          this.showErrorDialog(
+            'Unable to retrive user details. Please try again'
+          );
+        }
+      },
+      error: (error) => {
+        this.showErrorDialog(error?.error?.detail || 'Something went wrong');
+      },
+    });
+  }
+
+  showErrorDialog(message: string) {
+    this.dialog.open(ErrorDialog, {
+      width: 'auto',
+      minWidth: '41.86rem',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        message: message,
+      },
     });
   }
 }
