@@ -72,11 +72,11 @@ export class AdminApplicationTableComponent {
   ];
 
   readonly SEARCH_APPLICATION_FORM = 'searchApplication';
-  readonly SEARCH_CATEGORY_FORM = 'searchCategory';
+  readonly SEARCH_LICENSE_TYPE = 'searchLicense';
 
   searchForm: FormGroup = this.fb.group({
     [this.SEARCH_APPLICATION_FORM]: [''],
-    [this.SEARCH_CATEGORY_FORM]: [''],
+    [this.SEARCH_LICENSE_TYPE]: [''],
   });
 
   constructor() {
@@ -128,16 +128,20 @@ export class AdminApplicationTableComponent {
           ? item.name
               .toLowerCase()
               .includes(
-                this.searchForm.get(this.SEARCH_APPLICATION_FORM)?.value
+                this.searchForm
+                  .get(this.SEARCH_APPLICATION_FORM)
+                  ?.value?.toLowerCase()
               )
           : true
       )
       .filter((item) =>
-        this.searchForm.get(this.SEARCH_CATEGORY_FORM)?.value !== ''
+        this.searchForm.get(this.SEARCH_LICENSE_TYPE)?.value !== ''
           ? item.licenseType
               ?.toLowerCase()
               ?.includes(
-                this.searchForm.get(this.SEARCH_APPLICATION_FORM)?.value
+                this.searchForm
+                  .get(this.SEARCH_LICENSE_TYPE)
+                  ?.value?.toLowerCase()
               ) ?? true
           : true
       );
@@ -151,7 +155,7 @@ export class AdminApplicationTableComponent {
   clearSearchValues() {
     this.isRefreshCall.set(true);
     this.searchForm.get(this.SEARCH_APPLICATION_FORM)?.patchValue('');
-    this.searchForm.get(this.SEARCH_CATEGORY_FORM)?.patchValue('');
+    this.searchForm.get(this.SEARCH_LICENSE_TYPE)?.patchValue('');
     this.isRefreshCall.set(false);
   }
 

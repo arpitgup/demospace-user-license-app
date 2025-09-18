@@ -28,6 +28,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
 import { ErrorDialog } from '../../../shared/dialogs/error-dialog/error-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { ErrorMessage } from '../../../shared/components/error-message/error-message';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-admin-bots-table',
@@ -40,6 +41,7 @@ import { ErrorMessage } from '../../../shared/components/error-message/error-mes
     MatSortModule,
     MatCheckbox,
     ErrorMessage,
+    MatIconModule
   ],
   templateUrl: './admin-bots-table.component.html',
   styleUrl: './admin-bots-table.component.scss',

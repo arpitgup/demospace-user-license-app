@@ -6,7 +6,12 @@
     [errorMessage]="errorMessage()"
     (retryClicked)="onRetryCall()"
   ></app-error-message>
-  } @else{
+  } @else{ @if(dataSource.data.length===0){
+  <div class="empty-data-message">
+    <mat-icon class="empty-data-icon">info_outline</mat-icon>
+    <span> No bots to display</span>
+  </div>
+  }@else{
   <table mat-table [dataSource]="dataSource" matSort class="custom-table">
     <ng-container matColumnDef="botId">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Bot ID</th>
@@ -117,5 +122,5 @@
     aria-label="Select page of bots"
   >
   </mat-paginator>
-  }
+  } }
 </div>
