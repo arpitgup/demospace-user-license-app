@@ -50,7 +50,6 @@ from ..utils.crud import get_bot_with_supported_apps, create_bot, update_bot
 
 router = APIRouter(prefix="/admin")
 
-
 def build_response(bots: List[Bot]) -> List[BotWithApplicationsOut]:
     """
     Helper function to convert a list of Bot models to BotWithApplicationsOut objects.

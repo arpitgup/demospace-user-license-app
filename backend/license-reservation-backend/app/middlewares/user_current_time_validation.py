@@ -11,7 +11,7 @@ class UserCurrentTimeValidationMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         
         # Skip swagger documentation endpoints
-        if request.url.path.startswith("/docs") or request.url.path.startswith("/openapi.json"):
+        if request.url.path.startswith("/docs") or request.url.path.startswith("/openapi.json") or request.url.path.startswith("/auth"):
             return await call_next(request)
 
         try:
