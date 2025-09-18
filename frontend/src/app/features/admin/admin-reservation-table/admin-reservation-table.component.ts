@@ -163,7 +163,7 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
               application.name
                 .toLowerCase()
                 .includes(
-                  this.searchForm.get(this.SEARCH_APPLICATION_FORM)?.value
+                  this.searchForm.get(this.SEARCH_APPLICATION_FORM)?.value?.toLowerCase()
                 )
             )
           : true

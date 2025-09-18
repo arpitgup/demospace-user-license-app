@@ -21,12 +21,12 @@
     </div>
     <div class="custom-form-field">
       <mat-form-field appearance="outline">
-        <mat-label>Search by category</mat-label>
+        <mat-label>Search by license type</mat-label>
         <mat-icon matPrefix>search</mat-icon>
         <input
           matInput
-          [formControlName]="SEARCH_CATEGORY_FORM"
-          placeholder="Search by category"
+          [formControlName]="SEARCH_LICENSE_TYPE"
+          placeholder="Search by license type"
         />
       </mat-form-field>
     </div>
@@ -36,6 +36,12 @@
     </div>
   </form>
 
+  @if(dataSource.data.length===0){
+  <div class="empty-data-message">
+    <mat-icon class="empty-data-icon">info_outline</mat-icon>
+    <span> No applications to display</span>
+  </div>
+  }@else{
   <table mat-table [dataSource]="dataSource" matSort class="custom-table">
     <ng-container matColumnDef="applicationId">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Application ID</th>
@@ -76,8 +82,8 @@
             Activate Application
           </mat-checkbox>
         </div>
-        }@else{ @if(element.isActive===true){ Active } 
-        @else if(element.isActive===false){ InActive } }
+        }@else{ @if(element.isActive===true){ Active }
+         @else if(element.isActive===false){ InActive } }
       </td>
     </ng-container>
 
@@ -119,5 +125,5 @@
     aria-label="Select page of application"
   >
   </mat-paginator>
-  }
+  } }
 </div>
