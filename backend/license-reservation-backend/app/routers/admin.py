@@ -50,6 +50,7 @@ from ..utils.crud import get_bot_with_supported_apps, create_bot, update_bot
 
 router = APIRouter(prefix="/admin")
 
+# cache has been disabled from admin_service
 
 def build_response(bots: List[Bot]) -> List[BotWithApplicationsOut]:
     """
