@@ -13,5 +13,7 @@ export interface Application {
   isSelected: boolean;
   isEnabled: boolean;
   isRemove?: boolean;
-  remainingLicenseCount?:number;
+  isEditable?: boolean;
+  isPaused?: boolean;
+  remainingLicenseCount?: number;
 }

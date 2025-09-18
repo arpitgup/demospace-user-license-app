@@ -83,8 +83,12 @@
       <span class="reset-text">Refresh</span>
     </div>
   </form>
-  }
-
+  } @if(dataSource.data.length===0){
+  <div class="empty-data-message">
+    <mat-icon class="empty-data-icon">info_outline</mat-icon>
+    <span> No reservations to display</span>
+  </div>
+  }@else{
   <table mat-table [dataSource]="dataSource" matSort class="custom-table">
     <ng-container matColumnDef="select">
       <th mat-header-cell *matHeaderCellDef>
@@ -202,5 +206,5 @@
     aria-label="Select page of reservations"
   >
   </mat-paginator>
-  }
+  } }
 </div>

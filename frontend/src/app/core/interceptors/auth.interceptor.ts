@@ -16,13 +16,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return throwError(() => new Error('Invalid request'));
   }
 
-  if (!userEmail) {
+  if (!userEmail && !req.url.includes('login')) {
     return next(req);
   }
 
   const clonedReq = req.clone({
     headers: req.headers
-      .set('x-demo-user-email', userEmail)
+      .set('x-demo-user-email', userEmail || '')
       .set('x-user-current-time', new Date().toISOString()),
   });
   return next(clonedReq);

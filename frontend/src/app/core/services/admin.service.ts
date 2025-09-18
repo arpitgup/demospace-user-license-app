@@ -9,6 +9,8 @@ import { BulkCancelReservationRequest } from '../models/bulk-cancel-reservation-
 import { ReservationApplicationRequest } from '../models/reservation-application-request.model';
 import { AdminBotsResponse } from '../models/admin-bots-response.model';
 import { Application } from '../models/application.model';
+import { CreateApplicationRequest } from '../models/create-application-request.model';
+import { UpdateApplicationRequest } from '../models/update-application-request.model';
 
 @Injectable({
   providedIn: 'root',
@@ -22,6 +24,10 @@ export class AdminService {
 
   private botsErrorState = signal<string[]>([]);
   public readonly botsError = this.botsErrorState.asReadonly();
+
+  public refreshApplicationsState = signal<boolean>(false);
+  public readonly refreshApplications =
+    this.refreshApplicationsState.asReadonly();
 
   fetchAllReservations(): Observable<Reservation[]> {
     return this.http
@@ -61,10 +67,26 @@ export class AdminService {
       reservationApplicationRequest
     );
   }
-  
+
   fetchAllApplications(): Observable<Application[]> {
     return this.http.get<Application[]>(`${this.apiUrl}/admin/applications`);
   }
 
-  
+  createApplication(
+    request: CreateApplicationRequest
+  ): Observable<Application> {
+    return this.http.post<Application>(
+      `${this.apiUrl}/admin/applications`,
+      request
+    );
+  }
+
+  updateApplication(
+    request: UpdateApplicationRequest
+  ): Observable<Application> {
+    return this.http.patch<Application>(
+      `${this.apiUrl}/admin/applications`,
+      request
+    );
+  }
 }

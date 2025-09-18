@@ -8,6 +8,8 @@ import {
   MatTabGroup,
   MatTabsModule,
 } from '@angular/material/tabs';
+import { AdminApplicationTableComponent } from '../admin-application-table/admin-application-table.component';
+import { AdminCreateApplicationComponent } from '../admin-create-application/admin-create-application.component';
 
 @Component({
   selector: 'app-admin-applications',
@@ -17,6 +19,8 @@ import {
     MatInputModule,
     MatIconModule,
     ReactiveFormsModule,
+    AdminApplicationTableComponent,
+    AdminCreateApplicationComponent,
   ],
   templateUrl: './admin-applications.component.html',
   styleUrl: './admin-applications.component.scss',
@@ -29,7 +33,7 @@ export class AdminApplicationsComponent {
     this.selectedIndex = event.index;
   }
 
-  botCreation() {
+  applicationCreationSuccess() {
     this.tabGroup.selectedIndex = 0;
   }
 }
