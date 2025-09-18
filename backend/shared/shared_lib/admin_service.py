@@ -11,8 +11,8 @@ from typing import List
 from .utils import get_secret_value
 from .db.models import Application, Bot
 
-USER_CACHE_SIZE = 128
-USER_CACHE_TTL_SECONDS = 3600
+# USER_CACHE_SIZE = 128
+# USER_CACHE_TTL_SECONDS = 3600
 
 
 def setup_admin_service():
@@ -34,10 +34,10 @@ def setup_admin_service():
 
 
 admin_service = setup_admin_service()
-cache = TTLCache(maxsize=USER_CACHE_SIZE, ttl=USER_CACHE_TTL_SECONDS)
+# cache = TTLCache(maxsize=USER_CACHE_SIZE, ttl=USER_CACHE_TTL_SECONDS)
 
 
-@cached(cache)
+# @cached(cache)
 def get_user(user_email):
     """Fetches user details from Google Workspace."""
     try:
@@ -51,7 +51,7 @@ def get_user(user_email):
         return None
 
 
-@cached(cache)
+# @cached(cache)
 def is_user_in_group(user_email: str, group_email: str) -> bool:
     """Checks if a user is a member of a Google Workspace group."""
     try:
