@@ -52,7 +52,7 @@ router = APIRouter(prefix="/admin")
 
 def build_response(bots: List[Bot]) -> List[BotWithApplicationsOut]:
     """
-    Helper function to convert a list of Bot models to BotWithApplicationsOut objects.
+    Helper function to convert a list of Bot models to BotWithApplicationsOut objects .
     """
     res = []
     for bot in bots:
