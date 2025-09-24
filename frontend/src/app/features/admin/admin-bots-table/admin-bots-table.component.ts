@@ -41,7 +41,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatSortModule,
     MatCheckbox,
     ErrorMessage,
-    MatIconModule
+    MatIconModule,
   ],
   templateUrl: './admin-bots-table.component.html',
   styleUrl: './admin-bots-table.component.scss',
@@ -59,7 +59,8 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   public readonly botsResponse = this.adminService.bots;
   public readonly errorMessage = signal<string>('');
   private dialog = inject(MatDialog);
-
+  applicationList: Application[] = [];
+  botList: AdminBotsResponse[] = [];
   @ViewChild(MatSort) set sort(sort: MatSort) {
     if (sort) {
       this.dataSource.sort = sort;
@@ -134,6 +135,7 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
       applications: this.adminService.fetchAllApplications(),
     }).subscribe({
       next: (data) => {
+        this.applicationList = data.applications;
         this.updateApplicationAvailability(data.applications);
         this.adminBotsList = data.adminBots
           .map((item) => {
@@ -141,6 +143,7 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
             return item;
           })
           .sort((a, b) => a.id - b.id);
+        this.botList = this.adminBotsList.map((item) => ({ ...item }));
         this.dataSource.data = this.adminBotsList;
         this.isLoading.set(false);
       },
@@ -213,6 +216,7 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (res) => {
           this.updateApplicationAvailability(res.applications);
+          this.applicationList = res.applications;
           const index = this.adminBotsList.findIndex(
             (item) => item.id === botId
           );
@@ -222,9 +226,11 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
           );
 
           this.adminBotsList.splice(index, 1, adminBotResponse[0]);
+           this.botList = this.adminBotsList.map((item) => ({ ...item }));
           this.dataSource.data = this.adminBotsList;
         },
         error: (error) => {
+          this.loadingService.hide();
           this.showErrorDialog(error?.error?.detail || 'Something went wrong');
         },
         complete: () => {
@@ -234,9 +240,12 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   }
 
   onCancelUpdateBot(botId: number) {
+    this.updateApplicationAvailability(this.applicationList);
+    const bot = this.botList.find((item) => item.id === botId);
     this.dataSource.data = this.adminBotsList.map((item) => {
       if (item.id === botId) {
         item.isEditable = false;
+        item.applicationIds = bot?.applicationIds ?? [];
       }
       return item;
     });

@@ -112,7 +112,7 @@ export class AdminCreateApplicationComponent implements OnInit {
         ?.value?.toString()
         .trim()
         ?.replace(' ', ''),
-      is_active: false,
+      is_active: true,
       license_type: this.createApplicationForm.get(this.APPLICATION_TYPE_FORM)
         ?.value,
       license_group: this.createApplicationForm.get(
