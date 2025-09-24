@@ -115,17 +115,21 @@
     .mat-column-licenseType {
       width: 10%;
     }
-    .mat-column-listedDate {
-      width: 15%;
+    .mat-column-assignedToBots {
+      width: 10%;
     }
     .mat-column-status {
-      width: 15%;
+      width: 20%;
     }
-    .mat-column-remainingCount {
+    .mat-column-licenseCount {
       width: 10%;
     }
     .mat-column-action {
       width: 25%;
+    }
+    .centered{
+       text-align: center;
+      justify-content: center;
     }
 
     .mat-mdc-row:nth-child(odd) {

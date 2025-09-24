@@ -58,20 +58,15 @@
     </ng-container>
 
     <ng-container matColumnDef="licenseType">
-      <th mat-header-cell *matHeaderCellDef>License Type</th>
-      <td mat-cell *matCellDef="let element">
+      <th mat-header-cell *matHeaderCellDef class="centered">License Type</th>
+      <td mat-cell *matCellDef="let element" class="centered">
         {{ element.licenseType }}
       </td>
     </ng-container>
 
-    <ng-container matColumnDef="listedDate">
-      <th mat-header-cell *matHeaderCellDef>Listed Date</th>
-      <td mat-cell *matCellDef="let element"></td>
-    </ng-container>
-
     <ng-container matColumnDef="status">
-      <th mat-header-cell *matHeaderCellDef>Status</th>
-      <td mat-cell *matCellDef="let element">
+      <th mat-header-cell *matHeaderCellDef class="centered">Status</th>
+      <td mat-cell *matCellDef="let element" class="centered">
         @if(element.isEditable===true){
         <div class="active-application-wrapper">
           <mat-checkbox
@@ -87,10 +82,19 @@
       </td>
     </ng-container>
 
-    <ng-container matColumnDef="remainingCount">
-      <th mat-header-cell *matHeaderCellDef>Remaining Count</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.remainingLicenseCount }}
+    <ng-container matColumnDef="assignedToBots">
+      <th mat-header-cell *matHeaderCellDef class="centered">
+        Assigned To Bots
+      </th>
+      <td mat-cell *matCellDef="let element" class="centered">
+        {{ element.licenseAssignedToBots }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="licenseCount">
+      <th mat-header-cell *matHeaderCellDef class="centered">License Count</th>
+      <td mat-cell *matCellDef="let element" class="centered">
+        {{ element.licenseCount }}
       </td>
     </ng-container>
 
