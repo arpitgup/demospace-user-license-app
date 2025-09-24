@@ -200,7 +200,8 @@ class ApplicationWithLicenseGroupOut(ApplicationOut):
     license_group: Optional[str] = None
     license_count: Optional[int] = None
     license_assigned_to_Bots: int
-
+    created_at: Optional[datetime] = None
+    created_by: Optional[str] = None
 
 class ApplicationUpdate(CamelModel):
     id: int
