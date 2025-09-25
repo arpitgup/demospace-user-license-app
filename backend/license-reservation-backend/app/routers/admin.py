@@ -82,9 +82,9 @@ def get_applications(db: Session = Depends(get_db)):
     )
 
     applications_with_count = []
-    for application, count in query_result:        
-        app_data = application.__dict__        
-        app_data['license_assigned_to_Bots'] = count        
+    for application, count in query_result:
+        app_data = application.__dict__
+        app_data['license_assigned_to_Bots'] = count
         applications_with_count.append(ApplicationWithLicenseGroupOut.model_validate(app_data))
 
     return applications_with_count
@@ -135,6 +135,92 @@ def update_applications(
         raise HTTPException(
             status_code=500,
             detail="An unexpected error occurred during application update.",
+        )
+
+@router.patch("/applications/{application_id}", status_code=status.HTTP_204_NO_CONTENT)
+def update_application_status(
+    application_id: int,
+    req: UpdateApplicationStatusRequest,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+):
+    """
+    Activates or deactivates an application.
+    """
+    logger.info(
+        f"Admin User {user_email}: Updating application {application_id} status to {req.is_active}"
+    )
+
+    application = db.query(Application).filter(Application.id == application_id).first()
+
+    if not application:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Application not found")
+
+    application.is_active = req.is_active
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"An unexpected error occurred during application status update: {e}"
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="An unexpected error occurred during application status update.",
+        )
+
+
+@router.post(
+    "/applications",
+    response_model=ApplicationCreateResponse
+)
+def create_applications(
+    req: ApplicationCreateRequest,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email)
+):
+    """
+    Creates multiple new application
+    """
+    logger.info(f"Admin user {user_email}: Creating a new application with name: {req.name}")
+    
+    try:       
+        new_application = Application(**req.model_dump())
+        db.add(new_application)
+        db.commit()
+        
+        # Refresh the object to get the generated ID
+        db.refresh(new_application)
+
+        saml_attribute_name = create_saml_attribute(new_application.name, ACCOUNT_CUSTOMERID)
+
+        logger.info(f"Successfully created application with ID: {new_application.id}")
+        return ApplicationCreateResponse(
+            id=new_application.id,
+            name=new_application.name,
+            is_active=req.is_active,
+            license_type=req.license_type,
+            license_group=req.license_group,
+            license_count=req.license_count,
+            created_by=req.created_by,
+            saml_attribute_name=saml_attribute_name
+        )
+        
+    except IntegrityError as e:
+        db.rollback()        
+        logger.error(f"IntegrityError during application creation - {e}")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Application with name '{req.name}' already exists."
+        )
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"Failed to create application {req.name} - {e}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while creating the application.",
         )
 
 @router.patch("/reservations/{reservation_id}", response_model=ReservationOut)
@@ -199,39 +285,6 @@ def remove_app_from_reservations(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred while removing app from reservation.",
         )
-
-@router.patch("/applications/{application_id}", status_code=status.HTTP_204_NO_CONTENT)
-def update_application_status(
-    application_id: int,
-    req: UpdateApplicationStatusRequest,
-    db: Session = Depends(get_db),
-    user_email: str = Depends(get_user_email),
-):
-    """
-    Activates or deactivates an application.
-    """
-    logger.info(
-        f"Admin User {user_email}: Updating application {application_id} status to {req.is_active}"
-    )
-
-    application = db.query(Application).filter(Application.id == application_id).first()
-
-    if not application:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Application not found")
-
-    application.is_active = req.is_active
-    try:
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        logger.error(
-            f"An unexpected error occurred during application status update: {e}"
-        )
-        raise HTTPException(
-            status_code=500,
-            detail="An unexpected error occurred during application status update.",
-        )
-
 
 @router.get("/reservations", response_model=List[ReservationOut])
 def get_all_reservations(
@@ -738,55 +791,3 @@ def bulk_cancel_downtime(
         successfully_cancelled=successfully_cancelled,
         failed_to_cancel=failed_to_cancel
     )
-
-@router.post(
-    "/applications",
-    response_model=ApplicationCreateResponse
-)
-def create_applications(
-    req: ApplicationCreateRequest,
-    db: Session = Depends(get_db),
-    user_email: str = Depends(get_user_email)
-):
-    """
-    Creates multiple new application
-    """
-    logger.info(f"Admin user {user_email}: Creating a new application with name: {req.name}")
-    
-    try:       
-        new_application = Application(**req.model_dump())                
-        db.add(new_application)
-        db.commit()
-        
-        # Refresh the object to get the generated ID
-        db.refresh(new_application)
-
-        saml_attribute_name = create_saml_attribute(new_application.name, ACCOUNT_CUSTOMERID)
-
-        logger.info(f"Successfully created application with ID: {new_application.id}")        
-        return ApplicationCreateResponse(
-            id=new_application.id,
-            name=new_application.name,
-            is_active=req.is_active,
-            license_type=req.license_type,
-            license_group=req.license_group,
-            license_count=req.license_count,
-            saml_attribute_name=saml_attribute_name
-        )
-        
-    except IntegrityError as e:
-        db.rollback()        
-        logger.error(f"IntegrityError during application creation - {e}")
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Application with name '{req.name}' already exists."
-        )
-    except Exception as e:
-        db.rollback()
-        logger.error(
-            f"Failed to create application {req.name} - {e}"
-        )
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred while creating the application.",
-        )

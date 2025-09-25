@@ -68,6 +68,8 @@ class Application(Base):
     )
     license_group = Column(String, nullable=True)
     license_count = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))    
+    created_by = Column(String, nullable=False)
 
     supported_by_bots = relationship("BotApplication", back_populates="application")
     reservations = relationship(
