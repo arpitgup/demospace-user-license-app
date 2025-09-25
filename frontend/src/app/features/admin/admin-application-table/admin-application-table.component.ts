@@ -65,9 +65,9 @@ export class AdminApplicationTableComponent {
     'applicationId',
     'application',
     'licenseType',
-    'listedDate',
     'status',
-    'remainingCount',
+    'assignedToBots',
+    'licenseCount',
     'action',
   ];
 
