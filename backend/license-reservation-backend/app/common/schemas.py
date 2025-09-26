@@ -212,11 +212,10 @@ class ApplicationUpdate(CamelModel):
     is_active: bool
     license_type: ApplicationLicenseType
     license_group: Optional[str] = None
-
+    license_count: Optional[int] = None
 
 class UpdateApplicationsRequest(CamelModel):
     applications: List[ApplicationUpdate]
-
 
 class UserInfo(CamelModel):
     email: str
