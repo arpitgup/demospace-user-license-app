@@ -201,15 +201,14 @@ def remove_user_from_group(user_email: str, group_email: str):
         raise e
 
 
-def create_saml_attribute(application_name, account_customerID):
+def create_custom_schema(custom_schema_name, account_customerID):
     """
     Creates a custom SAML attribute schema for a given application using a synchronous insert API.
     """
-    admin_service = setup_admin_service()
-    schema_name = f"SAML_{application_name.upper()}"
+    admin_service = setup_admin_service()    
 
     request_body = {
-        "displayName": schema_name,
+        "displayName": custom_schema_name,
         "fields": [
             {
                 "displayName": "Email",
@@ -222,22 +221,22 @@ def create_saml_attribute(application_name, account_customerID):
                 "fieldType": "STRING"
             }
         ],
-        "schemaName": schema_name
+        "schemaName": custom_schema_name
     }
 
     try:
-        logger.info(f"Creating new SAML attribute schema: {schema_name}.")
+        logger.info(f"Creating new SAML attribute schema: {custom_schema_name}.")
         response = admin_service.schemas().insert(
             customerId=account_customerID,
             body=request_body
         ).execute()
         logger.info(
-            f"Successfully created SAML attribute schema for {application_name}."
+            f"Successfully created SAML attribute schema {custom_schema_name}."
             f" Response: {response}"
         )
         return response.get("schemaName")
     except Exception as e:
         logger.error(
-            f"Error occurred while creating SAML attribute schema for {application_name}: {e}"
+            f"Error occurred while creating SAML attribute schema for {custom_schema_name}: {e}"
         )        
         raise e

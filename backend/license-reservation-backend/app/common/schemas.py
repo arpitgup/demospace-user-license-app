@@ -173,19 +173,19 @@ class ApplicationCreateRequest(BaseModel):
     name: str
     is_active: bool
     license_type: ApplicationLicenseType
+    custom_SAML_attribute: Optional[str] = None
     license_group: str
-    license_count: int
-    created_by: str
+    license_count: int    
 
 class ApplicationCreateResponse(BaseModel):
     id: int
     name: str
     is_active: bool
     license_type: ApplicationLicenseType
+    custom_SAML_attribute: Optional[str] = None
     license_group: Optional[str] = None
     license_count: Optional[int] = None
-    created_by: Optional[str] = None
-    saml_attribute_name: str
+    created_by: Optional[str] = None    
 
 class ExtendReservationRequest(CamelModel):
     end_time: datetime
@@ -199,6 +199,7 @@ class UpdateApplicationStatusRequest(CamelModel):
 
 class ApplicationWithLicenseGroupOut(ApplicationOut):
     license_type: ApplicationLicenseType
+    custom_SAML_attribute: Optional[str] = None
     license_group: Optional[str] = None
     license_count: Optional[int] = None
     license_assigned_to_Bots: int
