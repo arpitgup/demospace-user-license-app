@@ -96,24 +96,54 @@ def update_applications(
     user_email: str = Depends(get_user_email),
 ):
     """
-    Updates the status and license group for multiple applications.
+    Updates name, status, license count & license group for multiple applications.
     """
     logger.info(f"Admin User {user_email}: Updating applications: {req.applications}")
+    
     app_ids = [app.id for app in req.applications]
-    apps_in_db = db.query(Application).filter(Application.id.in_(app_ids)).all()
 
+    apps_in_db = db.query(Application).filter(Application.id.in_(app_ids)).all()
     if len(apps_in_db) != len(app_ids):
         raise HTTPException(
             status.HTTP_404_NOT_FOUND, detail="One or more applications not found"
         )
 
+    assigned_bots_count = (
+        db.query(Application.id, func.count(Bot.id).label('assigned_licenses'))
+        .outerjoin(Application.bots)
+        .filter(Application.id.in_(app_ids))
+        .group_by(Application.id)
+        .all()
+    )
+    assigned_bots_count_map = {
+        app_id: count for app_id, count in assigned_bots_count
+    }
     app_map = {app.id: app for app in apps_in_db}
 
     for app_update in req.applications:
         app_in_db = app_map[app_update.id]
+        # --- License Count Validation ---
+        new_license_count_str = app_update.license_count
+        assigned_count = assigned_bots_count_map.get(app_update.id, 0)
+        try:
+            new_license_count = int(new_license_count_str) if new_license_count_str else 0
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid license count format for application ID {app_update.id}. Must be an integer or None.",
+            )
+        if new_license_count < assigned_count:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    f"Assigned licenses are {assigned_count}. Cannot reduce the license count for application '{app_in_db.name}' to {new_license_count}."                    
+                ),
+            )
+        # --- End License Count Validation ---
         app_in_db.name = app_update.name
         app_in_db.is_active = app_update.is_active
         app_in_db.license_type = app_update.license_type
+        app_in_db.license_count = app_update.license_count
 
         if (
             app_update.license_type == ApplicationLicenseType.ENVIRONMENT
