@@ -645,7 +645,7 @@ def create_application_downtime(
     """
     Records downtime for a list of applications and schedules tasks to manage them.
     Checks for any overlapping downtimes or reservations before creation.
-    Appllicable for only inActive applications.
+    Applicable for only inActive applications.
     """
     logger.info(
         f"Admin User {user_email}: Creating downtime entry for applications: {req.applications}"
