@@ -480,7 +480,22 @@ def update_bot_applications(
 def create_bots(request: BotsCreateRequest, db: Session = Depends(get_db)):
     """
     Creates one or more new bots with their associated applications , checking for license count first.
-    """
+    """ 
+    # Check for the requested emails if already exist or not.
+    requested_emails = [bot_data.email for bot_data in request.bots]
+    existing_bots = (
+        db.query(Bot.email)
+        .filter(Bot.email.in_(requested_emails))
+        .all()
+    )
+    # Showing tuples for my understading: existing_bots = [('bot1@example.com',), ('bot2@example.com',)]
+    if existing_bots:        
+        existing_emails = [bot[0] for bot in existing_bots]
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Bot with Email '{', '.join(existing_emails)}' already exist.",
+        )
+    
     new_app_ids = set()
     for bot_data in request.bots:
         new_app_ids.update(bot_data.application_ids)
