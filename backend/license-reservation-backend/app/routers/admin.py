@@ -645,6 +645,7 @@ def create_application_downtime(
     """
     Records downtime for a list of applications and schedules tasks to manage them.
     Checks for any overlapping downtimes or reservations before creation.
+    Applicable for only inActive applications.
     """
     logger.info(
         f"Admin User {user_email}: Creating downtime entry for applications: {req.applications}"
@@ -656,6 +657,15 @@ def create_application_downtime(
     if len(apps_in_db) != len(app_ids):
         raise HTTPException(
             status.HTTP_404_NOT_FOUND, detail="One or more applications not found."
+        )
+
+    # Check for the active applications (Which are not allowed)
+    active_applications = [app.name for app in apps_in_db if app.is_active is True]
+    if active_applications:
+        active_app_names = ", ".join(active_applications)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot schedule downtime. The following applications are currently ACTIVE and must be INACTIVE: {active_app_names}",
         )
 
     # Check for overlapping existing downtimes
