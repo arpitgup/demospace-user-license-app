@@ -16,7 +16,7 @@ from shared_lib.db.models import (
 from shared_lib.dependencies import get_user_email, get_db
 from typing import List
 from shared_lib.enums import DowntimeStatus
-from shared_lib.admin_service import create_saml_attribute
+from shared_lib.admin_service import create_custom_schema
 from ..common.constants import ACCOUNT_CUSTOMERID
 
 from ..common.schemas import (
@@ -184,27 +184,24 @@ def create_applications(
     """
     logger.info(f"Admin user {user_email}: Creating a new application with name: {req.name}")
     
-    try:       
-        new_application = Application(**req.model_dump())
+    try:
+        custom_schema_name = f"SAML_{req.custom_SAML_attribute.upper()}"
+        
+        application_data = req.model_dump()
+        application_data['custom_SAML_attribute'] = custom_schema_name
+        application_data['created_by'] = user_email
+
+        new_application = Application(**application_data)
         db.add(new_application)
         db.commit()
         
         # Refresh the object to get the generated ID
         db.refresh(new_application)
 
-        saml_attribute_name = create_saml_attribute(new_application.name, ACCOUNT_CUSTOMERID)
+        custom_schema_created = create_custom_schema(custom_schema_name, ACCOUNT_CUSTOMERID)
 
         logger.info(f"Successfully created application with ID: {new_application.id}")
-        return ApplicationCreateResponse(
-            id=new_application.id,
-            name=new_application.name,
-            is_active=req.is_active,
-            license_type=req.license_type,
-            license_group=req.license_group,
-            license_count=req.license_count,
-            created_by=req.created_by,
-            saml_attribute_name=saml_attribute_name
-        )
+        return new_application
         
     except IntegrityError as e:
         db.rollback()        
