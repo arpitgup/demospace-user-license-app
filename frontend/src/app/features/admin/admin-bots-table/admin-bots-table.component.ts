@@ -75,9 +75,10 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
 
   displayedColumns: string[] = [
     'botId',
+    'botName',
     'botEmail',
     'applications',
-    'status',
+    'reserved',
     'action',
   ];
 
@@ -99,7 +100,8 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
               application.name.toLowerCase().includes(newValue)
             ) ||
             item.email.toLowerCase().includes(newValue) ||
-            item.id.toString().toLowerCase().includes(newValue)
+            item.id.toString().toLowerCase().includes(newValue) ||
+            item.name.toString().toLowerCase().includes(newValue)
         );
       }
     });
@@ -226,7 +228,7 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
           );
 
           this.adminBotsList.splice(index, 1, adminBotResponse[0]);
-           this.botList = this.adminBotsList.map((item) => ({ ...item }));
+          this.botList = this.adminBotsList.map((item) => ({ ...item }));
           this.dataSource.data = this.adminBotsList;
         },
         error: (error) => {

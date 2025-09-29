@@ -1,15 +1,26 @@
-import { Component, inject, signal, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  inject,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { TableLoaderComponent } from '../../../loaders/table-loader/table-loader.component';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { ErrorMessage } from '../../../shared/components/error-message/error-message';
 import { AdminService } from '../../../core/services/admin.service';
 import { LoaderService } from '../../../core/services/loading.service';
 import { Application } from '../../../core/models/application.model';
 import { MatDialog } from '@angular/material/dialog';
-import { error } from 'console';
 import { ErrorDialog } from '../../../shared/dialogs/error-dialog/error-dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { toObservable } from '@angular/core/rxjs-interop';
@@ -48,7 +59,9 @@ export class AdminApplicationTableComponent {
   public readonly botsResponse = this.adminService.bots;
   public readonly errorMessage = signal<string>('');
   private dialog = inject(MatDialog);
-
+  readonly applicationNameController = new FormControl('');
+  readonly licenseCountController = new FormControl('');
+  private cdr = inject(ChangeDetectorRef);
   @ViewChild(MatSort) set sort(sort: MatSort) {
     if (sort) {
       this.dataSource.sort = sort;
@@ -64,10 +77,11 @@ export class AdminApplicationTableComponent {
   displayedColumns: string[] = [
     'applicationId',
     'application',
+    'customSamlAttribute',
     'licenseType',
     'status',
-    'assignedToBots',
     'licenseCount',
+    'assignedToBots',
     'action',
   ];
 
@@ -187,21 +201,52 @@ export class AdminApplicationTableComponent {
       ...element,
       isEditable: element.id === id ? true : false,
     }));
+    const applicationDetails = this.adminApplications.find(
+      (element) => element.id === id
+    );
+    this.applicationNameController.setValue(applicationDetails?.name || '');
+    this.licenseCountController.setValue(
+      applicationDetails?.licenseCount?.toString() ?? '0'
+    );
+    this.applicationNameController.setValidators([Validators.required]);
+    this.licenseCountController.setValidators([
+      Validators.required,
+      Validators.maxLength(3),
+      Validators.min(applicationDetails?.licenseAssignedToBots ?? 0),
+    ]);
     this.updateApplicationTable();
   }
   onSaveDetails(application: Application) {
+    if (
+      this.applicationNameController.invalid ||
+      this.licenseCountController.invalid
+    ) {
+      return;
+    }
     this.adminApplications = this.adminApplications.map((element) => ({
       ...element,
       isEditable: false,
     }));
-    this.callUpdateApplicationTable(application);
+    this.callUpdateApplicationTable(
+      application,
+      this.applicationNameController.value,
+      this.licenseCountController.value
+    );
+
+    this.clearFormValues();
+    this.cdr.detectChanges();
   }
   onCancelUpdate() {
     this.adminApplications = this.adminApplications.map((element) => ({
       ...element,
       isEditable: false,
     }));
+    this.clearFormValues();
     this.updateApplicationTable();
+  }
+  clearFormValues() {
+    this.applicationNameController.setValue('');
+    this.licenseCountController.setValue('');
   }
   onActiveApplication(value: boolean, applicationId: number) {
     this.adminApplications = this.adminApplications.map((element) => ({
@@ -215,15 +260,20 @@ export class AdminApplicationTableComponent {
     this.dataSource.data = this.adminApplications;
   }
 
-  callUpdateApplicationTable(application: Application) {
+  callUpdateApplicationTable(
+    application: Application,
+    applicationName: string | null,
+    licenseCount: string | null
+  ) {
     const request: UpdateApplicationRequest = {
       applications: [
         {
           id: application.id,
-          name: application.name,
+          name: applicationName ?? '',
           isActive: application.isActive,
           licenseType: application.licenseType,
           licenseGroup: application.licenseGroup,
+          licenseCount: licenseCount ?? '0',
         },
       ],
     };

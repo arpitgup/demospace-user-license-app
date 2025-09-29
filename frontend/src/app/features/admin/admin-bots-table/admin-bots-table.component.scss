@@ -43,16 +43,19 @@
     td.mat-mdc-cell {
       border-bottom-width: 0;
     }
-    .mat-column-bot-id {
+    .mat-column-botId {
       width: 10%;
     }
-    .mat-column-bot-email {
-      width: 20%;
+    .mat-column-botName {
+      width: 10%;
+    }
+    .mat-column-botEmail {
+      width: 10%;
     }
     .mat-column-applications {
       width: 30%;
     }
-    .mat-column-status {
+    .mat-column-reserved {
       width: 15%;
     }
     .mat-column-action {

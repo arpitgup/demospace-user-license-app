@@ -8,4 +8,5 @@ interface ApplicationDetails {
   isActive: boolean;
   licenseType?: string;
   licenseGroup?: string;
+  licenseCount:string;
 }

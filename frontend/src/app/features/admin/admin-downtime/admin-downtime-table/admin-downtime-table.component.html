@@ -164,10 +164,15 @@
         Downtime Period
       </th>
       <td mat-cell *matCellDef="let row">
+        @if(row.isSameDay===true){
         {{ formatDate(row.downtime_start) | date : "MMMM d, y, h:mm a" }} –
         {{ formatDate(row.downtime_end) | date : "h:mm a " }}({{
           localTimeAbbrevation
-        }})
+        }}) }@else{
+        {{ formatDate(row.downtime_start) | date : "MMMM d, y, h:mm a" }} –
+        {{ formatDate(row.downtime_end) | date : "MMMM d, y, h:mm a" }}({{
+          localTimeAbbrevation
+        }}) }
       </td>
     </ng-container>
 

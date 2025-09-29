@@ -272,7 +272,16 @@ export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
-          this.allDowntimes.set(data.map((d) => ({ ...d, isSelected: false })));
+          this.allDowntimes.set(
+            data.map((d) => ({
+              ...d,
+              isSelected: false,
+              isSameDay: isSameDay(
+                new Date(d.downtime_start),
+                new Date(d.downtime_end)
+              ),
+            }))
+          );
           this.showCancelCta.set(false);
           this.selectAll.set(false);
 
@@ -391,9 +400,8 @@ export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
         cancelText: 'Cancel',
         applications: '',
         licenseTitle: '',
-        startDateTime:'',
-        endDateTime:''
-
+        startDateTime: '',
+        endDateTime: '',
       },
     });
 

@@ -10,6 +10,7 @@ export interface Application {
   licenseGroup?: string;
   licenseCount?: number;
   licenseAssignedToBots?: number;
+  customSamlAttribute?: string;
   isSelected: boolean;
   isEnabled: boolean;
   isRemove?: boolean;

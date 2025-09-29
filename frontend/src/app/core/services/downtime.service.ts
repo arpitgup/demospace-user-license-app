@@ -24,6 +24,7 @@ export interface Downtime {
   downtime_reason: string;
   created_by: string;
   status: string; // e.g., 'PENDING', 'ACTIVE', 'COMPLETED', 'CANCELLED'
+  isSameDay?:boolean;
 }
 
 /**

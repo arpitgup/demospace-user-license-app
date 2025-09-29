@@ -1,0 +1,84 @@
+<div class="reservation-wrapper">
+  <form [formGroup]="createReservationForm" class="form-wrapper">
+    <mat-card class="card-wrapper">
+      <h4>Enter user Details</h4>
+      <mat-form-field appearance="outline" class="custom-form-field">
+        <mat-label>User Name</mat-label>
+        <input
+          matInput
+          placeholder="User Name*"
+          [formControlName]="USER_NAME_FORM"
+        />
+      </mat-form-field>
+      <div class="sized-box"></div>
+      <mat-form-field appearance="outline" class="custom-form-field">
+        <mat-label>User Email Id</mat-label>
+        <input
+          matInput
+          placeholder="User Email Id*"
+          [formControlName]="USER_EMAIL_FORM"
+        />
+      </mat-form-field>
+      <mat-divider class="custom-divider"></mat-divider>
+      <h4>Select Date Range</h4>
+      <div class="date-wrapper">
+        <mat-form-field appearance="outline" class="custom-date-picker">
+          <mat-label>Start Date</mat-label>
+          <input matInput [matDatepicker]="picker" />
+          <mat-datepicker-toggle
+            matIconSuffix
+            [for]="picker"
+          ></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="custom-date-picker">
+          <mat-label>Start Time</mat-label>
+          <input matInput [matTimepicker]="timePicker" />
+          <mat-timepicker-toggle matIconSuffix [for]="timePicker" />
+          <mat-timepicker #timePicker />
+        </mat-form-field>
+      </div>
+      <div class="sized-box"></div>
+      <div class="date-wrapper">
+        <mat-form-field appearance="outline" class="custom-date-picker">
+          <mat-label>End Date</mat-label>
+          <input matInput [matDatepicker]="endDatePicker" />
+          <mat-datepicker-toggle
+            matIconSuffix
+            [for]="endDatePicker"
+          ></mat-datepicker-toggle>
+          <mat-datepicker #endDatePicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="custom-date-picker">
+          <mat-label>End Time</mat-label>
+          <input matInput [matTimepicker]="endTimePicker" />
+          <mat-timepicker-toggle matIconSuffix [for]="endTimePicker" />
+          <mat-timepicker #endTimePicker />
+        </mat-form-field>
+      </div>
+      <div class="sized-box-bottom"></div>
+    </mat-card>
+
+    <mat-card class="card-wrapper">
+      <h4>Select the Applications</h4>
+      <div class="app-chip-list">
+        @for(app of applications; track app.id){
+        <div class="app-chip-wrapper">
+          <span class="tick-icon">&#10003;</span>
+          <span class="app-chip-text">{{ app.name }}</span>
+        </div>
+        }
+      </div>
+      <mat-divider class="custom-divider"></mat-divider>
+      <div class="sized-box-reservation"></div>
+      <div class="confirm-reservation">
+        <button matButton class="confirm-reservation-button">
+          Confirm Reservation
+         
+        </button>
+      </div>
+    </mat-card>
+  </form>
+</div>

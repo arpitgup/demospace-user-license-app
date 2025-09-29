@@ -56,6 +56,25 @@
         >
         }
       </mat-form-field>
+      }@else if(applicationType()===adminApplicationTypeEnums.SUBSCRIPTION){
+      <mat-form-field appearance="outline" class="custom-form-field">
+        <mat-label>Custom SAML Attribute</mat-label>
+        <input
+          matInput
+          placeholder="Custom SAML Attribute*"
+          [formControlName]="SAML_GROUP_NAME_FORM"
+          maxlength="200"
+        />
+        @if(createApplicationForm.get(SAML_GROUP_NAME_FORM)?.hasError('required')&&
+        createApplicationForm.get(SAML_GROUP_NAME_FORM)?.touched){
+        <mat-error>Custom saml attribute required</mat-error>
+        } @else if(createApplicationForm.get(SAML_GROUP_NAME_FORM)?.hasError('pattern')&&
+        createApplicationForm.get(SAML_GROUP_NAME_FORM)?.touched){
+        <mat-error
+          >Custom saml attribute not valid. Only characters allowed</mat-error
+        >
+        }
+      </mat-form-field>
       }
 
       <mat-form-field appearance="outline" class="custom-form-field">
