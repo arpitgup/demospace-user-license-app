@@ -2,6 +2,7 @@ from fastapi import Request, HTTPException, status
 from starlette.middleware.base import BaseHTTPMiddleware
 from shared_lib import admin_service
 from starlette.responses import JSONResponse
+from loguru import logger
 
 from ..common.constants import X_DEMO_USER_EMAIL_HEADER, PORTAL_ADMIN_GROUP_EMAIL
 
