@@ -172,7 +172,7 @@ export class AdminApplicationTableComponent {
     this.searchForm.get(this.SEARCH_LICENSE_TYPE)?.patchValue('');
     this.isRefreshCall.set(false);
   }
-
+  //Fetch all admin applications
   getAllAdminApplications() {
     this.isLoading.set(true);
     this.adminService.fetchAllApplications().subscribe({
