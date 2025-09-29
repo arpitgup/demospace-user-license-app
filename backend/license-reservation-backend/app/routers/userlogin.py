@@ -53,37 +53,36 @@ def validate_user(
             detail=f"An error occurred during token validation: {e}"
         )
     
-    username = user_email.split('@')[0]
-    altostrat_email = f"{username}-agentspace-demo-user@1987984870407.altostrat.com"    
+    # username = user_email.split('@')[0]
+    # altostrat_email = f"{username}-agentspace-demo-user@1987984870407.altostrat.com"    
     
     try:
-        user = admin_service.get_user(altostrat_email)
-        print(user)
+        user = admin_service.get_user(user_email)        
         if not user:        
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                content={"detail": f"User {altostrat_email} is not valid."}
+                content={"detail": f"User {user_email} is not valid."}
         )
             
         given_name = user.get('name', {}).get('givenName', '')
         family_name = user.get('name', {}).get('familyName', '')
         username = f"{given_name} {family_name}".strip()
 
-        db_user = db.query(User).filter(User.email == altostrat_email).one_or_none()
-        
-        if not db_user:
-            logger.info(f"User {altostrat_email} not found in DB.")
-            new_user = User(name=username, email=altostrat_email)
-            db.add(new_user)
-            db.commit()
-            db.refresh(new_user)
-            db_user = new_user            
-            logger.info(f"User created with ID {db_user.id}.")
-        else:
-            logger.info(f"User {altostrat_email} already exists in DB.")
+        # New Check if user belongs to admin group or not
+        try:
+            if not admin_service.is_user_in_group(user_email, "agentspace-license-app-admin@1987984870407.altostrat.com"):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail=f"User {user_email} is not authorized to perform this operation.",
+                )
+
+        except HTTPException as http_exc:
+            return JSONResponse(
+                status_code=http_exc.status_code, content={"detail": http_exc.detail}
+            )
         
         user_details = UserDetails(
-            email=altostrat_email,
+            email=user_email,
             name=username,
             is_present=True
         )
