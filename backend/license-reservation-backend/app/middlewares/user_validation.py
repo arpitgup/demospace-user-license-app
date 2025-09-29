@@ -4,7 +4,7 @@ from shared_lib import admin_service
 from starlette.responses import JSONResponse
 
 from ..common.constants import X_DEMO_USER_EMAIL_HEADER
-
+from loguru import logger
 
 class UserValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
