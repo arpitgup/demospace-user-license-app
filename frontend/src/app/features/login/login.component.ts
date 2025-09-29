@@ -47,7 +47,7 @@ export class LoginComponent {
     google.accounts.id.initialize({
       client_id:
         '385039775654-deso4nja1vond0f98j0p4vic6uvt91su.apps.googleusercontent.com',
-      hosted_domain: 'google.com',
+      hosted_domain: '1987984870407.altostrat.com',
       callback: (response: any) => this.handleCredentialResponse(response),
     });
     google.accounts.id.renderButton(

@@ -28,7 +28,6 @@ import { ErrorDialog } from '../../../shared/dialogs/error-dialog/error-dialog';
 import { LoaderService } from '../../../core/services/loading.service';
 import { ApplicationType } from '../../../core/models/application-type.model';
 
-
 @Component({
   selector: 'app-admin-create-application',
   imports: [
@@ -51,6 +50,7 @@ export class AdminCreateApplicationComponent implements OnInit {
   readonly APPLICATION_TYPE_FORM = 'appplicationType';
   readonly PLATFORM_GROUP_EMAIL_FORM = 'platformGroupEmail';
   readonly NUMBER_OF_LICENSES_FORM = 'numberOfLicenses';
+  readonly SAML_GROUP_NAME_FORM = 'samlGroupName';
   readonly adminApplicationTypeEnums = AdminCreateApplicationEnums;
   readonly applicationType = signal<AdminCreateApplicationEnums | null>(null);
   applicationTypeList: ApplicationType[] = [
@@ -62,6 +62,7 @@ export class AdminCreateApplicationComponent implements OnInit {
     [this.APPLICATION_NAME_FORM]: ['', Validators.required],
     [this.APPLICATION_TYPE_FORM]: ['', [Validators.required]],
     [this.PLATFORM_GROUP_EMAIL_FORM]: [''],
+    [this.SAML_GROUP_NAME_FORM]: [''],
     [this.NUMBER_OF_LICENSES_FORM]: [
       '',
       [Validators.required, Validators.maxLength(3)],
@@ -88,13 +89,31 @@ export class AdminCreateApplicationComponent implements OnInit {
                 /^[a-zA-Z0-9-]+-agentspace-demo-user@1987984870407.altostrat.com$/
               ),
             ]);
+          this.createApplicationForm
+            .get(this.SAML_GROUP_NAME_FORM)
+            ?.setValidators([]);
         } else if (newValue === AdminCreateApplicationEnums.SUBSCRIPTION) {
           this.createApplicationForm
             .get(this.PLATFORM_GROUP_EMAIL_FORM)
             ?.setValidators([]);
+          this.createApplicationForm
+            .get(this.SAML_GROUP_NAME_FORM)
+            ?.setValidators([
+              Validators.required,
+              Validators.pattern('^[a-zA-Z]+$'),
+            ]);
         }
         this.createApplicationForm
+          .get(this.SAML_GROUP_NAME_FORM)
+          ?.patchValue('');
+        this.createApplicationForm
           .get(this.PLATFORM_GROUP_EMAIL_FORM)
+          ?.patchValue('');
+        this.createApplicationForm
+          .get(this.PLATFORM_GROUP_EMAIL_FORM)
+          ?.updateValueAndValidity();
+        this.createApplicationForm
+          .get(this.SAML_GROUP_NAME_FORM)
           ?.updateValueAndValidity();
       });
   }
@@ -115,6 +134,10 @@ export class AdminCreateApplicationComponent implements OnInit {
       is_active: true,
       license_type: this.createApplicationForm.get(this.APPLICATION_TYPE_FORM)
         ?.value,
+      custom_SAML_attribute: this.createApplicationForm
+        .get(this.SAML_GROUP_NAME_FORM)
+        ?.value?.toString()
+        .trim(),
       license_group: this.createApplicationForm.get(
         this.PLATFORM_GROUP_EMAIL_FORM
       )?.value,
