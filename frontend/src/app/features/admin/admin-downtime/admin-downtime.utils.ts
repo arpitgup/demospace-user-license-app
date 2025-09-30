@@ -22,6 +22,9 @@ export function rangeValidator(minHoursGetter: () => number): ValidatorFn {
 
     if (end <= start) return { orderInvalid: true };
 
+    const currentDateTime=new Date();
+    if(currentDateTime>start)  return {invalidStartDateTime:true};
+    
     const diffHours = (end.getTime() - start.getTime()) / 36e5;
     const min = minHoursGetter();
 
