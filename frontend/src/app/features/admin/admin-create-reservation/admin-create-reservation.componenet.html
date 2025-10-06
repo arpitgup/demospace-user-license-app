@@ -157,7 +157,11 @@
         <button
           matButton
           class="confirm-reservation-button"
-          [class.disabled]="true"
+          [class.disabled]="
+            createReservationForm.invalid ||
+            minDurationError().length > 0 ||
+            selectedApplications().trim().length <= 0
+          "
         >
           Confirm Reservation
         </button>
