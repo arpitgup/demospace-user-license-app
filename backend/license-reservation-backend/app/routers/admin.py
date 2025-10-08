@@ -16,7 +16,7 @@ from shared_lib.db.models import (
 from shared_lib.dependencies import get_user_email, get_db
 from typing import List
 from shared_lib.enums import DowntimeStatus
-from shared_lib.admin_service import create_custom_schema, is_group_exists
+from shared_lib.admin_service import create_custom_schema, is_group_exists, get_user
 from ..common.constants import ACCOUNT_CUSTOMERID
 
 from ..common.schemas import (
@@ -549,6 +549,19 @@ def create_bots(request: BotsCreateRequest, db: Session = Depends(get_db)):
             detail=f"Bot with Email '{', '.join(existing_emails)}' already exist.",
         )
     
+    # Check Bot User Email Validity if exist in workspace or not.
+    invalid_emails = []
+    for email in requested_emails:        
+        user = get_user(email)
+        if not user:
+            invalid_emails.append(email)
+            continue
+    if invalid_emails:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Bot Email '{', '.join(invalid_emails)}' does not exists.",
+        )
+
     new_app_ids = set()
     for bot_data in request.bots:
         new_app_ids.update(bot_data.application_ids)
