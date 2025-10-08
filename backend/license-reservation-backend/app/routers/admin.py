@@ -16,7 +16,7 @@ from shared_lib.db.models import (
 from shared_lib.dependencies import get_user_email, get_db
 from typing import List
 from shared_lib.enums import DowntimeStatus
-from shared_lib.admin_service import create_custom_schema
+from shared_lib.admin_service import create_custom_schema, is_group_exists
 from ..common.constants import ACCOUNT_CUSTOMERID
 
 from ..common.schemas import (
@@ -215,39 +215,62 @@ def create_applications(
     logger.info(f"Admin user {user_email}: Creating a new application with name: {req.name}")
     
     try:
-        custom_schema_name = f"SAML_{req.custom_SAML_attribute.upper()}"
+        # Check first the app Name is already exist or not.
+        app_name = db.query(Application).filter(Application.name == req.name).all()
+        if app_name:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Application with name '{req.name}' already exists."
+            )
         
         application_data = req.model_dump()
-        application_data['custom_SAML_attribute'] = custom_schema_name
-        application_data['created_by'] = user_email
+                
+        if req.license_type == ApplicationLicenseType.SUBSCRIPTION:
+            if not req.custom_SAML_attribute:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Custom SAML attribute is required for subscription applications.",
+                )
+            custom_schema_name = f"SAML_{req.custom_SAML_attribute.upper()}"
+            custom_schema_created = create_custom_schema(custom_schema_name, ACCOUNT_CUSTOMERID)
+            application_data['custom_SAML_attribute'] = custom_schema_name
 
+        elif req.license_group:            
+            if not is_group_exists(req.license_group):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"{req.license_group} is not a valid group.",
+                )            
+        
+        application_data['created_by'] = user_email
         new_application = Application(**application_data)
+        
         db.add(new_application)
         db.commit()
-        
-        # Refresh the object to get the generated ID
         db.refresh(new_application)
-
-        custom_schema_created = create_custom_schema(custom_schema_name, ACCOUNT_CUSTOMERID)
 
         logger.info(f"Successfully created application with ID: {new_application.id}")
         return new_application
         
     except IntegrityError as e:
-        db.rollback()        
-        logger.error(f"IntegrityError during application creation - {e}")
+        db.rollback()
+        logger.error(f"Database integrity error: {e}")
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Application with name '{req.name}' already exists."
+            status_code=500,
+            detail="Could not create reservation due to a database error.",
         )
+            
+    except HTTPException:        
+        raise
+
     except Exception as e:
         db.rollback()
         logger.error(
-            f"Failed to create application {req.name} - {e}"
+            f"Failed to create application {req.name} due to unexpected error - {type(e).__name__}: {e}"
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred while creating the application.",
+            detail="An unexpected error occurred while creating the application. Check server logs for details."
         )
 
 @router.patch("/reservations/{reservation_id}", response_model=ReservationOut)
