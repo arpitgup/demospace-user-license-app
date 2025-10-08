@@ -50,8 +50,6 @@ def get_user(user_email):
             logger.error(f"An error occurred while trying to fetch user: {error}")
         return None
 
-
-@cached(cache)
 def is_user_in_group(user_email: str, group_email: str) -> bool:
     """Checks if a user is a member of a Google Workspace group."""
     try:
@@ -240,3 +238,26 @@ def create_custom_schema(custom_schema_name, account_customerID):
             f"Error occurred while creating SAML attribute schema for {custom_schema_name}: {e}"
         )        
         raise e
+
+def is_group_exists(group_email):
+    """
+    Check if the Group Email exists in workspace.
+    """
+    try:
+        admin_service.groups().get(groupKey=group_email).execute()
+        return True
+    except HttpError as e:
+        if e.resp.status == 404:
+            logger.error(f"Group {group_email} does not exist.")
+            return False
+        else:
+            logger.error(
+                f"Error occurred while checking group {group_email} in workspace: {e}"
+            )
+            raise e
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred while checking group {group_email} in workspace: {e}"
+        )
+        raise e
+        
