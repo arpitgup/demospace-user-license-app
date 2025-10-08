@@ -84,10 +84,10 @@ export class AdminCreateApplicationComponent implements OnInit {
             .get(this.PLATFORM_GROUP_EMAIL_FORM)
             ?.setValidators([
               Validators.required,
-              Validators.email,
-              Validators.pattern(
-                /^[a-zA-Z0-9-]+-agentspace-demo-user@1987984870407.altostrat.com$/
-              ),
+              Validators.email
+              // Validators.pattern(
+              //   /^[a-zA-Z0-9-]+-agentspace-demo-user@1987984870407.altostrat.com$/
+              // ),
             ]);
           this.createApplicationForm
             .get(this.SAML_GROUP_NAME_FORM)
