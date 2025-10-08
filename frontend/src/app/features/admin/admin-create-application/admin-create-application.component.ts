@@ -86,7 +86,7 @@ export class AdminCreateApplicationComponent implements OnInit {
               Validators.required,
               Validators.email,
               Validators.pattern(
-                /^@1987984870407.altostrat.com$/
+                /^[a-zA-Z0-9-]+@1987984870407.altostrat.com$/
               ),
             ]);
           this.createApplicationForm

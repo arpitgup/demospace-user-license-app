@@ -61,7 +61,7 @@ export class AdminCreateBotComponent implements OnInit {
       [
         Validators.required,
         Validators.email,
-        Validators.pattern(/^@1987984870407.altostrat.com$/),
+        Validators.pattern(/^[a-zA-Z0-9-]+@1987984870407.altostrat.com$/),
       ],
     ],
     [this.BOT_APPLICATIONS_FORM]: ['', Validators.required],
@@ -151,7 +151,7 @@ export class AdminCreateBotComponent implements OnInit {
     }
     const applicationsIds = this.selectedApplications().map((item) => item.id);
     const botDetais: BotDetails = {
-      name: this.createBotForm.get(this.BOT_EMAIL_FORM)?.value ?? '',
+      name: this.createBotForm.get(this.BOT_NAME_FORM)?.value ?? '',
       email: this.createBotForm.get(this.BOT_EMAIL_FORM)?.value ?? '',
       is_admin: this.isAdmin(),
       application_ids: applicationsIds,
