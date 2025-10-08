@@ -118,6 +118,7 @@ def make_reservation(
         db.query(Bot)
         .join(Bot.supported_applications)
         .filter(BotApplication.application_id.in_(unique_app_ids))
+        .filter(Bot.is_admin == False)
         .group_by(Bot.id)
         .having(func.count(BotApplication.application_id) == len(unique_app_ids))
     )
