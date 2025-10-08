@@ -44,7 +44,7 @@ import { BotService } from '../../../core/services/bot.service';
   templateUrl: './admin-create-bot.component.html',
   styleUrl: './admin-create-bot.component.scss',
 })
-export class AdminCreateBotComponent implements OnInit{
+export class AdminCreateBotComponent implements OnInit {
   readonly adminService = inject(AdminService);
   readonly botService = inject(BotService);
   private fb = inject(FormBuilder);
@@ -56,7 +56,14 @@ export class AdminCreateBotComponent implements OnInit{
 
   createBotForm: FormGroup = this.fb.group({
     [this.BOT_NAME_FORM]: ['', Validators.required],
-    [this.BOT_EMAIL_FORM]: ['', [Validators.required, Validators.email]],
+    [this.BOT_EMAIL_FORM]: [
+      '',
+      [
+        Validators.required,
+        Validators.email,
+        Validators.pattern(/^@1987984870407.altostrat.com$/),
+      ],
+    ],
     [this.BOT_APPLICATIONS_FORM]: ['', Validators.required],
   });
 

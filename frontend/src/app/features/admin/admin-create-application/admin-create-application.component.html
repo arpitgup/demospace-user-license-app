@@ -49,10 +49,10 @@
         @if(createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.hasError('required')&&
         createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.touched){
         <mat-error>Platform group email required</mat-error>
-        } @else if(createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.hasError('email')&&
+        } @else if(createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.hasError('pattern')&&
         createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.touched){
         <mat-error
-          >Invalid email</mat-error
+          >Email not valid. 1987984870407.altostrat.com email required</mat-error
         >
         }
       </mat-form-field>
