@@ -36,7 +36,7 @@
         @if(createBotForm.get(BOT_EMAIL_FORM)?.hasError('required')&&
         createBotForm.get(BOT_EMAIL_FORM)?.touched){
         <mat-error>Bot Email required</mat-error>
-        } @if(createBotForm.get(BOT_EMAIL_FORM)?.hasError('email')&&
+        } @else if(createBotForm.get(BOT_EMAIL_FORM)?.hasError('email')&&
         createBotForm.get(BOT_EMAIL_FORM)?.touched){
         <mat-error>Invalid email</mat-error>
         }

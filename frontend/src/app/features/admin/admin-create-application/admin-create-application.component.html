@@ -49,10 +49,10 @@
         @if(createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.hasError('required')&&
         createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.touched){
         <mat-error>Platform group email required</mat-error>
-        } @else if(createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.hasError('pattern')&&
+        } @else if(createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.hasError('email')&&
         createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.touched){
         <mat-error
-          >Email not valid. Agentspace-demo-user email required</mat-error
+          >Invalid email</mat-error
         >
         }
       </mat-form-field>
