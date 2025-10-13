@@ -1,0 +1,23 @@
+<div class="signup-wrapper">
+  <div class="card-wrapper">
+    <img src="assets/images/user_back.png" alt="user" class="user-icon"/>
+  </div>
+  <div class="card-signup">
+    <img
+      src="assets/svgs/app_icon.svg"
+      alt="app-icon"
+      class="app-icon"
+      @slideDown
+    />
+    <h2 @slideDown>Create Account</h2>
+    <mat-form-field appearance="outline" class="custom-form-field" @fadeIn>
+      <mat-label>First Name</mat-label>
+      <input matInput placeholder="First Name*" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="custom-form-field" @fadeIn>
+      <mat-label>Last Name</mat-label>
+      <input matInput placeholder="First Name*" />
+    </mat-form-field>
+    <button matButton class="submit-button" @slideUp>Submit</button>
+  </div>
+</div>

@@ -19,6 +19,32 @@ export const appRoutes: Routes = [
       import('./features/login/login.component').then((m) => m.LoginComponent),
   },
   {
+    path: 'details',
+    loadComponent: () =>
+      import('./features/user-details/user-details.component').then(
+        (m) => m.UserDetailsComponent
+      ),
+  },
+  {
+    path: 'home',
+    loadComponent: () =>
+      import('./features/home/home.component').then((m) => m.HomeComponent),
+  },
+  {
+    path: 'welcome',
+    loadComponent: () =>
+      import('./features/welcome/welcome.component').then(
+        (m) => m.WelcomeComponent
+      ),
+  },
+  {
+    path: 'signup',
+    loadComponent: () =>
+      import('./features/signup-user/signup-user.component').then(
+        (m) => m.SignupUserComponent
+      ),
+  },
+  {
     path: '**',
     redirectTo: '',
   },
