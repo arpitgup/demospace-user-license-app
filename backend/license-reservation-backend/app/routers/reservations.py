@@ -27,7 +27,7 @@ from ..utils.background_tasks import (
     force_reservation_tasks,
     sendReservationEmail    
 )
-from ..utils.crud import is_user_in_cool_off, is_valid_reservation_lead_time
+from ..utils.crud import is_user_in_cool_off, is_valid_reservation_lead_time, format_email_for_reservation
 
 
 router = APIRouter()
@@ -276,23 +276,3 @@ def cancel_reservation(
             email_content=format_email_for_reservation(CANCELLED_RESERVATION_EMAIL_CONTENT, reservation)
         )
         return reservation
-
-def format_email_for_reservation(emailContent, reservationDetails):
-    """
-    Replaces placeholders in the email template with reservation details.
-    """
-    start_time_str = reservationDetails.start_time.strftime("%B %d, %Y at %I:%M %p %Z")
-    end_time_str = reservationDetails.end_time.strftime("%B %d, %Y at %I:%M %p %Z")
-    
-    dynamic_details_html = ""
-    app_names = " - ".join([app.name for app in reservationDetails.applications])
-    dynamic_details_html += f"""
-    <p style="margin: 0 0 5px 0; font-size: 16px;"><strong>{app_names}</strong></p>
-    <p style="margin: 0 0 5px 0; padding-left: 20px;">&bull; Starting: {start_time_str}</p>
-    <p style="margin: 0 0 15px 0; padding-left: 20px;">&bull; Ending: {end_time_str}</p>
-    """
-    formatted_content = emailContent.replace(
-        "{{ dynamic_reservation_details }}", dynamic_details_html
-    )    
-    
-    return formatted_content
