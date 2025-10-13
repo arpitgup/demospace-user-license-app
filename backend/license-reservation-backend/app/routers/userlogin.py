@@ -11,7 +11,7 @@ from shared_lib.db.models import (
 )
 from shared_lib.dependencies import get_app_config, get_db
 from sqlalchemy.orm import Session
-from ..common.constants import ALTOSTRAT_CLIENT_ID
+from ..common.constants import ALTOSTRAT_CLIENT_ID, LICENSE_APP_ADMIN_GROUP_EMAIL
 from shared_lib import admin_service
 from ..common.schemas import (
     UserValidationRequest,
@@ -34,7 +34,7 @@ def validate_user(
     user_email = None
     
     try:        
-        idinfo = id_token.verify_oauth2_token(token, requests.Request(), app_config[ALTOSTRAT_CLIENT_ID])        
+        idinfo = id_token.verify_oauth2_token(token, requests.Request(), app_config[ALTOSTRAT_CLIENT_ID])
         user_email = idinfo.get('email')        
         if not user_email:
             return UserValidationResponse(
@@ -53,9 +53,6 @@ def validate_user(
             detail=f"An error occurred during token validation: {e}"
         )
     
-    # username = user_email.split('@')[0]
-    # altostrat_email = f"{username}-agentspace-demo-user@1987984870407.altostrat.com"    
-    
     try:
         user = admin_service.get_user(user_email)        
         if not user:        
@@ -70,7 +67,7 @@ def validate_user(
 
         # New Check if user belongs to admin group or not
         try:
-            if not admin_service.is_user_in_group(user_email, "agentspace-license-app-admin@1987984870407.altostrat.com"):
+            if not admin_service.is_user_in_group(user_email, app_config[LICENSE_APP_ADMIN_GROUP_EMAIL]):
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail=f"User {user_email} is not authorized to perform this operation.",

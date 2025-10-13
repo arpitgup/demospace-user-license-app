@@ -140,7 +140,7 @@ class AdminCreateReservationRequest(CamelModel):
     secondary_application_ids: list[int] = []
     start_time: datetime
     end_time: datetime
-    useremail: str
+    candidate_user_email: str
 
     @model_validator(mode="after")
     def check_end_time(self):

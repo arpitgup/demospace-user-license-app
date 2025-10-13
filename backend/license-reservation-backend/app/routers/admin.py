@@ -1,5 +1,6 @@
 from datetime import timezone
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status
+from fastapi.responses import JSONResponse
 from loguru import logger
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
@@ -13,12 +14,12 @@ from shared_lib.db.models import (
     ReservationStatus,
     ApplicationDowntime    
 )
-from shared_lib.dependencies import get_user_email, get_db
+from shared_lib.dependencies import get_user_email, get_db, get_app_config
 from typing import List
 from shared_lib.enums import DowntimeStatus
 from shared_lib.admin_service import create_custom_schema, is_group_exists, get_user
 from ..common.constants import ACCOUNT_CUSTOMERID, RESERVATION_EMAIL_SENDER, BOOKED_RESERVATION_EMAIL_CONTENT
-
+from datetime import datetime
 from ..common.schemas import (
     ApplicationWithLicenseGroupOut,
     BulkCancelReservationsRequest,
@@ -49,7 +50,7 @@ from ..utils.background_tasks import (
     schedule_reservation_tasks,
     sendReservationEmail
 )
-from ..utils.crud import get_bot_with_supported_apps, create_bot, update_bot
+from ..utils.crud import get_bot_with_supported_apps, create_bot, update_bot, find_available_bot, format_email_for_reservation
 
 router = APIRouter(prefix="/admin")
 
@@ -357,7 +358,9 @@ def get_all_reservations(
 def create_reservation(
     req: AdminCreateReservationRequest,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db)    
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+    app_config: dict = Depends(get_app_config)
 ):
     """
     Creates a new reservation.
@@ -365,12 +368,12 @@ def create_reservation(
     logger.info(f"Admin User {user_email}: Creating a new reservation")
     
     # CHECK 1: Check if user email exist in workspace or not.
-    user_email = req.user_email
-    user = admin_service.get_user(user_email)
+    candidate_useremail = req.candidate_user_email
+    user = get_user(candidate_useremail)
     if not user:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            content={"detail": f"User {user_email} is not valid."}
+            content={"detail": f"User {candidate_useremail} is not a valid user."}
     )
 
     all_app_ids = [req.primary_application_id] + req.secondary_application_ids
@@ -388,7 +391,8 @@ def create_reservation(
     existing_reservation = (
         db.query(Reservation)
         .filter(
-            Reservation.user_email == user_email,
+            Reservation.user_email == candidate_useremail,
+            Reservation.status.in_([ReservationStatus.ACTIVE, ReservationStatus.PENDING]),
             Reservation.start_time < req.end_time,
             Reservation.end_time > req.start_time,
         )
@@ -397,7 +401,7 @@ def create_reservation(
     if existing_reservation:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"User {user_email} already have reservation on same Date Range. Please cancel it & book again."
+            detail=f"User {candidate_useremail} already have an existing reservation on same Date Range. Please cancel it & book again."
         )
 
     # CHECK 4: Check if there is conflicting Downtime for that app on that datetime range.
@@ -466,7 +470,7 @@ def create_reservation(
         )
 
     new_reservation = Reservation(
-        user_email=user_email,
+        user_email=candidate_useremail,
         bot_id=suitable_bot.id,
         primary_application_id=req.primary_application_id,
         start_time=req.start_time,
@@ -480,7 +484,7 @@ def create_reservation(
         db.commit()
         db.refresh(new_reservation)
         logger.info(
-            f"Successfully created reservation {new_reservation.id} for user {user_email} with bot {suitable_bot.name}"
+            f"Successfully created reservation {new_reservation.id} for user {candidate_useremail} with bot {suitable_bot.name}"
         )
         background_tasks.add_task(
             schedule_reservation_tasks,
@@ -490,7 +494,7 @@ def create_reservation(
         )
         background_tasks.add_task(
             sendReservationEmail,
-            recipient_email=user_email,
+            recipient_email=candidate_useremail,
             sender_email=app_config[RESERVATION_EMAIL_SENDER],
             reservation_id=new_reservation.id,
             subject="Your Agentspace License Reservation Confirmation",
@@ -508,7 +512,7 @@ def create_reservation(
     except Exception as e:
         db.rollback()
         logger.error(
-            f"An unexpected error occurred while creating the reservation for user {user_email}: {e}"
+            f"An unexpected error occurred while creating the reservation for user {candidate_useremail}: {e}"
         )
         raise HTTPException(
             status_code=500,
@@ -516,29 +520,6 @@ def create_reservation(
         )
 
     return new_reservation
-
-def find_available_bot(db: Session, candidate_bots: List[Bot], unique_app_ids: List[int], start_time: datetime, end_time: datetime) -> Bot | None:
-    """Checks a list of candidate bots for availability."""
-    for bot in candidate_bots:
-        # Check if this bot has an overlapping reservation that includes ANY of the requested apps
-        conflict = (
-            db.query(Reservation)
-            .join(Reservation.applications)
-            .filter(
-                Reservation.bot_id == bot.id,
-                Application.id.in_(unique_app_ids),
-                Reservation.status.in_(
-                    [ReservationStatus.PENDING, ReservationStatus.ACTIVE]
-                ),
-                Reservation.start_time < end_time,
-                Reservation.end_time > start_time,
-            )
-            .first()
-        )
-
-        if not conflict:
-            return bot
-    return None
 
 @router.post(
     "/reservations/bulk-cancel",

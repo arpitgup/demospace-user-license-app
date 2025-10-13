@@ -182,3 +182,50 @@ def is_valid_reservation_lead_time(
 
     print(f"Validation successful: {req_start_time} is a valid reservation time.")
     return None
+
+def find_available_bot(
+    db: Session, candidate_bots: List[Bot], unique_app_ids: List[int], start_time: datetime, end_time: datetime
+) -> Bot | None:
+    """Checks a list of candidate bots for availability."""
+    for bot in candidate_bots:
+        # Check if this bot has an overlapping reservation that includes ANY of the requested apps
+        conflict = (
+            db.query(Reservation)
+            .join(Reservation.applications)
+            .filter(
+                Reservation.bot_id == bot.id,
+                Application.id.in_(unique_app_ids),
+                Reservation.status.in_(
+                    [ReservationStatus.PENDING, ReservationStatus.ACTIVE]
+                ),
+                Reservation.start_time < end_time,
+                Reservation.end_time > start_time,
+            )
+            .first()
+        )
+
+        if not conflict:
+            return bot
+    return None
+
+def format_email_for_reservation(
+    emailContent, reservationDetails
+):
+    """
+    Replaces placeholders in the email template with reservation details.
+    """
+    start_time_str = reservationDetails.start_time.strftime("%B %d, %Y at %I:%M %p %Z")
+    end_time_str = reservationDetails.end_time.strftime("%B %d, %Y at %I:%M %p %Z")
+    
+    dynamic_details_html = ""
+    app_names = " - ".join([app.name for app in reservationDetails.applications])
+    dynamic_details_html += f"""
+    <p style="margin: 0 0 5px 0; font-size: 16px;"><strong>{app_names}</strong></p>
+    <p style="margin: 0 0 5px 0; padding-left: 20px;">&bull; Starting: {start_time_str}</p>
+    <p style="margin: 0 0 15px 0; padding-left: 20px;">&bull; Ending: {end_time_str}</p>
+    """
+    formatted_content = emailContent.replace(
+        "{{ dynamic_reservation_details }}", dynamic_details_html
+    )    
+    
+    return formatted_content
