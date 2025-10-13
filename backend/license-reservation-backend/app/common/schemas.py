@@ -135,6 +135,21 @@ class CreateReservationRequest(CamelModel):
 
     _convert_to_utc = field_validator("start_time", "end_time")(convert_to_utc)
 
+class AdminCreateReservationRequest(CamelModel):
+    primary_application_id: int
+    secondary_application_ids: list[int] = []
+    start_time: datetime
+    end_time: datetime
+    useremail: str
+
+    @model_validator(mode="after")
+    def check_end_time(self):
+        if self.start_time >= self.end_time:
+            raise ValueError("Start time must be before end time.")
+        return self
+
+    _convert_to_utc = field_validator("start_time", "end_time")(convert_to_utc)
+
 
 class UpdateAppConfigRequest(CamelModel):
     configs: List[ConfigOut]

@@ -17,13 +17,14 @@ from shared_lib.dependencies import get_user_email, get_db
 from typing import List
 from shared_lib.enums import DowntimeStatus
 from shared_lib.admin_service import create_custom_schema, is_group_exists, get_user
-from ..common.constants import ACCOUNT_CUSTOMERID
+from ..common.constants import ACCOUNT_CUSTOMERID, RESERVATION_EMAIL_SENDER, BOOKED_RESERVATION_EMAIL_CONTENT
 
 from ..common.schemas import (
     ApplicationWithLicenseGroupOut,
     BulkCancelReservationsRequest,
     BulkCancelReservationsResponse,
     ExtendReservationRequest,
+    AdminCreateReservationRequest,
     ReservationOut,
     BotWithApplicationsOut,
     UpdateApplicationsRequest,
@@ -44,7 +45,9 @@ from ..utils.background_tasks import (
     schedule_deprovisioning_task,
     delete_license_deprovisioning_task,
     schedule_downtime_tasks,
-    delete_downtime_tasks
+    delete_downtime_tasks,
+    schedule_reservation_tasks,
+    sendReservationEmail
 )
 from ..utils.crud import get_bot_with_supported_apps, create_bot, update_bot
 
@@ -347,6 +350,195 @@ def get_all_reservations(
     reservations = db.query(Reservation).all()
     return reservations
 
+@router.post(
+    "/reservations",
+    response_model=ReservationOut
+)
+def create_reservation(
+    req: AdminCreateReservationRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)    
+):
+    """
+    Creates a new reservation.
+    """
+    logger.info(f"Admin User {user_email}: Creating a new reservation")
+    
+    # CHECK 1: Check if user email exist in workspace or not.
+    user_email = req.user_email
+    user = admin_service.get_user(user_email)
+    if not user:
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={"detail": f"User {user_email} is not valid."}
+    )
+
+    all_app_ids = [req.primary_application_id] + req.secondary_application_ids
+    unique_app_ids = list(set(all_app_ids))
+
+    # CHECK 2: Check if all requested applications exist
+    apps_in_db = db.query(Application).filter(Application.id.in_(unique_app_ids)).all()
+    if len(apps_in_db) != len(unique_app_ids):
+        raise HTTPException(
+            status_code=404,
+            detail="One or more requested application IDs do not exist.",
+        )
+    
+    # CHECK 3: Check if there is any Existing Reservation for that user on that datetime range.
+    existing_reservation = (
+        db.query(Reservation)
+        .filter(
+            Reservation.user_email == user_email,
+            Reservation.start_time < req.end_time,
+            Reservation.end_time > req.start_time,
+        )
+        .first()
+    )
+    if existing_reservation:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"User {user_email} already have reservation on same Date Range. Please cancel it & book again."
+        )
+
+    # CHECK 4: Check if there is conflicting Downtime for that app on that datetime range.
+    conflicting_downtime = (
+        db.query(ApplicationDowntime)
+        .filter(
+            ApplicationDowntime.application_id.in_(unique_app_ids),
+            ApplicationDowntime.status.in_(
+                [DowntimeStatus.PENDING, DowntimeStatus.ACTIVE]
+            ),
+            ApplicationDowntime.downtime_start < req.end_time,
+            ApplicationDowntime.downtime_end > req.start_time,
+        )
+        .first()
+    )
+    if conflicting_downtime:
+        conflicting_app_name = (
+            db.query(Application.name)
+            .filter(Application.id == conflicting_downtime.application_id)
+            .scalar()
+        )
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Cannot make a reservation. Application '{conflicting_app_name}' has scheduled downtime that conflicts with your requested time.",
+        )
+    
+    # Find Admin bots first that supports ALL requested applications
+    candidate_bots_admin_query = (
+        db.query(Bot)
+        .join(Bot.supported_applications)
+        .filter(BotApplication.application_id.in_(unique_app_ids))
+        .filter(Bot.is_admin == True)  # Filter for ADMIN bots
+        .group_by(Bot.id)
+        .having(func.count(BotApplication.application_id) == len(unique_app_ids))
+    )
+    candidate_bots = candidate_bots_admin_query.all()
+    if not candidate_bots:
+        raise HTTPException(
+            status_code=404,
+            detail="No single Admin bot found that supports all requested applications.",
+        )
+    suitable_bot = find_available_bot(db, candidate_bots, unique_app_ids, req.start_time, req.end_time)
+    if not suitable_bot:
+        logger.info("No suitable admin bot found. Checking for non-admin bots.")
+        candidate_bots_non_admin_query = (
+            db.query(Bot)
+            .join(Bot.supported_applications)
+            .filter(BotApplication.application_id.in_(unique_app_ids))
+            .filter(Bot.is_admin == False)
+            .group_by(Bot.id)
+            .having(func.count(BotApplication.application_id) == len(unique_app_ids))
+        )
+        candidate_bots = candidate_bots_non_admin_query.all()
+        if not candidate_bots:
+            raise HTTPException(
+                status_code=404,
+                detail="No single Non-Admin bot found that supports all requested applications.",
+            )
+        
+        suitable_bot = find_available_bot(db, candidate_bots, unique_app_ids, req.start_time, req.end_time)
+    
+    if not suitable_bot:
+        raise HTTPException(
+            status_code=409,
+            detail="Found Admin & Non-Admin bots that support all applications, but none are available for the requested time.",
+        )
+
+    new_reservation = Reservation(
+        user_email=user_email,
+        bot_id=suitable_bot.id,
+        primary_application_id=req.primary_application_id,
+        start_time=req.start_time,
+        end_time=req.end_time,
+        status=ReservationStatus.PENDING,
+    )
+    new_reservation.applications.extend(apps_in_db)
+
+    try:
+        db.add(new_reservation)
+        db.commit()
+        db.refresh(new_reservation)
+        logger.info(
+            f"Successfully created reservation {new_reservation.id} for user {user_email} with bot {suitable_bot.name}"
+        )
+        background_tasks.add_task(
+            schedule_reservation_tasks,
+            new_reservation.id,
+            new_reservation.start_time.replace(tzinfo=timezone.utc),
+            new_reservation.end_time.replace(tzinfo=timezone.utc),
+        )
+        background_tasks.add_task(
+            sendReservationEmail,
+            recipient_email=user_email,
+            sender_email=app_config[RESERVATION_EMAIL_SENDER],
+            reservation_id=new_reservation.id,
+            subject="Your Agentspace License Reservation Confirmation",
+            email_content=format_email_for_reservation(BOOKED_RESERVATION_EMAIL_CONTENT, new_reservation)
+        )
+
+    except IntegrityError as e:
+        db.rollback()
+        logger.error(f"Database integrity error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Could not create reservation due to a database error.",
+        )
+
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"An unexpected error occurred while creating the reservation for user {user_email}: {e}"
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="An unexpected error occurred while creating the reservation.",
+        )
+
+    return new_reservation
+
+def find_available_bot(db: Session, candidate_bots: List[Bot], unique_app_ids: List[int], start_time: datetime, end_time: datetime) -> Bot | None:
+    """Checks a list of candidate bots for availability."""
+    for bot in candidate_bots:
+        # Check if this bot has an overlapping reservation that includes ANY of the requested apps
+        conflict = (
+            db.query(Reservation)
+            .join(Reservation.applications)
+            .filter(
+                Reservation.bot_id == bot.id,
+                Application.id.in_(unique_app_ids),
+                Reservation.status.in_(
+                    [ReservationStatus.PENDING, ReservationStatus.ACTIVE]
+                ),
+                Reservation.start_time < end_time,
+                Reservation.end_time > start_time,
+            )
+            .first()
+        )
+
+        if not conflict:
+            return bot
+    return None
 
 @router.post(
     "/reservations/bulk-cancel",
