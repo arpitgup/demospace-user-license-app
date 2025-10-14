@@ -35,7 +35,7 @@ class UserCurrentTimeValidationMiddleware(BaseHTTPMiddleware):
                     detail="Invalid datetime format. Please use ISO 8601 format (e.g., YYYY-MM-DDTHH:MM:SS.ffffff).",
                 )
 
-            # Calculate the time difference between the user and server timestamps
+            # Calculate the time difference between the user and server timestamp
             time_difference = abs(server_now_utc - dt_object)
             time_tolerance = timedelta(minutes=2)
             if time_difference > time_tolerance:
