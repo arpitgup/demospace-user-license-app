@@ -76,6 +76,8 @@ export class AdminCreateReservationComponenet implements OnInit {
   readonly END_TIME_FORM = 'endTime';
   minStartDate: Date = new Date();
   minEndDate: Date = new Date();
+  maxStartDate: Date = new Date();
+  maxEndDate: Date = new Date();
   minStartTime = '00:00';
   minEndTime = '00:00';
 
@@ -121,6 +123,11 @@ export class AdminCreateReservationComponenet implements OnInit {
     this.listenStarTimeChanges();
     this.listenEndDateChanges();
     this.listenEndTimeChanges();
+    const today = new Date();
+    this.maxStartDate = new Date(today);
+    this.maxEndDate = new Date(today);
+    this.maxStartDate.setDate(today.getDate() + 30);
+    this.maxEndDate.setDate(today.getDate() + 30);
   }
 
   listenStartDateChanges() {
