@@ -372,7 +372,7 @@ def create_reservation(
     user = get_user(candidate_useremail)
     if not user:
         return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_400_BAD_REQUEST,
             content={"detail": f"User {candidate_useremail} is not a valid user."}
     )
 
@@ -383,7 +383,7 @@ def create_reservation(
     apps_in_db = db.query(Application).filter(Application.id.in_(unique_app_ids)).all()
     if len(apps_in_db) != len(unique_app_ids):
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="One or more requested application IDs do not exist.",
         )
     
@@ -433,19 +433,15 @@ def create_reservation(
         db.query(Bot)
         .join(Bot.supported_applications)
         .filter(BotApplication.application_id.in_(unique_app_ids))
-        .filter(Bot.is_admin == True)  # Filter for ADMIN bots
+        .filter(Bot.is_admin == True)
         .group_by(Bot.id)
         .having(func.count(BotApplication.application_id) == len(unique_app_ids))
     )
     candidate_bots = candidate_bots_admin_query.all()
-    if not candidate_bots:
-        raise HTTPException(
-            status_code=404,
-            detail="No single Admin bot found that supports all requested applications.",
-        )
     suitable_bot = find_available_bot(db, candidate_bots, unique_app_ids, req.start_time, req.end_time)
     if not suitable_bot:
         logger.info("No suitable admin bot found. Checking for non-admin bots.")
+        
         candidate_bots_non_admin_query = (
             db.query(Bot)
             .join(Bot.supported_applications)
@@ -457,16 +453,15 @@ def create_reservation(
         candidate_bots = candidate_bots_non_admin_query.all()
         if not candidate_bots:
             raise HTTPException(
-                status_code=404,
-                detail="No single Non-Admin bot found that supports all requested applications.",
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No single bot found that supports all requested applications.",
             )
-        
+
         suitable_bot = find_available_bot(db, candidate_bots, unique_app_ids, req.start_time, req.end_time)
-    
     if not suitable_bot:
         raise HTTPException(
-            status_code=409,
-            detail="Found Admin & Non-Admin bots that support all applications, but none are available for the requested time.",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Found bots that support all applications, but none are available for the requested time.",
         )
 
     new_reservation = Reservation(
