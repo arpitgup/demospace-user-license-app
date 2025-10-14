@@ -44,6 +44,13 @@ export const appRoutes: Routes = [
         (m) => m.SignupUserComponent
       ),
   },
+    {
+    path: 'appLinks',
+    loadComponent: () =>
+      import('./features/user-app-links/user-app-links.component').then(
+        (m) => m.UserAppLinksComponent
+      ),
+  },
   {
     path: '**',
     redirectTo: '',
