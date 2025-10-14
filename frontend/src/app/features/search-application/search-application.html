@@ -128,10 +128,17 @@
     <mat-card class="card">
       @if((availabilityApplication.nextAvailableSlots?.length ?? 0) > 1){
       <ng-container>
+        @if(availabilityApplication.isDowntimeConflict===true){
+        <h3>
+          Downtime has been scheduled for the requested application at the
+          selected date/time. Here are some available alternatives:
+        </h3>
+        }@else{
         <h3>
           Requested application is already reserved at the selected date/time.
           Here are some available alternatives:
         </h3>
+        }
 
         <mat-grid-list
           cols="3"

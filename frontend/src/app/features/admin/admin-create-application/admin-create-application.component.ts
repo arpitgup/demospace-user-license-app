@@ -174,7 +174,7 @@ export class AdminCreateApplicationComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.adminService.refreshApplicationsState.set(true);
+        this.adminService.refreshApplicationsState.update(()=>true);
         this.applicationCreationSuccess.emit();
       }
     });

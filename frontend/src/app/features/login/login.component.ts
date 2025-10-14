@@ -43,7 +43,7 @@ export class LoginComponent {
     if (typeof google === 'undefined') {
       return;
     }
-    localStorage.clear();
+    sessionStorage.clear();
     google.accounts.id.initialize({
       client_id:
         '385039775654-deso4nja1vond0f98j0p4vic6uvt91su.apps.googleusercontent.com',
@@ -70,8 +70,8 @@ export class LoginComponent {
     this.loginService.userLogin(request).subscribe({
       next: (res) => {
         if (res.token_valid && res.user_details && res.user_details.email) {
-          localStorage.setItem('userEmail', res.user_details.email);
-          localStorage.setItem('googleIdToken', token);
+          sessionStorage.setItem('userEmail', res.user_details.email);
+          sessionStorage.setItem('googleIdToken', token);
           this.router.navigate(['/admin']);
         } else {
           this.showErrorDialog(

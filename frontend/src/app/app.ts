@@ -51,7 +51,7 @@ export class App implements OnInit {
         if (params) {
           const userEmail = params['userEmail'] || null;
           if (userEmail) {
-            localStorage.setItem('userEmail', userEmail);
+            sessionStorage.setItem('userEmail', userEmail);
           }
         }
       });

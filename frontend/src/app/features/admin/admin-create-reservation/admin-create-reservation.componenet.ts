@@ -1,8 +1,10 @@
 import {
   ChangeDetectorRef,
   Component,
+  EventEmitter,
   inject,
   OnInit,
+  Output,
   PLATFORM_ID,
   signal,
 } from '@angular/core';
@@ -25,11 +27,21 @@ import { Application } from '../../../core/models/application.model';
 import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { isSameDay } from '../../search-by-date/search-by-date.utils';
+import {
+  isNextDay,
+  isSameDay,
+} from '../../search-by-date/search-by-date.utils';
 import { getLocalTimeZoneAbbreviation } from '../../../../utilities/utils';
 import { SearchByApplicationLoader } from '../../../loaders/search-by-application-loader/search-by-application-loader';
 import { AdminCreateReservationLoaderComponent } from '../../../loaders/admin-create-reservation-loader/admin-create-reservation-loader.component';
 import { ErrorMessage } from '../../../shared/components/error-message/error-message';
+import { AdminService } from '../../../core/services/admin.service';
+import { AdminCreateReservationRequest } from '../../../core/models/admin-create-reservation-request.model';
+import { MatDialog } from '@angular/material/dialog';
+import { SuccessDialog } from '../../../shared/dialogs/success-dialog/success-dialog';
+import { ErrorDialog } from '../../../shared/dialogs/error-dialog/error-dialog';
+import { LoaderService } from '../../../core/services/loading.service';
+import { min } from 'rxjs';
 
 @Component({
   selector: 'app-admin-create-reservation',
@@ -56,8 +68,7 @@ export class AdminCreateReservationComponenet implements OnInit {
   private fb = inject(FormBuilder);
   private platformId = inject(PLATFORM_ID);
   private reservationService = inject(ReservationService);
-  private cdr = inject(ChangeDetectorRef);
-  readonly USER_NAME_FORM = 'userName';
+  private adminService = inject(AdminService);
   readonly USER_EMAIL_FORM = 'userEmail';
   readonly START_DATE_FORM = 'startDate';
   readonly START_TIME_FORM = 'starTime';
@@ -75,6 +86,7 @@ export class AdminCreateReservationComponenet implements OnInit {
   readonly endDateTime = signal<Date | null>(null);
   readonly isApplicationLoading = signal<boolean>(true);
   readonly applicationLoadingErrorMessage = signal<string>('');
+  readonly loaderService = inject(LoaderService);
   readonly localTimeAbbrevation =
     getLocalTimeZoneAbbreviation(
       new Date(new Date()) ?? new Date(),
@@ -82,7 +94,6 @@ export class AdminCreateReservationComponenet implements OnInit {
     ) ?? '';
 
   createReservationForm: FormGroup = this.fb.group({
-    [this.USER_NAME_FORM]: ['', Validators.required],
     [this.USER_EMAIL_FORM]: [
       '',
       [
@@ -98,6 +109,9 @@ export class AdminCreateReservationComponenet implements OnInit {
     [this.END_DATE_FORM]: ['', Validators.required],
     [this.END_TIME_FORM]: ['', Validators.required],
   });
+
+  private dialog = inject(MatDialog);
+  @Output() createReservationSuccess = new EventEmitter();
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -197,7 +211,24 @@ export class AdminCreateReservationComponenet implements OnInit {
             this.createReservationForm.get(this.END_TIME_FORM)?.patchValue('');
           }
         }
+
+        if (!isSameDay(todayDate, endDate)) {
+          minHours = startTime !== null ? startTime?.getHours() : 0;
+        }
+
         this.minEndTime = `${(minHours + 2).toString().padStart(2, '0')}:00`;
+        if (endTime !== null && endTime.getHours() < minHours) {
+          this.createReservationForm.get(this.END_TIME_FORM)?.patchValue('');
+        }
+      } else if (
+        isNextDay(startDate, endDate) &&
+        startTime !== null &&
+        startTime?.getHours() >= 23
+      ) {
+        this.minEndTime = '01:00';
+        if (endTime !== null && endTime.getHours() < 1) {
+          this.createReservationForm.get(this.END_TIME_FORM)?.patchValue('');
+        }
       } else {
         this.minEndTime = '00:00';
       }
@@ -292,5 +323,84 @@ export class AdminCreateReservationComponenet implements OnInit {
 
   onRetryCall() {
     this.getAllUserApplications();
+  }
+  onConfirmReservation() {
+    this.loaderService.show();
+    const selectedApplicationIds = this.applications
+      .filter((element) => element.isSelected === true)
+      .map((element) => element.id);
+    const primaryApplicationId = selectedApplicationIds[0];
+    let secondaryApplicationIds: number[] = [];
+    if (selectedApplicationIds.length > 1) {
+      secondaryApplicationIds = selectedApplicationIds.slice(1);
+    }
+    const startDateTime = new Date(
+      this.createReservationForm.get(this.START_DATE_FORM)?.value
+    );
+    const starTime = new Date(
+      this.createReservationForm.get(this.START_TIME_FORM)?.value
+    );
+    startDateTime.setHours(starTime.getHours(), 0, 0, 0);
+    const endDateTime = new Date(
+      this.createReservationForm.get(this.END_DATE_FORM)?.value
+    );
+    const endTime = new Date(
+      this.createReservationForm.get(this.END_TIME_FORM)?.value
+    );
+    endDateTime.setHours(endTime.getHours(), 0, 0, 0);
+    const request: AdminCreateReservationRequest = {
+      primaryApplicationId: primaryApplicationId,
+      secondaryApplicationIds: secondaryApplicationIds,
+      startTime: startDateTime.toISOString(),
+      endTime: endDateTime.toISOString(),
+      candidateUserEmail: this.createReservationForm.get(this.USER_EMAIL_FORM)
+        ?.value,
+    };
+    this.adminService.createReservationByAdmin(request).subscribe({
+      next: () => {
+        this.showSuccessDialog();
+        this.loaderService.hide();
+      },
+      error: (err) => {
+        this.showErrorDialog(err.error.detail || 'Something went wrong');
+        this.loaderService.hide();
+      },
+    });
+  }
+
+  showSuccessDialog() {
+    const dialogRef = this.dialog.open(SuccessDialog, {
+      width: 'auto',
+      minWidth: 'none',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        title: 'Success',
+        message: 'Reservation created successfully',
+        confirmText: 'OK',
+      },
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.adminService.refreshReservationsState.update(() => true);
+        this.createReservationSuccess.emit();
+      }
+    });
+  }
+
+  showErrorDialog(errorMessage: string) {
+    this.dialog.open(ErrorDialog, {
+      width: 'auto',
+      minWidth: '41.86rem',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        message: errorMessage,
+      },
+    });
   }
 }

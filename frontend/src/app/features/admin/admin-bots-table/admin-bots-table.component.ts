@@ -112,6 +112,7 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
       if (value === true) {
         this.getAllAdminBots();
       }
+      this.botsService.refreshBotsState.update(() => false);
     });
   }
 
