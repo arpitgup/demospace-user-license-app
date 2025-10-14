@@ -188,7 +188,7 @@ export class AdminCreateBotComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.botService.refreshBotsState.set(true);
+        this.botService.refreshBotsState.update(()=>true);
         this.botCreationSuccess.emit();
       }
     });

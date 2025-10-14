@@ -122,6 +122,7 @@ export class AdminApplicationTableComponent {
       if (value === true) {
         this.getAllAdminApplications();
       }
+      this.adminService.refreshApplicationsState.update(() => false);
     });
   }
 

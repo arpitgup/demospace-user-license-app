@@ -11,6 +11,8 @@ import { AdminBotsResponse } from '../models/admin-bots-response.model';
 import { Application } from '../models/application.model';
 import { CreateApplicationRequest } from '../models/create-application-request.model';
 import { UpdateApplicationRequest } from '../models/update-application-request.model';
+import { AdminCreateReservationRequest } from '../models/admin-create-reservation-request.model';
+import { MakeReservationResponse } from '../models/make-reservation-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -28,6 +30,10 @@ export class AdminService {
   public refreshApplicationsState = signal<boolean>(false);
   public readonly refreshApplications =
     this.refreshApplicationsState.asReadonly();
+
+  public refreshReservationsState = signal<boolean>(false);
+  public readonly refreshReservations =
+    this.refreshReservationsState.asReadonly();
 
   fetchAllReservations(): Observable<Reservation[]> {
     return this.http
@@ -86,6 +92,14 @@ export class AdminService {
   ): Observable<Application> {
     return this.http.patch<Application>(
       `${this.apiUrl}/admin/applications`,
+      request
+    );
+  }
+  createReservationByAdmin(
+    request: AdminCreateReservationRequest
+  ): Observable<MakeReservationResponse> {
+    return this.http.post<MakeReservationResponse>(
+      `${this.apiUrl}/admin/reservations`,
       request
     );
   }
