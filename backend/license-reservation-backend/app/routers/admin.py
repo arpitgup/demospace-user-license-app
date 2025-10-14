@@ -103,7 +103,7 @@ def update_applications(
     Updates name, status, license count & license group for multiple applications.
     """
     logger.info(f"Admin User {user_email}: Updating applications: {req.applications}")
-    
+
     app_ids = [app.id for app in req.applications]
 
     apps_in_db = db.query(Application).filter(Application.id.in_(app_ids)).all()
@@ -140,7 +140,7 @@ def update_applications(
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=(
-                    f"Assigned licenses are {assigned_count}. Cannot reduce the license count for application '{app_in_db.name}' to {new_license_count}."                    
+                    f"Assigned licenses are {assigned_count}. Cannot reduce the license count for application '{app_in_db.name}' to {new_license_count}."
                 ),
             )
         # --- End License Count Validation ---
@@ -217,7 +217,7 @@ def create_applications(
     Creates multiple new application
     """
     logger.info(f"Admin user {user_email}: Creating a new application with name: {req.name}")
-    
+
     try:
         # Check first the app Name is already exist or not.
         app_name = db.query(Application).filter(Application.name == req.name).all()
@@ -226,9 +226,9 @@ def create_applications(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Application with name '{req.name}' already exists."
             )
-        
+
         application_data = req.model_dump()
-                
+
         if req.license_type == ApplicationLicenseType.SUBSCRIPTION:
             if not req.custom_SAML_attribute:
                 raise HTTPException(
@@ -239,23 +239,23 @@ def create_applications(
             custom_schema_created = create_custom_schema(custom_schema_name, ACCOUNT_CUSTOMERID)
             application_data['custom_SAML_attribute'] = custom_schema_name
 
-        elif req.license_group:            
+        elif req.license_group:
             if not is_group_exists(req.license_group):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"{req.license_group} is not a valid group.",
-                )            
-        
+                )
+
         application_data['created_by'] = user_email
         new_application = Application(**application_data)
-        
+
         db.add(new_application)
         db.commit()
         db.refresh(new_application)
 
         logger.info(f"Successfully created application with ID: {new_application.id}")
         return new_application
-        
+
     except IntegrityError as e:
         db.rollback()
         logger.error(f"Database integrity error: {e}")
@@ -263,8 +263,8 @@ def create_applications(
             status_code=500,
             detail="Could not create reservation due to a database error.",
         )
-            
-    except HTTPException:        
+
+    except HTTPException:
         raise
 
     except Exception as e:
@@ -366,7 +366,7 @@ def create_reservation(
     Creates a new reservation.
     """
     logger.info(f"Admin User {user_email}: Creating a new reservation")
-    
+
     # CHECK 1: Check if user email exist in workspace or not.
     candidate_useremail = req.candidate_user_email
     user = get_user(candidate_useremail)
@@ -386,7 +386,7 @@ def create_reservation(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="One or more requested application IDs do not exist.",
         )
-    
+
     # CHECK 3: Check if there is any Existing Reservation for that user on that datetime range.
     existing_reservation = (
         db.query(Reservation)
@@ -427,7 +427,7 @@ def create_reservation(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Cannot make a reservation. Application '{conflicting_app_name}' has scheduled downtime that conflicts with your requested time.",
         )
-    
+
     # Find Admin bots first that supports ALL requested applications
     candidate_bots_admin_query = (
         db.query(Bot)
@@ -441,7 +441,7 @@ def create_reservation(
     suitable_bot = find_available_bot(db, candidate_bots, unique_app_ids, req.start_time, req.end_time)
     if not suitable_bot:
         logger.info("No suitable admin bot found. Checking for non-admin bots.")
-        
+
         candidate_bots_non_admin_query = (
             db.query(Bot)
             .join(Bot.supported_applications)
@@ -701,7 +701,7 @@ def update_bot_applications(
 def create_bots(request: BotsCreateRequest, db: Session = Depends(get_db)):
     """
     Creates one or more new bots with their associated applications , checking for license count first.
-    """ 
+    """
     # Check for the requested emails if already exist or not.
     requested_emails = [bot_data.email for bot_data in request.bots]
     existing_bots = (
@@ -710,16 +710,16 @@ def create_bots(request: BotsCreateRequest, db: Session = Depends(get_db)):
         .all()
     )
     # Showing tuples for my understading: existing_bots = [('bot1@example.com',), ('bot2@example.com',)]
-    if existing_bots:        
+    if existing_bots:
         existing_emails = [bot[0] for bot in existing_bots]
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Bot with Email '{', '.join(existing_emails)}' already exist.",
         )
-    
+
     # Check Bot User Email Validity if exist in workspace or not.
     invalid_emails = []
-    for email in requested_emails:        
+    for email in requested_emails:
         user = get_user(email)
         if not user:
             invalid_emails.append(email)

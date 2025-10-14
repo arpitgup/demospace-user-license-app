@@ -11,7 +11,7 @@ class UserCurrentTimeValidationMiddleware(BaseHTTPMiddleware):
         try:
             if request.method == "OPTIONS":
                 return await call_next(request)
-            
+
             # Skip swagger documentation endpoints
             if request.url.path.startswith("/docs") or request.url.path.startswith("/openapi.json") or request.url.path.startswith("/auth"):
                 return await call_next(request)
@@ -51,7 +51,7 @@ class UserCurrentTimeValidationMiddleware(BaseHTTPMiddleware):
                 )
                 response.headers["Access-Control-Allow-Origin"]="*"
                 return response
-        
+
             response = await call_next(request)
             return response
         except Exception as e:

@@ -16,7 +16,7 @@ app = FastAPI(
 )
 
 
-# Add the CORSMiddleware to the application
+# Add the CORSMiddleware to the applications
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # List of allowed origins

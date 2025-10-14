@@ -203,7 +203,7 @@ def create_custom_schema(custom_schema_name, account_customerID):
     """
     Creates a custom SAML attribute schema for a given application using a synchronous insert API.
     """
-    admin_service = setup_admin_service()    
+    admin_service = setup_admin_service()
 
     request_body = {
         "displayName": custom_schema_name,
@@ -260,4 +260,4 @@ def is_group_exists(group_email):
             f"An unexpected error occurred while checking group {group_email} in workspace: {e}"
         )
         raise e
-        
+

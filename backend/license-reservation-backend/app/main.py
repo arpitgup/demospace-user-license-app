@@ -29,6 +29,9 @@ app.add_middleware(
 # Add your modified middleware
 app.add_middleware(UserValidationMiddleware)
 app.add_middleware(UserCurrentTimeValidationMiddleware)
+
+# TODO: uncomment below line to enable admin validation middleware,
+# ensure that the PORTAL_ADMIN_GROUP_EMAIL environment variable is updated
 # app.add_middleware(AdminValidationMiddleware) # This might also need path exclusions
 
 common_dependencies = [Depends(get_user_email), Depends(get_user_current_time)]
@@ -43,12 +46,28 @@ app.include_router(admin.router, tags=["Admin"], dependencies=common_dependencie
 app.include_router(userlogin.router, tags=["User Login"])
 
 @app.get("/api/me", tags=["User"], dependencies=common_dependencies)
+
+def get_user_ldap(user_email: str) -> str:
+    try:
+        local_part = user_email.split('@')[0]
+        dash_index = local_part.find('-')
+
+        if dash_index != -1:
+            return local_part[:dash_index]
+        else:
+            return ""
+
+    except IndexError:
+        return ""
+
+@app.get("/api/me", tags=["User"])
 def get_user_info(user_email: str = Depends(get_user_email)):
-    user = admin_service.get_user(user_email)
-    user_name_info = user["name"]
+    # user = admin_service.get_user(user_email)
+    # user_name_info = user["name"]
+    user_ldap = get_user_ldap(user_email)
     return UserInfo(
-        email=user["primaryEmail"],
-        given_name=user_name_info["givenName"],
-        family_name=user_name_info["familyName"],
-        full_name=user_name_info["fullName"],
+        email=user_email,
+        given_name=user_ldap,
+        family_name="",
+        full_name=""
     )
