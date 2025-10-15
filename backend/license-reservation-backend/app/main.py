@@ -32,7 +32,7 @@ app.add_middleware(UserValidationMiddleware)
 app.add_middleware(UserCurrentTimeValidationMiddleware)
 
 # TODO: uncomment below line to enable admin validation middleware,
-# ensure that the PORTAL_ADMIN_GROUP_EMAIL environment variable is updated
+# ensure that the PORTAL_ADMIN_GROUP_EMAIL  environment variable is updated
 app.add_middleware(AdminValidationMiddleware)
 
 common_dependencies = [Depends(get_user_email), Depends(get_user_current_time)]
