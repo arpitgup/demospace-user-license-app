@@ -71,7 +71,7 @@ export class LoginComponent {
       next: (res) => {
         if (res.token_valid && res.user_details && res.user_details.email) {
           sessionStorage.setItem('userEmail', res.user_details.email);
-          sessionStorage.setItem('googleIdToken', token);
+          sessionStorage.setItem('userToken', res.user_details.user_token);
           this.router.navigate(['/admin']);
         } else {
           this.showErrorDialog(

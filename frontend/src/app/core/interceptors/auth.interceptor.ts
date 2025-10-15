@@ -7,10 +7,10 @@ import { catchError, throwError } from 'rxjs';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   // const authService = inject(AuthService);
   const userEmail = sessionStorage?.getItem('userEmail');
-  // const userToken = authService.getToken();
+  const userToken = sessionStorage.getItem('userToken');
   const router = inject(Router);
 
-  if (!sessionStorage?.getItem('googleIdToken') && req.url.includes('admin')) {
+  if (!userToken && req.url.includes('admin')) {
     router.navigate(['/login']);
 
     return throwError(() => new Error('Invalid request'));
@@ -23,7 +23,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const clonedReq = req.clone({
     headers: req.headers
       .set('x-demo-user-email', userEmail || '')
-      .set('x-user-current-time', new Date().toISOString()),
+      .set('x-user-current-time', new Date().toISOString())
+      .set('x-user-token', userToken || ''),
   });
   return next(clonedReq).pipe(
     catchError((error: HttpErrorResponse) => {
