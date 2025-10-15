@@ -11,3 +11,4 @@ pydantic[email]
 pytest==8.4.*
 sqlalchemy==2.*
 uvicorn[standard]==0.35.0
+cryptography==1.17.1

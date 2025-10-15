@@ -270,6 +270,7 @@ class UserValidationRequest(BaseModel):
     token: str
 
 class UserDetails(BaseModel):
+    user_token: str
     email: EmailStr
     name: str    
     is_present: bool

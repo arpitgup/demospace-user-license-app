@@ -2,7 +2,8 @@ from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from shared_lib import admin_service
 from starlette.responses import JSONResponse
-
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives import serialization, hashes
 from ..common.constants import X_DEMO_USER_EMAIL_HEADER
 from loguru import logger
 
@@ -30,7 +31,7 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
             user_email = request.headers.get(X_DEMO_USER_EMAIL_HEADER)
             try:
                 # user = admin_service.get_user(user_email)
-                is_valid_email = is_agentspace_demo_user(user_email)
+                is_valid_email = is_agentspace_demo_user(user_email, request)
                 if not is_valid_email:
                     raise HTTPException(
                         status_code=401, detail=f"User {user_email} is not valid."
@@ -54,5 +55,8 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
             return response
 
 
-def is_agentspace_demo_user(email: str) -> bool:
-    return "-agentspace-demo-user@1987984870407.altostrat.com" in email
+def is_agentspace_demo_user(email: str, request: Request) -> bool:
+    if request.url.path.startswith("/admin"):
+        return "@1987984870407.altostrat.com" in email
+    else:
+        return "-agentspace-demo-user@1987984870407.altostrat.com" in email

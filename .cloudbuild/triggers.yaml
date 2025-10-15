@@ -50,6 +50,7 @@ triggers:
     _DELEGATED_ADMIN: "arpitgup@1987984870407.altostrat.com"
     _ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME: "license-reservation-auth-sa-key"
     _PORTAL_ADMIN_GROUP_EMAIL: ""
+    _ADMIN_VALIDATION_KEYS_SECRET_NAME: "admin_validation_secret_private_key"
 - name: reservationApp-frontend-dev
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/frontend-cloudbuild.yaml
@@ -116,6 +117,7 @@ triggers:
     _DELEGATED_ADMIN: "arpitgup@1987984870407.altostrat.com"
     _ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME: "license-reservation-auth-sa-key"
     _PORTAL_ADMIN_GROUP_EMAIL: ""
+    _ADMIN_VALIDATION_KEYS_SECRET_NAME: "admin_validation_secret_private_key"
 - name: reservationApp-frontend-preprod
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/frontend-cloudbuild.yaml
@@ -182,6 +184,7 @@ triggers:
     _DELEGATED_ADMIN: "arpitgup@1987984870407.altostrat.com"
     _ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME: "license-reservation-auth-sa-key"
     _PORTAL_ADMIN_GROUP_EMAIL: ""
+    _ADMIN_VALIDATION_KEYS_SECRET_NAME: "admin_validation_secret_private_key"
 - name: reservationApp-frontend-prod
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/frontend-cloudbuild.yaml
@@ -248,6 +251,7 @@ triggers:
     _DELEGATED_ADMIN: "arpitgup@1987984870407.altostrat.com"
     _ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME: "license-reservation-auth-sa-key"
     _PORTAL_ADMIN_GROUP_EMAIL: ""
+    _ADMIN_VALIDATION_KEYS_SECRET_NAME: "admin_validation_secret_private_key"
 - name: reservationApp-frontend-dev-admin
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/frontend-cloudbuild.yaml
