@@ -10,7 +10,9 @@ from shared_lib.db.models import (
     Bot,
     BotApplication,
     Reservation,
-    ReservationStatus
+    ApplicationDowntime,
+    ReservationStatus,
+    DowntimeStatus
 )
 from datetime import timezone
 
@@ -25,7 +27,7 @@ from ..utils.background_tasks import (
     force_reservation_tasks,
     sendReservationEmail    
 )
-from ..utils.crud import is_user_in_cool_off, is_valid_reservation_lead_time
+from ..utils.crud import is_user_in_cool_off, is_valid_reservation_lead_time, format_email_for_reservation
 
 
 router = APIRouter()
@@ -78,7 +80,7 @@ def make_reservation(
     all_app_ids = [req.primary_application_id] + req.secondary_application_ids
     unique_app_ids = list(set(all_app_ids))
 
-    # Check if all requested applications exist
+    # CHECK 1: Check if all requested applications exist
     apps_in_db = db.query(Application).filter(Application.id.in_(unique_app_ids)).all()
     if len(apps_in_db) != len(unique_app_ids):
         raise HTTPException(
@@ -86,11 +88,37 @@ def make_reservation(
             detail="One or more requested application IDs do not exist.",
         )
 
+    # CHECK 2: Check for scheduled downtime for the requested applications
+    conflicting_downtime = (
+        db.query(ApplicationDowntime)
+        .filter(
+            ApplicationDowntime.application_id.in_(unique_app_ids),
+            ApplicationDowntime.status.in_(
+                [DowntimeStatus.PENDING, DowntimeStatus.ACTIVE]
+            ),
+            ApplicationDowntime.downtime_start < req.end_time,
+            ApplicationDowntime.downtime_end > req.start_time,
+        )
+        .first()
+    )
+
+    if conflicting_downtime:
+        conflicting_app_name = (
+            db.query(Application.name)
+            .filter(Application.id == conflicting_downtime.application_id)
+            .scalar()
+        )
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Cannot make a reservation. Application '{conflicting_app_name}' has scheduled downtime that conflicts with your requested time.",
+        )
+
     # Find a bot that supports ALL requested applications
     candidate_bots_query = (
         db.query(Bot)
         .join(Bot.supported_applications)
         .filter(BotApplication.application_id.in_(unique_app_ids))
+        .filter(Bot.is_admin == False)
         .group_by(Bot.id)
         .having(func.count(BotApplication.application_id) == len(unique_app_ids))
     )
@@ -248,23 +276,3 @@ def cancel_reservation(
             email_content=format_email_for_reservation(CANCELLED_RESERVATION_EMAIL_CONTENT, reservation)
         )
         return reservation
-
-def format_email_for_reservation(emailContent, reservationDetails):
-    """
-    Replaces placeholders in the email template with reservation details.
-    """
-    start_time_str = reservationDetails.start_time.strftime("%B %d, %Y at %I:%M %p %Z")
-    end_time_str = reservationDetails.end_time.strftime("%B %d, %Y at %I:%M %p %Z")
-    
-    dynamic_details_html = ""
-    app_names = " - ".join([app.name for app in reservationDetails.applications])
-    dynamic_details_html += f"""
-    <p style="margin: 0 0 5px 0; font-size: 16px;"><strong>{app_names}</strong></p>
-    <p style="margin: 0 0 5px 0; padding-left: 20px;">&bull; Starting: {start_time_str}</p>
-    <p style="margin: 0 0 15px 0; padding-left: 20px;">&bull; Ending: {end_time_str}</p>
-    """
-    formatted_content = emailContent.replace(
-        "{{ dynamic_reservation_details }}", dynamic_details_html
-    )    
-    
-    return formatted_content

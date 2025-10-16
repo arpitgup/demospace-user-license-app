@@ -13,9 +13,9 @@ import {
   Reservation,
 } from '../models/reservation.model';
 import { AppConfig } from '../models/appConfig.model';
-import { MakeReservationRequest } from '../models/makeReservationRequest.model';
-import { AvailabilityByApplicationRequest } from '../models/availabilityByApplicationRequest.model';
-import { AvalaibilityByApplication } from '../models/availabilityByApplication.model';
+import { MakeReservationRequest } from '../models/make-reservation-request.model';
+import { AvailabilityByApplicationRequest } from '../models/availability-by-application-request.model';
+import { AvalaibilityByApplication } from '../models/availability-by-application.model';
 
 describe('ReservationService', () => {
   let service: ReservationService;

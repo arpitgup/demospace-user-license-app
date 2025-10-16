@@ -66,8 +66,11 @@ class Application(Base):
     license_type = Column(
         PGEnum(ApplicationLicenseType), default=ApplicationLicenseType.SUBSCRIPTION
     )
+    custom_SAML_attribute = Column(String, nullable=False)
     license_group = Column(String, nullable=True)
     license_count = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))    
+    created_by = Column(String, nullable=False)
 
     supported_by_bots = relationship("BotApplication", back_populates="application")
     reservations = relationship(
@@ -147,3 +150,9 @@ class ApplicationDowntime(Base):
     end_task_id = Column(String, nullable=True)
 
     application = relationship("Application")
+
+class User(Base):    
+    __tablename__ = "users"    
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255))
+    email = Column(String(255), unique=True)

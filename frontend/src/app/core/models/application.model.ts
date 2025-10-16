@@ -5,7 +5,16 @@
 export interface Application {
   id: number;
   name: string;
-  isActive:boolean;
+  isActive: boolean;
+  licenseType?: string;
+  licenseGroup?: string;
+  licenseCount?: number;
+  licenseAssignedToBots?: number;
+  customSamlAttribute?: string;
   isSelected: boolean;
   isEnabled: boolean;
+  isRemove?: boolean;
+  isEditable?: boolean;
+  isPaused?: boolean;
+  remainingLicenseCount?: number;
 }

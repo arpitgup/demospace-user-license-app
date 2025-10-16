@@ -88,6 +88,7 @@ class AvailabilityByApplicationRequest(CamelModel):
 
 class AvailabilityByApplicationResponse(CamelModel):
     requested_slot_available: bool
+    is_downtime_conflict: bool
     next_available_slots: list[AvailabilitySlot]
 
 
@@ -125,6 +126,21 @@ class CreateReservationRequest(CamelModel):
     secondary_application_ids: list[int] = []
     start_time: datetime
     end_time: datetime
+
+    @model_validator(mode="after")
+    def check_end_time(self):
+        if self.start_time >= self.end_time:
+            raise ValueError("Start time must be before end time.")
+        return self
+
+    _convert_to_utc = field_validator("start_time", "end_time")(convert_to_utc)
+
+class AdminCreateReservationRequest(CamelModel):
+    primary_application_id: int
+    secondary_application_ids: list[int] = []
+    start_time: datetime
+    end_time: datetime
+    candidate_user_email: str
 
     @model_validator(mode="after")
     def check_end_time(self):
@@ -172,17 +188,19 @@ class ApplicationCreateRequest(BaseModel):
     name: str
     is_active: bool
     license_type: ApplicationLicenseType
-    license_group: Optional[str] = None
-    license_count: Optional[int] = None
+    custom_SAML_attribute: Optional[str] = None
+    license_group: str
+    license_count: int    
 
 class ApplicationCreateResponse(BaseModel):
     id: int
     name: str
     is_active: bool
     license_type: ApplicationLicenseType
+    custom_SAML_attribute: Optional[str] = None
     license_group: Optional[str] = None
     license_count: Optional[int] = None
-    saml_attribute_name: str
+    created_by: Optional[str] = None    
 
 class ExtendReservationRequest(CamelModel):
     end_time: datetime
@@ -196,10 +214,12 @@ class UpdateApplicationStatusRequest(CamelModel):
 
 class ApplicationWithLicenseGroupOut(ApplicationOut):
     license_type: ApplicationLicenseType
+    custom_SAML_attribute: Optional[str] = None
     license_group: Optional[str] = None
     license_count: Optional[int] = None
     license_assigned_to_Bots: int
-
+    created_at: Optional[datetime] = None
+    created_by: Optional[str] = None
 
 class ApplicationUpdate(CamelModel):
     id: int
@@ -207,11 +227,10 @@ class ApplicationUpdate(CamelModel):
     is_active: bool
     license_type: ApplicationLicenseType
     license_group: Optional[str] = None
-
+    license_count: Optional[int] = None
 
 class UpdateApplicationsRequest(CamelModel):
     applications: List[ApplicationUpdate]
-
 
 class UserInfo(CamelModel):
     email: str
@@ -246,3 +265,16 @@ class DowntimeBulkCancelResponse(CamelModel):
 class RemoveAppFromReservationsRequest(CamelModel):
     primary_application_id: int
     secondary_application_ids: Optional[List[int]] = []
+
+class UserValidationRequest(BaseModel):
+    token: str
+
+class UserDetails(BaseModel):
+    user_token: str
+    email: EmailStr
+    name: str    
+    is_present: bool
+
+class UserValidationResponse(BaseModel):    
+    token_valid: bool
+    user_details: Optional[UserDetails] = None    

@@ -25,6 +25,11 @@ async def get_user_current_time(x_user_current_time: str = Header(...)):
         raise HTTPException(status_code=400, detail="Missing X-User-Current-Time")
     return x_user_current_time
 
+async def get_user_token(x_user_token: str = Header(...)):
+    """Dependency to get the custom user token header."""
+    if not x_user_token:
+        raise HTTPException(status_code=400, detail="Missing X-User-Current-Time")
+    return x_user_token
 
 app_config = {}
 

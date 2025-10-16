@@ -80,7 +80,6 @@ export class LandingPage implements OnInit {
   public readonly reservationErrorSignal =
     this.reservationService.reservationErrorMessage;
 
-
   public filteredReservations = computed(() => {
     const showPast = this.showPastReservations();
     const reservations = this.reservationsSignal();

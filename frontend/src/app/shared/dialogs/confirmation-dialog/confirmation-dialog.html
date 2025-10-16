@@ -4,8 +4,11 @@
 <h2>{{ data.title }}</h2>
 
 <mat-dialog-content>
-  <p class="booking-details">{{ data.message }}</p>
+  <p class="booking-details" [innerHTML]="data.message "></p>
+  @if(data.applications!==''){
   <p class="application-details">{{ data.applications }}</p>
+  } @if(data.licenseTitle!==''){
+
   <p class="booking-details">
     {{ data.licenseTitle }}
     <span class="application-details">{{
@@ -21,12 +24,18 @@
       }}{{ localTimeAbbrevation }}</span
     >
   </p>
+  }
 </mat-dialog-content>
 <mat-dialog-actions class="dialog-actions">
   <button matButton class="cancel-button" (click)="onCancel()">
     {{ data.cancelText }}
   </button>
-  <button matButton id="btn-confirm" class="confirm-button" (click)="onConfirm()">
+  <button
+    matButton
+    id="btn-confirm"
+    class="confirm-button"
+    (click)="onConfirm()"
+  >
     {{ data.confirmText }}
   </button>
 </mat-dialog-actions>

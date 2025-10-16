@@ -1,0 +1,116 @@
+<div class="app-wrapper">
+  <h2>Add New Application</h2>
+  <form [formGroup]="createApplicationForm" class="form-wrapper">
+    <div class="app-details-wrapper">
+      <mat-form-field appearance="outline" class="custom-form-field">
+        <mat-label>Application Name</mat-label>
+        <input
+          matInput
+          placeholder="Application Name*"
+          [formControlName]="APPLICATION_NAME_FORM"
+          maxlength="50"
+        />
+        @if(createApplicationForm.get(APPLICATION_NAME_FORM)?.hasError('required')&&
+        createApplicationForm.get(APPLICATION_NAME_FORM)?.touched){
+        <mat-error>Application name required</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="custom-form-field">
+        <mat-label>Application Type</mat-label>
+        <mat-select
+          class="custom-select"
+          [formControlName]="APPLICATION_TYPE_FORM"
+        >
+          @for(applicationType of applicationTypeList; track
+          applicationType.id){
+          <mat-option [value]="applicationType.id">
+            {{ applicationType.name }}
+          </mat-option>
+          }
+        </mat-select>
+        @if(createApplicationForm.get(APPLICATION_TYPE_FORM)?.hasError('required')&&
+        createApplicationForm.get(APPLICATION_TYPE_FORM)?.touched){
+        <mat-error>Application type required</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="app-details-wrapper">
+      @if(applicationType()===adminApplicationTypeEnums.ENVIRONMENT){
+      <mat-form-field appearance="outline" class="custom-form-field">
+        <mat-label>Platform Group Email</mat-label>
+        <input
+          matInput
+          placeholder="Platform Group Email*"
+          [formControlName]="PLATFORM_GROUP_EMAIL_FORM"
+          maxlength="200"
+        />
+        @if(createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.hasError('required')&&
+        createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.touched){
+        <mat-error>Platform group email required</mat-error>
+        } @else if(createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.hasError('pattern')&&
+        createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.touched){
+        <mat-error
+          >Email not valid. 1987984870407.altostrat.com email required</mat-error
+        >
+        }
+      </mat-form-field>
+      }@else if(applicationType()===adminApplicationTypeEnums.SUBSCRIPTION){
+      <mat-form-field appearance="outline" class="custom-form-field">
+        <mat-label>Custom SAML Attribute</mat-label>
+        <input
+          matInput
+          placeholder="Custom SAML Attribute*"
+          [formControlName]="SAML_GROUP_NAME_FORM"
+          maxlength="200"
+        />
+        @if(createApplicationForm.get(SAML_GROUP_NAME_FORM)?.hasError('required')&&
+        createApplicationForm.get(SAML_GROUP_NAME_FORM)?.touched){
+        <mat-error>Custom saml attribute required</mat-error>
+        } @else if(createApplicationForm.get(SAML_GROUP_NAME_FORM)?.hasError('pattern')&&
+        createApplicationForm.get(SAML_GROUP_NAME_FORM)?.touched){
+        <mat-error
+          >Custom saml attribute not valid. Only characters allowed</mat-error
+        >
+        }
+      </mat-form-field>
+      }
+
+      <mat-form-field appearance="outline" class="custom-form-field">
+        <mat-label>Number of Licenses/Seats</mat-label>
+        <input
+          matInput
+          type="number"
+          placeholder="Number of Licenses/Seats*"
+          [formControlName]="NUMBER_OF_LICENSES_FORM"
+          min="0"
+          max="999"
+          step="1"
+          maxlength="3"
+        />
+        @if(createApplicationForm.get(NUMBER_OF_LICENSES_FORM)?.hasError('required')&&
+        createApplicationForm.get(NUMBER_OF_LICENSES_FORM)?.touched){
+        <mat-error>Number of licenses required</mat-error>
+        }@else if
+        (createApplicationForm.get(NUMBER_OF_LICENSES_FORM)?.hasError('max')&&
+        createApplicationForm.get(NUMBER_OF_LICENSES_FORM)?.touched){
+        <mat-error>Max 999 licenses can be assigned</mat-error>
+        }
+      </mat-form-field>
+    </div>
+  </form>
+
+  <div class="button-wrapper">
+    <button matButton class="cancel-button" (click)="onCancel()">Cancel</button>
+    <button
+      matButton
+      id="btn-confirm"
+      class="confirm-button"
+      [disabled]="createApplicationForm.invalid"
+      (click)="onConfirm()"
+    >
+      Add
+    </button>
+  </div>
+</div>
