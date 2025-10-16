@@ -1,5 +1,6 @@
 from datetime import timezone
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status
+from fastapi.responses import JSONResponse
 from loguru import logger
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
@@ -13,17 +14,18 @@ from shared_lib.db.models import (
     ReservationStatus,
     ApplicationDowntime    
 )
-from shared_lib.dependencies import get_user_email, get_db
+from shared_lib.dependencies import get_user_email, get_db, get_app_config
 from typing import List
 from shared_lib.enums import DowntimeStatus
-from shared_lib.admin_service import create_saml_attribute
-from ..common.constants import ACCOUNT_CUSTOMERID
-
+from shared_lib.admin_service import create_custom_schema, is_group_exists, get_user
+from ..common.constants import ACCOUNT_CUSTOMERID, RESERVATION_EMAIL_SENDER, BOOKED_RESERVATION_EMAIL_CONTENT
+from datetime import datetime
 from ..common.schemas import (
     ApplicationWithLicenseGroupOut,
     BulkCancelReservationsRequest,
     BulkCancelReservationsResponse,
     ExtendReservationRequest,
+    AdminCreateReservationRequest,
     ReservationOut,
     BotWithApplicationsOut,
     UpdateApplicationsRequest,
@@ -44,15 +46,17 @@ from ..utils.background_tasks import (
     schedule_deprovisioning_task,
     delete_license_deprovisioning_task,
     schedule_downtime_tasks,
-    delete_downtime_tasks
+    delete_downtime_tasks,
+    schedule_reservation_tasks,
+    sendReservationEmail
 )
-from ..utils.crud import get_bot_with_supported_apps, create_bot, update_bot
+from ..utils.crud import get_bot_with_supported_apps, create_bot, update_bot, find_available_bot, format_email_for_reservation
 
 router = APIRouter(prefix="/admin")
 
 def build_response(bots: List[Bot]) -> List[BotWithApplicationsOut]:
     """
-    Helper function to convert a list of Bot models to BotWithApplicationsOut objects.
+    Helper function to convert a list of Bot models to BotWithApplicationsOut objects .
     """
     res = []
     for bot in bots:
@@ -82,9 +86,9 @@ def get_applications(db: Session = Depends(get_db)):
     )
 
     applications_with_count = []
-    for application, count in query_result:        
-        app_data = application.__dict__        
-        app_data['license_assigned_to_Bots'] = count        
+    for application, count in query_result:
+        app_data = application.__dict__
+        app_data['license_assigned_to_Bots'] = count
         applications_with_count.append(ApplicationWithLicenseGroupOut.model_validate(app_data))
 
     return applications_with_count
@@ -96,24 +100,54 @@ def update_applications(
     user_email: str = Depends(get_user_email),
 ):
     """
-    Updates the status and license group for multiple applications.
+    Updates name, status, license count & license group for multiple applications.
     """
     logger.info(f"Admin User {user_email}: Updating applications: {req.applications}")
-    app_ids = [app.id for app in req.applications]
-    apps_in_db = db.query(Application).filter(Application.id.in_(app_ids)).all()
 
+    app_ids = [app.id for app in req.applications]
+
+    apps_in_db = db.query(Application).filter(Application.id.in_(app_ids)).all()
     if len(apps_in_db) != len(app_ids):
         raise HTTPException(
             status.HTTP_404_NOT_FOUND, detail="One or more applications not found"
         )
 
+    assigned_bots_count = (
+        db.query(Application.id, func.count(Bot.id).label('assigned_licenses'))
+        .outerjoin(Application.bots)
+        .filter(Application.id.in_(app_ids))
+        .group_by(Application.id)
+        .all()
+    )
+    assigned_bots_count_map = {
+        app_id: count for app_id, count in assigned_bots_count
+    }
     app_map = {app.id: app for app in apps_in_db}
 
     for app_update in req.applications:
         app_in_db = app_map[app_update.id]
+        # --- License Count Validation ---
+        new_license_count_str = app_update.license_count
+        assigned_count = assigned_bots_count_map.get(app_update.id, 0)
+        try:
+            new_license_count = int(new_license_count_str) if new_license_count_str else 0
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid license count format for application ID {app_update.id}. Must be an integer or None.",
+            )
+        if new_license_count < assigned_count:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    f"Assigned licenses are {assigned_count}. Cannot reduce the license count for application '{app_in_db.name}' to {new_license_count}."
+                ),
+            )
+        # --- End License Count Validation ---
         app_in_db.name = app_update.name
         app_in_db.is_active = app_update.is_active
         app_in_db.license_type = app_update.license_type
+        app_in_db.license_count = app_update.license_count
 
         if (
             app_update.license_type == ApplicationLicenseType.ENVIRONMENT
@@ -135,6 +169,112 @@ def update_applications(
         raise HTTPException(
             status_code=500,
             detail="An unexpected error occurred during application update.",
+        )
+
+@router.patch("/applications/{application_id}", status_code=status.HTTP_204_NO_CONTENT)
+def update_application_status(
+    application_id: int,
+    req: UpdateApplicationStatusRequest,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+):
+    """
+    Activates or deactivates an application.
+    """
+    logger.info(
+        f"Admin User {user_email}: Updating application {application_id} status to {req.is_active}"
+    )
+
+    application = db.query(Application).filter(Application.id == application_id).first()
+
+    if not application:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Application not found")
+
+    application.is_active = req.is_active
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"An unexpected error occurred during application status update: {e}"
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="An unexpected error occurred during application status update.",
+        )
+
+
+@router.post(
+    "/applications",
+    response_model=ApplicationCreateResponse
+)
+def create_applications(
+    req: ApplicationCreateRequest,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email)
+):
+    """
+    Creates multiple new application
+    """
+    logger.info(f"Admin user {user_email}: Creating a new application with name: {req.name}")
+
+    try:
+        # Check first the app Name is already exist or not.
+        app_name = db.query(Application).filter(Application.name == req.name).all()
+        if app_name:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Application with name '{req.name}' already exists."
+            )
+
+        application_data = req.model_dump()
+
+        if req.license_type == ApplicationLicenseType.SUBSCRIPTION:
+            if not req.custom_SAML_attribute:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Custom SAML attribute is required for subscription applications.",
+                )
+            custom_schema_name = f"SAML_{req.custom_SAML_attribute.upper()}"
+            custom_schema_created = create_custom_schema(custom_schema_name, ACCOUNT_CUSTOMERID)
+            application_data['custom_SAML_attribute'] = custom_schema_name
+
+        elif req.license_group:
+            if not is_group_exists(req.license_group):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"{req.license_group} is not a valid group.",
+                )
+
+        application_data['created_by'] = user_email
+        new_application = Application(**application_data)
+
+        db.add(new_application)
+        db.commit()
+        db.refresh(new_application)
+
+        logger.info(f"Successfully created application with ID: {new_application.id}")
+        return new_application
+
+    except IntegrityError as e:
+        db.rollback()
+        logger.error(f"Database integrity error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Could not create reservation due to a database error.",
+        )
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"Failed to create application {req.name} due to unexpected error - {type(e).__name__}: {e}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while creating the application. Check server logs for details."
         )
 
 @router.patch("/reservations/{reservation_id}", response_model=ReservationOut)
@@ -200,39 +340,6 @@ def remove_app_from_reservations(
             detail="An unexpected error occurred while removing app from reservation.",
         )
 
-@router.patch("/applications/{application_id}", status_code=status.HTTP_204_NO_CONTENT)
-def update_application_status(
-    application_id: int,
-    req: UpdateApplicationStatusRequest,
-    db: Session = Depends(get_db),
-    user_email: str = Depends(get_user_email),
-):
-    """
-    Activates or deactivates an application.
-    """
-    logger.info(
-        f"Admin User {user_email}: Updating application {application_id} status to {req.is_active}"
-    )
-
-    application = db.query(Application).filter(Application.id == application_id).first()
-
-    if not application:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Application not found")
-
-    application.is_active = req.is_active
-    try:
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        logger.error(
-            f"An unexpected error occurred during application status update: {e}"
-        )
-        raise HTTPException(
-            status_code=500,
-            detail="An unexpected error occurred during application status update.",
-        )
-
-
 @router.get("/reservations", response_model=List[ReservationOut])
 def get_all_reservations(
     db: Session = Depends(get_db), user_email: str = Depends(get_user_email)
@@ -244,6 +351,170 @@ def get_all_reservations(
     reservations = db.query(Reservation).all()
     return reservations
 
+@router.post(
+    "/reservations",
+    response_model=ReservationOut
+)
+def create_reservation(
+    req: AdminCreateReservationRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+    app_config: dict = Depends(get_app_config)
+):
+    """
+    Creates a new reservation.
+    """
+    logger.info(f"Admin User {user_email}: Creating a new reservation")
+
+    # CHECK 1: Check if user email exist in workspace or not.
+    candidate_useremail = req.candidate_user_email
+    user = get_user(candidate_useremail)
+    if not user:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"detail": f"User {candidate_useremail} is not a valid user."}
+    )
+
+    all_app_ids = [req.primary_application_id] + req.secondary_application_ids
+    unique_app_ids = list(set(all_app_ids))
+
+    # CHECK 2: Check if all requested applications exist
+    apps_in_db = db.query(Application).filter(Application.id.in_(unique_app_ids)).all()
+    if len(apps_in_db) != len(unique_app_ids):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="One or more requested application IDs do not exist.",
+        )
+
+    # CHECK 3: Check if there is any Existing Reservation for that user on that datetime range.
+    existing_reservation = (
+        db.query(Reservation)
+        .filter(
+            Reservation.user_email == candidate_useremail,
+            Reservation.status.in_([ReservationStatus.ACTIVE, ReservationStatus.PENDING]),
+            Reservation.start_time < req.end_time,
+            Reservation.end_time > req.start_time,
+        )
+        .first()
+    )
+    if existing_reservation:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"User {candidate_useremail} already have an existing reservation on same Date Range. Please cancel it & book again."
+        )
+
+    # CHECK 4: Check if there is conflicting Downtime for that app on that datetime range.
+    conflicting_downtime = (
+        db.query(ApplicationDowntime)
+        .filter(
+            ApplicationDowntime.application_id.in_(unique_app_ids),
+            ApplicationDowntime.status.in_(
+                [DowntimeStatus.PENDING, DowntimeStatus.ACTIVE]
+            ),
+            ApplicationDowntime.downtime_start < req.end_time,
+            ApplicationDowntime.downtime_end > req.start_time,
+        )
+        .first()
+    )
+    if conflicting_downtime:
+        conflicting_app_name = (
+            db.query(Application.name)
+            .filter(Application.id == conflicting_downtime.application_id)
+            .scalar()
+        )
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Cannot make a reservation. Application '{conflicting_app_name}' has scheduled downtime that conflicts with your requested time.",
+        )
+
+    # Find Admin bots first that supports ALL requested applications
+    candidate_bots_admin_query = (
+        db.query(Bot)
+        .join(Bot.supported_applications)
+        .filter(BotApplication.application_id.in_(unique_app_ids))
+        .filter(Bot.is_admin == True)
+        .group_by(Bot.id)
+        .having(func.count(BotApplication.application_id) == len(unique_app_ids))
+    )
+    candidate_bots = candidate_bots_admin_query.all()
+    suitable_bot = find_available_bot(db, candidate_bots, unique_app_ids, req.start_time, req.end_time)
+    if not suitable_bot:
+        logger.info("No suitable admin bot found. Checking for non-admin bots.")
+
+        candidate_bots_non_admin_query = (
+            db.query(Bot)
+            .join(Bot.supported_applications)
+            .filter(BotApplication.application_id.in_(unique_app_ids))
+            .filter(Bot.is_admin == False)
+            .group_by(Bot.id)
+            .having(func.count(BotApplication.application_id) == len(unique_app_ids))
+        )
+        candidate_bots = candidate_bots_non_admin_query.all()
+        if not candidate_bots:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No single bot found that supports all requested applications.",
+            )
+
+        suitable_bot = find_available_bot(db, candidate_bots, unique_app_ids, req.start_time, req.end_time)
+    if not suitable_bot:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Found bots that support all applications, but none are available for the requested time.",
+        )
+
+    new_reservation = Reservation(
+        user_email=candidate_useremail,
+        bot_id=suitable_bot.id,
+        primary_application_id=req.primary_application_id,
+        start_time=req.start_time,
+        end_time=req.end_time,
+        status=ReservationStatus.PENDING,
+    )
+    new_reservation.applications.extend(apps_in_db)
+
+    try:
+        db.add(new_reservation)
+        db.commit()
+        db.refresh(new_reservation)
+        logger.info(
+            f"Successfully created reservation {new_reservation.id} for user {candidate_useremail} with bot {suitable_bot.name}"
+        )
+        background_tasks.add_task(
+            schedule_reservation_tasks,
+            new_reservation.id,
+            new_reservation.start_time.replace(tzinfo=timezone.utc),
+            new_reservation.end_time.replace(tzinfo=timezone.utc),
+        )
+        background_tasks.add_task(
+            sendReservationEmail,
+            recipient_email=candidate_useremail,
+            sender_email=app_config[RESERVATION_EMAIL_SENDER],
+            reservation_id=new_reservation.id,
+            subject="Your Agentspace License Reservation Confirmation",
+            email_content=format_email_for_reservation(BOOKED_RESERVATION_EMAIL_CONTENT, new_reservation)
+        )
+
+    except IntegrityError as e:
+        db.rollback()
+        logger.error(f"Database integrity error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Could not create reservation due to a database error.",
+        )
+
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"An unexpected error occurred while creating the reservation for user {candidate_useremail}: {e}"
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="An unexpected error occurred while creating the reservation.",
+        )
+
+    return new_reservation
 
 @router.post(
     "/reservations/bulk-cancel",
@@ -431,6 +702,34 @@ def create_bots(request: BotsCreateRequest, db: Session = Depends(get_db)):
     """
     Creates one or more new bots with their associated applications , checking for license count first.
     """
+    # Check for the requested emails if already exist or not.
+    requested_emails = [bot_data.email for bot_data in request.bots]
+    existing_bots = (
+        db.query(Bot.email)
+        .filter(Bot.email.in_(requested_emails))
+        .all()
+    )
+    # Showing tuples for my understading: existing_bots = [('bot1@example.com',), ('bot2@example.com',)]
+    if existing_bots:
+        existing_emails = [bot[0] for bot in existing_bots]
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Bot with Email '{', '.join(existing_emails)}' already exist.",
+        )
+
+    # Check Bot User Email Validity if exist in workspace or not.
+    invalid_emails = []
+    for email in requested_emails:
+        user = get_user(email)
+        if not user:
+            invalid_emails.append(email)
+            continue
+    if invalid_emails:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Bot Email '{', '.join(invalid_emails)}' does not exists.",
+        )
+
     new_app_ids = set()
     for bot_data in request.bots:
         new_app_ids.update(bot_data.application_ids)
@@ -595,6 +894,7 @@ def create_application_downtime(
     """
     Records downtime for a list of applications and schedules tasks to manage them.
     Checks for any overlapping downtimes or reservations before creation.
+    Applicable for only inActive applications.
     """
     logger.info(
         f"Admin User {user_email}: Creating downtime entry for applications: {req.applications}"
@@ -606,6 +906,15 @@ def create_application_downtime(
     if len(apps_in_db) != len(app_ids):
         raise HTTPException(
             status.HTTP_404_NOT_FOUND, detail="One or more applications not found."
+        )
+
+    # Check for the active applications (Which are not allowed)
+    active_applications = [app.name for app in apps_in_db if app.is_active is True]
+    if active_applications:
+        active_app_names = ", ".join(active_applications)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot schedule downtime. The following applications are currently ACTIVE and must be INACTIVE: {active_app_names}",
         )
 
     # Check for overlapping existing downtimes
@@ -738,55 +1047,3 @@ def bulk_cancel_downtime(
         successfully_cancelled=successfully_cancelled,
         failed_to_cancel=failed_to_cancel
     )
-
-@router.post(
-    "/applications",
-    response_model=ApplicationCreateResponse
-)
-def create_applications(
-    req: ApplicationCreateRequest,
-    db: Session = Depends(get_db),
-    user_email: str = Depends(get_user_email)
-):
-    """
-    Creates multiple new application
-    """
-    logger.info(f"Admin user {user_email}: Creating a new application with name: {req.name}")
-    
-    try:       
-        new_application = Application(**req.model_dump())                
-        db.add(new_application)
-        db.commit()
-        
-        # Refresh the object to get the generated ID
-        db.refresh(new_application)
-
-        saml_attribute_name = create_saml_attribute(new_application.name, ACCOUNT_CUSTOMERID)
-
-        logger.info(f"Successfully created application with ID: {new_application.id}")        
-        return ApplicationCreateResponse(
-            id=new_application.id,
-            name=new_application.name,
-            is_active=req.is_active,
-            license_type=req.license_type,
-            license_group=req.license_group,
-            license_count=req.license_count,
-            saml_attribute_name=saml_attribute_name
-        )
-        
-    except IntegrityError as e:
-        db.rollback()        
-        logger.error(f"IntegrityError during application creation - {e}")
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Application with name '{req.name}' already exists."
-        )
-    except Exception as e:
-        db.rollback()
-        logger.error(
-            f"Failed to create application {req.name} - {e}"
-        )
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred while creating the application.",
-        )

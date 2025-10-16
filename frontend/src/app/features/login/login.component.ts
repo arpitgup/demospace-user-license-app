@@ -1,13 +1,10 @@
 import {
-  AfterViewInit,
   Component,
   inject,
   NgZone,
   OnInit,
 } from '@angular/core';
 import { Router } from '@angular/router';
-
-import { jwtDecode } from 'jwt-decode';
 import { timer } from 'rxjs';
 import { LoginService } from '../../core/services/login.service';
 import { LoginRequest } from '../../core/models/login-request.model';
@@ -22,7 +19,7 @@ declare const google: any;
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit{
   user: any = null;
   token: string | null = null;
   private ngZone = inject(NgZone);
@@ -43,7 +40,7 @@ export class LoginComponent {
     if (typeof google === 'undefined') {
       return;
     }
-    localStorage.clear();
+    sessionStorage.clear();
     google.accounts.id.initialize({
       client_id:
         '385039775654-deso4nja1vond0f98j0p4vic6uvt91su.apps.googleusercontent.com',
@@ -70,9 +67,9 @@ export class LoginComponent {
     this.loginService.userLogin(request).subscribe({
       next: (res) => {
         if (res.token_valid && res.user_details && res.user_details.email) {
-          localStorage.setItem('userEmail', res.user_details.email);
-          localStorage.setItem('googleIdToken', token);
-          this.router.navigate(['/admin']);
+          sessionStorage.setItem('userEmail', res.user_details.email);
+          sessionStorage.setItem('userToken', res.user_details.user_token);
+          this.router.navigateByUrl('/admin', { replaceUrl: true });
         } else {
           this.showErrorDialog(
             'Unable to retrive user details. Please try again'

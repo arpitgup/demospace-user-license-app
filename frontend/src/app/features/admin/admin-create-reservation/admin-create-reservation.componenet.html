@@ -16,15 +16,6 @@
     <mat-card class="card-wrapper">
       <h4>Enter user Details</h4>
       <mat-form-field appearance="outline" class="custom-form-field">
-        <mat-label>User Name</mat-label>
-        <input
-          matInput
-          placeholder="User Name*"
-          [formControlName]="USER_NAME_FORM"
-        />
-      </mat-form-field>
-      <div class="sized-box"></div>
-      <mat-form-field appearance="outline" class="custom-form-field">
         <mat-label>User Email Id</mat-label>
         <input
           matInput
@@ -47,6 +38,7 @@
             matInput
             [matDatepicker]="picker"
             [min]="minStartDate"
+            [max]="maxStartDate"
             [formControlName]="START_DATE_FORM"
             readonly
           />
@@ -77,6 +69,7 @@
             matInput
             [matDatepicker]="endDatePicker"
             [min]="minEndDate"
+            [max]="maxEndDate"
             [formControlName]="END_DATE_FORM"
             readonly
           />
@@ -162,6 +155,7 @@
             minDurationError().length > 0 ||
             selectedApplications().trim().length <= 0
           "
+          (click)="onConfirmReservation()"
         >
           Confirm Reservation
         </button>

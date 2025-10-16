@@ -7,12 +7,9 @@ import {
   signal,
 } from '@angular/core';
 import {
-  AbstractControl,
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
-  ValidationErrors,
-  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -174,7 +171,7 @@ export class AdminCreateApplicationComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.adminService.refreshApplicationsState.set(true);
+        this.adminService.refreshApplicationsState.update(()=>true);
         this.applicationCreationSuccess.emit();
       }
     });

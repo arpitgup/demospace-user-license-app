@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
@@ -45,6 +44,7 @@ import {
 } from '../../../../../utilities/utils';
 
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { ErrorMessage } from '../../../../shared/components/error-message/error-message';
 
 type SelectableDowntime = Downtime & { isSelected?: boolean };
 
@@ -71,6 +71,7 @@ type SearchFormShape = {
     MatDatepickerModule,
     MatButtonModule,
     TableLoaderComponent,
+    ErrorMessage,
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './admin-downtime-table.component.html',
@@ -78,7 +79,7 @@ type SearchFormShape = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'admin-downtime-table' },
 })
-export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
+export class AdminDowntimeTableComponent implements OnInit {
   private readonly downtimeService = inject(DowntimeService);
   private readonly fb = inject(FormBuilder);
   private readonly dialog = inject(MatDialog);
@@ -142,6 +143,7 @@ export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
   private _paginator!: MatPaginator;
   private _initialSortApplied = false;
   localTimeAbbrevation: string = '';
+  public readonly errorMessage = signal<string>('');
 
   @ViewChild(MatSort)
   set matSort(sort: MatSort) {
@@ -236,10 +238,6 @@ export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
       ) ?? '';
   }
 
-  ngAfterViewInit(): void {
-    // no-op; wiring done by setters
-  }
-
   // Derived & filtered items
   private readonly filteredDowntimes = computed(() => {
     const all = this.allDowntimes();
@@ -300,7 +298,9 @@ export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
           const message =
             (err as { error?: { detail?: string } })?.error?.detail ??
             'Could not load downtimes.';
-          this.showErrorDialog(message);
+          // this.showErrorDialog(message);
+          this.errorMessage.set(message);
+          this.isLoading.set(false);
         },
         complete: () => this.isLoading.set(false),
       });
@@ -438,5 +438,9 @@ export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
 
   formatDate(dateTime: string) {
     return new Date(dateTime);
+  }
+
+  onRetryCall() {
+    this.getAllDowntimes();
   }
 }

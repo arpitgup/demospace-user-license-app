@@ -1,7 +1,7 @@
 import json
 import os
 
-from cachetools import TTLCache, cached
+# from cachetools import TTLCache, cached
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -11,8 +11,8 @@ from typing import List
 from .utils import get_secret_value
 from .db.models import Application, Bot
 
-USER_CACHE_SIZE = 128
-USER_CACHE_TTL_SECONDS = 3600
+# USER_CACHE_SIZE = 128
+# USER_CACHE_TTL_SECONDS = 3600
 
 
 def setup_admin_service():
@@ -34,10 +34,10 @@ def setup_admin_service():
 
 
 admin_service = setup_admin_service()
-cache = TTLCache(maxsize=USER_CACHE_SIZE, ttl=USER_CACHE_TTL_SECONDS)
+# cache = TTLCache(maxsize=USER_CACHE_SIZE, ttl=USER_CACHE_TTL_SECONDS)
 
 
-@cached(cache)
+# @cached(cache)
 def get_user(user_email):
     """Fetches user details from Google Workspace."""
     try:
@@ -50,8 +50,6 @@ def get_user(user_email):
             logger.error(f"An error occurred while trying to fetch user: {error}")
         return None
 
-
-@cached(cache)
 def is_user_in_group(user_email: str, group_email: str) -> bool:
     """Checks if a user is a member of a Google Workspace group."""
     try:
@@ -201,15 +199,14 @@ def remove_user_from_group(user_email: str, group_email: str):
         raise e
 
 
-def create_saml_attribute(application_name, account_customerID):
+def create_custom_schema(custom_schema_name, account_customerID):
     """
     Creates a custom SAML attribute schema for a given application using a synchronous insert API.
     """
     admin_service = setup_admin_service()
-    schema_name = f"SAML_{application_name.upper()}"
 
     request_body = {
-        "displayName": schema_name,
+        "displayName": custom_schema_name,
         "fields": [
             {
                 "displayName": "Email",
@@ -222,22 +219,45 @@ def create_saml_attribute(application_name, account_customerID):
                 "fieldType": "STRING"
             }
         ],
-        "schemaName": schema_name
+        "schemaName": custom_schema_name
     }
 
     try:
-        logger.info(f"Creating new SAML attribute schema: {schema_name}.")
+        logger.info(f"Creating new SAML attribute schema: {custom_schema_name}.")
         response = admin_service.schemas().insert(
             customerId=account_customerID,
             body=request_body
         ).execute()
         logger.info(
-            f"Successfully created SAML attribute schema for {application_name}."
+            f"Successfully created SAML attribute schema {custom_schema_name}."
             f" Response: {response}"
         )
         return response.get("schemaName")
     except Exception as e:
         logger.error(
-            f"Error occurred while creating SAML attribute schema for {application_name}: {e}"
+            f"Error occurred while creating SAML attribute schema for {custom_schema_name}: {e}"
         )        
         raise e
+
+def is_group_exists(group_email):
+    """
+    Check if the Group Email exists in workspace.
+    """
+    try:
+        admin_service.groups().get(groupKey=group_email).execute()
+        return True
+    except HttpError as e:
+        if e.resp.status == 404:
+            logger.error(f"Group {group_email} does not exist.")
+            return False
+        else:
+            logger.error(
+                f"Error occurred while checking group {group_email} in workspace: {e}"
+            )
+            raise e
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred while checking group {group_email} in workspace: {e}"
+        )
+        raise e
+

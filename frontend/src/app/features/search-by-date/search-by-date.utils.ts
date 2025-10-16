@@ -6,7 +6,9 @@ export function formatTime12h(hour24: number): string {
 }
 
 export function parseHourFromTime(timeStr: string): number {
-  const s = String(timeStr).replace(/\u00A0/g, ' ').trim();
+  const s = String(timeStr)
+    .replace(/\u00A0/g, ' ')
+    .trim();
   const m = s.match(/(\d+):(\d+)\s*(AM|PM)/i);
   if (!m) return NaN;
 
@@ -23,7 +25,9 @@ export function parseHourFromTime(timeStr: string): number {
 
 export function parseDurationFromEndTime(endTimeStr: string): number {
   if (!endTimeStr) return NaN;
-  const s = String(endTimeStr).replace(/\u00A0/g, ' ').trim();
+  const s = String(endTimeStr)
+    .replace(/\u00A0/g, ' ')
+    .trim();
   const m = s.match(/\((\d+)\s*hrs?\)/i);
   return m ? Number(m[1]) : NaN;
 }
@@ -34,6 +38,13 @@ export function isSameDay(d1: Date, d2: Date): boolean {
     d1.getMonth() === d2.getMonth() &&
     d1.getDate() === d2.getDate()
   );
+}
+export function isNextDay(startDate: Date, endDate: Date): boolean {
+  const futureDate = new Date(startDate);
+  futureDate.setDate(startDate.getDate() + 1);
+  futureDate.setHours(0, 0, 0, 0);
+  endDate.setHours(0, 0, 0, 0);
+  return futureDate.getTime() === endDate.getTime();
 }
 
 export function formatDate(d: Date): string {
@@ -52,14 +63,25 @@ export function intervalsOverlap(
   return aStart < bEnd && aEnd > bStart;
 }
 
-export function normalizeServerTime(iso: string, mode: 'utc' | 'local-wall'): Date {
-    if (mode === 'utc') {
-        return new Date(iso);
-    }
-    const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);
-    if (!m) {
-        return new Date(iso);
-    }
-    const [, y, mo, d, h, min, s = '0'] = m;
-    return new Date(Number(y), Number(mo) - 1, Number(d), Number(h), Number(min), Number(s), 0);
+export function normalizeServerTime(
+  iso: string,
+  mode: 'utc' | 'local-wall'
+): Date {
+  if (mode === 'utc') {
+    return new Date(iso);
+  }
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);
+  if (!m) {
+    return new Date(iso);
+  }
+  const [, y, mo, d, h, min, s = '0'] = m;
+  return new Date(
+    Number(y),
+    Number(mo) - 1,
+    Number(d),
+    Number(h),
+    Number(min),
+    Number(s),
+    0
+  );
 }

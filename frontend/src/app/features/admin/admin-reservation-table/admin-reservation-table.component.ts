@@ -35,6 +35,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { TableLoaderComponent } from '../../../loaders/table-loader/table-loader.component';
 import { ReservationApplicationRequest } from '../../../core/models/reservation-application-request.model';
 import { ErrorMessage } from '../../../shared/components/error-message/error-message';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-admin-reservation-table',
@@ -113,6 +114,9 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
     [this.SEARCH_BOTID_FORM]: [''],
   });
 
+  constructor() {
+    this.listenNewApplications();
+  }
   ngOnInit(): void {
     this.maxDate.setDate(this.today.getDate() + 60);
     this.localTimeAbbrevation =
@@ -122,7 +126,7 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
       ) ?? '';
     if (isPlatformBrowser(this.platformId)) {
       // this.userEmail =
-      //   (localStorage?.getItem('userEmail')?.split('@')[0] as string) ?? null;
+      //   (sessionStorage?.getItem('userEmail')?.split('@')[0] as string) ?? null;
       // if (this.userEmail) {
 
       // }
@@ -163,7 +167,9 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
               application.name
                 .toLowerCase()
                 .includes(
-                  this.searchForm.get(this.SEARCH_APPLICATION_FORM)?.value?.toLowerCase()
+                  this.searchForm
+                    .get(this.SEARCH_APPLICATION_FORM)
+                    ?.value?.toLowerCase()
                 )
             )
           : true
@@ -436,5 +442,13 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
 
   formatDate(dateTime: string) {
     return new Date(dateTime);
+  }
+  listenNewApplications() {
+    toObservable(this.adminService.refreshReservations).subscribe((value) => {
+      if (value === true) {
+        this.getAllReservations(true);
+      }
+      this.adminService.refreshReservationsState.update(() => false);
+    });
   }
 }

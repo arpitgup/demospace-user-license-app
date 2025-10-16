@@ -2,6 +2,7 @@ import { Application } from './application.model';
 
 export interface AvalaibilityByApplication {
   requestedSlotAvailable?: boolean;
+  isDowntimeConflict?:boolean;
   nextAvailableSlots?: NextAvailableSlots[];
 }
 

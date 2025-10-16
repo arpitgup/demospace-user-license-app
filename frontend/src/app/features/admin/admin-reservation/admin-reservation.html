@@ -4,7 +4,11 @@
     (selectedTabChange)="onTabChange($event)"
   >
     <mat-tab [label]="adminReservationConstants.BOOK_RESERVATION_TAB_LABEL">
-      <app-admin-create-reservation></app-admin-create-reservation>
+      @if(selectedIndex===0){
+      <app-admin-create-reservation
+          (createReservationSuccess)="changeTabContent()"
+      ></app-admin-create-reservation>
+      }
     </mat-tab>
     <mat-tab [label]="adminReservationConstants.RESERVATION_TABLE_TAB_LABEL">
       <app-admin-reservation-table></app-admin-reservation-table>
