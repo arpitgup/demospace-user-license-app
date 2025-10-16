@@ -72,7 +72,7 @@ export class LoginComponent {
         if (res.token_valid && res.user_details && res.user_details.email) {
           sessionStorage.setItem('userEmail', res.user_details.email);
           sessionStorage.setItem('userToken', res.user_details.user_token);
-          this.router.navigate(['/admin']);
+          this.router.navigateByUrl('/admin', { replaceUrl: true });
         } else {
           this.showErrorDialog(
             'Unable to retrive user details. Please try again'

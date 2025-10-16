@@ -45,6 +45,7 @@ import {
 } from '../../../../../utilities/utils';
 
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { ErrorMessage } from '../../../../shared/components/error-message/error-message';
 
 type SelectableDowntime = Downtime & { isSelected?: boolean };
 
@@ -71,6 +72,7 @@ type SearchFormShape = {
     MatDatepickerModule,
     MatButtonModule,
     TableLoaderComponent,
+    ErrorMessage,
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './admin-downtime-table.component.html',
@@ -142,6 +144,7 @@ export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
   private _paginator!: MatPaginator;
   private _initialSortApplied = false;
   localTimeAbbrevation: string = '';
+  public readonly errorMessage = signal<string>('');
 
   @ViewChild(MatSort)
   set matSort(sort: MatSort) {
@@ -300,7 +303,9 @@ export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
           const message =
             (err as { error?: { detail?: string } })?.error?.detail ??
             'Could not load downtimes.';
-          this.showErrorDialog(message);
+          // this.showErrorDialog(message);
+          this.errorMessage.set(message);
+          this.isLoading.set(false);
         },
         complete: () => this.isLoading.set(false),
       });
@@ -438,5 +443,9 @@ export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
 
   formatDate(dateTime: string) {
     return new Date(dateTime);
+  }
+
+  onRetryCall() {
+    this.getAllDowntimes();
   }
 }

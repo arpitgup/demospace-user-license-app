@@ -187,7 +187,7 @@ export class AdminApplicationTableComponent {
         this.isLoading.set(false);
       },
       error: (error) => {
-        this.showErrorDialog(error?.error?.detail || 'Something went wrong');
+        this.errorMessage.set(error?.error?.detail || 'Something went wrong');
         this.isLoading.set(false);
       },
     });

@@ -11,7 +11,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
 
   if (!userToken && req.url.includes('admin')) {
-    router.navigate(['/login']);
+    router.navigateByUrl('/login', { replaceUrl: true });
 
     return throwError(() => new Error('Invalid request'));
   }
@@ -30,7 +30,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401 && req.url.includes('admin')) {
         console.error('Unauthorized request (401). Redirecting to login.');
-        router.navigate(['/login']);
+        router.navigateByUrl('/login', { replaceUrl: true });
         return throwError(() => new Error('Unauthorized access'));
       }
       return throwError(() => error);
