@@ -1,13 +1,10 @@
 import {
-  AfterViewInit,
   Component,
   inject,
   NgZone,
   OnInit,
 } from '@angular/core';
 import { Router } from '@angular/router';
-
-import { jwtDecode } from 'jwt-decode';
 import { timer } from 'rxjs';
 import { LoginService } from '../../core/services/login.service';
 import { LoginRequest } from '../../core/models/login-request.model';
@@ -22,7 +19,7 @@ declare const google: any;
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit{
   user: any = null;
   token: string | null = null;
   private ngZone = inject(NgZone);

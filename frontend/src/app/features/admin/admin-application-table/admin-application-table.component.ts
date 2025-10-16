@@ -1,7 +1,9 @@
 import {
+  AfterViewInit,
   ChangeDetectorRef,
   Component,
   inject,
+  OnInit,
   signal,
   ViewChild,
 } from '@angular/core';
@@ -47,7 +49,7 @@ import { MatInputModule } from '@angular/material/input';
   templateUrl: './admin-application-table.component.html',
   styleUrl: './admin-application-table.component.scss',
 })
-export class AdminApplicationTableComponent {
+export class AdminApplicationTableComponent implements OnInit, AfterViewInit{
   readonly adminService = inject(AdminService);
   public isLoading = signal(true);
   private fb = inject(FormBuilder);

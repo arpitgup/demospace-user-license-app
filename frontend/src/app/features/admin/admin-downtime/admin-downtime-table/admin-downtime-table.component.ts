@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
@@ -80,7 +79,7 @@ type SearchFormShape = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'admin-downtime-table' },
 })
-export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
+export class AdminDowntimeTableComponent implements OnInit {
   private readonly downtimeService = inject(DowntimeService);
   private readonly fb = inject(FormBuilder);
   private readonly dialog = inject(MatDialog);
@@ -237,10 +236,6 @@ export class AdminDowntimeTableComponent implements OnInit, AfterViewInit {
         new Date(new Date()) ?? new Date(),
         Intl.DateTimeFormat().resolvedOptions().timeZone
       ) ?? '';
-  }
-
-  ngAfterViewInit(): void {
-    // no-op; wiring done by setters
   }
 
   // Derived & filtered items

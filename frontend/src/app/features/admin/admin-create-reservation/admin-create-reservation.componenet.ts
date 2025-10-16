@@ -1,5 +1,4 @@
 import {
-  ChangeDetectorRef,
   Component,
   EventEmitter,
   inject,
@@ -41,7 +40,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { SuccessDialog } from '../../../shared/dialogs/success-dialog/success-dialog';
 import { ErrorDialog } from '../../../shared/dialogs/error-dialog/error-dialog';
 import { LoaderService } from '../../../core/services/loading.service';
-import { min } from 'rxjs';
+
 
 @Component({
   selector: 'app-admin-create-reservation',
@@ -82,8 +81,8 @@ export class AdminCreateReservationComponenet implements OnInit {
   minEndTime = '00:00';
 
   applications: Application[] = [];
-  readonly selectedApplications = signal<String>('');
-  readonly minDurationError = signal<String>('');
+  readonly selectedApplications = signal<string>('');
+  readonly minDurationError = signal<string>('');
   readonly startDateTime = signal<Date | null>(null);
   readonly endDateTime = signal<Date | null>(null);
   readonly isApplicationLoading = signal<boolean>(true);
