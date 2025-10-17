@@ -278,3 +278,94 @@ class UserDetails(BaseModel):
 class UserValidationResponse(BaseModel):    
     token_valid: bool
     user_details: Optional[UserDetails] = None    
+
+class UserInGroupRequest(BaseModel):
+    """Schema for /add_user_to_group endpoint request."""
+    group_email: EmailStr
+
+class UserInGroupResponse(BaseModel):
+    """Schema for /add_user_to_group endpoint response."""
+    user_email: EmailStr
+    group_email: EmailStr
+    is_member: Optional[bool] = None
+    message: Optional[str] = None
+
+class CheckUserInWorkspaceRequest(BaseModel):
+    """Generic schema for endpoints requiring only primary_email."""
+    primary_email: EmailStr
+
+class CheckUserInWorkspaceResponse(BaseModel):
+    """Generic schema for endpoints requiring only primary_email."""
+    is_exist: Optional[bool] = None
+    primary_email: EmailStr
+    secondary_email: EmailStr
+    first_name: str
+    last_name: str
+    user_name: Optional[str] = None
+    costCenter: Optional[str] = None
+    jobTitle: Optional[str] = None
+    department: Optional[str] = None
+    orgUnitPath: Optional[str] = "/"
+    demoName: Optional[str] = None
+    managerEmail: Optional[EmailStr] = None
+
+class CreateUserRequest(BaseModel):
+    """Schema for /create_user endpoint."""
+    primary_email: EmailStr
+    secondary_email: EmailStr
+    first_name: str
+    last_name: str
+    costCenter: str
+    jobTitle: str
+    department: str
+    orgUnitPath: str = "/"
+    demoName: str
+    managerEmail: EmailStr
+
+class CreateUserResponse(BaseModel):
+    """Schema for /create_user endpoint."""
+    primary_email: EmailStr
+    secondary_email: EmailStr
+    first_name: str
+    last_name: str
+    user_name: str
+    costCenter: Optional[str] = None
+    jobTitle: Optional[str] = None
+    department: Optional[str] = None
+    orgUnitPath: Optional[str] = "/"
+    demoName: Optional[str] = None
+    managerEmail: Optional[EmailStr] = None
+    employeeID: Optional[str] = None
+    password: str
+
+class ResetPasswordRequest(BaseModel):
+    """Schema for /reset_user_password endpoint."""
+    primary_email: EmailStr
+
+class ResetPasswordResponse(BaseModel):
+    """Schema for /reset_user_password endpoint."""
+    primary_email: EmailStr
+    secondary_email: EmailStr
+    first_name: str
+    last_name: str
+    costCenter: Optional[str] = None
+    jobTitle: Optional[str] = None
+    department: Optional[str] = None
+    orgUnitPath: Optional[str] = "/"
+    demoName: Optional[str] = None
+    managerEmail: Optional[EmailStr] = None
+    employeeID: Optional[str] = None
+    password: str
+
+class UpdateUserProfileRequestResponse(BaseModel):
+    """Schema for useremail profile update endpoint."""
+    primary_email: EmailStr
+    orgUnitPath: Optional[str] = "/"
+    department: Optional[str] = None
+    jobTitle: Optional[str] = None
+    costCenter: Optional[str] = None
+    demoName: Optional[str] = None
+    managerEmail: Optional[EmailStr] = None
+    employeeID: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None

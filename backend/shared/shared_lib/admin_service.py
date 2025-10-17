@@ -50,6 +50,18 @@ def get_user(user_email):
             logger.error(f"An error occurred while trying to fetch user: {error}")
         return None
 
+def create_user(user_info):
+    """Creates a new user in Google Workspace."""
+    try:
+        user = admin_service.users().insert(body=user_info).execute()
+        return user
+    except HttpError as error:
+        if error.resp.status == 409:
+            logger.error(f"admin_service: User {user_info['primaryEmail']} already exists.")
+        else:
+            logger.error(f"An error occurred while trying to create user: {error}")
+        return None
+
 def is_user_in_group(user_email: str, group_email: str) -> bool:
     """Checks if a user is a member of a Google Workspace group."""
     try:
