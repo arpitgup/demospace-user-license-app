@@ -49,7 +49,7 @@ import { MatInputModule } from '@angular/material/input';
   templateUrl: './admin-application-table.component.html',
   styleUrl: './admin-application-table.component.scss',
 })
-export class AdminApplicationTableComponent implements OnInit, AfterViewInit{
+export class AdminApplicationTableComponent implements OnInit, AfterViewInit {
   readonly adminService = inject(AdminService);
   public isLoading = signal(true);
   private fb = inject(FormBuilder);
@@ -58,6 +58,7 @@ export class AdminApplicationTableComponent implements OnInit, AfterViewInit{
   dataSource = new MatTableDataSource<Application>([]);
   public readonly pageSizeOptions: number[] = [10];
   adminApplications: Application[] = [];
+  adminApplicationsApiResponse: Application[] = [];
   public readonly botsResponse = this.adminService.bots;
   public readonly errorMessage = signal<string>('');
   private dialog = inject(MatDialog);
@@ -134,11 +135,11 @@ export class AdminApplicationTableComponent implements OnInit, AfterViewInit{
         return;
       }
 
-      this.fetchSearchApplication();
+      this.fetchSearchApplication(true);
     });
   }
 
-  fetchSearchApplication() {
+  fetchSearchApplication(isRedirectToFirstPage: boolean) {
     this.dataSource.data = this.adminApplications
       .filter((item) =>
         this.searchForm.get(this.SEARCH_APPLICATION_FORM)?.value !== ''
@@ -162,6 +163,9 @@ export class AdminApplicationTableComponent implements OnInit, AfterViewInit{
               ) ?? true
           : true
       );
+    if (this.dataSource.paginator && isRedirectToFirstPage === true) {
+      this.dataSource.paginator.firstPage();
+    }
   }
 
   onRefreshCall() {
@@ -185,7 +189,13 @@ export class AdminApplicationTableComponent implements OnInit, AfterViewInit{
           remainingLicenseCount:
             (item.licenseCount ?? 0) - (item.licenseAssignedToBots ?? 0),
         }));
+        this.adminApplicationsApiResponse = this.adminApplications.map(
+          (item) => ({
+            ...item,
+          })
+        );
         this.dataSource.data = this.adminApplications;
+        this.clearSearchValues();
         this.isLoading.set(false);
       },
       error: (error) => {
@@ -230,7 +240,7 @@ export class AdminApplicationTableComponent implements OnInit, AfterViewInit{
       ...element,
       isEditable: false,
     }));
-    this.callUpdateApplicationTable(
+    this.callUpdateApplicationApi(
       application,
       this.applicationNameController.value,
       this.licenseCountController.value
@@ -239,11 +249,22 @@ export class AdminApplicationTableComponent implements OnInit, AfterViewInit{
     this.clearFormValues();
     this.cdr.detectChanges();
   }
-  onCancelUpdate() {
-    this.adminApplications = this.adminApplications.map((element) => ({
-      ...element,
-      isEditable: false,
-    }));
+  onCancelUpdate(id: number) {
+    const application = this.adminApplicationsApiResponse.find(
+      (item) => item.id === id
+    );
+    this.adminApplications = this.adminApplications.map((element) => {
+      if (element.id === application?.id) {
+        element.licenseAssignedToBots = application?.licenseAssignedToBots;
+        element.licenseCount = application?.licenseCount;
+        element.remainingLicenseCount = application?.remainingLicenseCount;
+        element.name = application?.name ?? '';
+        element.isActive = application?.isActive ?? false;
+      }
+
+      element.isEditable = false;
+      return element;
+    });
     this.clearFormValues();
     this.updateApplicationTable();
   }
@@ -260,10 +281,11 @@ export class AdminApplicationTableComponent implements OnInit, AfterViewInit{
   }
 
   updateApplicationTable() {
-    this.dataSource.data = this.adminApplications;
+    // this.dataSource.data = this.adminApplications;
+    this.fetchSearchApplication(false);
   }
 
-  callUpdateApplicationTable(
+  callUpdateApplicationApi(
     application: Application,
     applicationName: string | null,
     licenseCount: string | null

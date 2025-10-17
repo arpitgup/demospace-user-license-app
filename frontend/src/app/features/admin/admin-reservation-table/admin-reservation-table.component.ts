@@ -67,6 +67,8 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
   public userEmail: string | null = null;
   localTimeAbbrevation: string = '';
   reservationList: Reservation[] = [];
+  //ReservationApiResponse used to get previous on call of cancel update
+  reservationApiResponse: Reservation[] = [];
   public showPastReservations = signal(false);
   public selectAllReservations = signal(false);
   public isLoading = signal(false);
@@ -76,7 +78,7 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
   minDate: Date = new Date(2025, 7, 1);
   maxDate: Date = new Date();
   today: Date = new Date();
-  public readonly pageSizeOptions: number[] = [5];
+  public readonly pageSizeOptions: number[] = [10];
   private cdr = inject(ChangeDetectorRef);
   public readonly errorMessage = signal<string>('');
 
@@ -141,25 +143,26 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
       if (this.isRefreshCall() === true) {
         return;
       }
-      let filteredReservation: Reservation[] = [];
-      if (this.showPastReservations() === true) {
-        filteredReservation = this.reservationList.filter(
-          (item) =>
-            item.status === ReservationApiStatus.COMPLETED ||
-            item.status === ReservationApiStatus.CANCELLED
-        );
-      } else {
-        filteredReservation = this.reservationList.filter(
-          (item) =>
-            item.status === ReservationApiStatus.PENDING ||
-            item.status === ReservationApiStatus.ACTIVE
-        );
-      }
-      this.fetchSearchReservation(filteredReservation);
+
+      this.fetchSearchReservation(true);
     });
   }
 
-  fetchSearchReservation(filteredReservation: Reservation[]) {
+  fetchSearchReservation(isRedirectToFirstPage: boolean) {
+    let filteredReservation: Reservation[] = [];
+    if (this.showPastReservations() === true) {
+      filteredReservation = this.reservationList.filter(
+        (item) =>
+          item.status === ReservationApiStatus.COMPLETED ||
+          item.status === ReservationApiStatus.CANCELLED
+      );
+    } else {
+      filteredReservation = this.reservationList.filter(
+        (item) =>
+          item.status === ReservationApiStatus.PENDING ||
+          item.status === ReservationApiStatus.ACTIVE
+      );
+    }
     this.dataSource.data = filteredReservation
       .filter((item) =>
         this.searchForm.get(this.SEARCH_APPLICATION_FORM)?.value !== ''
@@ -198,6 +201,9 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
               .includes(this.searchForm.get(this.SEARCH_BOTID_FORM)?.value)
           : true
       );
+    if (this.dataSource.paginator && isRedirectToFirstPage === true) {
+      this.dataSource.paginator.firstPage();
+    }
   }
 
   getAllReservations(isRefresh: boolean) {
@@ -207,6 +213,9 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
     this.adminService.fetchAllReservations().subscribe({
       next: (data) => {
         this.reservationList = data;
+        this.reservationApiResponse = this.reservationList.map((element) => ({
+          ...element,
+        }));
         this.updateReservationDataSource();
         this.updateShowCancelCta(false);
         if (isRefresh) {
@@ -240,7 +249,7 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
     this.updateShowCancelCta(checked);
   }
 
-  onCancelledClicked(checked: boolean, reservationId: number): void {
+  onSelectReservationCancelled(checked: boolean, reservationId: number): void {
     this.dataSource.data = this.dataSource.data.map((item) => {
       if (item.id === reservationId) {
         return { ...item, isSelect: checked };
@@ -271,13 +280,13 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
   }
 
   onEditCall(reservationId: number) {
-    this.dataSource.data = this.dataSource.data.map((item) => {
+    this.reservationList = this.reservationList.map((item) => {
       if (item.id === reservationId) {
         return { ...item, isEditable: true };
       }
       return item;
     });
-    this.cdr.detectChanges();
+    this.fetchSearchReservation(false);
   }
   onSaveCall(reservationId: number) {
     const primaryApplicationId =
@@ -299,13 +308,17 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
     this.adminService.updateReservation(request, reservationId).subscribe({
       next: (data) => {
         this.loadingService.hide();
-        this.dataSource.data = this.dataSource.data.map((item) => {
+        this.reservationList = this.reservationList.map((item) => {
           if (item.id === reservationId) {
             item = data;
             return { ...item };
           }
+          this.reservationApiResponse = this.reservationList.map((element) => ({
+            ...element,
+          }));
           return item;
         });
+        this.fetchSearchReservation(false);
       },
       error: (err) => {
         this.loadingService.hide();
@@ -314,13 +327,21 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
     });
   }
   onCancelUpdateReservation(reservationId: number) {
-    this.dataSource.data = this.dataSource.data.map((item) => {
+    const reservation = this.reservationApiResponse.find(
+      (item) => item.id === reservationId
+    );
+    this.reservationList = this.reservationList.map((item) => {
       if (item.id === reservationId) {
         item.applications.forEach((element) => (element.isRemove = false));
-        return { ...item, isEditable: false };
+        return {
+          ...item,
+          isEditable: false,
+          applications: reservation?.applications ?? [],
+        };
       }
       return item;
     });
+    this.fetchSearchReservation(false);
   }
   onRemoveApplication(reservation: Reservation, applicationId: number) {
     const count = reservation.applications.filter(
