@@ -37,18 +37,22 @@ class AdminValidationMiddleware(BaseHTTPMiddleware):
                 X_DEMO_USER_EMAIL_HEADER not in request.headers
                 or not request.headers[X_DEMO_USER_EMAIL_HEADER]
             ):
-                return JSONResponse(
+                response = JSONResponse(
                     status_code=400,
                     content={"detail": "Missing X-Demo-User-Email header."},
                 )
+                response.headers["Access-Control-Allow-Origin"]="*"
+                return response
             if (
                 X_USER_TOKEN_HEADER not in request.headers
                 or not request.headers[X_USER_TOKEN_HEADER]
             ):
-                return JSONResponse(
+                response = JSONResponse(
                     status_code=400,
                     content={"detail": "Missing X-User-Token header."},
                 )
+                response.headers["Access-Control-Allow-Origin"]="*"
+                return response
 
             user_email = request.headers.get(X_DEMO_USER_EMAIL_HEADER)
             user_token = request.headers.get(X_USER_TOKEN_HEADER)

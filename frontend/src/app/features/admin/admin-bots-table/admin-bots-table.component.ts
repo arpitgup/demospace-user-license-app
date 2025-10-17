@@ -53,14 +53,14 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   readonly loadingService = inject(LoaderService);
   @Input() searchBotControl?: FormControl;
   dataSource = new MatTableDataSource<AdminBotsResponse>([]);
-  public readonly pageSizeOptions: number[] = [5];
+  public readonly pageSizeOptions: number[] = [10];
   adminApplications: Application[] = [];
   adminBotsList: AdminBotsResponse[] = [];
   public readonly botsResponse = this.adminService.bots;
   public readonly errorMessage = signal<string>('');
   private dialog = inject(MatDialog);
   applicationList: Application[] = [];
-  botList: AdminBotsResponse[] = [];
+  botApplicationDetailsList: AdminBotsResponse[] = [];
   @ViewChild(MatSort) set sort(sort: MatSort) {
     if (sort) {
       this.dataSource.sort = sort;
@@ -92,19 +92,27 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   }
   listenSearchBotValues() {
     this.searchBotControl?.valueChanges?.subscribe((value) => {
-      const newValue = value?.toString()?.trim().toLowerCase();
-      if (newValue && newValue !== '') {
-        this.dataSource.data = this.adminBotsList.filter(
-          (item) =>
-            item.applications.some((application) =>
-              application.name.toLowerCase().includes(newValue)
-            ) ||
-            item.email.toLowerCase().includes(newValue) ||
-            item.id.toString().toLowerCase().includes(newValue) ||
-            item.name.toString().toLowerCase().includes(newValue)
-        );
-      }
+      this.filteredListWithSearch(value, true);
     });
+  }
+  filteredListWithSearch(value: any, redirctToInitialPage: boolean) {
+    const newValue = value?.toString()?.trim().toLowerCase();
+    if (newValue && newValue !== '') {
+      this.dataSource.data = this.adminBotsList.filter(
+        (item) =>
+          item.applications.some((application) =>
+            application.name.toLowerCase().includes(newValue)
+          ) ||
+          item.email.toLowerCase().includes(newValue) ||
+          item.id.toString().toLowerCase().includes(newValue) ||
+          item.name.toString().toLowerCase().includes(newValue)
+      );
+    } else {
+      this.dataSource.data = this.adminBotsList;
+    }
+    if (this.dataSource.paginator && redirctToInitialPage) {
+      this.dataSource.paginator.firstPage();
+    }
   }
 
   listenBotsChanges() {
@@ -146,8 +154,11 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
             return item;
           })
           .sort((a, b) => a.id - b.id);
-        this.botList = this.adminBotsList.map((item) => ({ ...item }));
+        this.botApplicationDetailsList = this.adminBotsList.map((item) => ({
+          ...item,
+        }));
         this.dataSource.data = this.adminBotsList;
+        this.searchBotControl?.patchValue('');
         this.isLoading.set(false);
       },
       error: (error) => {
@@ -170,7 +181,7 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   }
 
   onEditBot(botId: number) {
-    this.dataSource.data = this.adminBotsList.map((item) => {
+    this.adminBotsList = this.adminBotsList.map((item) => {
       if (item.id === botId) {
         item.isEditable = true;
       } else {
@@ -178,20 +189,81 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
       }
       return item;
     });
+    this.updateBotsTable();
   }
 
   onSaveBotDetails(botId: number) {
-    this.dataSource.data = this.adminBotsList.map((item) => {
+    this.adminBotsList = this.adminBotsList.map((item) => {
       if (item.id === botId) {
         item.isEditable = false;
       }
       return item;
     });
     const adminBot = this.adminBotsList.filter((item) => item.id === botId);
-    this.updateBot(botId, adminBot[0]);
+    this.updateBotsTable();
+    this.callUpdateBotApi(botId, adminBot[0]);
   }
 
-  updateBot(botId: number, botResponse: AdminBotsResponse) {
+  onCancelUpdateBot(botId: number) {
+    this.updateApplicationAvailability(this.applicationList);
+    const bot = this.botApplicationDetailsList.find(
+      (item) => item.id === botId
+    );
+    this.adminBotsList = this.adminBotsList.map((item) => {
+      if (item.id === botId) {
+        item.isEditable = false;
+        item.applicationIds = bot?.applicationIds ?? [];
+        item.isAdmin = bot?.isAdmin ?? false;
+      }
+      return item;
+    });
+    this.updateBotsTable();
+  }
+
+  onSelectionChange(event: MatSelectChange, bot: AdminBotsResponse) {
+    if (event.value) {
+      const previousValue: number[] = this.adminBotsList.filter(
+        (item) => item.id === bot.id
+      )[0].applicationIds;
+      const currentValue: number[] = event.value;
+      const selectedValues = currentValue.filter(
+        (value) => !previousValue.includes(value)
+      );
+      const deselectedValues = previousValue.filter(
+        (value) => !currentValue.includes(value)
+      );
+      if (selectedValues.length > 0 || deselectedValues.length > 0) {
+        this.adminApplications = this.adminApplications.map((item) => {
+          if (selectedValues.includes(item.id)) {
+            item.licenseAssignedToBots = (item.licenseAssignedToBots ?? 0) + 1;
+          } else if (deselectedValues.includes(item.id)) {
+            item.licenseAssignedToBots = (item.licenseAssignedToBots ?? 0) - 1;
+          }
+          return item;
+        });
+      }
+      this.updateApplicationAvailability(this.adminApplications);
+      this.adminBotsList = this.adminBotsList.map((item) => {
+        if (item.id === bot.id) {
+          item.applicationIds = event.value;
+        }
+        return item;
+      });
+      this.updateBotsTable();
+    }
+  }
+
+  onSelectAdminReserved(checked: boolean, botId: number) {
+    this.adminBotsList = this.adminBotsList.map((item) => {
+      if (item.id === botId) {
+        item.isAdmin = checked;
+      }
+      return item;
+    });
+    this.updateBotsTable();
+  }
+
+  callUpdateBotApi(botId: number, botResponse: AdminBotsResponse) {
     this.loadingService.show();
     const bots: BotRequest[] = [
       {
@@ -229,8 +301,10 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
           );
 
           this.adminBotsList.splice(index, 1, adminBotResponse[0]);
-          this.botList = this.adminBotsList.map((item) => ({ ...item }));
-          this.dataSource.data = this.adminBotsList;
+          this.botApplicationDetailsList = this.adminBotsList.map((item) => ({
+            ...item,
+          }));
+          this.updateBotsTable();
         },
         error: (error) => {
           this.loadingService.hide();
@@ -242,59 +316,9 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
       });
   }
 
-  onCancelUpdateBot(botId: number) {
-    this.updateApplicationAvailability(this.applicationList);
-    const bot = this.botList.find((item) => item.id === botId);
-    this.dataSource.data = this.adminBotsList.map((item) => {
-      if (item.id === botId) {
-        item.isEditable = false;
-        item.applicationIds = bot?.applicationIds ?? [];
-      }
-      return item;
-    });
+  updateBotsTable() {
+    this.filteredListWithSearch(this.searchBotControl?.value, false);
   }
-
-  onSelectionChange(event: MatSelectChange, bot: AdminBotsResponse) {
-    if (event.value) {
-      const previousValue: number[] = this.adminBotsList.filter(
-        (item) => item.id === bot.id
-      )[0].applicationIds;
-      const currentValue: number[] = event.value;
-      const selectedValues = currentValue.filter(
-        (value) => !previousValue.includes(value)
-      );
-      const deselectedValues = previousValue.filter(
-        (value) => !currentValue.includes(value)
-      );
-      if (selectedValues.length > 0 || deselectedValues.length > 0) {
-        this.adminApplications = this.adminApplications.map((item) => {
-          if (selectedValues.includes(item.id)) {
-            item.licenseAssignedToBots = (item.licenseAssignedToBots ?? 0) + 1;
-          } else if (deselectedValues.includes(item.id)) {
-            item.licenseAssignedToBots = (item.licenseAssignedToBots ?? 0) - 1;
-          }
-          return item;
-        });
-      }
-      this.updateApplicationAvailability(this.adminApplications);
-      this.dataSource.data = this.adminBotsList.map((item) => {
-        if (item.id === bot.id) {
-          item.applicationIds = event.value;
-        }
-        return item;
-      });
-    }
-  }
-
-  onSelectAdminReserved(checked: boolean, botId: number) {
-    this.dataSource.data = this.adminBotsList.map((item) => {
-      if (item.id === botId) {
-        item.isAdmin = checked;
-      }
-      return item;
-    });
-  }
-
   showErrorDialog(errorMessage: string) {
     this.dialog.open(ErrorDialog, {
       width: 'auto',
