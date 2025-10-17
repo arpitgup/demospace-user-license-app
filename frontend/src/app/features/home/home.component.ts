@@ -53,7 +53,7 @@ export class HomeComponent {
     },
     {
       id: 4,
-      name: 'How To Login IN',
+      name: 'How To Login',
       isSelected: false,
       type: HomeItems.HOW_TO_LOGIN_IN,
       icon:'login'
