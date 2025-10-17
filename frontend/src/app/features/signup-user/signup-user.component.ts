@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { trigger, style, transition, animate } from '@angular/animations';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-signup-user',
@@ -44,4 +45,10 @@ import { trigger, style, transition, animate } from '@angular/animations';
     ]),
   ],
 })
-export class SignupUserComponent {}
+export class SignupUserComponent {
+  readonly router = inject(Router);
+  onSignUp() {
+    console.log('///////homecalled');
+    this.router.navigateByUrl('/home', { replaceUrl: true });
+  }
+}

@@ -4,13 +4,14 @@ import { HomeItems } from './home.enums';
 import { LandingPage } from '../landing/landing.page';
 import { UserDetailsComponent } from '../user-details/user-details.component';
 import { UserAppLinksComponent } from '../user-app-links/user-app-links.component';
-import { SignupUserComponent } from '../signup-user/signup-user.component';
+import { MatIconModule } from '@angular/material/icon';
 
 export interface HomeMenuItems {
   id: number;
   name: string;
   isSelected: boolean;
   type: HomeItems;
+  icon:string;
 }
 
 @Component({
@@ -20,7 +21,7 @@ export interface HomeMenuItems {
     LandingPage,
     UserDetailsComponent,
     UserAppLinksComponent,
-    SignupUserComponent,
+    MatIconModule
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
@@ -31,27 +32,31 @@ export class HomeComponent {
   homeMenuItems: HomeMenuItems[] = [
     {
       id: 1,
-      name: 'Application Links',
+      name: 'Home',
       isSelected: true,
       type: HomeItems.APPLICATION_LINKS,
+      icon:'home',
     },
     {
       id: 2,
       name: 'License Reservation',
       isSelected: false,
       type: HomeItems.LICENSE_RESERVATION,
+       icon:'calendar_month',
     },
     {
       id: 3,
       name: 'User Profile',
       isSelected: false,
       type: HomeItems.USER_PROFILE,
+       icon:'person',
     },
     {
       id: 4,
       name: 'How To Login IN',
       isSelected: false,
       type: HomeItems.HOW_TO_LOGIN_IN,
+      icon:'login'
     },
   ];
 

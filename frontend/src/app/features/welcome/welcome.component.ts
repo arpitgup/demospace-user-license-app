@@ -1,13 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { trigger, style, transition, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { Router } from '@angular/router';
 
 @Component({
   standalone: true,
   selector: 'app-welcome',
-  imports: [CommonModule, MatButtonModule,MatIconModule],
+  imports: [CommonModule, MatButtonModule, MatIconModule],
   templateUrl: './welcome.component.html',
   styleUrl: './welcome.component.scss',
   animations: [
@@ -37,4 +38,10 @@ import { MatIconModule } from '@angular/material/icon';
     ]),
   ],
 })
-export class WelcomeComponent {}
+export class WelcomeComponent {
+  readonly router = inject(Router);
+
+  onStartSignUp() {
+    this.router.navigateByUrl('/signup', { replaceUrl: true });
+  }
+}
