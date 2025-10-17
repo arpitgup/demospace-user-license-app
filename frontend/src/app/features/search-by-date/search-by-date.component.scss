@@ -17,13 +17,13 @@
 }
 
 .search-by-date-container {
-  width: 95.1875rem;
-  height: 54.0625rem;
-  background: $color-bg-light;
-  padding: 2.8rem 3.75rem;
-  box-sizing: border-box;
   display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
   flex-direction: column;
+  padding-left: 2.8rem;
+  padding-right: 2.8rem;
+  align-items: stretch;
 
   .main-title {
     @include heading-lg;
@@ -34,20 +34,33 @@
 
   .card-wrapper {
     display: flex;
-    gap: 6.06rem;
-    align-items: flex-start;
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 2rem;
+    position: relative;
 
+    .arrow-container {
+      position: absolute;
+      right: 50%;
+      top: 50%;
+      align-items: center;
+      .forward-icon {
+        width: 2.6875rem;
+        display: block;
+        height: 2.875rem;
+        flex-shrink: 0;
+      }
+    }
     .main-content {
-      flex: 0 0 40.625rem;
-      height: 42.4375rem;
+       flex: 1;
+      display: flex;
+      flex-direction: column;
       border-radius: 1.5rem;
+      position: relative;
       border: 1px solid rgba($color-text-muted, 0.5);
       background: $color-white;
       margin-top: 2.31rem;
       padding: 3rem 2.88rem;
-      box-sizing: border-box;
-      overflow-y: auto;
-      padding-bottom: 0;
 
       .content-header {
         @include body-md;
@@ -148,19 +161,13 @@
           }
         }
       }
-
-      .side-arrow-container {
-        position: absolute;
-        right: 51%;
-        top: 50%;
-        align-items: center;
-      }
     }
 
     .actions-container {
       display: flex;
       justify-content: center;
       margin-top: 11.5rem;
+      align-items: flex-end;
 
       .check-availability-button {
         min-width: 13.1625rem;
@@ -173,6 +180,8 @@
         font-weight: 500;
         line-height: 1.8rem;
         letter-spacing: 0.03rem;
+        margin-top: auto;
+        margin-bottom: 2.62rem;
 
         &:disabled {
           background-color: #ccc !important;
@@ -205,13 +214,17 @@
     }
 
     .availability-results-container {
-      flex: 0 0 40.625rem;
-      height: 42.4375rem;
+      display: flex;
+      align-items: stretch;
+      flex: 1;
       flex-shrink: 0;
       border-radius: 1.5rem;
       border: 1px solid rgba(190, 191, 192, 0.5);
       background: #fff;
       margin-top: 2.31rem;
+      padding-bottom: 2rem;
+      padding-right: 1rem;
+      padding-left: 1rem;
 
       mat-card-title {
         color: var(--Black, #161a1d);
@@ -254,15 +267,14 @@
             border-radius: 1.5625rem;
             min-width: 9.8125rem;
             border-radius: 30px;
-            background: rgba(66, 133, 244, 0.20);
-            color: #4285F4;
+            background: rgba(66, 133, 244, 0.2);
+            color: #4285f4;
 
             &.mat-button-toggle-disabled {
               color: black;
               opacity: 0.5;
-              background: #E6E6E6;
+              background: #e6e6e6;
             }
-
 
             .mat-button-toggle-button {
               display: flex;
@@ -275,7 +287,7 @@
               border-radius: 1.5625rem;
 
               &:hover {
-                background: rgba(66, 133, 244, 0.10);
+                background: rgba(66, 133, 244, 0.1);
               }
             }
 
@@ -341,10 +353,12 @@
           width: 18.25rem;
           border-radius: 2.5625rem;
 
-          background: linear-gradient(90deg,
-              rgba(66, 133, 244, 0.95) 7.88%,
-              #7051ca 83.78%,
-              rgba(188, 18, 4, 0.88) 152.54%);
+          background: linear-gradient(
+            90deg,
+            rgba(66, 133, 244, 0.95) 7.88%,
+            #7051ca 83.78%,
+            rgba(188, 18, 4, 0.88) 152.54%
+          );
 
           color: white;
           font-family: Roboto;
@@ -371,6 +385,21 @@
           }
         }
       }
+    }
+
+    .invisible-mat-card {
+      display: flex;
+      align-items: stretch;
+      flex: 1;
+      flex-shrink: 0;
+      border-radius: 1.5rem;
+      border: 1px solid rgba(190, 191, 192, 0.5);
+      background: #fff;
+      margin-top: 2.31rem;
+      padding-bottom: 2rem;
+      padding-right: 1rem;
+      padding-left: 1rem;
+      visibility: hidden;
     }
   }
 }

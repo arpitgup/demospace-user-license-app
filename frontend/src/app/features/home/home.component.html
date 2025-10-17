@@ -1,0 +1,35 @@
+<mat-drawer-container class="mat-container">
+  <mat-drawer mode="side" opened class="side-nav">
+    <div class="profile-image-wrapper">
+      <mat-icon class="profile-image">person</mat-icon>
+      <div class="profile-name">
+        <h4 class="name-title">Jagtar Singh</h4>
+        <h5 class="email-title">(Agentspace (Product) Demo - 1145)</h5>
+      </div>
+    </div>
+    @for(menuItems of homeMenuItems; track menuItems.id){
+    <div
+      class="menu-items"
+      [class.selected]="menuItems.isSelected"
+      (click)="onItemClicked(menuItems.type)"
+    >
+      <mat-icon class="profile-image">{{menuItems.icon}}</mat-icon>
+      <h4 class="menu-title" [class.selected]="menuItems.isSelected">
+        {{ menuItems.name }}
+      </h4>
+    </div>
+
+    }
+  </mat-drawer>
+  <mat-drawer-content class="mat-content">
+    @if(menuItemType()===menuItemsEnums.APPLICATION_LINKS){
+    <app-user-app-links></app-user-app-links>
+    }@else if(menuItemType()===menuItemsEnums.LICENSE_RESERVATION){
+    <app-landing-page></app-landing-page>
+    }@else if(menuItemType()===menuItemsEnums.USER_PROFILE){
+    <app-user-details></app-user-details>
+    }@else if(menuItemType()===menuItemsEnums.HOW_TO_LOGIN_IN){
+    <!-- <app-signup-user></app-signup-user> -->
+    }
+  </mat-drawer-content>
+</mat-drawer-container>

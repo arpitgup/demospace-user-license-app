@@ -1,0 +1,21 @@
+<div class="welcome-wrapper">
+  <div class="title-wrapper" @slideDown>
+    <h2>Welcome to Agentspace Demo User App</h2>
+  </div>
+  <p @fadeIn class="desc-wrapper">
+    App manages demo user profiles for multiple Agentspace demos listed on
+    <a href="" class="link-wrapper">go/demos</a>. Please read the
+    <a href="" class="link-wrapper">How to Log-In</a> and the respective demo
+    guides on <a href="">go/demos</a> for detailed instructions.
+  </p>
+  <div class="note-wrapper" @fadeIn>
+    <mat-icon>info</mat-icon>
+    <p class="signup-note">
+      Note: Your account is not created yet. Please click on Get Started for
+      signup
+    </p>
+  </div>
+  <div class="button-wrapper" @slideUp>
+    <button matButton class="started-button" (click)="onStartSignUp()">Get Started</button>
+  </div>
+</div>
