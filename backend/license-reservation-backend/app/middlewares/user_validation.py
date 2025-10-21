@@ -20,7 +20,7 @@ IAP_PUBLIC_KEY_URL = "https://www.gstatic.com/iap/verify/public_key"
 HTTP_REQUEST = requests.Request()
 
 def get_authenticated_email_google_auth(
-    iap_assertion: Optional[str] = Header(None, alias="X-Goog-Iap-Jwt-Assertion")
+    iap_assertion: Optional[str] = Header(None, alias="x-goog-iap-jwt-assertion")
 ) -> str:
    
     try:
