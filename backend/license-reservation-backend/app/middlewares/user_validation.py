@@ -20,10 +20,12 @@ IAP_PUBLIC_KEY_URL = "https://www.gstatic.com/iap/verify/public_key"
 HTTP_REQUEST = requests.Request()
 
 def get_authenticated_email_google_auth(
-    iap_assertion: Optional[str] = Header(None, alias="x-goog-iap-jwt-assertion")
+    token:string
 ) -> str:
    
     try:
+        iap_assertion = token
+
         if not iap_assertion:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN, 
@@ -32,7 +34,7 @@ def get_authenticated_email_google_auth(
 
         
         claims = id_token.verify_oauth2_token(
-                    request.headers.get('x-goog-iap-jwt-assertion'), 
+                    iap_assertion, 
                     HTTP_REQUEST, 
                     audience=EXPECTED_AUDIENCE
                 )
