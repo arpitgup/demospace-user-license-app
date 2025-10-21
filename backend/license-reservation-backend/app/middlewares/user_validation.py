@@ -20,7 +20,7 @@ IAP_PUBLIC_KEY_URL = "https://www.gstatic.com/iap/verify/public_key"
 HTTP_REQUEST = requests.Request()
 
 def get_authenticated_email_google_auth(
-    token:string
+    token
 ) -> str:
    
     try:
@@ -57,7 +57,7 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
             logger.info(f"Request headers: {request.headers}")
-            logger.info(f"Request Headers===: {get_authenticated_email_google_auth()}")
+            logger.info(f"Request Headers===: {get_authenticated_email_google_auth(request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL))}")
             if request.method == "OPTIONS":
                 return await call_next(request)
 
