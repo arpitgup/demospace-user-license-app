@@ -55,7 +55,7 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
             logger.info(f"Request headers: {request.headers}")
-            logger.info(f"Request Headers===: {validate_iap_assertion()}")
+            logger.info(f"Request Headers===: {get_authenticated_email_google_auth()}")
             if request.method == "OPTIONS":
                 return await call_next(request)
 
