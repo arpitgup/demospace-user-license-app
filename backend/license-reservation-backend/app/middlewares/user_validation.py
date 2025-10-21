@@ -10,6 +10,7 @@ from loguru import logger
 class UserValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
+            logger.info(f"Request headers: {request.headers}")
             if request.method == "OPTIONS":
                 return await call_next(request)
 
@@ -39,7 +40,6 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
                 response.headers["Access-Control-Allow-Origin"]="*"
                 return response
 
-            logger.info(f"Request headers: {request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL)}")
             user_email = request.headers.get(X_DEMO_USER_EMAIL_HEADER)
             try:
                 # user = admin_service.get_user(user_email)
