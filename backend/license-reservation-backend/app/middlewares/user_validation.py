@@ -32,7 +32,7 @@ def get_authenticated_email_google_auth(
 
         
         claims = id_token.verify_oauth2_token(
-                    iap_assertion, 
+                    request.headers.get('x-goog-iap-jwt-assertion'), 
                     HTTP_REQUEST, 
                     audience=EXPECTED_AUDIENCE
                 )
