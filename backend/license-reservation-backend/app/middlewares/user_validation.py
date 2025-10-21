@@ -6,11 +6,56 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
 from ..common.constants import X_DEMO_USER_EMAIL_HEADER, X_GOG_AUTHENTICATED_USER_EMAIL
 from loguru import logger
+# iap_auth.py
+import os
+from fastapi import Header, HTTPException, status, Depends
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from google.auth.exceptions import InvalidValue, GoogleAuthError
+from typing import Optional
+
+EXPECTED_AUDIENCE = "/projects/385039775654/global/backendServices/3364462286488655023"
+IAP_ISSUER = "https://cloud.google.com/iap"
+IAP_PUBLIC_KEY_URL = "https://www.gstatic.com/iap/verify/public_key"
+HTTP_REQUEST = requests.Request()
+
+def get_authenticated_email_google_auth(
+    iap_assertion: Optional[str] = Header(None, alias="X-Goog-Iap-Jwt-Assertion")
+) -> str:
+   
+    try:
+        if not iap_assertion:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN, 
+                    detail="X-Goog-Iap-Jwt-Assertion header missing."
+                )
+
+        
+        claims = id_token.verify_oauth2_token(
+                    iap_assertion, 
+                    HTTP_REQUEST, 
+                    audience=AUDIENCE
+                )
+        user_email = claims.get("email")
+        logger.info(f"User email: {user_email}")
+        if user_email:
+            return str(user_email)
+            
+        raise ValueError("Token did not contain an email claim.")
+
+    except (InvalidValue, GoogleAuthError, ValueError) as e:
+        print(f"IAP JWT Validation Failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="Invalid IAP JWT Assertion."
+        )
+
 
 class UserValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
             logger.info(f"Request headers: {request.headers}")
+            logger.info(f"Request Headers===: {validate_iap_assertion()}")
             if request.method == "OPTIONS":
                 return await call_next(request)
 
@@ -39,6 +84,7 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
                 )
                 response.headers["Access-Control-Allow-Origin"]="*"
                 return response
+
 
             user_email = request.headers.get(X_DEMO_USER_EMAIL_HEADER)
             try:
