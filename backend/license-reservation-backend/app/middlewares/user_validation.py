@@ -4,7 +4,7 @@ from shared_lib import admin_service
 from starlette.responses import JSONResponse
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
-from ..common.constants import X_DEMO_USER_EMAIL_HEADER
+from ..common.constants import X_DEMO_USER_EMAIL_HEADER, X_GOG_AUTHENTICATED_USER_EMAIL
 from loguru import logger
 
 class UserValidationMiddleware(BaseHTTPMiddleware):
@@ -28,6 +28,18 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
                 response.headers["Access-Control-Allow-Origin"]="*"
                 return response
 
+            if (
+                X_GOG_AUTHENTICATED_USER_EMAIL not in request.headers
+                or not request.headers[X_GOG_AUTHENTICATED_USER_EMAIL]
+            ):
+                response = JSONResponse(
+                    status_code=400,
+                    content={"detail": "Missing X_GOG_AUTHENTICATED_USER_EMAIL header."},
+                )
+                response.headers["Access-Control-Allow-Origin"]="*"
+                return response
+
+            logger.info(f"Request headers: {request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL)}")
             user_email = request.headers.get(X_DEMO_USER_EMAIL_HEADER)
             try:
                 # user = admin_service.get_user(user_email)

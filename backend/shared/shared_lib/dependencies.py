@@ -31,6 +31,12 @@ async def get_user_token(x_user_token: str = Header(...)):
         raise HTTPException(status_code=400, detail="Missing X-User-Current-Time")
     return x_user_token
 
+async def get_authenticated_iap_user_email(x_goog_authenticated_user_email: str = Header(...)):
+    """Dependency to get user email from IAP's header value."""
+    if not x_goog_authenticated_user_email:
+        raise HTTPException(status_code=400, detail="Missing X-Goog-Authenticated-User-Email header")
+    return x_goog_authenticated_user_email
+
 app_config = {}
 
 
