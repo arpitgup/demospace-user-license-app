@@ -34,7 +34,7 @@ def get_authenticated_email_google_auth(
         claims = id_token.verify_oauth2_token(
                     iap_assertion, 
                     HTTP_REQUEST, 
-                    audience=AUDIENCE
+                    audience=EXPECTED_AUDIENCE
                 )
         user_email = claims.get("email")
         logger.info(f"User email: {user_email}")
