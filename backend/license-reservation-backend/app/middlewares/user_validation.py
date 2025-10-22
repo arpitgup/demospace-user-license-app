@@ -7,12 +7,13 @@ from cryptography.hazmat.primitives import serialization, hashes
 from ..common.constants import X_DEMO_USER_EMAIL_HEADER, X_GOG_AUTHENTICATED_USER_EMAIL
 from loguru import logger
 # iap_auth.py
-import os
-from fastapi import Header, HTTPException, status, Depends
-from google.oauth2 import id_token
-from google.auth.transport import requests
-from google.auth.exceptions import InvalidValue, GoogleAuthError
-from typing import Optional
+# import os
+# from fastapi import Header, HTTPException, status, Depends
+# from google.oauth2 import id_token
+# from google.auth.transport import requests
+# from google.auth.exceptions import InvalidValue, GoogleAuthError
+# from typing import Optional
+from google.auth import jwt
 
 EXPECTED_AUDIENCE = "/projects/385039775654/global/backendServices/3364462286488655023"
 IAP_ISSUER = "https://cloud.google.com/iap"
@@ -24,21 +25,17 @@ def get_authenticated_email_google_auth(
 ) -> str:
    
     try:
-        iap_assertion = token
 
-        if not iap_assertion:
+        if not token:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN, 
                     detail="X-Goog-Iap-Jwt-Assertion header missing."
                 )
 
         
-        claims = id_token.verify_oauth2_token(
-                    iap_assertion, 
-                    HTTP_REQUEST, 
-                    audience=EXPECTED_AUDIENCE
-                )
-        user_email = claims.get("email")
+        decoded = jwt.decode(token,verify=False)
+        user_email = decoded.get("email")
+
         logger.info(f"User email: {user_email}")
         if user_email:
             return str(user_email)
