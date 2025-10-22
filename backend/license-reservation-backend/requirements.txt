@@ -13,3 +13,4 @@ sqlalchemy==2.*
 uvicorn[standard]==0.35.0
 cryptography
 google-auth
+pyjwt
