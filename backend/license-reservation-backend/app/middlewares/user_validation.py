@@ -31,9 +31,10 @@ def get_authenticated_email_google_auth(
             logger.info("Not a user email========")
             return ''
         
-
+        tokenDecoded=jwt.decode(request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL),verify=False)
+        logger.info(f"tokenDecoded email========: {tokenDecoded}") 
         req=google_requests.Request()       
-        decoded=id_token.verify_token(request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL),req,audience=EXPECTED_AUDIENCE)
+        decoded=id_token.verify_token(request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL),req,audience=EXPECTED_AUDIENCE,certs_url="https://www.gstatic.com/iap/verify/public_key-jwk")
         logger.info(f"User email========: {decoded}")
         user_email=decoded.get("email")
         logger.info(f"User email========: {user_email}")
