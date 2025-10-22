@@ -35,14 +35,16 @@ def get_authenticated_email_google_auth(
         req=google_requests.Request()       
         decoded=id_token.verify_token(request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL),req,audience=EXPECTED_AUDIENCE)
         logger.info(f"User email========: {decoded}")
-        # user_email=decoded.get("email")
-        # logger.info(f"User email========: {user_email}")
-        return ''
-        # user_email = de
+        user_email=decoded.get("email")
+        logger.info(f"User email========: {user_email}")
+
 
        
-        # if user_email:
-        #     return str(user_email)
+        if user_email:
+            return str(user_email)
+        else :
+            return    
+
             
         # raise ValueError("Token did not contain an email claim.")
 
@@ -60,7 +62,7 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
             logger.info(f"Request headers: {request.headers}")
             if(X_GOG_AUTHENTICATED_USER_EMAIL not in request.headers
                 or not request.headers[X_GOG_AUTHENTICATED_USER_EMAIL]):
-                 logger.info(f"Request Headers===: {get_authenticated_email_google_auth(request)}")
+                 logger.info(f"User email from header: {get_authenticated_email_google_auth(request)}")
 
         
             if request.method == "OPTIONS":
@@ -85,6 +87,7 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
             
             try:
                 # user = admin_service.get_user(user_email)
+                user_email = request.headers.get(X_DEMO_USER_EMAIL_HEADER)
                 is_valid_email = is_agentspace_demo_user(user_email, request)
                 if not is_valid_email:
                     raise HTTPException(
