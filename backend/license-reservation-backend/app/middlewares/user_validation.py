@@ -53,7 +53,7 @@ def get_authenticated_email_google_auth(
             certs=public_keys,
             audience=IAP_AUDIENCE,
             # The IAP JWT uses the ES256 algorithm
-            verify_claims=['exp', 'iat', 'aud', 'iss'] 
+            # verify_claims=['exp', 'iat', 'aud', 'iss'] 
         )
         tokenDecoded=jwt.decode(request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL),verify=False)
         logger.info(f"tokenDecoded email========: {tokenDecoded}") 
