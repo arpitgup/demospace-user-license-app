@@ -60,8 +60,7 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
             logger.info(f"Request headers: {request.headers}")
-            if(X_GOG_AUTHENTICATED_USER_EMAIL not in request.headers
-                or not request.headers[X_GOG_AUTHENTICATED_USER_EMAIL]):
+            if(X_GOG_AUTHENTICATED_USER_EMAIL in request.headers):
                  logger.info(f"User email from header: {get_authenticated_email_google_auth(request)}")
 
         
