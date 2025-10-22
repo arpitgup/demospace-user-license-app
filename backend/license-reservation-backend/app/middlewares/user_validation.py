@@ -13,6 +13,8 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
         try:
             logger.info(f"Request headers: {request.headers}")
             jwt_token = request.headers.get('x-goog-iap-jwt-assertion')
+            user_data=request.headers.get('x-goog-authenticated-user-email')
+            logger.info(f"Google Email: {user_data}")
             userEmail = await get_authenticated_iap_user_email(jwt_token)
             # request.headers[X_GOG_AUTHENTICATED_USER_EMAIL] = userEmail
             logger.info(f"User Email: {userEmail}")
