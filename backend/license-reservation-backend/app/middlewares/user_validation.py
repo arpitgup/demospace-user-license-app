@@ -14,13 +14,29 @@ from loguru import logger
 # from google.auth.exceptions import InvalidValue, GoogleAuthError
 # from typing import Optional
 from google.auth import jwt
-from google.auth.transport import requests as google_requests
-from google.oauth2 import id_token
+import requests
+import json
+from google.auth.jwt import decode
+from google.auth import exceptions
 
 # EXPECTED_AUDIENCE = "/projects/385039775654/global/backendServices/3364462286488655023"
 # IAP_ISSUER = "https://cloud.google.com/iap"
-# IAP_PUBLIC_KEY_URL = "https://www.gstatic.com/iap/verify/public_key"
-AUDIENCE="385039775654-3364462286488655023.apps.googleusercontent.com"
+IAP_PUBLIC_KEY_URL = "https://www.gstatic.com/iap/verify/public_key"
+IAP_AUDIENCE = "/projects/385039775654/global/backendServices/3364462286488655023"
+_iap_public_keys = {}
+
+def get_iap_public_keys():
+    """Fetches and caches Google IAP public keys."""
+    global _iap_public_keys
+    if not _iap_public_keys:
+        try:
+            response = requests.get(IAP_PUBLIC_KEY_URL, timeout=5)
+            response.raise_for_status()
+            _iap_public_keys = response.json()
+        except requests.RequestException as e:
+            print(f"Error fetching IAP public keys: {e}")
+            raise HTTPException(status_code=500, detail="Could not fetch IAP verification keys.")
+    return _iap_public_keys
 
 def get_authenticated_email_google_auth(
     request
@@ -30,13 +46,19 @@ def get_authenticated_email_google_auth(
         if not request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL):
             logger.info("Not a user email========")
             return ''
-        
+        public_keys = get_iap_public_keys()
+        jwt_assertion = request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL)
+        claims = decode(
+            jwt_assertion,
+            certs=public_keys,
+            audience=IAP_AUDIENCE,
+            # The IAP JWT uses the ES256 algorithm
+            verify_claims=['exp', 'iat', 'aud', 'iss'] 
+        )
         tokenDecoded=jwt.decode(request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL),verify=False)
         logger.info(f"tokenDecoded email========: {tokenDecoded}") 
-        req=google_requests.Request()       
-        decoded=id_token.verify_token(request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL),req,audience=AUDIENCE)
-        logger.info(f"User email========: {decoded}")
-        user_email=decoded.get("email")
+        logger.info(f"User email Decoded========: {claims}")
+        user_email = claims.get('email')
         logger.info(f"User email========: {user_email}")
 
 
@@ -44,7 +66,7 @@ def get_authenticated_email_google_auth(
         if user_email:
             return str(user_email)
         else :
-            return    
+            return '' 
 
             
         # raise ValueError("Token did not contain an email claim.")
