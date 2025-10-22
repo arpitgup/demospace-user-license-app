@@ -18,7 +18,7 @@ from google.auth import jwt
 EXPECTED_AUDIENCE = "/projects/385039775654/global/backendServices/3364462286488655023"
 IAP_ISSUER = "https://cloud.google.com/iap"
 IAP_PUBLIC_KEY_URL = "https://www.gstatic.com/iap/verify/public_key"
-HTTP_REQUEST = requests.Request()
+
 
 def get_authenticated_email_google_auth(
     token
@@ -42,10 +42,10 @@ def get_authenticated_email_google_auth(
             
         raise ValueError("Token did not contain an email claim.")
 
-    except (InvalidValue, GoogleAuthError, ValueError) as e:
+    except Exception as e:
         print(f"IAP JWT Validation Failed: {e}")
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
+            status_code=404, 
             detail="Invalid IAP JWT Assertion."
         )
 
@@ -73,19 +73,8 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
                 response.headers["Access-Control-Allow-Origin"]="*"
                 return response
 
-            if (
-                X_GOG_AUTHENTICATED_USER_EMAIL not in request.headers
-                or not request.headers[X_GOG_AUTHENTICATED_USER_EMAIL]
-            ):
-                response = JSONResponse(
-                    status_code=400,
-                    content={"detail": "Missing X_GOG_AUTHENTICATED_USER_EMAIL header."},
-                )
-                response.headers["Access-Control-Allow-Origin"]="*"
-                return response
 
-
-            user_email = request.headers.get(X_DEMO_USER_EMAIL_HEADER)
+            
             try:
                 # user = admin_service.get_user(user_email)
                 is_valid_email = is_agentspace_demo_user(user_email, request)
