@@ -6,87 +6,16 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
 from ..common.constants import X_DEMO_USER_EMAIL_HEADER, X_GOG_AUTHENTICATED_USER_EMAIL
 from loguru import logger
-# iap_auth.py
-# import os
-# from fastapi import Header, HTTPException, status, Depends
-# from google.oauth2 import id_token
-# from google.auth.transport import requests
-# from google.auth.exceptions import InvalidValue, GoogleAuthError
-# from typing import Optional
-from google.auth import jwt
-import requests
-import json
-from google.auth.jwt import decode
-from google.auth import exceptions
-
-# EXPECTED_AUDIENCE = "/projects/385039775654/global/backendServices/3364462286488655023"
-# IAP_ISSUER = "https://cloud.google.com/iap"
-IAP_PUBLIC_KEY_URL = "https://www.gstatic.com/iap/verify/public_key"
-IAP_AUDIENCE = "/projects/385039775654/global/backendServices/3364462286488655023"
-_iap_public_keys = {}
-
-def get_iap_public_keys():
-    """Fetches and caches Google IAP public keys."""
-    global _iap_public_keys
-    if not _iap_public_keys:
-        try:
-            response = requests.get(IAP_PUBLIC_KEY_URL, timeout=5)
-            response.raise_for_status()
-            _iap_public_keys = response.json()
-        except requests.RequestException as e:
-            print(f"Error fetching IAP public keys: {e}")
-            raise HTTPException(status_code=500, detail="Could not fetch IAP verification keys.")
-    return _iap_public_keys
-
-def get_authenticated_email_google_auth(
-    request
-) -> str:
-   
-    try:
-        if not request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL):
-            logger.info("Not a user email========")
-            return ''
-        public_keys = get_iap_public_keys()
-        jwt_assertion = request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL)
-        claims = decode(
-            jwt_assertion,
-            certs=public_keys,
-            audience=IAP_AUDIENCE,
-            # The IAP JWT uses the ES256 algorithm
-            # verify_claims=['exp', 'iat', 'aud', 'iss'] 
-        )
-        tokenDecoded=jwt.decode(request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL),verify=False)
-        logger.info(f"tokenDecoded email========: {tokenDecoded}") 
-        logger.info(f"User email Decoded========: {claims}")
-        user_email = claims.get('email')
-        logger.info(f"User email========: {user_email}")
-
-
-       
-        if user_email:
-            return str(user_email)
-        else :
-            return '' 
-
-            
-        # raise ValueError("Token did not contain an email claim.")
-
-    except Exception as e:
-        print(f"IAP JWT Validation Failed: {e}")
-        raise HTTPException(
-            status_code=404, 
-            detail="Invalid IAP JWT Assertion."
-        )
-
+from shared_lib.dependencies import get_authenticated_iap_user_email
 
 class UserValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
             logger.info(f"Request headers: {request.headers}")
-            if(X_GOG_AUTHENTICATED_USER_EMAIL in request.headers):
-                 logger.info(f"User email from header: {get_authenticated_email_google_auth(request)}")
-
-        
+            jwt_token = request.headers.get(x_goog_iap_jwt_assertion)
+            userEmail = await get_authenticated_iap_user_email(jwt_token)
+            request.headers[X_GOG_AUTHENTICATED_USER_EMAIL] = userEmail
+            
             if request.method == "OPTIONS":
                 return await call_next(request)
 
@@ -105,11 +34,20 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
                 response.headers["Access-Control-Allow-Origin"]="*"
                 return response
 
+            if (
+                X_GOG_AUTHENTICATED_USER_EMAIL not in request.headers
+                or not request.headers[X_GOG_AUTHENTICATED_USER_EMAIL]
+            ):
+                response = JSONResponse(
+                    status_code=400,
+                    content={"detail": "Missing X_GOG_AUTHENTICATED_USER_EMAIL header."},
+                )
+                response.headers["Access-Control-Allow-Origin"]="*"
+                return response
 
-            
+            user_email = request.headers.get(X_DEMO_USER_EMAIL_HEADER)
             try:
                 # user = admin_service.get_user(user_email)
-                user_email = request.headers.get(X_DEMO_USER_EMAIL_HEADER)
                 is_valid_email = is_agentspace_demo_user(user_email, request)
                 if not is_valid_email:
                     raise HTTPException(
