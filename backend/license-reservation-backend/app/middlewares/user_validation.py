@@ -59,7 +59,7 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
         try:
             logger.info(f"Request headers: {request.headers}")
             if(X_GOG_AUTHENTICATED_USER_EMAIL not in request.headers
-                or not request.headers[X_DEMO_USEX_GOG_AUTHENTICATED_USER_EMAILR_EMAIL_HEADER]):
+                or not request.headers[X_GOG_AUTHENTICATED_USER_EMAIL]):
                  logger.info(f"Request Headers===: {get_authenticated_email_google_auth(request)}")
 
         
