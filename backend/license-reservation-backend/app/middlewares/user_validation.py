@@ -14,7 +14,8 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
             logger.info(f"Request headers: {request.headers}")
             jwt_token = request.headers.get('x-goog-iap-jwt-assertion')
             userEmail = await get_authenticated_iap_user_email(jwt_token)
-            request.headers[X_GOG_AUTHENTICATED_USER_EMAIL] = userEmail
+            # request.headers[X_GOG_AUTHENTICATED_USER_EMAIL] = userEmail
+            logger.info(f"User Email: {userEmail}")
             
             if request.method == "OPTIONS":
                 return await call_next(request)

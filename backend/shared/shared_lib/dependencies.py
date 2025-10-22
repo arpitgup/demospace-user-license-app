@@ -80,9 +80,9 @@ async def get_authenticated_iap_user_email(
             issuer=IAP_ISSUER,
             options={"verify_signature": True, "verify_aud": True, "verify_iss": True}
         )
-        
+        logger.info(f"UserEmail Info: {info}")
         email = info.get('email')
-        logger.info(f"UserEmail: {email}")
+        logger.info(f"UserEmail Info: {email}")
         if not email:
             raise ValueError("JWT payload missing 'email' claim.")
             
