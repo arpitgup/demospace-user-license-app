@@ -290,10 +290,6 @@ class UserInGroupResponse(BaseModel):
     is_member: Optional[bool] = None
     message: Optional[str] = None
 
-class CheckUserInWorkspaceRequest(BaseModel):
-    """Generic schema for endpoints requiring only primary_email."""
-    primary_email: EmailStr
-
 class CheckUserInWorkspaceResponse(BaseModel):
     """Generic schema for endpoints requiring only primary_email."""
     is_exist: Optional[bool] = None
@@ -307,7 +303,7 @@ class CheckUserInWorkspaceResponse(BaseModel):
     department: Optional[str] = None
     orgUnitPath: Optional[str] = "/"
     demoName: Optional[str] = None
-    managerEmail: Optional[EmailStr] = None
+    managerEmail: str = None
 
 class CreateUserRequest(BaseModel):
     """Schema for /create_user endpoint."""
@@ -320,7 +316,7 @@ class CreateUserRequest(BaseModel):
     department: str
     orgUnitPath: str = "/"
     demoName: str
-    managerEmail: EmailStr
+    managerEmail: str = None
 
 class CreateUserResponse(BaseModel):
     """Schema for /create_user endpoint."""
@@ -334,13 +330,9 @@ class CreateUserResponse(BaseModel):
     department: Optional[str] = None
     orgUnitPath: Optional[str] = "/"
     demoName: Optional[str] = None
-    managerEmail: Optional[EmailStr] = None
+    managerEmail: str = None
     employeeID: Optional[str] = None
     password: str
-
-class ResetPasswordRequest(BaseModel):
-    """Schema for /reset_user_password endpoint."""
-    primary_email: EmailStr
 
 class ResetPasswordResponse(BaseModel):
     """Schema for /reset_user_password endpoint."""
@@ -353,7 +345,7 @@ class ResetPasswordResponse(BaseModel):
     department: Optional[str] = None
     orgUnitPath: Optional[str] = "/"
     demoName: Optional[str] = None
-    managerEmail: Optional[EmailStr] = None
+    managerEmail: str = None
     employeeID: Optional[str] = None
     password: str
 

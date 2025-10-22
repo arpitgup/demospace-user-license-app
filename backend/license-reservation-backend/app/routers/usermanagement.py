@@ -8,11 +8,9 @@ from loguru import logger
 from ..common.schemas import (
     UserInGroupRequest,
     UserInGroupResponse,
-    CheckUserInWorkspaceRequest,
-    CheckUserInWorkspaceResponse,  
+    CheckUserInWorkspaceResponse,
     CreateUserRequest,
     CreateUserResponse,
-    ResetPasswordRequest,
     ResetPasswordResponse,
     UpdateUserProfileRequestResponse
 )
@@ -190,53 +188,40 @@ async def remove_user_from_group(
     app_config: dict = Depends(get_app_config)
     ):
     """Removes a user from a Google Workspace group."""
-    user_email = req.user_email
     group_email = req.group_email
-    try:
-        logger.info(f"Removing user {user_email} from group {group_email}.")
-        admin_service.members().delete(
-            groupKey=group_email, memberKey=user_email
-        ).execute()
+    try:        
+        admin_service.remove_user_from_group(user_email, group_email)
         logger.info(f"Successfully removed {user_email} from {group_email}.")
         return UserInGroupResponse(
             user_email=user_email,
             group_email=group_email,
-            is_member=False
+            is_member=False,
+            message=f"Successfully removed {user_email} from {group_email}."
         )
-    except HttpError as e:
-        # 404 Not Found indicates the user is not a member of the group
-        if e.resp.status == 404:
-            logger.warning(f"User {user_email} is not a member of group {group_email}.")
-        else:
-            logger.error(
-                f"Error occurred while removing {user_email} from {group_email}: {e}"
-            )
-            raise e
     except Exception as e:
-        logger.error(
-            f"An unexpected error occurred while removing {user_email} from {group_email}: {e}"
-        )
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred during user group check."
-        )
+            logger.error(f"An unexpected error occurred while removing {user_email} from {group_email}: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An unexpected error occurred during user group check."
+            )
 
 @router.post('/get_user_current_profile', response_model=CheckUserInWorkspaceResponse)
-async def get_user_current_profile(
-    req: CheckUserInWorkspaceRequest,
+async def get_user_current_profile(    
     user_email: str = Depends(get_user_email),
     app_config: dict = Depends(get_app_config)
     ):
     """Get current User profile API."""
-    primary_email = req.primary_email
+    primary_email = user_email
 
     try:
-        user_details = admin_service.users().get(userKey=primary_email).execute()
+        user_details = admin_service.get_user_details(primary_email)
         return CheckUserInWorkspaceResponse(
+            is_exist=True,
             primary_email=user_details.get("primaryEmail", "NA"),
             secondary_email=user_details.get("emails", [{}])[0].get("address", "NA"),
             first_name=user_details.get("name", {}).get("givenName", "NA"),
             last_name=user_details.get("name", {}).get("familyName", "NA"),
+            user_name=user_details.get("name", {}).get("fullName", "NA"),
             costCenter=user_details.get("organizations", [{}])[0].get("costCenter", "NA"),
             jobTitle=user_details.get("organizations", [{}])[0].get("title", "NA"),
             department=user_details.get("organizations", [{}])[0].get("department", "NA"),
@@ -244,43 +229,25 @@ async def get_user_current_profile(
             demoName=user_details.get("organizations", [{}])[0].get("name", "NA"),
             managerEmail=user_details.get("relations", [{}])[0].get("value", "NA")
         )
-
-    except HttpError as e:
-        if e.resp.status == 404:
-            logger.error(f"User {user_email} does not exist in workspace.")
-            return CheckUserInWorkspaceResponse(
-                is_exist=False,
-                primary_email=primary_email               
-            )
-        else:
-            logger.error(
-                f"Error occurred while getting user {user_email} current profile from workspace: {e}"
-            )
-            raise e
     except Exception as e:
-        logger.error(f"An unexpected error occurred getting user {user_email} current profile from workspace: {e}")        
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred while getting user current profile from workspace."
-        )
+            logger.error(f"An unexpected error occurred while get user {user_email} current profile: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="An unexpected error occurred while getting user current profile."
+            )
 
 @router.post('/reset_user_password', response_model=ResetPasswordResponse)
 async def reset_user_password(
-    req: ResetPasswordRequest,
     user_email: str = Depends(get_user_email),
     app_config: dict = Depends(get_app_config)
     ):
     """Reset User Password API."""
-    primary_email = req.primary_email
+    primary_email = user_email
 
     try:
         password = generate_random_password()
         
-        existing_user = admin_service.users().get(userKey=primary_email).execute()
-        
-        updated_user_info = {"password": password}
-        admin_service.users().update(userKey=primary_email, body=updated_user_info).execute()
-
+        existing_user = admin_service.get_user_details(primary_email)
         employee_id = "NA"
         if "externalIds" in existing_user:
             for external_id in existing_user["externalIds"]:
@@ -288,6 +255,8 @@ async def reset_user_password(
                     employee_id = external_id.get("value", "NA")
                     break
 
+        updated_user_info = {"password": password}
+        admin_service.update_user_profile_with_new_info(primary_email, updated_user_info)
         return ResetPasswordResponse(
             primary_email=primary_email,
             secondary_email=existing_user.get("emails", [{}])[0].get("address", "NA"),
@@ -303,26 +272,11 @@ async def reset_user_password(
             password=password
         )
 
-    except HttpError as e:
-        if e.resp.status == 404:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with email {primary_email} not found.")
-        else:
-            logger.error(
-                f"Error occurred while resetting {user_email} password: {e}"
-            )
-            raise e   
     except Exception as e:
         logger.error(f"An unexpected error occurred during user password reset: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
             detail="An unexpected error occurred during user password reset."
-        )
-            
-    except Exception as e:
-        logger.error(f"An unexpected error occurred during password reset: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
-            detail="An unexpected error occurred during password reset."
         )
 
 @router.post('/update_user_profile', response_model=UpdateUserProfileRequestResponse)
@@ -332,7 +286,7 @@ async def update_user_profile(
     app_config: dict = Depends(get_app_config)
     ):
     """Update User Profile API."""
-    primary_email = req.primary_email
+    primary_email = user_email
     orgUnitPath = req.orgUnitPath
     department = req.department
     jobTitle = req.jobTitle
@@ -341,7 +295,7 @@ async def update_user_profile(
     managerEmail = req.managerEmail
 
     try:
-        existing_user = admin_service.users().get(userKey=primary_email).execute()
+        existing_user = admin_service.get_user_details(primary_email)
         
         updated_user_info = {
             "orgUnitPath": req.orgUnitPath,
@@ -364,7 +318,7 @@ async def update_user_profile(
         if req.managerEmail is None:
             payload["relations"] = []
 
-        admin_service.users().update(userKey=primary_email, body=payload).execute()
+        admin_service.update_user_profile_with_new_info(primary_email, payload)
         
         employeeID = existing_user.get("externalIds", [{}])[0].get("value", "NA")
         first_name = existing_user.get("name", {}).get("givenName", "NA")
@@ -382,18 +336,10 @@ async def update_user_profile(
             first_name=first_name,
             last_name=last_name
         )
-    except HttpError as e:
-        if e.resp.status == 404:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with email {primary_email} not found.")
-        else:
-            logger.error(
-                f"Error occurred while updating {user_email} profile: {e}"
-            )
-            raise e
             
     except Exception as e:
-        logger.error(f"An unexpected error occurred during profile update: {e}")
+        logger.error(f"An unexpected error occurred during user profile update: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
-            detail="An unexpected error occurred during profile update."
+            detail="An unexpected error occurred during user profile update."
         )
