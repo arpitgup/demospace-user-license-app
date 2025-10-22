@@ -14,6 +14,8 @@ from loguru import logger
 # from google.auth.exceptions import InvalidValue, GoogleAuthError
 # from typing import Optional
 from google.auth import jwt
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token
 
 EXPECTED_AUDIENCE = "/projects/385039775654/global/backendServices/3364462286488655023"
 IAP_ISSUER = "https://cloud.google.com/iap"
@@ -21,26 +23,28 @@ IAP_PUBLIC_KEY_URL = "https://www.gstatic.com/iap/verify/public_key"
 
 
 def get_authenticated_email_google_auth(
-    token
+    request
 ) -> str:
    
     try:
-
-        if not token:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN, 
-                    detail="X-Goog-Iap-Jwt-Assertion header missing."
-                )
-
+        if not request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL):
+            logger.info("Not a user email========")
+            return ''
         
-        decoded = jwt.decode(token,verify=False)
-        user_email = decoded.get("email")
 
-        logger.info(f"User email: {user_email}")
-        if user_email:
-            return str(user_email)
+        req=google_requests.Request()       
+        decoded=id_token.verify_token(request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL),req,audience=EXPECTED_AUDIENCE)
+        logger.info(f"User email========: {decoded}")
+        user_email=decoded.get("email")
+        logger.info(f"User email========: {user_email}")
+        return ''
+        # user_email = de
+
+       
+        # if user_email:
+        #     return str(user_email)
             
-        raise ValueError("Token did not contain an email claim.")
+        # raise ValueError("Token did not contain an email claim.")
 
     except Exception as e:
         print(f"IAP JWT Validation Failed: {e}")
@@ -54,7 +58,11 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
             logger.info(f"Request headers: {request.headers}")
-            logger.info(f"Request Headers===: {get_authenticated_email_google_auth(request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL))}")
+            if(X_GOG_AUTHENTICATED_USER_EMAIL not in request.headers
+                or not request.headers[X_DEMO_USEX_GOG_AUTHENTICATED_USER_EMAILR_EMAIL_HEADER]):
+                 logger.info(f"Request Headers===: {get_authenticated_email_google_auth(request)}")
+
+        
             if request.method == "OPTIONS":
                 return await call_next(request)
 
