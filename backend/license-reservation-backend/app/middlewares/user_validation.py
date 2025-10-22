@@ -12,7 +12,7 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
             logger.info(f"Request headers: {request.headers}")
-            jwt_token = request.headers.get('x_goog_iap_jwt_assertion')
+            jwt_token = request.headers.get('x-goog-iap-jwt-assertion')
             userEmail = await get_authenticated_iap_user_email(jwt_token)
             request.headers[X_GOG_AUTHENTICATED_USER_EMAIL] = userEmail
             
