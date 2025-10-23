@@ -80,8 +80,7 @@
               "fileReplacements": [],
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true,
-              "outputHashing": "all"
+              "sourceMap": true
             }
           },
           "defaultConfiguration": "production"
