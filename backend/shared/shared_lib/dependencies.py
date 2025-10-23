@@ -4,7 +4,6 @@ from .db.models import AppConfig
 from .db.session import SessionLocal
 import requests
 import time
-from jose import jwt
 import sys
 from typing import Dict, Any, Optional
 from functools import lru_cache

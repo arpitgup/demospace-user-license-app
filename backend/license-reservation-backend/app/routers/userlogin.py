@@ -81,7 +81,7 @@ def validate_user(
     
     try:
         user = admin_service.get_user(user_email)        
-        if not user:        
+        if not user:
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content={"detail": f"User {user_email} is not valid."}
