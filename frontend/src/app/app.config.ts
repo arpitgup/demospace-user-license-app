@@ -1,5 +1,7 @@
 import {
   ApplicationConfig,
+  inject,
+  provideAppInitializer,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
@@ -19,6 +21,7 @@ import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { provideNgxSkeletonLoader } from 'ngx-skeleton-loader';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { IapService } from './core/services/iap.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -27,6 +30,11 @@ export const appConfig: ApplicationConfig = {
         extendsFromRoot: true,
         height: '2rem',
       },
+    }),
+    IapService,
+    provideAppInitializer(() => {
+      const iapService = inject(IapService);
+      return iapService.getIapUserDetails();
     }),
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),

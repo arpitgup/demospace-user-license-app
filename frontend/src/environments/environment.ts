@@ -4,7 +4,8 @@
  */
 export const environment = {
   production: false,
-  apiUrl: 'https://license-reservation-backend-dev-385039775654.us-central1.run.app',
-  // apiUrl:'https://dev-license-app-godemos.1987984870407.demo.altostrat.com',
+  apiUrl:
+    'https://license-reservation-backend-dev-385039775654.us-central1.run.app',
+  iapUrl: 'https://dev-license-app-godemos.1987984870407.demo.altostrat.com',
   emailId: '',
 };

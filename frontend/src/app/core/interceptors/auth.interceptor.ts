@@ -5,6 +5,9 @@ import { catchError, throwError } from 'rxjs';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   // const authService = inject(AuthService);
+  if (req.url.includes('_gcp_iap/identity')) {
+    return next(req);
+  }
   const userEmail = sessionStorage?.getItem('userEmail');
   const userToken = sessionStorage.getItem('userToken');
   const router = inject(Router);
