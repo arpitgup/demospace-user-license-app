@@ -14,11 +14,17 @@ export class IapService {
   getIapUserDetails(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/_gcp_iap/identity`).pipe(
       tap((data) => {
-        const email = data.email.split(':')[1];
-        sessionStorage.setItem('userEmail', email);
+        const googleEmail = data.email.split(':')[1];
+        if (googleEmail) {
+          const email = googleEmail.replace(
+            /@.*/,
+            '-agentspace-demo-user@1987984870407.altostrat.com'
+          );
+          sessionStorage.setItem('userEmail', email);
+        }
       }),
       catchError((err) => {
-        console.log("error occurred",err);
+        console.log('error occurred', err);
         return of(null);
       })
     );
