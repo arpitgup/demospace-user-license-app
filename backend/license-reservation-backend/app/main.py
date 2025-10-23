@@ -1,7 +1,7 @@
 from fastapi import Depends, FastAPI, Request, HTTPException
 from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from shared_lib.dependencies import get_user_email, get_user_current_time, get_user_token, get_authenticated_iap_user_email
+from shared_lib.dependencies import get_user_email, get_user_current_time, get_user_token
 from shared_lib import admin_service
 from datetime import datetime, timezone, timedelta
 from .common.constants import ALLOWED_ORIGINS

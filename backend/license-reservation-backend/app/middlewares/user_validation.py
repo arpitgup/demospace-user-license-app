@@ -6,18 +6,17 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
 from ..common.constants import X_DEMO_USER_EMAIL_HEADER, X_GOG_AUTHENTICATED_USER_EMAIL
 from loguru import logger
-from shared_lib.dependencies import get_authenticated_iap_user_email
 
 class UserValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
-            logger.info(f"Request headers: {request.headers}")
-            jwt_token = request.headers.get('x-goog-iap-jwt-assertion')
-            user_data=request.headers.get('x-goog-authenticated-user-email')
-            logger.info(f"Google Email: {user_data}")
-            userEmail = await get_authenticated_iap_user_email(jwt_token)
-            # request.headers[X_GOG_AUTHENTICATED_USER_EMAIL] = userEmail
-            logger.info(f"User Email: {userEmail}")
+            # logger.info(f"Request headers: {request.headers}")
+            # jwt_token = request.headers.get('x-goog-iap-jwt-assertion')
+            # user_data=request.headers.get('x-goog-authenticated-user-email')
+            # logger.info(f"Google Email: {user_data}")
+            # userEmail = await get_authenticated_iap_user_email(jwt_token)
+            # # request.headers[X_GOG_AUTHENTICATED_USER_EMAIL] = userEmail
+            # logger.info(f"User Email: {userEmail}")
             
             if request.method == "OPTIONS":
                 return await call_next(request)
@@ -37,18 +36,18 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
                 response.headers["Access-Control-Allow-Origin"]="*"
                 return response
 
-            if (
-                X_GOG_AUTHENTICATED_USER_EMAIL not in request.headers
-                or not request.headers[X_GOG_AUTHENTICATED_USER_EMAIL]
-            ):
-                response = JSONResponse(
-                    status_code=400,
-                    content={"detail": "Missing X_GOG_AUTHENTICATED_USER_EMAIL header."},
-                )
-                response.headers["Access-Control-Allow-Origin"]="*"
-                return response
+            # if (
+            #     X_GOG_AUTHENTICATED_USER_EMAIL not in request.headers
+            #     or not request.headers[X_GOG_AUTHENTICATED_USER_EMAIL]
+            # ):
+            #     response = JSONResponse(
+            #         status_code=400,
+            #         content={"detail": "Missing X_GOG_AUTHENTICATED_USER_EMAIL header."},
+            #     )
+            #     response.headers["Access-Control-Allow-Origin"]="*"
+            #     return response
 
-            user_email = request.headers.get(X_DEMO_USER_EMAIL_HEADER)
+            # user_email = request.headers.get(X_DEMO_USER_EMAIL_HEADER)
             try:
                 # user = admin_service.get_user(user_email)
                 is_valid_email = is_agentspace_demo_user(user_email, request)
