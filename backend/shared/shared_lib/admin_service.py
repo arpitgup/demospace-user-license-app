@@ -50,6 +50,18 @@ def get_user(user_email):
             logger.error(f"An error occurred while trying to fetch user: {error}")
         return None
 
+def create_user(user_info):
+    """Creates a new user in Google Workspace."""
+    try:
+        user = admin_service.users().insert(body=user_info).execute()
+        return user
+    except HttpError as error:
+        if error.resp.status == 409:
+            logger.error(f"admin_service: User {user_info['primaryEmail']} already exists.")
+        else:
+            logger.error(f"An error occurred while trying to create user: {error}")
+        return None
+
 def is_user_in_group(user_email: str, group_email: str) -> bool:
     """Checks if a user is a member of a Google Workspace group."""
     try:
@@ -261,3 +273,13 @@ def is_group_exists(group_email):
         )
         raise e
 
+def update_user_profile_with_new_info(user_email, updated_user_info):
+    """
+    Update the user profile with new fields.
+    """
+    try:
+        admin_service.users().update(userKey=user_email, body=updated_user_info).execute()
+        logger.info(f"Successfully updated user profile for {user_email}.")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred during user profile update: {e}")
+        raise e

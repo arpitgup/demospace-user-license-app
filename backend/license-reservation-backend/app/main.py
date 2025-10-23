@@ -10,12 +10,12 @@ from .common.schemas import UserInfo
 from .middlewares.user_validation import UserValidationMiddleware
 from .middlewares.admin_validation import AdminValidationMiddleware
 from .middlewares.user_current_time_validation import UserCurrentTimeValidationMiddleware
-from .routers import admin, applications, availability, config, reservations, userlogin
+from .routers import admin, applications, availability, config, reservations, userlogin, usermanagement
 
 
 app = FastAPI(
-    title="Agentspace License Reservation API",
-    summary="API for reserving and managing SaaS licenses for the Agentspace demo environment. This API is designed for a global user base, using UTC for all date-time operations and a hybrid real-time/scheduled model for license provisioning.",
+    title="Gemini Enterprise User Management & License Reservation API",
+    summary="API for User Management & reserving and managing SaaS licenses for the Agentspace demo environment. This API is designed for a global user base, using UTC for all date-time operations and a hybrid real-time/scheduled model for license provisioning.",
 )
 
 # Add the CORSMiddleware to the application
@@ -42,6 +42,7 @@ app.include_router(applications.router, tags=["Applications"], dependencies=comm
 app.include_router(availability.router, tags=["Availability"], dependencies=common_dependencies)
 app.include_router(reservations.router, tags=["Reservations"], dependencies=common_dependencies)
 app.include_router(config.router, tags=["App Config"], dependencies=common_dependencies)
+app.include_router(usermanagement.router, tags=["UserManagement"], dependencies=common_dependencies)
 app.include_router(admin.router, tags=["Admin"], dependencies=admin_dependencies)
 
 # Include userlogin.router WITHOUT common_dependencies and WITH a prefix
