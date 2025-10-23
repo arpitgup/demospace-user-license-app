@@ -1,185 +1,188 @@
-<mat-card class="search-by-date-container" [attr.aria-busy]="isLoading()">
+<div class="search-by-date-container" [attr.aria-busy]="isLoading()">
   <mat-card-title class="main-title">Select Date & Application</mat-card-title>
 
   <div class="card-wrapper">
-    <mat-card-content class="main-content">
-      <h3 class="content-header">Select Date Range</h3>
+    <ng-container>
+      <mat-card-content class="main-content">
+        <h3 class="content-header">Select Date Range</h3>
 
-      <p class="content-header-note">* Maximum reservation time is 48 hours.</p>
+        <p class="content-header-note">
+          * Maximum reservation time is 48 hours.
+        </p>
 
-      <form
-        class="date-time-container"
-        [formGroup]="form"
-        (ngSubmit)="onCheckAvailability()"
-        #formDir="ngForm"
-        novalidate
-      >
-        <div class="start-date-time-container">
-          <mat-form-field appearance="outline" class="start-date-field">
-            <mat-label>Start Date</mat-label>
-            <input
-              matInput
-              [matDatepicker]="picker"
-              [matDatepickerFilter]="dateFilter"
-              [min]="minSelectableDay"
-              [max]="maxSelectableDate"
-              placeholder="MM/DD/YYYY"
-              formControlName="startDate"
-            />
-
-            <mat-datepicker-toggle
-              matSuffix
-              [for]="picker"
-            ></mat-datepicker-toggle>
-
-            <mat-datepicker #picker [dateClass]="dateClass"></mat-datepicker>
-
-            @if (startDateCtrl.hasError('required')) {
-            <mat-error id="start-date-required"
-              >Start date is required.</mat-error
-            >
-            } @if (form.hasError('noValidStartTimeOptions') &&
-            startDateCtrl.touched) {
-            <mat-error id="start-date-no-options">
-              No valid start times remain for this date.
-            </mat-error>
-            } @if (form.hasError('dateTimeInvalid') && startDateCtrl.touched) {
-            <mat-error id="start-date-invalid"
-              >Please fix the date/time selection.</mat-error
-            >
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="start-time-field">
-            <mat-label>Next Available Start Time</mat-label>
-            <mat-select
-              class="custom-select"
-              formControlName="startTime"
-              (selectionChange)="onStartTimeChange()"
-            >
-              @for (time of startTimeSlots(); track time) {
-
-              <mat-option
-                [value]="time"
-                [disabled]="startConflictMap()[time] === true"
-                [title]="
-                  startConflictMap()[time]
-                    ? 'Conflicts with an existing reservation'
-                    : ''
-                "
-              >
-                {{ time }}
-              </mat-option>
-              }
-            </mat-select>
-
-            @if (startTimeCtrl.hasError('required')) {
-            <mat-error id="start-time-required"
-              >Start time is required.</mat-error
-            >
-            } @if (form.hasError('overlapsExisting') && startTimeCtrl.touched) {
-            <mat-error id="start-time-overlap">
-              The selected time window overlaps an existing reservation.
-            </mat-error>
-            } @if (form.hasError('dateTimeInvalid') && startTimeCtrl.touched) {
-            <mat-error id="start-time-invalid"
-              >Please fix the date/time selection.</mat-error
-            >
-            }
-          </mat-form-field>
-        </div>
-        <div class="time-note-container">
-          <div class="invisible-time-field"></div>
-          <span class="time-note">* Time in {{ localTimeAbbrevation }}.</span>
-        </div>
-
-        <div class="end-date-time-container">
-          <mat-form-field appearance="outline" class="end-time-field">
-            <mat-label>End Time</mat-label>
-            <mat-select
-              formControlName="endTime"
-              (selectionChange)="onEndTimeChange()"
-              aria-label="End time"
-            >
-              @for (time of endTimeSlots(); track time) { @if
-              (!HIDE_CONFLICTING_END_SLOTS || !endConflictMap()[time]) {
-              <mat-option
-                [value]="time"
-                [disabled]="endConflictMap()[time] === true"
-                [title]="
-                  endConflictMap()[time]
-                    ? 'Conflicts with an existing reservation'
-                    : ''
-                "
-              >
-                {{ time }}
-              </mat-option>
-              } }
-            </mat-select>
-
-            @if (endTimeCtrl.hasError('required')) {
-            <mat-error id="end-time-required">End time is required.</mat-error>
-            } @if (form.hasError('overlapsExisting') && endTimeCtrl.touched) {
-            <mat-error id="end-time-overlap">
-              The selected time window overlaps an existing reservation.
-            </mat-error>
-            } @if (form.hasError('noValidEndTimeOptions') &&
-            endTimeCtrl.touched) {
-            <mat-error id="end-time-no-options">
-              No valid end-time options are available for the chosen start time.
-            </mat-error>
-            } @if (form.hasError('dateTimeInvalid') && endTimeCtrl.touched) {
-            <mat-error id="end-time-invalid"
-              >Please fix the date/time selection.</mat-error
-            >
-            }
-          </mat-form-field>
-
-          @if (calculatedEndDate()) {
-          <mat-form-field appearance="outline" class="end-date-field">
-            <mat-label>End Date</mat-label>
-            <input
-              matInput
-              [value]="calculatedEndDate() | date : 'MM/dd/yyyy'"
-              [disabled]="true"
-              aria-readonly="true"
-            />
-          </mat-form-field>
-          }@else{
-          <div class="end-date-field"></div>
-          }
-        </div>
-
-        <mat-card-actions class="actions-container">
-          <button
-            mat-flat-button
-            color="primary"
-            class="check-availability-button"
-            [disabled]="isCheckAvailabilityDisabled()"
-            [attr.aria-disabled]="isCheckAvailabilityDisabled()"
-            type="submit"
-          >
-            Check Availability &gt;
-          </button>
-        </mat-card-actions>
-      </form>
-
-      <div class="side-arrow-container" aria-hidden="true">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="59"
-          height="93"
-          viewBox="0 0 59 93"
-          fill="none"
+        <form
+          class="date-time-container"
+          [formGroup]="form"
+          (ngSubmit)="onCheckAvailability()"
+          #formDir="ngForm"
+          novalidate
         >
-          <path
-            d="M59 46.5L0.500003 92.8324L0.500007 0.167638L59 46.5Z"
-            fill="white"
-          />
-        </svg>
-      </div>
-    </mat-card-content>
+          <div class="start-date-time-container">
+            <mat-form-field appearance="outline" class="start-date-field">
+              <mat-label>Start Date</mat-label>
+              <input
+                matInput
+                [matDatepicker]="picker"
+                [matDatepickerFilter]="dateFilter"
+                [min]="minSelectableDay"
+                [max]="maxSelectableDate"
+                placeholder="MM/DD/YYYY"
+                formControlName="startDate"
+              />
 
+              <mat-datepicker-toggle
+                matSuffix
+                [for]="picker"
+              ></mat-datepicker-toggle>
+
+              <mat-datepicker #picker [dateClass]="dateClass"></mat-datepicker>
+
+              @if (startDateCtrl.hasError('required')) {
+              <mat-error id="start-date-required"
+                >Start date is required.</mat-error
+              >
+              } @if (form.hasError('noValidStartTimeOptions') &&
+              startDateCtrl.touched) {
+              <mat-error id="start-date-no-options">
+                No valid start times remain for this date.
+              </mat-error>
+              } @if (form.hasError('dateTimeInvalid') && startDateCtrl.touched)
+              {
+              <mat-error id="start-date-invalid"
+                >Please fix the date/time selection.</mat-error
+              >
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="start-time-field">
+              <mat-label>Next Available Start Time</mat-label>
+              <mat-select
+                class="custom-select"
+                formControlName="startTime"
+                (selectionChange)="onStartTimeChange()"
+              >
+                @for (time of startTimeSlots(); track time) {
+
+                <mat-option
+                  [value]="time"
+                  [disabled]="startConflictMap()[time] === true"
+                  [title]="
+                    startConflictMap()[time]
+                      ? 'Conflicts with an existing reservation'
+                      : ''
+                  "
+                >
+                  {{ time }}
+                </mat-option>
+                }
+              </mat-select>
+
+              @if (startTimeCtrl.hasError('required')) {
+              <mat-error id="start-time-required"
+                >Start time is required.</mat-error
+              >
+              } @if (form.hasError('overlapsExisting') && startTimeCtrl.touched)
+              {
+              <mat-error id="start-time-overlap">
+                The selected time window overlaps an existing reservation.
+              </mat-error>
+              } @if (form.hasError('dateTimeInvalid') && startTimeCtrl.touched)
+              {
+              <mat-error id="start-time-invalid"
+                >Please fix the date/time selection.</mat-error
+              >
+              }
+            </mat-form-field>
+          </div>
+          <div class="time-note-container">
+            <div class="invisible-time-field"></div>
+            <span class="time-note">* Time in {{ localTimeAbbrevation }}.</span>
+          </div>
+
+          <div class="end-date-time-container">
+            <mat-form-field appearance="outline" class="end-time-field">
+              <mat-label>End Time</mat-label>
+              <mat-select
+                formControlName="endTime"
+                (selectionChange)="onEndTimeChange()"
+                aria-label="End time"
+              >
+                @for (time of endTimeSlots(); track time) { @if
+                (!HIDE_CONFLICTING_END_SLOTS || !endConflictMap()[time]) {
+                <mat-option
+                  [value]="time"
+                  [disabled]="endConflictMap()[time] === true"
+                  [title]="
+                    endConflictMap()[time]
+                      ? 'Conflicts with an existing reservation'
+                      : ''
+                  "
+                >
+                  {{ time }}
+                </mat-option>
+                } }
+              </mat-select>
+
+              @if (endTimeCtrl.hasError('required')) {
+              <mat-error id="end-time-required"
+                >End time is required.</mat-error
+              >
+              } @if (form.hasError('overlapsExisting') && endTimeCtrl.touched) {
+              <mat-error id="end-time-overlap">
+                The selected time window overlaps an existing reservation.
+              </mat-error>
+              } @if (form.hasError('noValidEndTimeOptions') &&
+              endTimeCtrl.touched) {
+              <mat-error id="end-time-no-options">
+                No valid end-time options are available for the chosen start
+                time.
+              </mat-error>
+              } @if (form.hasError('dateTimeInvalid') && endTimeCtrl.touched) {
+              <mat-error id="end-time-invalid"
+                >Please fix the date/time selection.</mat-error
+              >
+              }
+            </mat-form-field>
+
+            @if (calculatedEndDate()) {
+            <mat-form-field appearance="outline" class="end-date-field">
+              <mat-label>End Date</mat-label>
+              <input
+                matInput
+                [value]="calculatedEndDate() | date : 'MM/dd/yyyy'"
+                [disabled]="true"
+                aria-readonly="true"
+              />
+            </mat-form-field>
+            }@else{
+            <div class="end-date-field"></div>
+            }
+          </div>
+
+          <mat-card-actions class="actions-container">
+            <button
+              mat-flat-button
+              color="primary"
+              class="check-availability-button"
+              [disabled]="isCheckAvailabilityDisabled()"
+              [attr.aria-disabled]="isCheckAvailabilityDisabled()"
+              type="submit"
+            >
+              Check Availability &gt;
+            </button>
+          </mat-card-actions>
+        </form>
+      </mat-card-content>
+      @if(showResultsCard() || isLoading()){
+      <div class="arrow-container">
+        <img
+          src="assets/svgs/ic_polygon.svg"
+          alt="arrow"
+          class="forward-icon"
+        />
+      </div>
+      }
+    </ng-container>
     @if (isLoading()) {
     <mat-card class="availability-results-container">
       <app-search-by-date-loader />
@@ -273,6 +276,8 @@
         </button>
       </div>
     </mat-card>
+    }@else{
+    <div class="invisible-mat-card"></div>
     }
   </div>
-</mat-card>
+</div>
