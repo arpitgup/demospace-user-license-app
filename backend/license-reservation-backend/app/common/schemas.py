@@ -304,6 +304,7 @@ class CheckUserInWorkspaceResponse(BaseModel):
     orgUnitPath: Optional[str] = "/"
     demoName: Optional[str] = None
     managerEmail: str = None
+    employeeID: Optional[str] = None
 
 class CreateUserRequest(BaseModel):
     """Schema for /create_user endpoint."""
@@ -361,3 +362,29 @@ class UpdateUserProfileRequestResponse(BaseModel):
     employeeID: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+
+class RepresentativeProfileOut(BaseModel):
+    cost_centre: Optional[str]
+    manager_name: str
+    manager_email: str
+    manager_title: Optional[str]
+    rep_role: Optional[str]
+    rep_department: Optional[str]
+    org_unit: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+class DemoDetailOut(BaseModel):
+    demo_id: str
+    demo_title: str
+    demo_user_group_email: Optional[str]
+    gemini_enterprise_app_link: Optional[str]
+    drive_folder_link: Optional[str]
+    feedback_bug_link: Optional[str]
+    demo_onboarding_status: Optional[str]
+    feature_license_app: Optional[bool]
+    representative_profile: Optional[RepresentativeProfileOut]
+
+    class Config:
+        from_attributes = True
