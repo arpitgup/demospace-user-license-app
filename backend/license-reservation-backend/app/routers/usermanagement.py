@@ -54,7 +54,7 @@ async def get_demo_details(
 
 
 @router.get('/user-details', response_model=CheckUserInWorkspaceResponse)
-async def check_user_in_workspace(    
+async def get_user_details(
     user_email: str = Depends(get_user_email),
     app_config: dict = Depends(get_app_config)
     ):
