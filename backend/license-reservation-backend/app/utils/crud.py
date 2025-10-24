@@ -12,7 +12,7 @@ from shared_lib.db.models import (
 from typing import List
 import random
 import string
-from google.cloud import storage
+from typing import Optional
 from ..common.schemas import (
     BotsCreateRequest,
     BotsUpdateRequest    
@@ -237,38 +237,12 @@ def generate_random_password():
     random_hex = ''.join(random.choices(string.hexdigits.lower(), k=5))
     return f"GeminiEnterprise-{random_hex}"
 
-def generate_employee_id():
+def generate_employee_id() -> Optional[str]:
     """
-    Generates a unique employee ID, persisting the next ID in a Google Cloud Storage bucket.
-    Creates the bucket and file if they don't exist.
+    Generates a simple 4-digit random number as the employee ID.
     """
-    bucket_name = 'agentspace-user-app-employeeids'
-    blob_name = 'agentspace-user-app-empid.txt'
+    random_id = random.randint(1000, 9999)
+    employee_id = str(random_id)
 
-    client = storage.Client()
-
-    try:
-        bucket = client.create_bucket(bucket_name)
-        print(f"Bucket {bucket.name} created.")
-    except Exception as e:
-        bucket = client.bucket(bucket_name)
-        if "409" in str(e):
-            print(f"Bucket {bucket_name} already exists. Proceeding..")
-        else:            
-            if 'The bucket you tried to create already exists' not in str(e):
-                 print(f"Error creating bucket or accessing bucket: {e}")
-
-    blob = bucket.blob(blob_name)
-
-    try:
-        data = blob.download_as_text()
-        next_id = int(data)
-    except Exception:        
-        next_id = 3001
-        print(f"File {blob_name} not found. Starting with ID 3001.")
-
-    employee_id = str(next_id)
-    next_id += 1
-
-    blob.upload_from_string(str(next_id))
+    print(f"Generated new random employee ID: {employee_id}")
     return employee_id
