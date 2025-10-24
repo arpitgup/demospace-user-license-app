@@ -4,7 +4,12 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.responses import JSONResponse
 from googleapiclient.errors import HttpError
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session, selectinload
 from loguru import logger
+from shared_lib.db.models import (
+    DemoDetail
+)
 from ..common.schemas import (
     UserInGroupRequest,
     UserInGroupResponse,
@@ -12,7 +17,8 @@ from ..common.schemas import (
     CreateUserRequest,
     CreateUserResponse,
     ResetPasswordResponse,
-    UpdateUserProfileRequestResponse
+    UpdateUserProfileRequestResponse,
+    DemoDetailOut
 )
 from shared_lib import admin_service
 from shared_lib.dependencies import get_user_email, get_db, get_app_config
@@ -20,12 +26,39 @@ from ..utils.crud import generate_random_password, generate_employee_id
 
 router = APIRouter(prefix="/user-management")
 
+@router.get("/demo-details/{demo_id}", response_model=DemoDetailOut)
+async def get_demo_details(
+    demo_id: str,
+    db: Session = Depends(get_db),
+):
+    """
+    Retrieves the full details for a demo based on its unique demo_id.
+    """
+    # This query logic is correct.
+    demo_record = (
+        db.query(DemoDetail)
+        .options(
+            selectinload(DemoDetail.representative_profile) 
+        )
+        .filter(DemoDetail.demo_id == demo_id)
+        .first()
+    )
+
+    if not demo_record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail=f"Demo with ID '{demo_id}' not found."
+        )
+
+    return demo_record
+
+
 @router.get('/user-details', response_model=CheckUserInWorkspaceResponse)
 async def check_user_in_workspace(    
     user_email: str = Depends(get_user_email),
     app_config: dict = Depends(get_app_config)
     ):
-    """Check User Existence API."""
+    """Get user details from workspace API."""
     primary_email = user_email
 
     try:
@@ -47,7 +80,8 @@ async def check_user_in_workspace(
             department=user_details.get("organizations", [{}])[0].get("department", "NA"),
             orgUnitPath=user_details.get("orgUnitPath", "NA"),
             demoName=user_details.get("organizations", [{}])[0].get("name", "NA"),
-            managerEmail=user_details.get("relations", [{}])[0].get("value", "NA")
+            managerEmail=user_details.get("relations", [{}])[0].get("value", "NA"),
+            employeeID=user_details.get("externalIds", [{}])[0].get("value", "NA")
         )   
     except Exception as e:
         logger.error(f"An unexpected error occurred during check user in workspace: {e}")        

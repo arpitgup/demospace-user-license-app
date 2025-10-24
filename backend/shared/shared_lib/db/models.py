@@ -151,8 +151,48 @@ class ApplicationDowntime(Base):
 
     application = relationship("Application")
 
-class User(Base):    
-    __tablename__ = "users"    
-    id = Column(Integer, primary_key=True)
-    name = Column(String(255))
-    email = Column(String(255), unique=True)
+# Not in use
+# class User(Base):
+#     __tablename__ = "users"    
+#     id = Column(Integer, primary_key=True)
+#     name = Column(String(255))
+#     email = Column(String(255), unique=True)
+
+class RepresentativeProfile(Base):
+    __tablename__ = "representative_profile"
+    
+    # *** THIS IS THE CRITICAL LINE TO FIX THE MAPPER ERROR ***
+    # It tells SQLAlchemy that this primary key is also a foreign key referencing the other table.
+    demo_id = Column(String(10), ForeignKey("demo_details.demo_id"), primary_key=True)
+    
+    cost_centre = Column(String(20))
+    manager_name = Column(String(100), nullable=False)
+    manager_email = Column(String(255), nullable=False)
+    manager_title = Column(String(100))
+    rep_role = Column(String(100))
+    rep_department = Column(String(50))
+    org_unit = Column(String(100))
+
+    # The relationship is now automatically determined by the ForeignKey above
+    demo = relationship("DemoDetail", back_populates="representative_profile", uselist=False)
+
+class DemoDetail(Base):
+    __tablename__ = "demo_details"
+    
+    demo_id = Column(String(10), primary_key=True)
+    demo_title = Column(String(255), unique=True, nullable=False)
+    # ... (other columns)
+    
+    demo_user_group_email = Column(String(255))
+    gemini_enterprise_app_link = Column(String) 
+    drive_folder_link = Column(String)
+    feedback_bug_link = Column(String)
+    demo_onboarding_status = Column(String(50))
+    feature_license_app = Column(Boolean)
+
+    # The back-reference relationship is also correct.
+    representative_profile = relationship(
+        "RepresentativeProfile",
+        back_populates="demo",
+        uselist=False
+    )
