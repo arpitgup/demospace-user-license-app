@@ -189,6 +189,7 @@ class DemoDetail(Base):
     feedback_bug_link = Column(String)
     demo_onboarding_status = Column(String(50))
     feature_license_app = Column(Boolean)
+    saas_applications = Column(String)
 
     # The back-reference relationship is also correct.
     representative_profile = relationship(

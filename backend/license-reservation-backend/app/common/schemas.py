@@ -384,6 +384,7 @@ class DemoDetailOut(BaseModel):
     feedback_bug_link: Optional[str]
     demo_onboarding_status: Optional[str]
     feature_license_app: Optional[bool]
+    saas_applications: Optional[str]
     representative_profile: Optional[RepresentativeProfileOut]
 
     class Config:
