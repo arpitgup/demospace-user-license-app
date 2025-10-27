@@ -1,8 +1,13 @@
 import { animate, style, transition, trigger } from '@angular/animations';
-import { Component } from '@angular/core';
+import { Component, inject, Input, OnInit, signal } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-
+import { DemoDetails } from '../../core/models/demo-details.model';
+import { UserCreationService } from '../../core/services/user-creation.service';
+import { Clipboard } from '@angular/cdk/clipboard';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { error } from 'console';
+import { sign } from 'crypto';
 @Component({
   selector: 'app-user-app-links',
   imports: [MatIconModule, MatCardModule],
@@ -54,5 +59,51 @@ import { MatIconModule } from '@angular/material/icon';
   ],
 })
 export class UserAppLinksComponent {
-  copyText() {}
+  @Input() demoDetails!: DemoDetails;
+  private userService = inject(UserCreationService);
+  userDetails = this.userService.userInfo;
+  public copyGeminiSuccess = signal(false);
+  public copyDriveSuccess = signal(false);
+  public showPassword = signal(false);
+  private clipboard = inject(Clipboard);
+  public passwordMasked = signal<string>(
+    '•'.repeat((this.userDetails()?.password || '').length)
+  );
+
+  copyText(link: string, isGemini: boolean) {
+    const successful = this.clipboard.copy(link);
+    if (successful) {
+      if (isGemini) {
+        this.copyGeminiSuccess.set(true);
+        setTimeout(() => this.copyGeminiSuccess.set(false), 2000);
+      } else {
+        this.copyDriveSuccess.set(true);
+        setTimeout(() => this.copyDriveSuccess.set(false), 2000);
+      }
+    }
+  }
+
+  // listenUserChanges() {
+  //   toObservable(this.userService.userInfo).subscribe((value) => {
+  //     if (value) {
+  //       this.userDetails;
+  //     }
+  //   });
+  // }
+
+  callResetPasswordApi() {
+    this.userService.resetUserPassword().subscribe({
+      next: () => {
+        this.userDetails = this.userService.userInfo;
+        this.passwordMasked.update(() =>
+          '•'.repeat((this.userDetails()?.password || '').length)
+        );
+      },
+      error: (error) => {},
+    });
+  }
+
+  updateShowPasswordValue() {
+    this.showPassword.update(() => !this.showPassword());
+  }
 }

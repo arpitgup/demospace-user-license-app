@@ -2,7 +2,7 @@
   <div class="card-wrapper">
     <img src="assets/images/user_back.png" alt="user" class="user-icon" />
   </div>
-  <div class="card-signup">
+  <form [formGroup]="createUserForm" class="card-signup">
     <img
       src="assets/svgs/app_icon.svg"
       alt="app-icon"
@@ -12,12 +12,44 @@
     <h2 @slideDown>Create Account</h2>
     <mat-form-field appearance="outline" class="custom-form-field" @fadeIn>
       <mat-label>First Name</mat-label>
-      <input matInput placeholder="First Name*" />
+      <input
+        matInput
+        placeholder="First Name*"
+        [formControlName]="FIRST_NAME_FORM"
+        maxlength="50"
+      />
+      @if(createUserForm.get(FIRST_NAME_FORM)?.hasError('required')&&
+      createUserForm.get(FIRST_NAME_FORM)?.touched){
+      <mat-error>First name required</mat-error>
+      }@else if(createUserForm.get(FIRST_NAME_FORM)?.hasError('pattern')&&
+      createUserForm.get(FIRST_NAME_FORM)?.touched){
+      <mat-error>Invalid first name</mat-error>
+      }
     </mat-form-field>
     <mat-form-field appearance="outline" class="custom-form-field" @fadeIn>
       <mat-label>Last Name</mat-label>
-      <input matInput placeholder="First Name*" />
+      <input
+        matInput
+        placeholder="Last Name*"
+        [formControlName]="LAST_NAME_FORM"
+        maxlength="50"
+      />
+      @if(createUserForm.get(LAST_NAME_FORM)?.hasError('required')&&
+      createUserForm.get(LAST_NAME_FORM)?.touched){
+      <mat-error>First name required</mat-error>
+      }@else if(createUserForm.get(LAST_NAME_FORM)?.hasError('pattern')&&
+      createUserForm.get(LAST_NAME_FORM)?.touched){
+      <mat-error>Invalid last name</mat-error>
+      }
     </mat-form-field>
-    <button matButton class="submit-button" (click)="onSignUp()" @slideUp>Sign Up</button>
-  </div>
+    <button
+      matButton
+      class="submit-button"
+      (click)="onSignUp()"
+      [disabled]="createUserForm.invalid"
+      @slideUp
+    >
+      Sign Up
+    </button>
+  </form>
 </div>

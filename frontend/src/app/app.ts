@@ -17,6 +17,7 @@ import { CommonLoader } from './shared/components/loaders/common-loader/common-l
 import { AppTag } from './shared/components/app-tag/app-tag';
 import { filter } from 'rxjs';
 
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -36,12 +37,13 @@ export class App implements OnInit {
   readonly route = inject(ActivatedRoute);
   showHeaderFooter: boolean = true;
   private router = inject(Router);
+
   constructor() {
     this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
         const url = event.url;
-        this.showHeaderFooter = !url.includes('/login');
+        this.showHeaderFooter = (!url.includes('/login')&&!url.includes('/signup') && !url.includes('/welcome'));
       });
   }
   ngOnInit(): void {

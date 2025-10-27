@@ -3,7 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { trigger, style, transition, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   standalone: true,
@@ -40,8 +40,9 @@ import { Router } from '@angular/router';
 })
 export class WelcomeComponent {
   readonly router = inject(Router);
-
+  private activeRoute = inject(ActivatedRoute);
   onStartSignUp() {
-    this.router.navigateByUrl('/signup', { replaceUrl: true });
+    const demoId = this.activeRoute.snapshot.queryParams['demoID'] || '';
+    this.router.navigateByUrl(`/signup?demoID=${demoId}`, { replaceUrl: true });
   }
 }

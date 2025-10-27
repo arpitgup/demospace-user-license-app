@@ -1,11 +1,23 @@
-import { Component, inject } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
+import { Component, inject, OnInit } from '@angular/core';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { trigger, style, transition, animate } from '@angular/animations';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { UserCreationService } from '../../core/services/user-creation.service';
+import { MatDialog } from '@angular/material/dialog';
+import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
+import { DemoDetails } from '../../core/models/demo-details.model';
+import { CreateUserRequest } from '../../core/models/create-user-request.model';
+import { LoaderService } from '../../core/services/loading.service';
+import { IapService } from '../../core/services/iap.service';
 
 @Component({
   selector: 'app-signup-user',
@@ -45,10 +57,97 @@ import { Router } from '@angular/router';
     ]),
   ],
 })
-export class SignupUserComponent {
+export class SignupUserComponent implements OnInit {
   readonly router = inject(Router);
+  private fb = inject(FormBuilder);
+  private iapService = inject(IapService);
+  private userCreationService = inject(UserCreationService);
+  private loaderService = inject(LoaderService);
+  private dialog = inject(MatDialog);
+  readonly FIRST_NAME_FORM = 'firstName';
+  readonly LAST_NAME_FORM = 'lastName';
+  private activeRoute = inject(ActivatedRoute);
+  demoId: string = '';
+  ngOnInit() {
+    this.activeRoute.queryParams.subscribe((params) => {
+      this.demoId = params['demoID'] || '';
+    });
+  }
+  createUserForm: FormGroup = this.fb.group({
+    [this.FIRST_NAME_FORM]: [
+      '',
+      [Validators.required, Validators.pattern('^[a-zA-Z]+$')],
+    ],
+    [this.LAST_NAME_FORM]: [
+      '',
+      [Validators.required, Validators.pattern('^[a-zA-Z]+$')],
+    ],
+  });
+
   onSignUp() {
-    console.log('///////homecalled');
-    this.router.navigateByUrl('/home', { replaceUrl: true });
+    sessionStorage.setItem('userEmail', this.iapService.userEmailInfo());
+    if (this.createUserForm.invalid) {
+      return;
+    }
+    if (this.demoId === '') {
+      this.showErrorDialog(
+        'Invalid demoID. Please ensure that your demoID is correct'
+      );
+      return;
+    }
+    this.loaderService.show();
+    this.userCreationService.getDemoDetails(this.demoId).subscribe({
+      next: (res) => {
+        this.callCreateUserApi(res);
+      },
+      error: () => {
+        this.loaderService.hide();
+        this.showErrorDialog('Unable to fetch demo details. Please try again');
+      },
+    });
+  }
+  callCreateUserApi(res: DemoDetails) {
+    const pimaryEmail = sessionStorage.getItem('userEmail') ?? '';
+    const secondaryEmail = pimaryEmail.replace(/-.*/, '@google.com');
+    const createUserRequest: CreateUserRequest = {
+      primary_email: sessionStorage.getItem('userEmail') ?? '',
+      secondary_email: secondaryEmail,
+      first_name: this.createUserForm.get(this.FIRST_NAME_FORM)?.value ?? '',
+      last_name: this.createUserForm.get(this.LAST_NAME_FORM)?.value ?? '',
+      costCenter: res.representative_profile.cost_centre,
+      jobTitle: res.representative_profile.rep_role,
+      department: res.representative_profile.rep_department,
+      orgUnitPath: '/',
+      demoName: res.demo_title,
+      managerEmail: res.representative_profile.manager_email,
+    };
+    this.userCreationService.createUser(createUserRequest).subscribe({
+      next: () => {
+        this.router.navigateByUrl(`?demoID=${this.demoId}`, {
+          replaceUrl: true,
+        });
+        this.loaderService.hide();
+      },
+      error: (err) => {
+        this.loaderService.hide();
+        this.showErrorDialog(
+          err?.error?.detail || 'Something went wrong. Please try again'
+        );
+      },
+    });
+  }
+
+  showErrorDialog(message: string) {
+    this.dialog.open(ErrorDialog, {
+      width: 'auto',
+      minWidth: '41.86rem',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        message: message,
+      },
+    });
   }
 }

@@ -1,3 +1,12 @@
+.error-container {
+  width: auto;
+  height: auto;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .mat-container {
   width: auto;
   height: auto;
@@ -6,11 +15,11 @@
   min-height: 100vh;
   overflow: hidden;
   overflow-y: auto;
-  h4{
+  h4 {
     margin: 0;
     padding: 0;
   }
-  h5{
+  h5 {
     margin: 0;
     padding: 0;
   }
@@ -67,7 +76,6 @@
           color: #00000070;
         }
       }
-    
     }
   }
 }

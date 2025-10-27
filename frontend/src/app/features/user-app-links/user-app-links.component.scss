@@ -182,6 +182,20 @@
             font-weight: 400;
             letter-spacing: 0.02rem;
           }
+
+          .visibility-icon {
+            color: rgb(101, 102, 233);
+            padding: 0.5rem;
+            display: inline-flex;
+            &:hover {
+              background-color: rgb(0, 0, 0, 0.1);
+              cursor: pointer;
+              border-radius: 50%;
+            }
+          }
+        }
+        .spacer {
+          flex: 1 1 auto;
         }
         .desc-wrapper {
           color: rgba(0, 0, 0, 0.7);
@@ -192,6 +206,9 @@
           margin-top: 1.2rem;
           letter-spacing: 0.03rem;
           line-height: 1.8rem;
+        }
+        .sized-box-password {
+          margin-top: 1rem;
         }
         .reset-button {
           margin-top: 0.5rem;
@@ -270,9 +287,10 @@
         border-radius: 0.5rem;
         display: flex;
         flex-direction: row;
-        align-items: center;
+        align-items: start;
         justify-content: space-between;
         margin-top: 1rem;
+        gap: 0.5rem;
         .desc-wrapper {
           color: rgba(0, 0, 0, 0.7);
           font-family: Roboto;
@@ -286,8 +304,17 @@
         .copy-icon {
           font-size: 1.2rem;
           color: rgb(0, 0, 0, 0.8);
-          align-items: center;
-          margin-top: 1rem;
+          align-items: start;
+          padding-top: 1rem;
+          padding-bottom: 0.4rem;
+          padding-left: 1rem;
+          padding-right: 0.4rem;
+          &:hover {
+            background-color: rgb(0, 0, 255, 0.5);
+            color: #fff;
+            cursor: pointer;
+            border-radius: 50%;
+          }
         }
       }
     }
@@ -430,5 +457,17 @@
     .demo-summary-logo {
       height: 20rem;
     }
+  }
+
+  h6 {
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    color: #55555590;
+    font-size: 1rem;
+    font-weight: 400;
+    margin-top: 1rem;
   }
 }

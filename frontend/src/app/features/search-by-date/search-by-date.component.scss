@@ -30,6 +30,7 @@
     font-size: 1.875rem;
     line-height: 3rem;
     flex-shrink: 0;
+    margin-bottom: 2.31rem;
   }
 
   .card-wrapper {
@@ -52,15 +53,16 @@
       }
     }
     .main-content {
-       flex: 1;
+      flex: 1;
       display: flex;
       flex-direction: column;
       border-radius: 1.5rem;
       position: relative;
       border: 1px solid rgba($color-text-muted, 0.5);
       background: $color-white;
-      margin-top: 2.31rem;
       padding: 3rem 2.88rem;
+      box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2),
+        0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
 
       .content-header {
         @include body-md;
@@ -163,11 +165,13 @@
       }
     }
 
+    .sized-box {
+      height: 15rem;
+    }
     .actions-container {
       display: flex;
       justify-content: center;
-      margin-top: 11.5rem;
-      align-items: flex-end;
+      margin-top: auto;
 
       .check-availability-button {
         min-width: 13.1625rem;
@@ -180,8 +184,6 @@
         font-weight: 500;
         line-height: 1.8rem;
         letter-spacing: 0.03rem;
-        margin-top: auto;
-        margin-bottom: 2.62rem;
 
         &:disabled {
           background-color: #ccc !important;
@@ -221,10 +223,7 @@
       border-radius: 1.5rem;
       border: 1px solid rgba(190, 191, 192, 0.5);
       background: #fff;
-      margin-top: 2.31rem;
-      padding-bottom: 2rem;
-      padding-right: 1rem;
-      padding-left: 1rem;
+      padding: 3rem 2.88rem;
 
       mat-card-title {
         color: var(--Black, #161a1d);
@@ -232,8 +231,6 @@
         font-size: 1.5rem;
         font-weight: 500;
         line-height: 1.5rem;
-        margin-top: 2.37rem;
-        margin-left: 2.25rem;
       }
 
       mat-card-subtitle {
@@ -242,7 +239,6 @@
         font-size: 1rem;
         font-weight: 400;
         line-height: 1rem;
-        margin-left: 2.44rem;
         margin-top: 1.06rem;
       }
 
@@ -305,7 +301,7 @@
       }
 
       .horizontal-line {
-        width: 38.9375rem;
+        width: 100%;
         height: 1px;
 
         background-color: rgba(0, 0, 0, 0.2);
@@ -317,7 +313,6 @@
 
       .license-info {
         margin-top: 1.62rem;
-        margin-left: 2.44rem;
         color: #4285f4;
         font-family: Roboto;
         font-size: 1rem;
@@ -330,8 +325,6 @@
 
       .selected-app-info {
         margin-top: 0.63rem;
-        margin-left: 2.44rem;
-        width: 31.3125rem;
         min-height: 2.5625rem;
         color: #4285f4;
         font-family: Roboto;
@@ -346,7 +339,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-top: 1rem;
+        margin-top: 3rem;
 
         .confirm-btn.mat-mdc-raised-button {
           height: 3.5rem;
