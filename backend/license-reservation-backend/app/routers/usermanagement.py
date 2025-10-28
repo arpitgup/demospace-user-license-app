@@ -358,8 +358,9 @@ async def update_user_profile(
         if req.managerEmail is None:
             payload["relations"] = []
 
+        # Update user profile
         updated_profile = admin_service.update_user_profile_with_new_info(primary_email, payload)
-        
+
         employeeID = existing_user.get("externalIds", [{}])[0].get("value", "NA")
         first_name = updated_profile.get("name", {}).get("givenName", "NA")
         last_name = updated_profile.get("name", {}).get("familyName", "NA")
