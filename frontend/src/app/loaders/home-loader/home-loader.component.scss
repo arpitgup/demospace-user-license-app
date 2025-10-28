@@ -1,0 +1,75 @@
+.mat-container {
+  height: auto;
+  margin-top: 4rem;
+  left: 0;
+  min-height: 100vh;
+  overflow: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: row;
+
+  .side-nav {
+    width: 19rem;
+    height: 100vh;
+    // background: #ecf3fe;
+    display: flex;
+    flex-direction: column;
+    .profile-image-wrapper {
+      display: flex;
+      flex-direction: row;
+      gap: 0.8rem;
+      align-items: start;
+      justify-content: start;
+      margin-top: 2.5rem;
+      margin-right: 0.2rem;
+      margin-bottom: 2.5rem;
+      .profile-image {
+        margin-left: 1rem;
+      }
+      .profile-name {
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        justify-content: start;
+      }
+    }
+  }
+
+  .loader-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100vh;
+    .header-content {
+      display: flex;
+      margin-left: 1rem;
+    }
+    .drive-loader {
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      margin-top: 0;
+      gap: 2rem;
+      margin: 1rem 2rem;
+      .credentials-loader {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        margin-top: 0;
+        .logo-loader {
+          width: 100%;
+          display: flex;
+          justify-content: center;
+        }
+        .email-loader {
+          margin-top: 4rem;
+        }
+      }
+    }
+ .note-loader {
+      display: flex;
+      margin-left: 1rem;
+      margin-top: 2rem;
+    }
+  }
+}

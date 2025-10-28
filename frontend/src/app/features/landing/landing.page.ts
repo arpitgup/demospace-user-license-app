@@ -34,6 +34,7 @@ import { SearchOptionContentLoader } from '../../loaders/search-option-content-l
 import { UserService } from '../../core/services/user.service';
 import { ErrorMessage } from '../../shared/components/error-message/error-message';
 import { MIN_LEAD_COOLDOWN_HOURS } from '../search-by-date/search-by-date.constants';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-landing-page',
@@ -79,7 +80,8 @@ export class LandingPage implements OnInit {
   errorMessage: string = '';
   public readonly reservationErrorSignal =
     this.reservationService.reservationErrorMessage;
-
+  private activeRoute = inject(ActivatedRoute);
+  public showUserName = signal<boolean>(false);
   public filteredReservations = computed(() => {
     const showPast = this.showPastReservations();
     const reservations = this.reservationsSignal();
@@ -155,6 +157,20 @@ export class LandingPage implements OnInit {
         (sessionStorage?.getItem('userEmail')?.split('@')[0] as string) ?? null;
       if (this.userEmail) {
         this.onRefreshData();
+      } else {
+        const userEmail =
+          this.activeRoute.snapshot.queryParams['userEmail'] || '';
+
+        if (userEmail) {
+          sessionStorage.setItem('userEmail', userEmail);
+          this.onRefreshData();
+        }
+      }
+      const currentPath = this.activeRoute.snapshot.url
+        .map((segment) => segment.path)
+        .join('/');
+      if (currentPath.includes('license-reservation')) {
+        this.showUserName.update(() => true);
       }
     }
   }

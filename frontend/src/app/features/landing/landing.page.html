@@ -1,11 +1,18 @@
 <section class="landing-content">
-  <!-- <h1 class="welcome-title">
+  @if(showUserName()===true){
+  <h1 class="welcome-title">
     {{ landingPageConstants.WELCOME_GREETING }}
     <span class="user-name">{{ userFullName() }}</span>
-  </h1> -->
+  </h1>
+  } @if(showUserName()===true){
+  <span class="welcome-subtitle-user">{{
+    landingPageConstants.WELCOME_SUBTITLE
+  }}</span>
+  }@else{
   <span class="welcome-subtitle">{{
     landingPageConstants.WELCOME_SUBTITLE
   }}</span>
+  }
 
   <div class="reservation-table-container">
     <!-- The refresh button is positioned absolutely relative to this container -->

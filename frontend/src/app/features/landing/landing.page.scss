@@ -22,6 +22,11 @@
     }
   }
 
+  .welcome-subtitle-user {
+    @include heading-lg;
+    margin: $spacing-md 0;
+  }
+
   .welcome-subtitle {
     @include heading-lg;
     @include gradient-text;

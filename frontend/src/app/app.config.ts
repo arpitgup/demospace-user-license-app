@@ -22,6 +22,8 @@ import { provideNgxSkeletonLoader } from 'ngx-skeleton-loader';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { IapService } from './core/services/iap.service';
+import { forkJoin } from 'rxjs';
+import { UserCreationService } from './core/services/user-creation.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -34,7 +36,11 @@ export const appConfig: ApplicationConfig = {
     IapService,
     provideAppInitializer(() => {
       const iapService = inject(IapService);
-      return iapService.getIapUserDetails();
+      const userService = inject(UserCreationService);
+      return forkJoin([
+        iapService.getIapUserDetails(),
+        userService.getUserDetails(),
+      ]);
     }),
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
