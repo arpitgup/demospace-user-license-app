@@ -1,5 +1,5 @@
 triggers:
-- name: licenseapp-apimanagement-dev
+- name: godemos-licenseapp-apimanagement-dev
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/apimanagement-cloudbuild.yaml
   eventType: push
@@ -10,7 +10,7 @@ triggers:
   ignoredFiles:
   disabled: 
   substitutions:
-    _SERVICE_NAME: "license-management-api-dev"
+    _SERVICE_NAME: "godemos-license-management-api-dev"
     _PROJECT_ID: "sys-36807655692543323281329778"
     _REGION: "us-central1"
     _VPC_CONNECTOR_NAME: "cloud-run-vpc-connector"
@@ -21,7 +21,7 @@ triggers:
     _DB_PASSWORD_SECRET_NAME: "license-reservation-db-password"
     _DELEGATED_ADMIN: "arpitgup@1987984870407.altostrat.com"
     _ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME: "license-reservation-auth-sa-key"
-- name: licenseapp-backend-dev
+- name: godemos-licenseapp-backend-dev
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/backend-cloudbuild.yaml
   eventType: push
@@ -32,7 +32,7 @@ triggers:
   ignoredFiles:
   disabled: 
   substitutions:
-    _SERVICE_NAME: "license-reservation-backend-dev"
+    _SERVICE_NAME: "godemos-license-reservation-backend-dev"
     _PROJECT_ID: "sys-36807655692543323281329778"
     _REGION: "us-central1"
     _VPC_CONNECTOR_NAME: "cloud-run-vpc-connector"
@@ -51,7 +51,7 @@ triggers:
     _ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME: "license-reservation-auth-sa-key"
     _PORTAL_ADMIN_GROUP_EMAIL: ""
     _ADMIN_VALIDATION_KEYS_SECRET_NAME: "admin_validation_secret_private_key"
-- name: reservationApp-frontend-dev
+- name: godemos-reservationApp-frontend-dev
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/frontend-cloudbuild.yaml
   eventType: push
@@ -62,7 +62,7 @@ triggers:
   ignoredFiles:
   disabled: 
   substitutions:
-    _SERVICE_NAME: "license-reservation-app-dev"
+    _SERVICE_NAME: "godemos-license-app-develop"
     _PROJECT_ID: "sys-36807655692543323281329778"
     _REGION: "us-central1"
     _APP_ENV: "development"
