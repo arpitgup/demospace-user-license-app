@@ -375,7 +375,8 @@ async def update_user_profile(
             managerEmail=managerEmail,
             employeeID=employeeID,
             first_name=first_name,
-            last_name=last_name
+            last_name=last_name,
+            user_name=user_name
         )
             
     except Exception as e:
