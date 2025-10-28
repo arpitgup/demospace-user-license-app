@@ -33,7 +33,7 @@ export class IapService {
       catchError((err) => {
         console.log('error occurred', err);
         this.userEmailInfoState.update(
-          () => 'jagtars-agentspace-demo-user@1987984870407.altostrat.com'
+          () => ''
         );
         return of(null);
       })
