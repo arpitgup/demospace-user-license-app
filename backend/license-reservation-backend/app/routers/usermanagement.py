@@ -361,10 +361,12 @@ async def update_user_profile(
         # Update user profile
         updated_profile = admin_service.update_user_profile_with_new_info(primary_email, payload)
 
-        employeeID = existing_user.get("externalIds", [{}])[0].get("value", "NA")
-        first_name = updated_profile.get("name", {}).get("givenName", "NA")
-        last_name = updated_profile.get("name", {}).get("familyName", "NA")
-        user_name = updated_profile.get("name", {}).get("fullName", "NA")
+        employeeID = existing_user.get("externalIds", [{}])[0].get("value", None)
+        first_name = updated_profile.get("name", {}).get("givenName")
+        last_name = updated_profile.get("name", {}).get("familyName")
+        user_name = updated_profile.get("name", {}).get("fullName")
+        if not user_name and first_name and last_name:
+            user_name = f"{first_name} {last_name}"
 
         return UpdateUserProfileRequestResponse(
             primary_email=primary_email,
