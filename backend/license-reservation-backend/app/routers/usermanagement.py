@@ -360,7 +360,6 @@ async def update_user_profile(
 
         # Update user profile
         updated_profile = admin_service.update_user_profile_with_new_info(primary_email, payload)
-        logger.info(updated_profile)
 
         employeeID = existing_user.get("externalIds", [{}])[0].get("value", None)
         first_name = updated_profile.get("name", {}).get("givenName")
