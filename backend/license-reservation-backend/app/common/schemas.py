@@ -362,6 +362,7 @@ class UpdateUserProfileRequestResponse(BaseModel):
     employeeID: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    user_name: Optional[str] = None
 
 class RepresentativeProfileOut(BaseModel):
     cost_centre: Optional[str]

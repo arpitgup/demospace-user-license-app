@@ -327,11 +327,17 @@ async def update_user_profile(
     costCenter = req.costCenter
     demoName = req.demoName
     managerEmail = req.managerEmail
+    first_name = req.first_name
+    last_name = req.last_name
 
     try:
         existing_user = admin_service.get_user_details(primary_email)
         
         updated_user_info = {
+            "name": {
+                "givenName": req.first_name,
+                "familyName": req.last_name
+            },
             "orgUnitPath": req.orgUnitPath,
             "organizations": [{
                 "department": req.department,
@@ -352,11 +358,12 @@ async def update_user_profile(
         if req.managerEmail is None:
             payload["relations"] = []
 
-        admin_service.update_user_profile_with_new_info(primary_email, payload)
+        updated_profile = admin_service.update_user_profile_with_new_info(primary_email, payload)
         
         employeeID = existing_user.get("externalIds", [{}])[0].get("value", "NA")
-        first_name = existing_user.get("name", {}).get("givenName", "NA")
-        last_name = existing_user.get("name", {}).get("familyName", "NA")
+        first_name = updated_profile.get("name", {}).get("givenName", "NA")
+        last_name = updated_profile.get("name", {}).get("familyName", "NA")
+        user_name = updated_profile.get("name", {}).get("fullName", "NA")
 
         return UpdateUserProfileRequestResponse(
             primary_email=primary_email,
@@ -368,7 +375,8 @@ async def update_user_profile(
             managerEmail=managerEmail,
             employeeID=employeeID,
             first_name=first_name,
-            last_name=last_name
+            last_name=last_name,
+            user_name=user_name
         )
             
     except Exception as e:
