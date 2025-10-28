@@ -32,7 +32,7 @@ backend/
     └── create_tables.sql
 ```
 
-- `sql`: Contains the SQL schema to create tables required for app backend.
+- `sql`: Contains  the SQL schema to create tables required for app backend.
 
 - `shared`: The installable shared python package which contains DB + utility code.
 
