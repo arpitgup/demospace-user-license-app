@@ -1,0 +1,84 @@
+<div class="new-user-wrapper">
+  <h2>
+    This application manages demo user profiles for multiple Agentspace demos
+    listed on go/demos. Please follow the steps below to log in as a New User.
+  </h2>
+  <h4>
+    1. Login to the Application from your Google profile to lookup Agentspace
+    credentials.
+  </h4>
+  @for(loginData of loginSteps; track loginData.id){
+  <mat-accordion class="panel-wrapper">
+    <mat-expansion-panel
+      (opened)="loginData.isOpen = true"
+      (closed)="loginData.isOpen = false"
+    >
+      <mat-expansion-panel-header>
+        <mat-panel-title class="title"> {{ loginData.title }} </mat-panel-title>
+      </mat-expansion-panel-header>
+      <p>I'm visible because I am open</p>
+    </mat-expansion-panel>
+  </mat-accordion>
+  }
+  <h4>
+    2. Please refer to the Demo Guide's 'How to Log In' section for instructions
+    on how to login using user credentials.
+  </h4>
+
+  <mat-accordion class="panel-wrapper">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title class="title">
+          Login using credentials
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <p>I'm visible because I am open</p>
+    </mat-expansion-panel>
+  </mat-accordion>
+
+  <h4>
+    3. Please refer to the Demo Guide's 'How to Log In' section for instructions
+    on how to access the demo artifact's URL.
+  </h4>
+
+  <mat-accordion class="panel-wrapper">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title class="title"> Access Agentspace App </mat-panel-title>
+      </mat-expansion-panel-header>
+      <p>I'm visible because I am open</p>
+    </mat-expansion-panel>
+  </mat-accordion>
+
+  <h4>
+    4. Optional : To discuss demo related topics, click & join Agentspace Sales
+    Demo Chatspace.
+  </h4>
+
+  <mat-accordion class="panel-wrapper">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title class="title">
+          Agentspace Sales Demo Chatspace.
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <p>I'm visible because I am open</p>
+    </mat-expansion-panel>
+  </mat-accordion>
+
+  <h4>
+    5. In another tab in the same user Chrome Profile, open Gmail. Your demo
+    user has a full Google Workspace Enterprise License.
+  </h4>
+
+  <mat-accordion class="panel-wrapper">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title class="title">
+          Validate Google Workspace Enterprise License
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <p>I'm visible because I am open</p>
+    </mat-expansion-panel>
+  </mat-accordion>
+</div>

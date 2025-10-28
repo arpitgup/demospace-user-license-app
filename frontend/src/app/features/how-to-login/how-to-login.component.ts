@@ -4,10 +4,11 @@ import {
   MatTabGroup,
   MatTabsModule,
 } from '@angular/material/tabs';
+import { NewUserComponent } from '../new-user/new-user.component';
 
 @Component({
   selector: 'app-how-to-login',
-  imports: [MatTabsModule],
+  imports: [MatTabsModule,NewUserComponent],
   templateUrl: './how-to-login.component.html',
   styleUrl: './how-to-login.component.scss',
 })
