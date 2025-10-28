@@ -46,6 +46,7 @@ export class EmailGuard implements CanActivate {
       this.router.navigateByUrl('/admin', { replaceUrl: true });
       return of(false);
     } else {
+      this.router.navigateByUrl('', { replaceUrl: true });
       return of(false);
     }
   }
