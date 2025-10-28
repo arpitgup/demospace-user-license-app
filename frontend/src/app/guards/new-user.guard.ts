@@ -52,7 +52,7 @@ export class NewUserGuard implements CanActivate {
       this.router.navigateByUrl('/admin', { replaceUrl: true });
       return of(false);
     } else {
-       this.router.navigateByUrl('', { replaceUrl: true });
+       this.router.navigateByUrl('/home', { replaceUrl: true });
       return of(false);
     }
   }

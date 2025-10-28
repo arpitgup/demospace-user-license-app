@@ -18,6 +18,7 @@ import { ErrorMessage } from '../../shared/components/error-message/error-messag
 import { sign } from 'crypto';
 import { INVALID_DEMO_ID_MESSAGE } from '../../shared/constants/error.constants';
 import { BUGANIZER_URL } from '../../shared/constants/links.contants';
+import { HowToLoginComponent } from '../how-to-login/how-to-login.component';
 
 export interface HomeMenuItems {
   id: number;
@@ -38,6 +39,7 @@ export interface HomeMenuItems {
     MatIconModule,
     HomeLoaderComponent,
     ErrorMessage,
+    HowToLoginComponent,
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',

@@ -22,7 +22,7 @@ import { provideNgxSkeletonLoader } from 'ngx-skeleton-loader';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { IapService } from './core/services/iap.service';
-import { forkJoin } from 'rxjs';
+import { concatMap, forkJoin, of } from 'rxjs';
 import { UserCreationService } from './core/services/user-creation.service';
 
 export const appConfig: ApplicationConfig = {
@@ -37,10 +37,15 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       const iapService = inject(IapService);
       const userService = inject(UserCreationService);
-      return forkJoin([
-        iapService.getIapUserDetails(),
-        userService.getUserDetails(),
-      ]);
+      return of(null).pipe(
+        concatMap(() => {
+          return iapService.getIapUserDetails();
+        }),
+
+        concatMap(() => {
+          return userService.getUserDetails();
+        })
+      );
     }),
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
