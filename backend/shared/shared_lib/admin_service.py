@@ -278,8 +278,9 @@ def update_user_profile_with_new_info(user_email, updated_user_info):
     Update the user profile with new fields.
     """
     try:
-        admin_service.users().update(userKey=user_email, body=updated_user_info).execute()
+        updated_profile = admin_service.users().update(userKey=user_email, body=updated_user_info).execute()
         logger.info(f"Successfully updated user profile for {user_email}.")
+        return updated_profile
     except Exception as e:
         logger.error(f"An unexpected error occurred during user profile update: {e}")
         raise e
