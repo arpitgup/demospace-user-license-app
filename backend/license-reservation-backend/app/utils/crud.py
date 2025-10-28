@@ -10,7 +10,9 @@ from shared_lib.db.models import (
     ReservationStatus,
 )
 from typing import List
-
+import random
+import string
+from typing import Optional
 from ..common.schemas import (
     BotsCreateRequest,
     BotsUpdateRequest    
@@ -229,3 +231,18 @@ def format_email_for_reservation(
     )    
     
     return formatted_content
+
+def generate_random_password():
+    """Generates a random password for new user accounts."""
+    random_hex = ''.join(random.choices(string.hexdigits.lower(), k=5))
+    return f"GeminiEnterprise-{random_hex}"
+
+def generate_employee_id() -> Optional[str]:
+    """
+    Generates a simple 4-digit random number as the employee ID.
+    """
+    random_id = random.randint(1000, 9999)
+    employee_id = str(random_id)
+
+    print(f"Generated new random employee ID: {employee_id}")
+    return employee_id

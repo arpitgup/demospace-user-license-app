@@ -7,9 +7,9 @@ from google.oauth2 import id_token
 from googleapiclient.discovery import build
 import os
 
-from shared_lib.db.models import (
-   User
-)
+# from shared_lib.db.models import (
+#    User
+# )
 from shared_lib.dependencies import get_app_config, get_db
 from sqlalchemy.orm import Session
 from ..common.secure_admin import load_admin_validation_keys_from_secret_manager
@@ -81,7 +81,7 @@ def validate_user(
     
     try:
         user = admin_service.get_user(user_email)        
-        if not user:        
+        if not user:
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content={"detail": f"User {user_email} is not valid."}

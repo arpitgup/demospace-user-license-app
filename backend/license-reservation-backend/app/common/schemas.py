@@ -278,3 +278,115 @@ class UserDetails(BaseModel):
 class UserValidationResponse(BaseModel):    
     token_valid: bool
     user_details: Optional[UserDetails] = None    
+
+class UserInGroupRequest(BaseModel):
+    """Schema for /add_user_to_group endpoint request."""
+    group_email: EmailStr
+
+class UserInGroupResponse(BaseModel):
+    """Schema for /add_user_to_group endpoint response."""
+    user_email: EmailStr
+    group_email: EmailStr
+    is_member: Optional[bool] = None
+    message: Optional[str] = None
+
+class CheckUserInWorkspaceResponse(BaseModel):
+    """Generic schema for endpoints requiring only primary_email."""
+    is_exist: Optional[bool] = None
+    primary_email: EmailStr
+    secondary_email: EmailStr
+    first_name: str
+    last_name: str
+    user_name: Optional[str] = None
+    costCenter: Optional[str] = None
+    jobTitle: Optional[str] = None
+    department: Optional[str] = None
+    orgUnitPath: Optional[str] = "/"
+    demoName: Optional[str] = None
+    managerEmail: str = None
+    employeeID: Optional[str] = None
+
+class CreateUserRequest(BaseModel):
+    """Schema for /create_user endpoint."""
+    primary_email: EmailStr
+    secondary_email: EmailStr
+    first_name: str
+    last_name: str
+    costCenter: str
+    jobTitle: str
+    department: str
+    orgUnitPath: str = "/"
+    demoName: str
+    managerEmail: str = None
+
+class CreateUserResponse(BaseModel):
+    """Schema for /create_user endpoint."""
+    primary_email: EmailStr
+    secondary_email: EmailStr
+    first_name: str
+    last_name: str
+    user_name: str
+    costCenter: Optional[str] = None
+    jobTitle: Optional[str] = None
+    department: Optional[str] = None
+    orgUnitPath: Optional[str] = "/"
+    demoName: Optional[str] = None
+    managerEmail: str = None
+    employeeID: Optional[str] = None
+    password: str
+
+class ResetPasswordResponse(BaseModel):
+    """Schema for /reset_user_password endpoint."""
+    primary_email: EmailStr
+    secondary_email: EmailStr
+    first_name: str
+    last_name: str
+    costCenter: Optional[str] = None
+    jobTitle: Optional[str] = None
+    department: Optional[str] = None
+    orgUnitPath: Optional[str] = "/"
+    demoName: Optional[str] = None
+    managerEmail: str = None
+    employeeID: Optional[str] = None
+    password: str
+
+class UpdateUserProfileRequestResponse(BaseModel):
+    """Schema for useremail profile update endpoint."""
+    primary_email: EmailStr
+    orgUnitPath: Optional[str] = "/"
+    department: Optional[str] = None
+    jobTitle: Optional[str] = None
+    costCenter: Optional[str] = None
+    demoName: Optional[str] = None
+    managerEmail: Optional[EmailStr] = None
+    employeeID: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    user_name: Optional[str] = None
+
+class RepresentativeProfileOut(BaseModel):
+    cost_centre: Optional[str]
+    manager_name: str
+    manager_email: str
+    manager_title: Optional[str]
+    rep_role: Optional[str]
+    rep_department: Optional[str]
+    org_unit: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+class DemoDetailOut(BaseModel):
+    demo_id: str
+    demo_title: str
+    demo_user_group_email: Optional[str]
+    gemini_enterprise_app_link: Optional[str]
+    drive_folder_link: Optional[str]
+    feedback_bug_link: Optional[str]
+    demo_onboarding_status: Optional[str]
+    feature_license_app: Optional[bool]
+    saas_applications: Optional[str]
+    representative_profile: Optional[RepresentativeProfileOut]
+
+    class Config:
+        from_attributes = True
