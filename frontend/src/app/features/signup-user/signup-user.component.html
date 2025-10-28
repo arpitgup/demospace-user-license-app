@@ -42,14 +42,16 @@
       <mat-error>Invalid last name</mat-error>
       }
     </mat-form-field>
-    <button
-      matButton
-      class="submit-button"
-      (click)="onSignUp()"
-      [disabled]="createUserForm.invalid"
-      @slideUp
-    >
-      Sign Up
-    </button>
+    <div class="button-wrapper" [class.disabled]="createUserForm.invalid">
+      <button
+        matButton
+        class="submit-button"
+        (click)="onSignUp()"
+        [disabled]="createUserForm.invalid"
+        @slideUp
+      >
+        Sign Up
+      </button>
+    </div>
   </form>
 </div>

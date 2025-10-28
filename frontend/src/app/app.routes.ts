@@ -42,6 +42,11 @@ export const appRoutes: Routes = [
     canActivate: [NewUserGuard],
   },
   {
+    path: 'license-reservation',
+    loadComponent: () =>
+      import('./features/landing/landing.page').then((m) => m.LandingPage),
+  },
+  {
     path: '**',
     redirectTo: '',
   },

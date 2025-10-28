@@ -1,13 +1,11 @@
 import { animate, style, transition, trigger } from '@angular/animations';
-import { Component, inject, Input, OnInit, signal } from '@angular/core';
+import { Component, inject, Input, signal } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { DemoDetails } from '../../core/models/demo-details.model';
 import { UserCreationService } from '../../core/services/user-creation.service';
 import { Clipboard } from '@angular/cdk/clipboard';
-import { toObservable } from '@angular/core/rxjs-interop';
-import { error } from 'console';
-import { sign } from 'crypto';
+import { CHAT_SPACE_URL, DEMO_PAGE_URL } from '../../shared/constants/links.contants';
 @Component({
   selector: 'app-user-app-links',
   imports: [MatIconModule, MatCardModule],
@@ -69,6 +67,8 @@ export class UserAppLinksComponent {
   public passwordMasked = signal<string>(
     '•'.repeat((this.userDetails()?.password || '').length)
   );
+  goDemoUrl=DEMO_PAGE_URL;
+  chatSpaceUrl=CHAT_SPACE_URL;
 
   copyText(link: string, isGemini: boolean) {
     const successful = this.clipboard.copy(link);

@@ -1,8 +1,16 @@
-import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import {
+  HttpErrorResponse,
+  HttpHandlerFn,
+  HttpInterceptorFn,
+  HttpRequest,
+} from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, throwError } from 'rxjs';
+import { catchError, throwError, timeout, TimeoutError } from 'rxjs';
 import { IapService } from '../services/iap.service';
+import { BUGANIZER_URL } from '../../shared/constants/links.contants';
+
+const DEFAULT_TIMEOUT = 30000;
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const iapService = inject(IapService);
@@ -25,7 +33,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   if (!userEmail && !req.url.includes('login')) {
-    return next(req);
+    return callApi(req, next, false);
   }
 
   const clonedReq = req.clone({
@@ -34,9 +42,33 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       .set('x-user-current-time', new Date().toISOString())
       .set('x-user-token', userToken || ''),
   });
-  return next(clonedReq).pipe(
+  return callApi(clonedReq, next, true);
+};
+function callApi(
+  req: HttpRequest<unknown>,
+  next: HttpHandlerFn,
+  isLoginRedirect: boolean
+): import('rxjs').Observable<
+  import('@angular/common/http').HttpEvent<unknown>
+> {
+  const router = inject(Router);
+  return next(req).pipe(
+    timeout(DEFAULT_TIMEOUT),
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && req.url.includes('admin')) {
+      if (error instanceof TimeoutError) {
+        const customError = {
+          error: {
+            detail: `Seems like we are experiencing an issue. Please try again later. If the issue persists, file a feedback ticket <a href="${BUGANIZER_URL}"
+          target="_blank"
+          rel="noopener noreferrer"> HERE.</a>`,
+          },
+        };
+        return throwError(() => customError);
+      } else if (
+        error.status === 401 &&
+        req.url.includes('admin') &&
+        isLoginRedirect
+      ) {
         console.error('Unauthorized request (401). Redirecting to login.');
         router.navigateByUrl('/login', { replaceUrl: true });
         return throwError(() => new Error('Unauthorized access'));
@@ -44,4 +76,4 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       return throwError(() => error);
     })
   );
-};
+}

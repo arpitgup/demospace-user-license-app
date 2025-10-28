@@ -4,6 +4,7 @@ import { trigger, style, transition, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DEMO_PAGE_URL } from '../../shared/constants/links.contants';
 
 @Component({
   standalone: true,
@@ -41,6 +42,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 export class WelcomeComponent {
   readonly router = inject(Router);
   private activeRoute = inject(ActivatedRoute);
+  goDemoUrl = DEMO_PAGE_URL;
   onStartSignUp() {
     const demoId = this.activeRoute.snapshot.queryParams['demoID'] || '';
     this.router.navigateByUrl(`/signup?demoID=${demoId}`, { replaceUrl: true });

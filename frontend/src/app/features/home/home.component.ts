@@ -16,6 +16,8 @@ import { IapService } from '../../core/services/iap.service';
 import { HomeLoaderComponent } from '../../loaders/home-loader/home-loader.component';
 import { ErrorMessage } from '../../shared/components/error-message/error-message';
 import { sign } from 'crypto';
+import { INVALID_DEMO_ID_MESSAGE } from '../../shared/constants/error.constants';
+import { BUGANIZER_URL } from '../../shared/constants/links.contants';
 
 export interface HomeMenuItems {
   id: number;
@@ -100,6 +102,11 @@ export class HomeComponent implements OnInit {
       sessionStorage.setItem('userEmail', this.iapService.userEmailInfo());
       this.activeRoute.queryParams.subscribe((params) => {
         this.demoId = params['demoID'] || '';
+        if (this.demoId === '') {
+          this.isLoading.update(() => false);
+          this.errorMessage.update(() => INVALID_DEMO_ID_MESSAGE);
+          return;
+        }
         this.callDemoDetailsApi(this.demoId);
       });
     }
@@ -157,10 +164,7 @@ export class HomeComponent implements OnInit {
           }
           this.errorMessage.update(() => '');
           this.isLoading.update(() => false);
-          this.updateHomeMenuList(
-            this.demoDetails()?.feature_license_app,
-            this.demoDetails()?.feedback_bug_link || ''
-          );
+          this.updateHomeMenuList(this.demoDetails()?.feature_license_app);
         },
         error: (err) => {
           this.errorMessage.update(
@@ -171,35 +175,22 @@ export class HomeComponent implements OnInit {
         },
       });
   }
-  updateHomeMenuList(
-    feature_license_app: string | undefined,
-    feedbackLink: string
-  ) {
+  updateHomeMenuList(feature_license_app: string | undefined) {
     if ((feature_license_app || false) === false) {
       this.homeMenuItems = this.homeMenuItems.filter(
         (item) => item.type !== HomeItems.LICENSE_RESERVATION
       );
     }
-    if (feedbackLink !== '') {
-      this.homeMenuItems = this.homeMenuItems.map((item) => {
-        if (item.type === HomeItems.FILE_A_TICKET) {
-          item.url = feedbackLink;
-        }
-        return item;
-      });
-    }
   }
 
   onItemClicked(type: HomeItems) {
     if (type === this.menuItemsEnums.FILE_A_TICKET) {
-      if ((this.demoDetails()?.feedback_bug_link || '') === '') {
-        return;
-      }
-      window.open(
-        this.demoDetails()?.feedback_bug_link || '',
-        '_blank',
-        'noopener noreferrer'
-      );
+      const feedbackUrl = `${BUGANIZER_URL}&title=UserApp%20Feedback%20:%20${
+        this.demoDetails()?.demo_title?.replaceAll(' ', '') || ''
+      }&assignee=cloud-demo-platform-support@google.com&cc=${
+        this.userDetails()?.secondary_email
+      }&customFields=1232889%3A${this.demoDetails()?.demo_id || ''}`;
+      window.open(feedbackUrl, '_blank', 'noopener noreferrer');
       return;
     }
     this.menuItemType.set(type);
@@ -209,9 +200,10 @@ export class HomeComponent implements OnInit {
   }
 
   onRetryCall() {
+    this.errorMessage.update(() => '');
     const demoId = this.activeRoute.snapshot.queryParams['demoID'] || '';
     if (demoId === '') {
-      this.errorMessage.update(() => 'Invalid demo id');
+      this.errorMessage.update(() => INVALID_DEMO_ID_MESSAGE);
       return;
     }
     this.callDemoDetailsApi(demoId);

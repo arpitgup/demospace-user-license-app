@@ -18,6 +18,7 @@ import { DemoDetails } from '../../core/models/demo-details.model';
 import { CreateUserRequest } from '../../core/models/create-user-request.model';
 import { LoaderService } from '../../core/services/loading.service';
 import { IapService } from '../../core/services/iap.service';
+import { INVALID_DEMO_ID_MESSAGE } from '../../shared/constants/error.constants';
 
 @Component({
   selector: 'app-signup-user',
@@ -90,9 +91,7 @@ export class SignupUserComponent implements OnInit {
       return;
     }
     if (this.demoId === '') {
-      this.showErrorDialog(
-        'Invalid demoID. Please ensure that your demoID is correct'
-      );
+      this.showErrorDialog(INVALID_DEMO_ID_MESSAGE);
       return;
     }
     this.loaderService.show();
