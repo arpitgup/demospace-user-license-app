@@ -5,7 +5,7 @@ This project is the frontend for a web-based reservation system that allows user
 ## Features
 
 * Search for available license slots by date or by application.
-* Book new reservations for a desired time window.
+* Book new reservations for a desired  time window.
 * View all upcoming and past reservations.
 * Cancel active reservations.
 
