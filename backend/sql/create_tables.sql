@@ -1,4 +1,4 @@
--- Create custom ENUM types for status fields
+-- Create custom ENUM types for status field
 CREATE TYPE reservation_status_enum AS ENUM ('PENDING', 'ACTIVE', 'COMPLETED', 'CANCELLED');
 CREATE TYPE application_license_type_enum AS ENUM ('SUBSCRIPTION', 'ENVIRONMENT');
 
