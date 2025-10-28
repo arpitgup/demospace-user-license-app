@@ -1,5 +1,11 @@
 import { inject, Injectable } from '@angular/core';
-import { ActivatedRoute, ActivatedRouteSnapshot, CanActivate, Router, UrlTree } from '@angular/router';
+import {
+  ActivatedRoute,
+  ActivatedRouteSnapshot,
+  CanActivate,
+  Router,
+  UrlTree,
+} from '@angular/router';
 import { UserCreationService } from '../core/services/user-creation.service';
 import { Observable, of, tap } from 'rxjs';
 import { IapService } from '../core/services/iap.service';
@@ -14,7 +20,7 @@ export class EmailGuard implements CanActivate {
   private activeRoute = inject(ActivatedRoute);
   canActivate(route: ActivatedRouteSnapshot): Observable<boolean | UrlTree> {
     const userEmail = this.iapService.userEmailInfo();
-     const demoId = route.queryParamMap.get('demoID') || '';
+    const demoId = route.queryParamMap.get('demoID') || '';
     if (userEmail?.includes('agentspace-demo')) {
       if (
         this.userCreationService.userInfo() !== null &&
@@ -36,10 +42,10 @@ export class EmailGuard implements CanActivate {
           })
         );
       }
+    } else if (userEmail !== '') {
+      this.router.navigateByUrl('/admin', { replaceUrl: true });
+      return of(false);
     } else {
-      this.router.navigateByUrl('/admin', {
-        replaceUrl: true,
-      });
       return of(false);
     }
   }

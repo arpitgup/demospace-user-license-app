@@ -48,8 +48,10 @@ export class NewUserGuard implements CanActivate {
           })
         );
       }
-    } else {
+    } else if (userEmail !== '') {
       this.router.navigateByUrl('/admin', { replaceUrl: true });
+      return of(false);
+    } else {
       return of(false);
     }
   }
