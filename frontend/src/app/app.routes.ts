@@ -47,6 +47,13 @@ export const appRoutes: Routes = [
       import('./features/landing/landing.page').then((m) => m.LandingPage),
   },
   {
+    path: 'home',
+    loadComponent: () =>
+      import('./loaders/home-loader/home-loader.component').then(
+        (m) => m.HomeLoaderComponent
+      ),
+  },
+  {
     path: '**',
     redirectTo: '',
   },
