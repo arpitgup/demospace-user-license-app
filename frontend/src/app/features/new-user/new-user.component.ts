@@ -1,43 +1,46 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatIconModule } from '@angular/material/icon';
+import { MANAGE_PROFILE_INSTRUCTIONS_URL } from '../../shared/constants/links.contants';
 
 interface AppInstructions {
   id: number;
   title: string;
-  image: '';
+  image: string;
   isOpen: boolean;
 }
 @Component({
   selector: 'app-new-user',
-  imports: [MatExpansionModule],
+  imports: [MatExpansionModule,MatIconModule],
   templateUrl: './new-user.component.html',
   styleUrl: './new-user.component.scss',
 })
 export class NewUserComponent {
-  readonly panelOpenState = signal(false);
+
+  manageProfileLink=MANAGE_PROFILE_INSTRUCTIONS_URL;
   loginSteps: AppInstructions[] = [
     {
       id: 1,
       title: 'Select Agentspace Demo from go/demos',
-      image: '',
+      image: 'assets/images/godemosagentspacepage.png',
       isOpen: false,
     },
     {
       id: 2,
       title: 'Create User Profile',
-      image: '',
+      image: 'assets/images/signup_user.png',
       isOpen: false,
     },
     {
       id: 3,
       title: 'Use Credentials to Login',
-      image: '',
+      image: 'assets/images/demo_credentials.png',
       isOpen: false,
     },
     {
       id: 4,
       title: 'Get artifacts for Demo Walkthrough',
-      image: '',
+      image: 'assets/images/drive_links.png',
       isOpen: false,
     },
   ];
