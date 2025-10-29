@@ -66,73 +66,73 @@ triggers:
     _PROJECT_ID: "sys-36807655692543323281329778"
     _REGION: "us-central1"
     _APP_ENV: "development"
-# - name: licenseapp-apimanagement-preprod
-#   project: sys-36807655692543323281329778
-#   configFilePath: .cloudbuild/apimanagement-cloudbuild.yaml
-#   eventType: push
-#   ignoredGitRefs: 
-#   includedGitRefs: ^pre-prod$
-#   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
-#   includedFiles: backend/license-management-api/*
-#   ignoredFiles:
-#   disabled: 
-#   substitutions:
-#     _SERVICE_NAME: "license-management-api-preprod"
-#     _PROJECT_ID: "sys-36807655692543323281329778"
-#     _REGION: "us-central1"
-#     _VPC_CONNECTOR_NAME: "cloud-run-vpc-connector"
-#     _DB_USER: "postgres"
-#     _DB_HOST: "10.20.163.10"
-#     _DB_PORT: "5432"
-#     _DB_NAME: "license-reservation-db"
-#     _DB_PASSWORD_SECRET_NAME: "license-reservation-db-password-preprod"
-#     _DELEGATED_ADMIN: "arpitgup@1987984870407.altostrat.com"
-#     _ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME: "license-reservation-auth-sa-key"
-# - name: licenseapp-backend-preprod
-#   project: sys-36807655692543323281329778
-#   configFilePath: .cloudbuild/backend-cloudbuild.yaml
-#   eventType: push
-#   ignoredGitRefs: 
-#   includedGitRefs: ^pre-prod$
-#   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
-#   includedFiles: backend/license-reservation-backend/*
-#   ignoredFiles:
-#   disabled: 
-#   substitutions:
-#     _SERVICE_NAME: "license-reservation-backend-preprod"
-#     _PROJECT_ID: "sys-36807655692543323281329778"
-#     _REGION: "us-central1"
-#     _VPC_CONNECTOR_NAME: "cloud-run-vpc-connector"
-#     _LICENSE_ALLOCATION_QUEUE: "license-allocation-Queue-preprod"
-#     _LICENSE_REVOCATION_QUEUE: "license-revocation-queue-preprod"
-#     _DOWNTIME_START_QUEUE: "application-downtime-start-queue-preprod"
-#     _DOWNTIME_END_QUEUE: "application-downtime-end-queue-preprod"
-#     _LICENSE_MANAGEMENT_API_ENDPOINT: "https://license-management-api-preprod-385039775654.us-central1.run.app"
-#     _LICENSE_ENDPOINTS_INVOKER_SERVICE_ACCOUNT: "license-mgmt-api-invoker-sa@sys-36807655692543323281329778.iam.gserviceaccount.com"
-#     _DB_USER: "postgres"
-#     _DB_HOST: "10.20.163.10"
-#     _DB_PORT: "5432"
-#     _DB_NAME: "license-reservation-db"
-#     _DB_PASSWORD_SECRET_NAME: "license-reservation-db-password-preprod"
-#     _DELEGATED_ADMIN: "arpitgup@1987984870407.altostrat.com"
-#     _ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME: "license-reservation-auth-sa-key"
-#     _PORTAL_ADMIN_GROUP_EMAIL: ""
-#     _ADMIN_VALIDATION_KEYS_SECRET_NAME: "admin_validation_secret_private_key"
-# - name: reservationApp-frontend-preprod
-#   project: sys-36807655692543323281329778
-#   configFilePath: .cloudbuild/frontend-cloudbuild.yaml
-#   eventType: push
-#   ignoredGitRefs:
-#   includedGitRefs: ^pre-prod$
-#   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
-#   includedFiles: frontend/*
-#   ignoredFiles:
-#   disabled: 
-#   substitutions:
-#     _SERVICE_NAME: "license-reservation-app-preprod"
-#     _PROJECT_ID: "sys-36807655692543323281329778"
-#     _REGION: "us-central1"
-#     _APP_ENV: "staging"
+- name: godemos-licenseapp-apimanagement-preprod
+  project: sys-36807655692543323281329778
+  configFilePath: .cloudbuild/apimanagement-cloudbuild.yaml
+  eventType: push
+  ignoredGitRefs: 
+  includedGitRefs: ^preprod$
+  serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
+  includedFiles: backend/license-management-api/*
+  ignoredFiles:
+  disabled: 
+  substitutions:
+    _SERVICE_NAME: "godemos-license-management-api-preprod"
+    _PROJECT_ID: "sys-36807655692543323281329778"
+    _REGION: "us-central1"
+    _VPC_CONNECTOR_NAME: "cloud-run-vpc-connector"
+    _DB_USER: "postgres"
+    _DB_HOST: "10.20.163.10"
+    _DB_PORT: "5432"
+    _DB_NAME: "license-reservation-db"
+    _DB_PASSWORD_SECRET_NAME: "license-reservation-db-password-preprod"
+    _DELEGATED_ADMIN: "arpitgup@1987984870407.altostrat.com"
+    _ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME: "license-reservation-auth-sa-key"
+- name: godemos-licenseapp-backend-preprod
+  project: sys-36807655692543323281329778
+  configFilePath: .cloudbuild/backend-cloudbuild.yaml
+  eventType: push
+  ignoredGitRefs: 
+  includedGitRefs: ^preprod$
+  serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
+  includedFiles: backend/license-reservation-backend/*
+  ignoredFiles:
+  disabled: 
+  substitutions:
+    _SERVICE_NAME: "godemos-license-reservation-backend-preprod"
+    _PROJECT_ID: "sys-36807655692543323281329778"
+    _REGION: "us-central1"
+    _VPC_CONNECTOR_NAME: "cloud-run-vpc-connector"
+    _LICENSE_ALLOCATION_QUEUE: "license-allocation-Queue-preprod"
+    _LICENSE_REVOCATION_QUEUE: "license-revocation-queue-preprod"
+    _DOWNTIME_START_QUEUE: "application-downtime-start-queue-preprod"
+    _DOWNTIME_END_QUEUE: "application-downtime-end-queue-preprod"
+    _LICENSE_MANAGEMENT_API_ENDPOINT: "https://godemos-license-management-api-preprod-385039775654.us-central1.run.app"
+    _LICENSE_ENDPOINTS_INVOKER_SERVICE_ACCOUNT: "license-mgmt-api-invoker-sa@sys-36807655692543323281329778.iam.gserviceaccount.com"
+    _DB_USER: "postgres"
+    _DB_HOST: "10.20.163.10"
+    _DB_PORT: "5432"
+    _DB_NAME: "license-reservation-db"
+    _DB_PASSWORD_SECRET_NAME: "license-reservation-db-password-preprod"
+    _DELEGATED_ADMIN: "arpitgup@1987984870407.altostrat.com"
+    _ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME: "license-reservation-auth-sa-key"
+    _PORTAL_ADMIN_GROUP_EMAIL: ""
+    _ADMIN_VALIDATION_KEYS_SECRET_NAME: "admin_validation_secret_private_key"
+- name: godemos-reservationApp-frontend-preprod
+  project: sys-36807655692543323281329778
+  configFilePath: .cloudbuild/frontend-cloudbuild.yaml
+  eventType: push
+  ignoredGitRefs:
+  includedGitRefs: ^preprod$
+  serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
+  includedFiles: frontend/*
+  ignoredFiles:
+  disabled: 
+  substitutions:
+    _SERVICE_NAME: "godemos-license-app-preprod"
+    _PROJECT_ID: "sys-36807655692543323281329778"
+    _REGION: "us-central1"
+    _APP_ENV: "staging"
 # - name: licenseapp-apimanagement-prod
 #   project: sys-36807655692543323281329778
 #   configFilePath: .cloudbuild/apimanagement-cloudbuild.yaml
