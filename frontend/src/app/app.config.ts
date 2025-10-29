@@ -22,7 +22,7 @@ import { provideNgxSkeletonLoader } from 'ngx-skeleton-loader';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { IapService } from './core/services/iap.service';
-import { concatMap, forkJoin, of } from 'rxjs';
+import { concatMap, of } from 'rxjs';
 import { UserCreationService } from './core/services/user-creation.service';
 
 export const appConfig: ApplicationConfig = {

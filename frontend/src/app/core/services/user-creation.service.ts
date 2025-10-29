@@ -3,16 +3,10 @@ import { inject, Injectable, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import {
   catchError,
-  delay,
-  delayWhen,
   map,
   Observable,
   of,
   retry,
-  retryWhen,
-  scan,
-  shareReplay,
-  take,
   tap,
   throwError,
   timer,
@@ -46,12 +40,6 @@ export class UserCreationService {
           res.is_exist = true;
           this.userInfoState.update(() => res);
         }),
-        // retry({
-        //   count: 5,
-        //   delay: (error, count) => {
-        //     return timer(200);
-        //   },
-        // }),
         catchError((err) => {
           this.userInfoState.update(() => null);
           return throwError(() => err);
@@ -69,7 +57,7 @@ export class UserCreationService {
         }),
         retry({
           count: 5,
-          delay: (error, count) => {
+          delay: (error) => {
             if (error.status === 404) {
               return throwError(() => error);
             }
@@ -77,7 +65,7 @@ export class UserCreationService {
             return timer(200);
           },
         }),
-        catchError((err) => {
+        catchError(() => {
           const userEmail = this.iapService.userEmailInfo();
           const userDetails: UserDetails = {
             is_exist: false,
@@ -104,12 +92,6 @@ export class UserCreationService {
       .get<DemoDetails>(`${this.apiUrl}/user-management/demo-details/${demoId}`)
       .pipe(
         tap((res) => res),
-        retry({
-          count: 5,
-          delay: () => {
-            return timer(200);
-          },
-        }),
         catchError((err) => {
           return throwError(() => err);
         })
@@ -126,12 +108,7 @@ export class UserCreationService {
         tap((res) => {
           res.is_exist = true;
         }),
-        retry({
-          count: 5,
-          delay: () => {
-            return timer(200);
-          },
-        }),
+
         catchError((err) => {
           return throwError(() => err);
         })
@@ -146,12 +123,7 @@ export class UserCreationService {
       )
       .pipe(
         tap((res) => res),
-        retry({
-          count: 5,
-          delay: () => {
-            return timer(200);
-          },
-        }),
+
         catchError((err) => {
           return throwError(() => err);
         })
@@ -169,12 +141,7 @@ export class UserCreationService {
           res.is_exist = true;
           this.userInfoState.update(() => res);
         }),
-        retry({
-          count: 5,
-          delay: () => {
-            return timer(200);
-          },
-        }),
+
         catchError((err) => {
           return throwError(() => err);
         })

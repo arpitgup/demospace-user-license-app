@@ -1,0 +1,135 @@
+<div class="new-user-wrapper">
+  <h2>
+    This application manages demo user profiles for multiple Agentspace demos
+    listed on go/demos. Please follow the steps below to log in as a New User.
+  </h2>
+  <h4>
+    1. Login to the Application from your Google profile to lookup Agentspace
+    credentials.
+  </h4>
+  @for(loginData of loginSteps; track loginData.id){
+  <mat-accordion class="panel-wrapper">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title class="title"> {{ loginData.title }} </mat-panel-title>
+      </mat-expansion-panel-header>
+      <img
+        [src]="loginData.image"
+        [alt]="loginData.title"
+        class="image-wrapper"
+      />
+    </mat-expansion-panel>
+  </mat-accordion>
+  }
+  <h4>
+    2. Please refer to the Demo Guide's 'How to Log In' section for instructions
+    on how to login using user credentials..
+  </h4>
+
+  <mat-accordion class="panel-wrapper">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title class="title">
+          Login using credentials
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <img
+        src="assets/images/enteremail.png"
+        alt="enteremail"
+        class="image-email-page"
+      />
+      <img
+        src="assets/images/gmail_drive.png"
+        alt="gmailpage"
+        class="image-wrapper"
+      />
+      <div class="note-container">
+        <div class="note-wrapper">
+          <mat-icon class="info-wrapper">info</mat-icon>
+          <p>
+            At first log-in and till you setup a
+            <a
+              [href]="manageProfileLink"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Chrome profile,</a
+            >please refer to the Demo Guide's 'How to Log In' section for
+            instructions on how to access the URL and user credentials.
+          </p>
+        </div>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+
+  <h4>
+    3. Please refer to the Demo Guide's 'How to Log In' section for instructions
+    on how to access the demo artifact's URL.
+  </h4>
+
+  <mat-accordion class="panel-wrapper">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title class="title"> Access Agentspace App </mat-panel-title>
+      </mat-expansion-panel-header>
+      <img
+        src="assets/images/agentspaceapp.png"
+        alt="agentspace"
+        class="image-wrapper"
+      />
+    </mat-expansion-panel>
+  </mat-accordion>
+
+  <h4>
+    4. Optional : To discuss demo related topics, click & join Agentspace Sales
+    Demo Chatspace.
+  </h4>
+
+  <mat-accordion class="panel-wrapper">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title class="title">
+          Agentspace Sales Demo Chatspace.
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <img
+        src="assets/images/chat_space.png"
+        alt="chatspace"
+        class="image-wrapper"
+      />
+    </mat-expansion-panel>
+  </mat-accordion>
+
+  <h4>
+    5. In another tab in the same user Chrome Profile, open Gmail. Your demo
+    user has a full Google Workspace Enterprise License.
+  </h4>
+
+  <mat-accordion class="panel-wrapper">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title class="title">
+          Validate Google Workspace Enterprise License
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <img
+        src="assets/images/gmailpage.png"
+        alt="gmailworkspace"
+        class="image-wrapper"
+      />
+    </mat-expansion-panel>
+  </mat-accordion>
+
+  <div class="note-container">
+    <div class="note-wrapper">
+      <mat-icon class="info-wrapper">info</mat-icon>
+      <p>
+        BEST practice: Create a Chrome Profile for your demo user. This way you
+        will be able to save your password and come back w/o having to remember
+        or regenerate your demo user password. For more see:
+        <a [href]="manageProfileLink" target="_blank" rel="noopener noreferrer"
+          >Manage Chrome with multiple profiles.</a
+        >
+      </p>
+    </div>
+  </div>
+</div>

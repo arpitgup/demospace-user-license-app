@@ -15,7 +15,6 @@ import { isPlatformBrowser } from '@angular/common';
 import { IapService } from '../../core/services/iap.service';
 import { HomeLoaderComponent } from '../../loaders/home-loader/home-loader.component';
 import { ErrorMessage } from '../../shared/components/error-message/error-message';
-import { sign } from 'crypto';
 import { INVALID_DEMO_ID_MESSAGE } from '../../shared/constants/error.constants';
 import { BUGANIZER_URL } from '../../shared/constants/links.contants';
 import { HowToLoginComponent } from '../how-to-login/how-to-login.component';
