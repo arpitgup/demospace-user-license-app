@@ -1,12 +1,12 @@
 <div class="new-user-wrapper">
   <h2>
-    This application manages demo user profiles for multiple Agentspace demos
-    listed on go/demos. Please follow the steps below to log in as an Existing
-    User.
+    This application manages demo user profiles for multiple Gemini Enterprise
+    demos listed on go/demos. Please follow the steps below to log in as an
+    Existing User.
   </h2>
   <h4>
-    1. Login to the Application from your Google profile to lookup Agentspace
-    credentials.
+    1. Login to the Application from your Google profile to lookup Gemini
+    Enterprise credentials.
   </h4>
   @for(loginData of loginSteps; track loginData.id){
   <mat-accordion class="panel-wrapper">
@@ -14,11 +14,9 @@
       <mat-expansion-panel-header>
         <mat-panel-title class="title"> {{ loginData.title }} </mat-panel-title>
       </mat-expansion-panel-header>
-      <img
-        [src]="loginData.image"
-        [alt]="loginData.title"
-        class="image-wrapper"
-      />
+      @for(imageData of loginData.image; track $index){
+      <img [src]="imageData" [alt]="loginData.title" class="image-wrapper" />
+      }
     </mat-expansion-panel>
   </mat-accordion>
   }
@@ -34,11 +32,19 @@
           Login using credentials
         </mat-panel-title>
       </mat-expansion-panel-header>
-      <img
-        src="assets/images/enteremail.png"
-        alt="enteremail"
-        class="image-email-page"
-      />
+      <div class="login-image-wrapper">
+        <img
+          src="assets/images/enter_email.png"
+          alt="enteremail"
+          class="image-email-page"
+        />
+        <img
+          src="assets/images/enter_password.png"
+          alt="enteremail"
+          class="image-email-page"
+        />
+      </div>
+
       <img
         src="assets/images/gmail_drive.png"
         alt="gmailpage"
@@ -70,7 +76,9 @@
   <mat-accordion class="panel-wrapper">
     <mat-expansion-panel>
       <mat-expansion-panel-header>
-        <mat-panel-title class="title"> Access Agentspace App </mat-panel-title>
+        <mat-panel-title class="title">
+          Access Gemini Enterprise App
+        </mat-panel-title>
       </mat-expansion-panel-header>
       <img
         src="assets/images/agentspaceapp.png"
@@ -81,15 +89,15 @@
   </mat-accordion>
 
   <h4>
-    4. Optional : To discuss demo related topics, click & join Agentspace Sales
-    Demo Chatspace.
+    4. Optional : To discuss demo related topics, click & join Gemini Enterprise
+    Sales Demo Chatspace.
   </h4>
 
   <mat-accordion class="panel-wrapper">
     <mat-expansion-panel>
       <mat-expansion-panel-header>
         <mat-panel-title class="title">
-          Agentspace Sales Demo Chatspace.
+          Gemini Enterprise Sales Demo Chatspace.
         </mat-panel-title>
       </mat-expansion-panel-header>
       <img

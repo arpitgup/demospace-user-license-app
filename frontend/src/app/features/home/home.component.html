@@ -18,7 +18,9 @@
 <mat-drawer-container class="mat-container">
   <mat-drawer mode="side" opened class="side-nav">
     <div class="profile-image-wrapper">
-      <mat-icon class="profile-image">person</mat-icon>
+      <mat-icon class="profile-image" (click)="goProfileSection()"
+        >person</mat-icon
+      >
       <div class="profile-name">
         <h4 class="name-title">
           {{ userDetails()!.first_name }} {{ userDetails()!.last_name }}
@@ -48,7 +50,7 @@
     }@else if(menuItemType()===menuItemsEnums.USER_PROFILE){
     <app-user-details [demoDetails]="demoDetails()!"></app-user-details>
     }@else if(menuItemType()===menuItemsEnums.HOW_TO_LOGIN_IN){
-  <app-how-to-login></app-how-to-login>
+    <app-how-to-login></app-how-to-login>
     }
   </mat-drawer-content>
 </mat-drawer-container>

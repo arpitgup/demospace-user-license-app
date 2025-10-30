@@ -139,6 +139,7 @@ export class UserCreationService {
       .pipe(
         tap((res) => {
           res.is_exist = true;
+          res.user_name=this.userInfo()?.user_name || '';
           this.userInfoState.update(() => res);
         }),
 
