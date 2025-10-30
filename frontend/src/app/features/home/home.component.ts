@@ -209,4 +209,12 @@ export class HomeComponent implements OnInit {
     }
     this.callDemoDetailsApi(demoId);
   }
+
+  goProfileSection() {
+    console.log("profile");
+    this.menuItemType.set(HomeItems.USER_PROFILE);
+    this.homeMenuItems = this.homeMenuItems.map((item) => {
+      return { ...item, isSelected: item.type === HomeItems.USER_PROFILE };
+    });
+  }
 }

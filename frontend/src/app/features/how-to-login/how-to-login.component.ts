@@ -6,11 +6,16 @@ import {
 } from '@angular/material/tabs';
 import { NewUserComponent } from '../new-user/new-user.component';
 import { ExisitingUserComponent } from '../exisiting-user/exisiting-user.component';
-
+import { HowToReserveLicensesComponent } from '../how-to-reserve-licenses/how-to-reserve-licenses.component';
 
 @Component({
   selector: 'app-how-to-login',
-  imports: [MatTabsModule,NewUserComponent,ExisitingUserComponent],
+  imports: [
+    MatTabsModule,
+    NewUserComponent,
+    ExisitingUserComponent,
+    HowToReserveLicensesComponent,
+  ],
   templateUrl: './how-to-login.component.html',
   styleUrl: './how-to-login.component.scss',
 })

@@ -1,0 +1,99 @@
+<div class="new-user-wrapper">
+  <h2>
+    Reservations can be made either by “Search by Date” or “Search by
+    Application”
+  </h2>
+  <h4>Option 1: Reserve by Date</h4>
+  @for(data of reserveByDate; track data.id){
+  <mat-accordion class="panel-wrapper">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title class="title"> {{ data.title }} </mat-panel-title>
+      </mat-expansion-panel-header>
+      @if(data.headerText.length >0){ @for(headerText of data.headerText; track
+      $index){
+      <ul>
+        <li>
+          <h5>{{ headerText }}</h5>
+        </li>
+      </ul>
+      } } @for(image of data.image; track $index){
+      <img [src]="image" alt="reserveByDate" class="image-wrapper" />
+      }
+    </mat-expansion-panel>
+  </mat-accordion>
+  }
+  <h4>Option 2: Reserve by Application</h4>
+
+  @for(data of reserveByApplication; track data.id){
+  <mat-accordion class="panel-wrapper">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title class="title"> {{ data.title }} </mat-panel-title>
+      </mat-expansion-panel-header>
+      @if(data.headerText.length >0){ @for(headerText of data.headerText; track
+      $index){
+      <ul>
+        <li>
+          <h5>{{ headerText }}</h5>
+        </li>
+      </ul>
+      } } @if(data.id===3){
+      <div class="note-info-container">
+        <div class="note-info-wrapper">
+          <mat-icon class="info-wrapper">info</mat-icon>
+          <p>
+            NOTE: Screen above is just a sample, initially one or two
+            applications will be available via this app. We will release more as
+            we procure more licenses.<a
+              [href]="releaseNotesLink"
+              target="_blank"
+              rel="noopener noreferrer"
+              >See Release Notes/Change Log </a
+            >to confirm application availability.
+          </p>
+        </div>
+      </div>
+      } @for(image of data.image; track $index){
+      <img [src]="image" alt="reserveByApplication" class="image-wrapper" />
+      }
+    </mat-expansion-panel>
+  </mat-accordion>
+  }
+
+  <h4>Confirm Reservation</h4>
+
+  @for(data of confirmReservation; track data.id){
+  <mat-accordion class="panel-wrapper">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title class="title"> {{ data.title }} </mat-panel-title>
+      </mat-expansion-panel-header>
+      @for(image of data.image; track $index){ @if(data.headerText.length
+      >$index){
+      <ul>
+        <li>
+          <h5>{{ data.headerText[$index] }}</h5>
+        </li>
+      </ul>
+      }
+      <img [src]="image" alt="confirmReservation" class="image-wrapper" />
+      } @if(data.footerText.length >0){ @for(footerText of data.footerText;
+      track $index){
+      <ul>
+        <li>
+          <h5>{{ footerText }}</h5>
+        </li>
+      </ul>
+      } }
+    </mat-expansion-panel>
+  </mat-accordion>
+  }
+
+  <div class="note-container">
+    <div class="note-wrapper">
+      <mat-icon class="info-wrapper">info</mat-icon>
+      <p>NOTE: The license reservation app is located in the left side menu.</p>
+    </div>
+  </div>
+</div>
