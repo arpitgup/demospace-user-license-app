@@ -14,7 +14,7 @@ RUN adduser --disabled-password --gecos "" myuser && \
 COPY license-management-api/app /app/app
 # Switch to the non-root user
 USER myuser
-# Expose port 8080 to the outside world
+# Expose port 8080 to the outside  world
 EXPOSE 8080
 # Command to run the application
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
