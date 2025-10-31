@@ -11,16 +11,14 @@
       rel="noopener noreferrer"
       class="link-wrapper"
       >go/demos</a
-    >. Please read the
+    >. Please read the "How to Log-In" of the
     <a
-      href="/how-to-login"
+      [href]="getDemoGuideLink()"
       target="_blank"
       rel="noopener noreferrer"
       class="link-wrapper"
-      >How to Log-In</a
+      >demo guides</a
     >
-    and the respective demo guides on
-    <a [href]="goDemoUrl" target="_blank" rel="noopener noreferrer">go/demos</a>
     for detailed instructions.
   </p>
   <div class="note-wrapper" @fadeIn>

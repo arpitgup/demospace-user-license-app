@@ -50,7 +50,7 @@
     }@else if(menuItemType()===menuItemsEnums.USER_PROFILE){
     <app-user-details [demoDetails]="demoDetails()!"></app-user-details>
     }@else if(menuItemType()===menuItemsEnums.HOW_TO_LOGIN_IN){
-    <app-how-to-login></app-how-to-login>
+    <app-how-to-login [demoDetails]="demoDetails()!"></app-how-to-login>
     }
   </mat-drawer-content>
 </mat-drawer-container>

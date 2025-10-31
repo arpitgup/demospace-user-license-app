@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, Input, ViewChild } from '@angular/core';
 import {
   MatTabChangeEvent,
   MatTabGroup,
@@ -7,6 +7,7 @@ import {
 import { NewUserComponent } from '../new-user/new-user.component';
 import { ExisitingUserComponent } from '../exisiting-user/exisiting-user.component';
 import { HowToReserveLicensesComponent } from '../how-to-reserve-licenses/how-to-reserve-licenses.component';
+import { DemoDetails } from '../../core/models/demo-details.model';
 
 @Component({
   selector: 'app-how-to-login',
@@ -20,6 +21,7 @@ import { HowToReserveLicensesComponent } from '../how-to-reserve-licenses/how-to
   styleUrl: './how-to-login.component.scss',
 })
 export class HowToLoginComponent {
+  @Input() demoDetails!: DemoDetails;
   @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
   selectedIndex = 0;
 

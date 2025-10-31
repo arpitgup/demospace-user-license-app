@@ -1,8 +1,13 @@
-import { Component } from '@angular/core';
-import { MANAGE_PROFILE_INSTRUCTIONS_URL, RELEASE_NOTES_LINK } from '../../shared/constants/links.contants';
+import { Component, Input } from '@angular/core';
+import {
+  DEMO_PAGE_URL,
+  MANAGE_PROFILE_INSTRUCTIONS_URL,
+  RELEASE_NOTES_LINK,
+} from '../../shared/constants/links.contants';
 import { AppInstructions } from '../../core/models/app-instructions.model';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { DemoDetails } from '../../core/models/demo-details.model';
 
 @Component({
   selector: 'app-how-to-reserve-licenses',
@@ -11,8 +16,10 @@ import { MatExpansionModule } from '@angular/material/expansion';
   styleUrl: './how-to-reserve-licenses.component.scss',
 })
 export class HowToReserveLicensesComponent {
+  @Input() demoDetails!: DemoDetails;
   manageProfileLink = MANAGE_PROFILE_INSTRUCTIONS_URL;
-  releaseNotesLink=RELEASE_NOTES_LINK;
+  releaseNotesLink = RELEASE_NOTES_LINK;
+  goDemoUrl = DEMO_PAGE_URL;
   reserveByDate: AppInstructions[] = [
     {
       id: 1,
