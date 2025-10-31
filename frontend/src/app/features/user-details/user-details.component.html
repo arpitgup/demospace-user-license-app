@@ -5,7 +5,8 @@
       <mat-icon class="profile-image">person</mat-icon>
       <div class="profile-name">
         <h4 class="name-title">
-          {{ profileDetails?.user_name || "" }}
+          {{ profileDetails()?.first_name || "" }}
+          {{ profileDetails()?.last_name || "" }}
         </h4>
         <h5 class="email-title">
           {{ profileDetails?.primary_email || "" }}
