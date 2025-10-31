@@ -374,6 +374,8 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
           this.secondaryApplications = [];
           this.availabilityApplication = null;
           this.selectedTimeSlot = null;
+          this.isCheckAvailableDisabled=false;
+          this.cdr.detectChanges();
           this.showErrorDialog(
             err?.error?.detail ||
               'There was an error creating your reservation. Please try again.'

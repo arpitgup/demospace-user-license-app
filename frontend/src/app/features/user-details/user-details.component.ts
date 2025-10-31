@@ -1,7 +1,6 @@
 import { Component, inject, Input, signal } from '@angular/core';
 import {
   FormBuilder,
-  FormControl,
   FormGroup,
   ReactiveFormsModule,
   Validators,

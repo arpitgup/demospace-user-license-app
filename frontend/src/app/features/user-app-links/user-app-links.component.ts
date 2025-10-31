@@ -5,7 +5,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { DemoDetails } from '../../core/models/demo-details.model';
 import { UserCreationService } from '../../core/services/user-creation.service';
 import { Clipboard } from '@angular/cdk/clipboard';
-import { CHAT_SPACE_URL, DEMO_PAGE_URL } from '../../shared/constants/links.contants';
+import {
+  CHAT_SPACE_URL,
+  DEMO_PAGE_URL,
+} from '../../shared/constants/links.contants';
+import { MatDialog } from '@angular/material/dialog';
+import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
+import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
 @Component({
   selector: 'app-user-app-links',
   imports: [MatIconModule, MatCardModule],
@@ -67,9 +73,9 @@ export class UserAppLinksComponent {
   public passwordMasked = signal<string>(
     '•'.repeat((this.userDetails()?.password || '').length)
   );
-  goDemoUrl=DEMO_PAGE_URL;
-  chatSpaceUrl=CHAT_SPACE_URL;
-
+  goDemoUrl = DEMO_PAGE_URL;
+  chatSpaceUrl = CHAT_SPACE_URL;
+  private dialog = inject(MatDialog);
   copyText(link: string, isGemini: boolean) {
     const successful = this.clipboard.copy(link);
     if (successful) {
@@ -98,12 +104,48 @@ export class UserAppLinksComponent {
         this.passwordMasked.update(() =>
           '•'.repeat((this.userDetails()?.password || '').length)
         );
+        this.showSuccessDialog();
       },
-      error: (error) => {},
+      error: (error) => {
+        this.showErrorDialog(
+          error?.error?.detail || 'Something went wrong. Please try again'
+        );
+      },
     });
   }
 
   updateShowPasswordValue() {
     this.showPassword.update(() => !this.showPassword());
+  }
+
+  showSuccessDialog() {
+    const dialogRef = this.dialog.open(SuccessDialog, {
+      width: 'auto',
+      minWidth: 'none',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        title: 'Success',
+        message: 'Reset password successfully',
+        confirmText: 'OK',
+      },
+    });
+    dialogRef.afterClosed().subscribe(() => {});
+  }
+
+  showErrorDialog(message: string) {
+    this.dialog.open(ErrorDialog, {
+      width: 'auto',
+      minWidth: '41.86rem',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        message: message,
+      },
+    });
   }
 }

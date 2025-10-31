@@ -114,6 +114,7 @@ def get_availability_by_date_v2(
                 BotApplication.application
             )
         )
+        .filter(Bot.is_admin == False)
         .all()
     )
 
@@ -222,6 +223,7 @@ def get_availability_by_application(
             db.query(Bot)
             .join(BotApplication)
             .filter(BotApplication.application_id == req.application_id)
+            .filter(Bot.is_admin == False)
             .all()
         )
 
@@ -284,6 +286,7 @@ def get_availability_by_application(
         db.query(Bot)
         .join(BotApplication)
         .filter(BotApplication.application_id == req.application_id)
+        .filter(Bot.is_admin == False)
         .all()
     )
     if not supporting_bots:

@@ -47,4 +47,8 @@ export class WelcomeComponent {
     const demoId = this.activeRoute.snapshot.queryParams['demoID'] || '';
     this.router.navigateByUrl(`/signup?demoID=${demoId}`, { replaceUrl: true });
   }
+  getDemoGuideLink() {
+    const demoId = this.activeRoute.snapshot.queryParams['demoID'] || '';
+    return `${this.goDemoUrl}/demo/${demoId}`;
+  }
 }
