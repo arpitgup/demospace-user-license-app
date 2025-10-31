@@ -36,7 +36,7 @@
       />
       @if(createUserForm.get(LAST_NAME_FORM)?.hasError('required')&&
       createUserForm.get(LAST_NAME_FORM)?.touched){
-      <mat-error>First name required</mat-error>
+      <mat-error>Last name required</mat-error>
       }@else if(createUserForm.get(LAST_NAME_FORM)?.hasError('pattern')&&
       createUserForm.get(LAST_NAME_FORM)?.touched){
       <mat-error>Invalid last name</mat-error>

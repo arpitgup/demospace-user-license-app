@@ -15,7 +15,6 @@ import { isPlatformBrowser } from '@angular/common';
 import { IapService } from '../../core/services/iap.service';
 import { HomeLoaderComponent } from '../../loaders/home-loader/home-loader.component';
 import { ErrorMessage } from '../../shared/components/error-message/error-message';
-import { sign } from 'crypto';
 import { INVALID_DEMO_ID_MESSAGE } from '../../shared/constants/error.constants';
 import { BUGANIZER_URL } from '../../shared/constants/links.contants';
 import { HowToLoginComponent } from '../how-to-login/how-to-login.component';
@@ -188,7 +187,7 @@ export class HomeComponent implements OnInit {
   onItemClicked(type: HomeItems) {
     if (type === this.menuItemsEnums.FILE_A_TICKET) {
       const feedbackUrl = `${BUGANIZER_URL}&title=UserApp%20Feedback%20:%20${
-        this.demoDetails()?.demo_title?.replaceAll(' ', '') || ''
+        this.demoDetails()?.demo_title?.replaceAll(' ', '%20') || ''
       }&assignee=cloud-demo-platform-support@google.com&cc=${
         this.userDetails()?.secondary_email
       }&customFields=1232889%3A${this.demoDetails()?.demo_id || ''}`;
@@ -209,5 +208,12 @@ export class HomeComponent implements OnInit {
       return;
     }
     this.callDemoDetailsApi(demoId);
+  }
+
+  goProfileSection() {
+    this.menuItemType.set(HomeItems.USER_PROFILE);
+    this.homeMenuItems = this.homeMenuItems.map((item) => {
+      return { ...item, isSelected: item.type === HomeItems.USER_PROFILE };
+    });
   }
 }

@@ -6,7 +6,14 @@ import {
 } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, throwError, timeout, TimeoutError } from 'rxjs';
+import {
+  catchError,
+  retry,
+  throwError,
+  timeout,
+  TimeoutError,
+  timer,
+} from 'rxjs';
 import { IapService } from '../services/iap.service';
 import { BUGANIZER_URL } from '../../shared/constants/links.contants';
 
@@ -54,6 +61,16 @@ function callApi(
   const router = inject(Router);
   return next(req).pipe(
     timeout(DEFAULT_TIMEOUT),
+    retry({
+      count: 5,
+      delay: (error) => {
+        if (error.status === 503) {
+          return timer(1000);
+        }
+
+        return timer(500);
+      },
+    }),
     catchError((error: HttpErrorResponse) => {
       if (error instanceof TimeoutError) {
         const customError = {

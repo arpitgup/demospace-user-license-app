@@ -1,22 +1,22 @@
 <div class="new-user-wrapper">
   <h2>
-    This application manages demo user profiles for multiple Agentspace demos
-    listed on go/demos. Please follow the steps below to log in as a New User.
+    This application manages demo user profiles for multiple Gemini Enterprise
+    demos listed on go/demos. Please follow the steps below to log in as an
+    Existing User.
   </h2>
   <h4>
-    1. Login to the Application from your Google profile to lookup Agentspace
-    credentials.
+    1. Login to the Application from your Google profile to lookup Gemini
+    Enterprise credentials.
   </h4>
   @for(loginData of loginSteps; track loginData.id){
   <mat-accordion class="panel-wrapper">
-    <mat-expansion-panel
-      (opened)="loginData.isOpen = true"
-      (closed)="loginData.isOpen = false"
-    >
+    <mat-expansion-panel>
       <mat-expansion-panel-header>
         <mat-panel-title class="title"> {{ loginData.title }} </mat-panel-title>
       </mat-expansion-panel-header>
-      <p>I'm visible because I am open</p>
+      @for(imageData of loginData.image; track $index){
+      <img [src]="imageData" [alt]="loginData.title" class="image-wrapper" />
+      }
     </mat-expansion-panel>
   </mat-accordion>
   }
@@ -32,7 +32,39 @@
           Login using credentials
         </mat-panel-title>
       </mat-expansion-panel-header>
-      <p>I'm visible because I am open</p>
+      <div class="login-image-wrapper">
+        <img
+          src="assets/images/enter_email.png"
+          alt="enteremail"
+          class="image-email-page"
+        />
+        <img
+          src="assets/images/enter_password.png"
+          alt="enteremail"
+          class="image-email-page"
+        />
+      </div>
+
+      <img
+        src="assets/images/gmail_drive.png"
+        alt="gmailpage"
+        class="image-wrapper"
+      />
+      <div class="note-container">
+        <div class="note-wrapper">
+          <mat-icon class="info-wrapper">info</mat-icon>
+          <p>
+            At first log-in and till you setup a
+            <a
+              [href]="manageProfileLink"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Chrome profile,</a
+            >please refer to the Demo Guide's 'How to Log In' section for
+            instructions on how to access the URL and user credentials.
+          </p>
+        </div>
+      </div>
     </mat-expansion-panel>
   </mat-accordion>
 
@@ -44,25 +76,35 @@
   <mat-accordion class="panel-wrapper">
     <mat-expansion-panel>
       <mat-expansion-panel-header>
-        <mat-panel-title class="title"> Access Agentspace App </mat-panel-title>
+        <mat-panel-title class="title">
+          Access Gemini Enterprise App
+        </mat-panel-title>
       </mat-expansion-panel-header>
-      <p>I'm visible because I am open</p>
+      <img
+        src="assets/images/agentspaceapp.png"
+        alt="agentspace"
+        class="image-wrapper"
+      />
     </mat-expansion-panel>
   </mat-accordion>
 
   <h4>
-    4. Optional : To discuss demo related topics, click & join Agentspace Sales
-    Demo Chatspace.
+    4. Optional : To discuss demo related topics, click & join Gemini Enterprise
+    Sales Demo Chatspace.
   </h4>
 
   <mat-accordion class="panel-wrapper">
     <mat-expansion-panel>
       <mat-expansion-panel-header>
         <mat-panel-title class="title">
-          Agentspace Sales Demo Chatspace.
+          Gemini Enterprise Sales Demo Chatspace.
         </mat-panel-title>
       </mat-expansion-panel-header>
-      <p>I'm visible because I am open</p>
+      <img
+        src="assets/images/chat_space.png"
+        alt="chatspace"
+        class="image-wrapper"
+      />
     </mat-expansion-panel>
   </mat-accordion>
 
@@ -78,7 +120,25 @@
           Validate Google Workspace Enterprise License
         </mat-panel-title>
       </mat-expansion-panel-header>
-      <p>I'm visible because I am open</p>
+      <img
+        src="assets/images/gmailpage.png"
+        alt="gmailworkspace"
+        class="image-wrapper"
+      />
     </mat-expansion-panel>
   </mat-accordion>
+
+  <div class="note-container">
+    <div class="note-wrapper">
+      <mat-icon class="info-wrapper">info</mat-icon>
+      <p>
+        BEST practice: Create a Chrome Profile for your demo user. This way you
+        will be able to save your password and come back w/o having to remember
+        or regenerate your demo user password. For more see:
+        <a [href]="manageProfileLink" target="_blank" rel="noopener noreferrer"
+          >Manage Chrome with multiple profiles.</a
+        >
+      </p>
+    </div>
+  </div>
 </div>

@@ -54,6 +54,13 @@ export const appRoutes: Routes = [
       ),
   },
   {
+    path: 'how-to-login',
+    loadComponent: () =>
+      import('./features/how-to-login/how-to-login.component').then(
+        (m) => m.HowToLoginComponent
+      ),
+  },
+  {
     path: '**',
     redirectTo: '',
   },
