@@ -7,6 +7,6 @@ export const environment = {
   apiUrl:
     'https://godemos-license-reservation-backend-prod-385039775654.us-central1.run.app',
   iapUrl:
-    'https://prod-godemos-user-license-app.1987984870407.demo.altostrat.com/?demoID=1145',
+    'https://prod-godemos-user-license-app.1987984870407.demo.altostrat.com',
   emailId: '',
 };
