@@ -29,6 +29,9 @@ export class UserCreationService {
   public userInfoState = signal<UserDetails | null>(null);
   public readonly userInfo = this.userInfoState.asReadonly();
 
+  public demoDetailsState = signal<DemoDetails | null>(null);
+  public readonly demoDetailsInfo = this.demoDetailsState.asReadonly();
+
   createUser(body: CreateUserRequest): Observable<UserDetails> {
     return this.http
       .post<UserDetails>(
@@ -91,8 +94,9 @@ export class UserCreationService {
     return this.http
       .get<DemoDetails>(`${this.apiUrl}/user-management/demo-details/${demoId}`)
       .pipe(
-        tap((res) => res),
+        tap((res) => this.demoDetailsState.update(() => res)),
         catchError((err) => {
+          this.demoDetailsState.update(() => null);
           return throwError(() => err);
         })
       );
@@ -139,7 +143,7 @@ export class UserCreationService {
       .pipe(
         tap((res) => {
           res.is_exist = true;
-          res.user_name=this.userInfo()?.user_name || '';
+          res.user_name = this.userInfo()?.user_name || '';
           this.userInfoState.update(() => res);
         }),
 

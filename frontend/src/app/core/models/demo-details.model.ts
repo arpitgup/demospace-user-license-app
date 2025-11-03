@@ -7,6 +7,7 @@ export interface DemoDetails {
   feedback_bug_link: string;
   demo_onboarding_status: string;
   feature_license_app: string;
+  saas_applications:string;
   representative_profile: RepresentativeProfile;
 }
 

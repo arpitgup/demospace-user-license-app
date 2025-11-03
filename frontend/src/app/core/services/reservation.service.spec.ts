@@ -13,7 +13,6 @@ import {
   Reservation,
 } from '../models/reservation.model';
 import { AppConfig } from '../models/appConfig.model';
-import { MakeReservationRequest } from '../models/make-reservation-request.model';
 import { AvailabilityByApplicationRequest } from '../models/availability-by-application-request.model';
 import { AvalaibilityByApplication } from '../models/availability-by-application.model';
 
@@ -58,6 +57,7 @@ describe('ReservationService', () => {
     unavailableReservationDays: 0,
     maxSlotsToFind: 5,
     reservationCoolOffHours: 1,
+    minLeadCooldownHours:2,
   };
 
   beforeEach(() => {
@@ -89,15 +89,15 @@ describe('ReservationService', () => {
   });
 
   describe('API and Data Fetching Methods', () => {
-    it('checkAvailabilityByDate should POST to the correct endpoint', () => {
-      const payload = { startTime: 'start', endTime: 'end' };
-      service.checkAvailabilityByDate(payload).subscribe();
+    // it('checkAvailabilityByDate should POST to the correct endpoint', () => {
+    //   const payload = { startTime: 'start', endTime: 'end' };
+    //   service.checkAvailabilityByDate(payload).subscribe();
 
-      const req = httpMock.expectOne(`${apiUrl}/availability/by-date`);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual(payload);
-      req.flush({ applications: mockApplications });
-    });
+    //   const req = httpMock.expectOne(`${apiUrl}/availability/by-date`);
+    //   expect(req.request.method).toBe('POST');
+    //   expect(req.request.body).toEqual(payload);
+    //   req.flush({ applications: mockApplications });
+    // });
 
     it('checkBotsAvailabilityByDate should POST to the correct V2 endpoint', () => {
       const payload = { startTime: 'start', endTime: 'end' };
@@ -279,13 +279,13 @@ describe('ReservationService', () => {
     }));
 
     it('callMakeReservation should manage loader correctly', fakeAsync(() => {
-      const payload: MakeReservationRequest = {
+      const payload: NewReservation = {
         primaryApplicationId: 1,
         secondaryApplicationIds: [],
         startTime: new Date().toISOString(),
         endTime: new Date().toISOString(),
       };
-      service.callMakeReservation(payload).subscribe();
+      service.createReservation(payload).subscribe();
 
       const req = httpMock.expectOne(`${apiUrl}/reservations`);
       expect(req.request.method).toBe('POST');

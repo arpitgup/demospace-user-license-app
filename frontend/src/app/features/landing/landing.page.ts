@@ -35,6 +35,7 @@ import { UserService } from '../../core/services/user.service';
 import { ErrorMessage } from '../../shared/components/error-message/error-message';
 import { MIN_LEAD_COOLDOWN_HOURS } from '../search-by-date/search-by-date.constants';
 import { ActivatedRoute } from '@angular/router';
+import { UserCreationService } from '../../core/services/user-creation.service';
 
 @Component({
   selector: 'app-landing-page',
@@ -60,6 +61,7 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class LandingPage implements OnInit {
   private readonly userService = inject(UserService);
+  private readonly userCreationService = inject(UserCreationService);
   private readonly reservationService = inject(ReservationService);
   public readonly landingPageConstants = LANDING_PAGE_CONSTANTS;
   public readonly SearchType = SearchType;
@@ -130,7 +132,25 @@ export class LandingPage implements OnInit {
     this.selectedSearchType.set(null);
     this.cdr.detectChanges();
     this.reservationService.fetchReservations().subscribe();
-    this.callApplicationConfigApi();
+    this.callDemoDetailsApi();
+  }
+  callDemoDetailsApi() {
+    const demoId = this.activeRoute.snapshot.queryParams['demoID'] || '';
+    if (this.userCreationService.demoDetailsInfo() === null) {
+      this.userCreationService.getDemoDetails(demoId).subscribe({
+        next: () => {
+          this.callApplicationConfigApi();
+        },
+        error: (error) => {
+          this.errorMessage =
+            error.error.detail || 'Something went wrong. Please try again.';
+          this.setLoadingErrorValues(false, true, this.errorMessage);
+          this.cdr.detectChanges();
+        },
+      });
+    } else {
+      this.callApplicationConfigApi();
+    }
   }
   callApplicationConfigApi() {
     forkJoin({
@@ -232,7 +252,7 @@ export class LandingPage implements OnInit {
   }
   onRetryCall() {
     this.setLoadingErrorValues(true, false, '');
-    this.callApplicationConfigApi();
+    this.callDemoDetailsApi();
   }
   setLoadingErrorValues(
     isLoading: boolean,

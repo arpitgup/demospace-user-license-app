@@ -92,11 +92,11 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   }
   listenSearchBotValues() {
     this.searchBotControl?.valueChanges?.subscribe((value) => {
-      this.filteredListWithSearch(value, true);
+      this.filteredListWithSearch(value?.toString || '', true);
     });
   }
-  filteredListWithSearch(value: any, redirctToInitialPage: boolean) {
-    const newValue = value?.toString()?.trim().toLowerCase();
+  filteredListWithSearch(value: string, redirctToInitialPage: boolean) {
+    const newValue = value.trim().toLowerCase();
     if (newValue && newValue !== '') {
       this.dataSource.data = this.adminBotsList.filter(
         (item) =>
