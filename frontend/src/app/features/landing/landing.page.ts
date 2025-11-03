@@ -136,7 +136,11 @@ export class LandingPage implements OnInit {
   }
   callDemoDetailsApi() {
     const demoId = this.activeRoute.snapshot.queryParams['demoID'] || '';
-    if (this.userCreationService.demoDetailsInfo() === null) {
+    if (
+      this.userCreationService.demoDetailsInfo() === null ||
+      (this.userCreationService.demoDetailsInfo()?.saas_applications?.trim()
+        ?.length || 0) <= 0
+    ) {
       this.userCreationService.getDemoDetails(demoId).subscribe({
         next: () => {
           this.callApplicationConfigApi();
@@ -153,6 +157,16 @@ export class LandingPage implements OnInit {
     }
   }
   callApplicationConfigApi() {
+    if (
+      (this.userCreationService.demoDetailsInfo()?.saas_applications?.trim()
+        ?.length || 0) <= 0
+    ) {
+      this.errorMessage =
+        'Saas applications not configured for this demo. Please file a ticket/feedback.';
+      this.setLoadingErrorValues(false, true, this.errorMessage);
+      this.cdr.detectChanges();
+      return;
+    }
     forkJoin({
       user: this.userService.fetchCurrentUser(),
       application: this.reservationService.getApplications(),
