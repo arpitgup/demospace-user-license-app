@@ -301,7 +301,7 @@ class CheckUserInWorkspaceResponse(BaseModel):
     costCenter: Optional[str] = None
     jobTitle: Optional[str] = None
     department: Optional[str] = None
-    orgUnitPath: Optional[str] = "/"
+    orgUnitPath: Optional[str]
     demoName: Optional[str] = None
     managerEmail: str = None
     employeeID: Optional[str] = None
@@ -315,7 +315,7 @@ class CreateUserRequest(BaseModel):
     costCenter: str
     jobTitle: str
     department: str
-    orgUnitPath: str = "/"
+    orgUnitPath: str
     demoName: str
     managerEmail: str = None
 
@@ -329,7 +329,7 @@ class CreateUserResponse(BaseModel):
     costCenter: Optional[str] = None
     jobTitle: Optional[str] = None
     department: Optional[str] = None
-    orgUnitPath: Optional[str] = "/"
+    orgUnitPath: Optional[str]
     demoName: Optional[str] = None
     managerEmail: str = None
     employeeID: Optional[str] = None
@@ -344,7 +344,7 @@ class ResetPasswordResponse(BaseModel):
     costCenter: Optional[str] = None
     jobTitle: Optional[str] = None
     department: Optional[str] = None
-    orgUnitPath: Optional[str] = "/"
+    orgUnitPath: Optional[str]
     demoName: Optional[str] = None
     managerEmail: str = None
     employeeID: Optional[str] = None
@@ -353,7 +353,7 @@ class ResetPasswordResponse(BaseModel):
 class UpdateUserProfileRequestResponse(BaseModel):
     """Schema for useremail profile update endpoint."""
     primary_email: EmailStr
-    orgUnitPath: Optional[str] = "/"
+    orgUnitPath: Optional[str]
     department: Optional[str] = None
     jobTitle: Optional[str] = None
     costCenter: Optional[str] = None
