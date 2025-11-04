@@ -116,7 +116,7 @@ export class SignupUserComponent implements OnInit {
       costCenter: res.representative_profile.cost_centre,
       jobTitle: res.representative_profile.rep_role,
       department: res.representative_profile.rep_department,
-      orgUnitPath: '/',
+      orgUnitPath: res.representative_profile.org_unit,
       demoName: res.demo_title,
       managerEmail: res.representative_profile.manager_email,
     };
