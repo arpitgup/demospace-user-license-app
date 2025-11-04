@@ -6,7 +6,7 @@ export interface CreateUserRequest {
   costCenter: string;
   jobTitle: string;
   department: string;
-  orgUnitPath: '/';
+  orgUnitPath: string;
   demoName: string;
   managerEmail: string;
 }
