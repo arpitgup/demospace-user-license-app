@@ -12,7 +12,8 @@ from shared_lib.db.models import (
     BotApplication,
     Reservation,
     ReservationStatus,
-    ApplicationDowntime    
+    ApplicationDowntime,
+    DemoDetail
 )
 from shared_lib.dependencies import get_user_email, get_db, get_app_config
 from typing import List
@@ -39,7 +40,8 @@ from ..common.schemas import (
     DowntimeBulkCancelResponse,
     ApplicationCreateRequest,
     ApplicationCreateResponse,
-    RemoveAppFromReservationsRequest
+    RemoveAppFromReservationsRequest,
+    OnboardedDemoDetails
 )
 from ..utils.background_tasks import (
     delete_reservation_tasks,
@@ -1047,3 +1049,13 @@ def bulk_cancel_downtime(
         successfully_cancelled=successfully_cancelled,
         failed_to_cancel=failed_to_cancel
     )
+
+@router.get("/onboarded-demo-details", response_model=List[OnboardedDemoDetails])
+def get_onboarded_demo_details(db: Session = Depends(get_db)):
+    """
+    Retrieves all demos that have been onboarded in license app.
+    """
+    query_result = (
+        db.query(DemoDetail)
+    ).all()
+    return query_result

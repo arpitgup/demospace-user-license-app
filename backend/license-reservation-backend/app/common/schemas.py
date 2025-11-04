@@ -382,11 +382,24 @@ class DemoDetailOut(BaseModel):
     demo_user_group_email: Optional[str]
     gemini_enterprise_app_link: Optional[str]
     drive_folder_link: Optional[str]
-    feedback_bug_link: Optional[str]
     demo_onboarding_status: Optional[str]
     feature_license_app: Optional[bool]
     saas_applications: Optional[str]
     representative_profile: Optional[RepresentativeProfileOut]
+
+    class Config:
+        from_attributes = True
+
+class OnboardedDemoDetails(BaseModel):
+    demo_id: str
+    demo_title: str
+    demo_user_group_email: str
+    gemini_enterprise_app_link: str
+    drive_folder_link: Optional[str]    
+    demo_onboarding_status: str
+    feature_license_app: bool
+    saas_applications: str
+    representative_profile: RepresentativeProfileOut
 
     class Config:
         from_attributes = True
