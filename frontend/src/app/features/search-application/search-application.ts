@@ -34,14 +34,16 @@ import {
   AvalaibilityByApplication,
   NextAvailableSlots,
 } from '../../core/models/availability-by-application.model';
-import { MakeReservationRequest } from '../../core/models/make-reservation-request.model';
 import { SearchByApplicationLoader } from '../../loaders/search-by-application-loader/search-by-application-loader';
 import { ConfirmationDialog } from '../../shared/dialogs/confirmation-dialog/confirmation-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
 
 import { ReservationApiStatus } from '../landing/landing.enums';
-import { Reservation } from '../../core/models/reservation.model';
+import {
+  NewReservation,
+  Reservation,
+} from '../../core/models/reservation.model';
 import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
 import {
   generateHoursList,
@@ -356,32 +358,31 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   }
 
   callMakeReservation() {
-    const makeReservationRequest: MakeReservationRequest = {
-      primaryApplicationId: this.selectedPrimaryApplication?.id,
+    const payload: NewReservation = {
+      primaryApplicationId: this.selectedPrimaryApplication?.id || 0,
       secondaryApplicationIds: this.secondaryApplications
         .filter((item) => item.isSelected === true)
         .map((item) => item.id),
       startTime: this.selectedTimeSlot?.startTime ?? '',
       endTime: this.selectedTimeSlot?.endTime ?? '',
     };
-    this.reservationService
-      .callMakeReservation(makeReservationRequest)
-      .subscribe({
-        next: () => {
-          this.showSuccessDialog();
-        },
-        error: (err) => {
-          this.secondaryApplications = [];
-          this.availabilityApplication = null;
-          this.selectedTimeSlot = null;
-          this.isCheckAvailableDisabled=false;
-          this.cdr.detectChanges();
-          this.showErrorDialog(
-            err?.error?.detail ||
-              'There was an error creating your reservation. Please try again.'
-          );
-        },
-      });
+
+    this.reservationService.createReservation(payload).subscribe({
+      next: () => {
+        this.showSuccessDialog();
+      },
+      error: (err) => {
+        this.secondaryApplications = [];
+        this.availabilityApplication = null;
+        this.selectedTimeSlot = null;
+        this.isCheckAvailableDisabled = false;
+        this.cdr.detectChanges();
+        this.showErrorDialog(
+          err?.error?.detail ||
+            'There was an error creating your reservation. Please try again.'
+        );
+      },
+    });
   }
 
   get lessDurationSlotsList() {
