@@ -185,9 +185,22 @@ class DemoDetail(Base):
     demo_onboarding_status = Column(String(50))
     feature_license_app = Column(Boolean)
     saas_applications = Column(String)
+    organization_unit = Column(String(255))
 
     representative_profile = relationship(
         "RepresentativeProfile",
         back_populates="demo",
         uselist=False
     )
+
+class OrganizationUnits(Base):
+    __tablename__ = "organization_units"
+    id = Column(Integer, primary_key=True, autoincrement=True) 
+    orgunitpath = Column(String(255), nullable=False)
+    description = Column(String(255))
+    cost_centre = Column(String(20))
+    manager_name = Column(String(100), nullable=False)
+    manager_email = Column(String(255), nullable=False)
+    manager_title = Column(String(100))
+    rep_role = Column(String(100))
+    rep_department = Column(String(50))
