@@ -169,11 +169,14 @@ class RepresentativeProfile(Base):
     rep_department = Column(String(50))
     org_unit = Column(String(100))
 
-    demo = relationship("DemoDetail", back_populates="representative_profile", uselist=False)
+    demo = relationship(
+        "DemoDetail",
+        back_populates="representative_profile",
+        uselist=False
+    )
 
 class DemoDetail(Base):
     __tablename__ = "demo_details"
-    
     demo_id = Column(String(10), primary_key=True)
     demo_title = Column(String(255), unique=True, nullable=False)
     demo_user_group_email = Column(String(255))

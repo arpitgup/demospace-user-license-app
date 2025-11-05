@@ -41,7 +41,9 @@ from ..common.schemas import (
     ApplicationCreateRequest,
     ApplicationCreateResponse,
     RemoveAppFromReservationsRequest,
-    OnboardedDemoDetails
+    OnboardedDemoDetails,
+    UpdateOnboardedDemoDetailsRequest,
+    UpdateOnboardedDemoDetailsResponse
 )
 from ..utils.background_tasks import (
     delete_reservation_tasks,
@@ -1050,7 +1052,7 @@ def bulk_cancel_downtime(
         failed_to_cancel=failed_to_cancel
     )
 
-@router.get("/onboarded-demo-details", response_model=List[OnboardedDemoDetails])
+@router.get("/get-onboarded-demos", response_model=List[OnboardedDemoDetails])
 def get_onboarded_demo_details(db: Session = Depends(get_db)):
     """
     Retrieves all demos that have been onboarded in license app.
@@ -1059,3 +1061,42 @@ def get_onboarded_demo_details(db: Session = Depends(get_db)):
         db.query(DemoDetail)
     ).all()
     return query_result
+
+@router.patch("/update-onboarded-demos/{demo_id}", response_model=UpdateOnboardedDemoDetailsResponse)
+def update_onboarded_demos(
+    demo_id: str,
+    req: UpdateOnboardedDemoDetailsRequest,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+):
+    """
+    Updates demo details using the more efficient SQLAlchemy update method.
+    """
+    logger.info(f"Admin User {user_email}: Attempting to update onboarded demo ID: {demo_id}")
+
+    update_data = req.model_dump(exclude_unset=True)
+    # If someone mistakly passed demoID from request model
+    update_data.pop('demo_id', None)
+
+    updated_rows = db.query(DemoDetail).filter(DemoDetail.demo_id == demo_id).update(update_data, synchronize_session="fetch")
+    
+    if updated_rows == 0:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=f"Demo Detail Update failed: Demo ID {demo_id} not found.")
+
+    try:
+        db.commit()
+        logger.info(f"Admin User {user_email}: Successfully updated {updated_rows} row(s) for demo ID: {demo_id}")
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"Admin user {user_email}: An unexpected error occurred during update: {e}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while attempting to update the demo details.",
+        )
+    
+    updated_demo_details = db.query(DemoDetail).filter(
+        DemoDetail.demo_id == demo_id
+    ).first()
+    return updated_demo_details 
