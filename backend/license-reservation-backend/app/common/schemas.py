@@ -364,6 +364,15 @@ class UpdateUserProfileRequestResponse(BaseModel):
     last_name: Optional[str] = None
     user_name: Optional[str] = None
 
+class RepresentativeProfileRequest(BaseModel):
+    cost_centre: Optional[str]
+    manager_name: str
+    manager_email: str
+    manager_title: Optional[str]
+    rep_role: Optional[str]
+    rep_department: Optional[str]
+    org_unit: Optional[str]
+
 class RepresentativeProfileOut(BaseModel):
     cost_centre: Optional[str]
     manager_name: str
@@ -390,7 +399,7 @@ class DemoDetailOut(BaseModel):
     class Config:
         from_attributes = True
 
-class OnboardedDemoDetails(BaseModel):
+class OnboardedDemoDetailsOut(BaseModel):
     demo_id: str
     demo_title: str
     demo_user_group_email: str
@@ -422,3 +431,25 @@ class UpdateOnboardedDemoDetailsResponse(BaseModel):
     demo_onboarding_status: Optional[str] = None
     feature_license_app: Optional[bool] = None
     saas_applications: Optional[str] = None
+
+class OnboardNewDemoRequest(BaseModel):
+    demo_id: str
+    demo_title: str
+    demo_user_group_email: str
+    gemini_enterprise_app_link: str
+    drive_folder_link: Optional[str] = None
+    demo_onboarding_status: str
+    feature_license_app: bool
+    saas_applications: Optional[str] = None
+    representative_profile: RepresentativeProfileRequest
+
+class OnboardNewDemoResponse(BaseModel):
+    demo_id: str
+    demo_title: str
+    demo_user_group_email: str
+    gemini_enterprise_app_link: str
+    drive_folder_link: Optional[str] = None
+    demo_onboarding_status: str
+    feature_license_app: bool
+    saas_applications: Optional[str] = None
+    representative_profile: RepresentativeProfileOut

@@ -13,7 +13,8 @@ from shared_lib.db.models import (
     Reservation,
     ReservationStatus,
     ApplicationDowntime,
-    DemoDetail
+    DemoDetail,
+    RepresentativeProfile
 )
 from shared_lib.dependencies import get_user_email, get_db, get_app_config
 from typing import List
@@ -41,9 +42,11 @@ from ..common.schemas import (
     ApplicationCreateRequest,
     ApplicationCreateResponse,
     RemoveAppFromReservationsRequest,
-    OnboardedDemoDetails,
+    OnboardedDemoDetailsOut,
     UpdateOnboardedDemoDetailsRequest,
-    UpdateOnboardedDemoDetailsResponse
+    UpdateOnboardedDemoDetailsResponse,
+    OnboardNewDemoRequest,
+    OnboardNewDemoResponse
 )
 from ..utils.background_tasks import (
     delete_reservation_tasks,
@@ -1052,7 +1055,7 @@ def bulk_cancel_downtime(
         failed_to_cancel=failed_to_cancel
     )
 
-@router.get("/get-onboarded-demos", response_model=List[OnboardedDemoDetails])
+@router.get("/get-onboarded-demos", response_model=List[OnboardedDemoDetailsOut])
 def get_onboarded_demo_details(db: Session = Depends(get_db)):
     """
     Retrieves all demos that have been onboarded in license app.
@@ -1100,3 +1103,58 @@ def update_onboarded_demos(
         DemoDetail.demo_id == demo_id
     ).first()
     return updated_demo_details 
+
+@router.post(
+    "/onboard_new_demo",
+    response_model=OnboardNewDemoResponse,
+    status_code=status.HTTP_201_CREATED
+)
+def onboard_new_demo(
+    req: OnboardNewDemoRequest,
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email)
+):
+    """
+    Onboard a new demo, creating a DemoDetail record and an associated RepresentativeProfile.
+    """
+    logger.info(f"Admin User {user_email}: Attempting to onboard new demo: {req.demo_id}")
+
+    existing_demo = db.query(DemoDetail).filter(
+        DemoDetail.demo_id == req.demo_id
+    ).first()
+
+    if existing_demo:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Demo with ID '{req.demo_id}' already exists."
+        )
+
+    try:
+        demo_data = req.model_dump(exclude={'representative_profile'})
+        new_demo = DemoDetail(**demo_data)
+        
+        representative_profile_data = req.representative_profile.model_dump()
+        representative_profile_data['demo_id'] = req.demo_id
+        new_profile = RepresentativeProfile(**representative_profile_data)
+        
+        new_demo.representative_profile = new_profile
+        
+        db.add(new_demo)
+        db.add(new_profile) 
+        
+        db.commit()
+        db.refresh(new_demo)
+        
+        logger.info(f"Admin User {user_email}: Successfully onboarded new demo: {req.demo_id}")
+        
+        return new_demo
+
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"Admin user {user_email}: An unexpected error occurred during demo onboarding: {e}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while attempting to onboard the new demo."
+        )
