@@ -365,22 +365,22 @@ class UpdateUserProfileRequestResponse(BaseModel):
     user_name: Optional[str] = None
 
 class RepresentativeProfileRequest(BaseModel):
-    cost_centre: Optional[str]
-    manager_name: str
-    manager_email: str
-    manager_title: Optional[str]
-    rep_role: Optional[str]
-    rep_department: Optional[str]
-    org_unit: Optional[str]
+    cost_centre: Optional[str] = None
+    manager_name: Optional[str] = None
+    manager_email: Optional[str] = None
+    manager_title: Optional[str] = None
+    rep_role: Optional[str] = None
+    rep_department: Optional[str] = None
+    org_unit: str
 
 class RepresentativeProfileOut(BaseModel):
-    cost_centre: Optional[str]
-    manager_name: str
-    manager_email: str
-    manager_title: Optional[str]
-    rep_role: Optional[str]
-    rep_department: Optional[str]
-    org_unit: Optional[str]
+    cost_centre: Optional[str] = None
+    manager_name: Optional[str] = None
+    manager_email: Optional[str] = None
+    manager_title: Optional[str] = None
+    rep_role: Optional[str] = None
+    rep_department: Optional[str] = None
+    org_unit: str
 
     class Config:
         from_attributes = True

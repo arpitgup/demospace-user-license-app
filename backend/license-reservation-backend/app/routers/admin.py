@@ -1137,16 +1137,15 @@ def onboard_new_demo(
         representative_profile_data['demo_id'] = req.demo_id
         new_profile = RepresentativeProfile(**representative_profile_data)
         
-        new_demo.representative_profile = new_profile
-        
+        db.add(new_profile)
+        db.flush()
+
         db.add(new_demo)
-        db.add(new_profile) 
         
         db.commit()
         db.refresh(new_demo)
         
-        logger.info(f"Admin User {user_email}: Successfully onboarded new demo: {req.demo_id}")
-        
+        logger.info(f"Admin User {user_email}: Successfully onboarded new demo: {req.demo_id}")        
         return new_demo
 
     except Exception as e:
