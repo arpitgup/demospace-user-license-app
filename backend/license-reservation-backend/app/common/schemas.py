@@ -453,3 +453,22 @@ class OnboardNewDemoResponse(BaseModel):
     feature_license_app: bool
     saas_applications: Optional[str] = None
     representative_profile: RepresentativeProfileOut
+
+class OrgUnitOut(BaseModel):
+    orgUnitPath: str
+    description: Optional[str] = None
+
+class CreateOrgUnitRequest(BaseModel):
+    name: str
+    parentOrgUnitPath: str
+    description: Optional[str] = None
+
+class OrgUnitResponse(BaseModel):
+    kind: str
+    etag: str
+    name: str
+    description: Optional[str] = None
+    orgUnitPath: str
+    orgUnitId: str
+    parentOrgUnitPath: str
+    parentOrgUnitId: str

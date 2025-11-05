@@ -19,7 +19,7 @@ from shared_lib.db.models import (
 from shared_lib.dependencies import get_user_email, get_db, get_app_config
 from typing import List
 from shared_lib.enums import DowntimeStatus
-from shared_lib.admin_service import create_custom_schema, is_group_exists, get_user
+from shared_lib.admin_service import create_custom_schema, is_group_exists, get_user, get_organization_units, create_organization_unit
 from ..common.constants import ACCOUNT_CUSTOMERID, RESERVATION_EMAIL_SENDER, BOOKED_RESERVATION_EMAIL_CONTENT
 from datetime import datetime
 from ..common.schemas import (
@@ -46,7 +46,10 @@ from ..common.schemas import (
     UpdateOnboardedDemoDetailsRequest,
     UpdateOnboardedDemoDetailsResponse,
     OnboardNewDemoRequest,
-    OnboardNewDemoResponse
+    OnboardNewDemoResponse,
+    OrgUnitOut,
+    OrgUnitResponse,
+    CreateOrgUnitRequest
 )
 from ..utils.background_tasks import (
     delete_reservation_tasks,
@@ -1156,4 +1159,49 @@ def onboard_new_demo(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred while attempting to onboard the new demo."
+        )
+
+@router.get("/organization/get_org_units", response_model=List[OrgUnitOut])
+def get_organization_units_api(
+    user_email: str = Depends(get_user_email)
+):
+    """
+    Retrieves a list of all organizational units from the workspace.
+    """
+    logger.info(f"Admin User {user_email}: Attempting to retrieve organization units from workspace.")
+    
+    try:
+        response_data = get_organization_units()
+        logger.info(f"Admin User {user_email}: Successfully retrieved organization units from workspace.")        
+        return response_data
+    except Exception as e:
+        logger.error(f"Admin User {user_email}: An unexpected error occurred while retrieving organization units: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve organization units for customer {customerId}. Details: {e}"
+        )
+
+@router.post("/organization/create_org_unit", response_model=OrgUnitResponse, status_code=status.HTTP_201_CREATED)
+def create_org_unit_api(
+    req: CreateOrgUnitRequest,    
+    user_email: str = Depends(get_user_email)
+):
+    """
+    Creates a new organizational unit for a workspace.
+    """
+    logger.info(f"Admin User {user_email}: Attempting to create new org unit '{req.name}' for workspace.")
+    
+    try:
+        org_unit_data = req.model_dump()        
+        created_unit_data = create_organization_unit(org_unit_data=org_unit_data)
+        
+        logger.info(f"Admin User {user_email}: Successfully created org unit: {created_unit_data.get('orgUnitPath')}")
+        
+        return created_unit_data
+        
+    except Exception as e:
+        logger.error(f"Admin User {user_email}: Error during org unit creation: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create organization unit. Details: {e}"
         )
