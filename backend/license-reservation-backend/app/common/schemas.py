@@ -364,14 +364,24 @@ class UpdateUserProfileRequestResponse(BaseModel):
     last_name: Optional[str] = None
     user_name: Optional[str] = None
 
+class RepresentativeProfileRequest(BaseModel):
+    cost_centre: Optional[str] = None
+    manager_name: Optional[str] = None
+    manager_email: Optional[str] = None
+    manager_title: Optional[str] = None
+    rep_role: Optional[str] = None
+    rep_department: Optional[str] = None
+    org_unit: str
+
 class RepresentativeProfileOut(BaseModel):
-    cost_centre: Optional[str]
-    manager_name: str
-    manager_email: str
-    manager_title: Optional[str]
-    rep_role: Optional[str]
-    rep_department: Optional[str]
-    org_unit: Optional[str]
+    org_unit: str
+    description: Optional[str] = None
+    cost_centre: Optional[str] = None
+    manager_name: Optional[str] = None
+    manager_email: Optional[str] = None
+    manager_title: Optional[str] = None
+    rep_role: Optional[str] = None
+    rep_department: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -385,12 +395,13 @@ class DemoDetailOut(BaseModel):
     demo_onboarding_status: Optional[str]
     feature_license_app: Optional[bool]
     saas_applications: Optional[str]
+    organization_unit: Optional[str]
     representative_profile: Optional[RepresentativeProfileOut]
 
     class Config:
         from_attributes = True
 
-class OnboardedDemoDetails(BaseModel):
+class OnboardedDemoDetailsOut(BaseModel):
     demo_id: str
     demo_title: str
     demo_user_group_email: str
@@ -399,6 +410,7 @@ class OnboardedDemoDetails(BaseModel):
     demo_onboarding_status: str
     feature_license_app: bool
     saas_applications: str
+    organization_unit: str
     representative_profile: RepresentativeProfileOut
 
     class Config:
@@ -412,6 +424,7 @@ class UpdateOnboardedDemoDetailsRequest(BaseModel):
     demo_onboarding_status: Optional[str] = None
     feature_license_app: Optional[bool] = None
     saas_applications: Optional[str] = None
+    organization_unit: Optional[str] = None
 
 class UpdateOnboardedDemoDetailsResponse(BaseModel):
     demo_id: str
@@ -422,3 +435,64 @@ class UpdateOnboardedDemoDetailsResponse(BaseModel):
     demo_onboarding_status: Optional[str] = None
     feature_license_app: Optional[bool] = None
     saas_applications: Optional[str] = None
+    organization_unit: Optional[str] = None
+
+class OnboardNewDemoRequest(BaseModel):
+    demo_id: str
+    demo_title: str
+    demo_user_group_email: str
+    gemini_enterprise_app_link: str
+    drive_folder_link: Optional[str] = None
+    demo_onboarding_status: str
+    feature_license_app: bool
+    saas_applications: Optional[str] = None
+    organization_unit: str
+
+class OnboardNewDemoResponse(BaseModel):
+    demo_id: str
+    demo_title: str
+    demo_user_group_email: str
+    gemini_enterprise_app_link: str
+    drive_folder_link: Optional[str] = None
+    demo_onboarding_status: str
+    feature_license_app: bool
+    saas_applications: Optional[str] = None
+    organization_unit: str
+
+class OrgUnitOut(BaseModel):
+    orgUnitPath: str
+    description: Optional[str] = None
+
+class CreateOrgUnitRequest(BaseModel):
+    org_unit_name: str
+    description: Optional[str] = None
+    cost_centre: Optional[str] = None
+    manager_name: Optional[str] = None
+    manager_email: Optional[str] = None
+    manager_title: Optional[str] = None
+    rep_role: Optional[str] = None
+    rep_department: Optional[str] = None
+
+class OrgUnitResponse(BaseModel):
+    kind: str
+    etag: str
+    name: str
+    description: Optional[str] = None
+    orgUnitPath: str
+    orgUnitId: str
+    parentOrgUnitPath: str
+    parentOrgUnitId: str
+
+class OrganizationUnitLocalOut(BaseModel):
+    id: Optional[int] = None
+    orgunitpath: str
+    description: Optional[str] = None
+    cost_centre: str
+    manager_name: str
+    manager_email: str
+    manager_title: str
+    rep_role: str
+    rep_department: str
+    
+    class Config:
+        from_attributes = True
