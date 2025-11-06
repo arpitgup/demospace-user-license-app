@@ -8,7 +8,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 from loguru import logger
 from shared_lib.db.models import (
-    DemoDetail
+    DemoDetail,
+    OrganizationUnits
 )
 from ..common.schemas import (
     UserInGroupRequest,
@@ -18,7 +19,8 @@ from ..common.schemas import (
     CreateUserResponse,
     ResetPasswordResponse,
     UpdateUserProfileRequestResponse,
-    DemoDetailOut
+    DemoDetailOut,
+    RepresentativeProfileOut
 )
 from shared_lib import admin_service
 from shared_lib.dependencies import get_user_email, get_db, get_app_config
@@ -34,24 +36,58 @@ async def get_demo_details(
     """
     Retrieves the full details for a demo based on its unique demo_id.
     """
-    # This query logic is correct.
-    demo_record = (
-        db.query(DemoDetail)
-        .options(
-            selectinload(DemoDetail.representative_profile) 
+    # CHECK1: CHeck if demoID request exists or not.
+    demo_exists = db.query(DemoDetail).filter(DemoDetail.demo_id == demo_id).first()
+    if not demo_exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Demo with ID '{demo_id}' not found."
+        )
+
+    # Get DemoID details from DemoDetail table & also OrganizationUnit details from organization unit.
+    result = (
+        db.query(DemoDetail, OrganizationUnits)
+        .join(
+            OrganizationUnits,
+            DemoDetail.organization_unit == OrganizationUnits.orgunitpath,
+            isouter=True
         )
         .filter(DemoDetail.demo_id == demo_id)
         .first()
     )
-
-    if not demo_record:
+    if not result:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail=f"Demo with ID '{demo_id}' not found."
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Something wrong while retrieving DemoDetails & OrganizationUnit details for demoID '{demo_id}'"
         )
 
-    return demo_record
-
+    demo_record, org_unit_record = result
+    
+    if org_unit_record:
+        representative_profile_out = RepresentativeProfileOut(
+            org_unit=org_unit_record.orgunitpath,
+            description=org_unit_record.description,
+            cost_centre=org_unit_record.cost_centre,
+            manager_name=org_unit_record.manager_name,
+            manager_email=org_unit_record.manager_email,
+            manager_title=org_unit_record.manager_title,
+            rep_role=org_unit_record.rep_role,
+            rep_department=org_unit_record.rep_department,
+            
+        )
+    
+    return DemoDetailOut(
+        demo_id = demo_record.demo_id,
+        demo_title = demo_record.demo_title,
+        demo_user_group_email = demo_record.demo_user_group_email,
+        gemini_enterprise_app_link = demo_record.gemini_enterprise_app_link,
+        drive_folder_link = demo_record.drive_folder_link,
+        demo_onboarding_status = demo_record.demo_onboarding_status,
+        feature_license_app = demo_record.feature_license_app,
+        saas_applications = demo_record.saas_applications,
+        organization_unit = demo_record.organization_unit,
+        representative_profile=representative_profile_out,
+        )
 
 @router.get('/user-details', response_model=CheckUserInWorkspaceResponse)
 async def get_user_details(

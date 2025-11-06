@@ -374,13 +374,14 @@ class RepresentativeProfileRequest(BaseModel):
     org_unit: str
 
 class RepresentativeProfileOut(BaseModel):
+    org_unit: str
+    description: Optional[str] = None
     cost_centre: Optional[str] = None
     manager_name: Optional[str] = None
     manager_email: Optional[str] = None
     manager_title: Optional[str] = None
     rep_role: Optional[str] = None
     rep_department: Optional[str] = None
-    org_unit: str
 
     class Config:
         from_attributes = True
@@ -394,6 +395,7 @@ class DemoDetailOut(BaseModel):
     demo_onboarding_status: Optional[str]
     feature_license_app: Optional[bool]
     saas_applications: Optional[str]
+    organization_unit: Optional[str]
     representative_profile: Optional[RepresentativeProfileOut]
 
     class Config:
@@ -408,6 +410,7 @@ class OnboardedDemoDetailsOut(BaseModel):
     demo_onboarding_status: str
     feature_license_app: bool
     saas_applications: str
+    organization_unit: str
     representative_profile: RepresentativeProfileOut
 
     class Config:
@@ -421,6 +424,7 @@ class UpdateOnboardedDemoDetailsRequest(BaseModel):
     demo_onboarding_status: Optional[str] = None
     feature_license_app: Optional[bool] = None
     saas_applications: Optional[str] = None
+    organization_unit: Optional[str] = None
 
 class UpdateOnboardedDemoDetailsResponse(BaseModel):
     demo_id: str
@@ -431,6 +435,7 @@ class UpdateOnboardedDemoDetailsResponse(BaseModel):
     demo_onboarding_status: Optional[str] = None
     feature_license_app: Optional[bool] = None
     saas_applications: Optional[str] = None
+    organization_unit: Optional[str] = None
 
 class OnboardNewDemoRequest(BaseModel):
     demo_id: str
@@ -459,8 +464,7 @@ class OrgUnitOut(BaseModel):
     description: Optional[str] = None
 
 class CreateOrgUnitRequest(BaseModel):
-    name: str
-    parentOrgUnitPath: str = '/'
+    org_unit_name: str
     description: Optional[str] = None
     cost_centre: Optional[str] = None
     manager_name: Optional[str] = None

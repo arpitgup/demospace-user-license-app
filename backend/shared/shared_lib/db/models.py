@@ -158,22 +158,22 @@ class ApplicationDowntime(Base):
 #     name = Column(String(255))
 #     email = Column(String(255), unique=True)
 
-class RepresentativeProfile(Base):
-    __tablename__ = "representative_profile"
-    demo_id = Column(String(10), ForeignKey("demo_details.demo_id"), primary_key=True)
-    cost_centre = Column(String(20))
-    manager_name = Column(String(100), nullable=False)
-    manager_email = Column(String(255), nullable=False)
-    manager_title = Column(String(100))
-    rep_role = Column(String(100))
-    rep_department = Column(String(50))
-    org_unit = Column(String(100))
+# class RepresentativeProfile(Base):
+#     __tablename__ = "representative_profile"
+#     demo_id = Column(String(10), ForeignKey("demo_details.demo_id"), primary_key=True)
+#     cost_centre = Column(String(20))
+#     manager_name = Column(String(100), nullable=False)
+#     manager_email = Column(String(255), nullable=False)
+#     manager_title = Column(String(100))
+#     rep_role = Column(String(100))
+#     rep_department = Column(String(50))
+#     org_unit = Column(String(100))
 
-    demo = relationship(
-        "DemoDetail",
-        back_populates="representative_profile",
-        uselist=False
-    )
+#     demo = relationship(
+#         "DemoDetail",
+#         back_populates="representative_profile",
+#         uselist=False
+#     )
 
 class DemoDetail(Base):
     __tablename__ = "demo_details"
@@ -186,12 +186,6 @@ class DemoDetail(Base):
     feature_license_app = Column(Boolean)
     saas_applications = Column(String)
     organization_unit = Column(String(255))
-
-    representative_profile = relationship(
-        "RepresentativeProfile",
-        back_populates="demo",
-        uselist=False
-    )
 
 class OrganizationUnits(Base):
     __tablename__ = "organization_units"

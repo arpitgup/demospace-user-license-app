@@ -297,12 +297,12 @@ def get_organization_units(customerId='C03ff1ejf'):
         logger.error(f"An unexpected error occurred while retrieving organization units: {e}")
         raise e
 
-def create_organization_unit(org_unit_data):
+def create_organization_unit(org_unit_info):
     """
     Calls the Admin SDK to create a new organizational unit.
     """
     try:
-        response = admin_service.orgunits().insert(customerId='C03ff1ejf', body=org_unit_data).execute()
+        response = admin_service.orgunits().insert(customerId='C03ff1ejf', body=org_unit_info).execute()
         return response
     except Exception as e:
         logger.error(f"Error creating organization unit: {e}")

@@ -14,7 +14,6 @@ from shared_lib.db.models import (
     ReservationStatus,
     ApplicationDowntime,
     DemoDetail,
-    RepresentativeProfile,
     OrganizationUnits
 )
 from shared_lib.dependencies import get_user_email, get_db, get_app_config
@@ -51,7 +50,8 @@ from ..common.schemas import (
     OrgUnitOut,
     OrgUnitResponse,
     CreateOrgUnitRequest,
-    OrganizationUnitLocalOut
+    OrganizationUnitLocalOut,
+    RepresentativeProfileOut
 )
 from ..utils.background_tasks import (
     delete_reservation_tasks,
@@ -1065,10 +1065,58 @@ def get_onboarded_demo_details(db: Session = Depends(get_db)):
     """
     Retrieves all demos that have been onboarded in license app.
     """
-    query_result = (
-        db.query(DemoDetail)
-    ).all()
-    return query_result
+    query_results = (
+        db.query(DemoDetail, OrganizationUnits)
+        .join(
+            OrganizationUnits,
+            DemoDetail.organization_unit == OrganizationUnits.orgunitpath,
+            isouter=True
+        )
+        .all()
+    )
+    
+    output_list: List[OnboardedDemoDetailsOut] = []
+
+    for demo_record, org_unit_record in query_results:
+        representative_profile_out = RepresentativeProfileOut(
+            org_unit=demo_record.organization_unit, 
+            description=None,
+            cost_centre=None,
+            manager_name=None,
+            manager_email=None,
+            manager_title=None,
+            rep_role=None,
+            rep_department=None,
+        )
+
+        if org_unit_record:
+            representative_profile_out = RepresentativeProfileOut(
+                org_unit=org_unit_record.orgunitpath,
+                description=org_unit_record.description,
+                cost_centre=org_unit_record.cost_centre,
+                manager_name=org_unit_record.manager_name,
+                manager_email=org_unit_record.manager_email,
+                manager_title=org_unit_record.manager_title,
+                rep_role=org_unit_record.rep_role,
+                rep_department=org_unit_record.rep_department,
+            )
+
+        demo_details_out = OnboardedDemoDetailsOut(
+            demo_id=demo_record.demo_id,
+            demo_title=demo_record.demo_title,
+            demo_user_group_email=demo_record.demo_user_group_email,
+            gemini_enterprise_app_link=demo_record.gemini_enterprise_app_link,
+            drive_folder_link=demo_record.drive_folder_link,
+            demo_onboarding_status=demo_record.demo_onboarding_status,
+            feature_license_app=demo_record.feature_license_app,
+            saas_applications=demo_record.saas_applications,
+            organization_unit=demo_record.organization_unit,
+            representative_profile=representative_profile_out,
+        )
+        
+        output_list.append(demo_details_out)
+        
+    return output_list
 
 @router.patch("/update-onboarded-demos/{demo_id}", response_model=UpdateOnboardedDemoDetailsResponse)
 def update_onboarded_demos(
@@ -1152,7 +1200,7 @@ def onboard_new_demo(
         if not canonical_org_unit:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Organizational Unit path '{org_unit_path}' not found in local configuration table for representative lookup."
+                detail=f"Organizational Unit path '{org_unit_path}' not found in table 'Organization Unit'."
             )
 
         demo_data = req.model_dump(exclude={'representative_profile'})
@@ -1169,9 +1217,9 @@ def onboard_new_demo(
             'org_unit': canonical_org_unit.orgunitpath
         }
         
-        new_profile = RepresentativeProfile(**profile_data)
-        db.add(new_profile) 
-        db.flush() 
+        # new_profile = RepresentativeProfile(**profile_data)
+        # db.add(new_profile) 
+        # db.flush() 
 
         db.add(new_demo)        
         db.commit()
@@ -1241,19 +1289,29 @@ def get_organization_units_local(
 @router.post("/organization/create_org_unit", response_model=OrgUnitResponse, status_code=status.HTTP_201_CREATED)
 def create_org_unit_api(
     req: CreateOrgUnitRequest,    
-    user_email: str = Depends(get_user_email)
+    user_email: str = Depends(get_user_email),
+    db: Session = Depends(get_db)
 ):
     """
     Creates a new organizational unit for a workspace.
     """
-    logger.info(f"Admin User {user_email}: Attempting to create new org unit '{req.name}' for workspace.")
+    logger.info(f"Admin User {user_email}: Attempting to create new org unit '{req.org_unit_name}' for workspace.")
     
     try:
         org_unit_data = req.model_dump()
-        created_unit_data = create_organization_unit(org_unit_data=org_unit_data)
-
+        org_unit_info = {
+            'name': org_unit_data.get('org_unit_name'),
+            'parentOrgUnitPath': "/",
+            'description': org_unit_data.get('description'),
+        }
+        created_unit_data = create_organization_unit(org_unit_info=org_unit_info)
+        if not created_unit_data:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to create organization unit."
+            )
         local_db_data = {
-            'orgUnitPath': created_unit_data.get('orgUnitPath'),
+            'orgunitpath': created_unit_data.get('orgUnitPath'),
             'description': created_unit_data.get('description'),
             'cost_centre': org_unit_data.get('cost_centre'),
             'manager_name': org_unit_data.get('manager_name'),
@@ -1262,7 +1320,7 @@ def create_org_unit_api(
             'rep_role': org_unit_data.get('rep_role'),
             'rep_department': org_unit_data.get('rep_department'),
         }
-        
+
         new_local_org_unit = OrganizationUnits(**local_db_data)
         db.add(new_local_org_unit)
         db.commit()
