@@ -1,0 +1,13 @@
+<div class="demo-onboarding-container">
+  <mat-tab-group
+    class="demo-onboarding-tabs"
+    (selectedTabChange)="onTabChange($event)"
+  >
+    <mat-tab label="Demo Details">
+  <app-admin-onboard-demo-table></app-admin-onboard-demo-table>
+    </mat-tab>
+    <mat-tab label="Add new Demo">
+      <app-admin-add-new-demo></app-admin-add-new-demo>
+    </mat-tab>
+  </mat-tab-group>
+</div>

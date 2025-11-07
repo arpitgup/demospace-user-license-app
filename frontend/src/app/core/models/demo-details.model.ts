@@ -1,3 +1,5 @@
+import { Application } from './application.model';
+
 export interface DemoDetails {
   demo_id: string;
   demo_title: string;
@@ -7,7 +9,10 @@ export interface DemoDetails {
   feedback_bug_link: string;
   demo_onboarding_status: string;
   feature_license_app: string;
-  saas_applications:string;
+  saas_applications: string;
+  applications: Application[];
+  applicationIds:number[];
+  isEdit: boolean;
   representative_profile: RepresentativeProfile;
 }
 

@@ -1,0 +1,208 @@
+<div class="table-wrapper">
+  @if (isLoading()) {
+  <app-table-loader />
+  }@else if(errorMessage()!==''){
+  <app-error-message
+    [errorMessage]="errorMessage()"
+    (retryClicked)="onRetryCall()"
+  ></app-error-message>
+  } @else{ @if(dataSource.data.length===0){
+  <div class="empty-data-message">
+    <mat-icon class="empty-data-icon">info_outline</mat-icon>
+    <span> No demos to display</span>
+  </div>
+  }@else{
+  <table mat-table [dataSource]="dataSource" matSort class="custom-table">
+    <ng-container matColumnDef="demoId">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Demo ID</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.demo_id }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="demoTitle">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Demo Title</th>
+      <td mat-cell *matCellDef="let element">
+        @if(element.isEdit===true){
+        <mat-form-field appearance="fill">
+          <input
+            matInput
+            placeholder="Demo Title*"
+            [formControl]="demoTitleController"
+            maxlength="50"
+          />
+          @if(demoTitleController!==null &&
+          demoTitleController.hasError('required')&&
+          demoTitleController.touched){
+          <mat-error>Demo title required</mat-error>
+          }
+        </mat-form-field>
+        }@else{
+        {{ element.demo_title }}
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="demoUserGroupEmail">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        Demo User Group Email
+      </th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.demo_user_group_email }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="geminiEnterpriseAppLink">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        Gemini Enterprise App Link
+      </th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.gemini_enterprise_app_link }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="driveFolderLink">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        Drive Folder Link
+      </th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.drive_folder_link }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="demoOnBoardedStatus">
+      <th mat-header-cell *matHeaderCellDef>Demo OnBoarded</th>
+      <td mat-cell *matCellDef="let element">
+        @if(element.isEdit){
+        <div class="show-past-checkbox-wrapper">
+          <mat-checkbox
+            class="show-past-checkbox"
+            (change)="onSelectDemoOnBoarded($event.checked, element.demo_id)"
+            [checked]="element.demo_onboarding_status === 'live' ? true : false"
+          >
+            Active
+          </mat-checkbox>
+        </div>
+        }@else{
+        <div class="status-wrapper">
+          @if(element.demo_onboarding_status==='live'){
+          <img src="assets/svgs/ic_admin.svg" alt="admin" class="admin-icon" />
+          <span class="status-text">Active</span>
+          }@else{
+          <span class="status-text">InActive</span>
+          }
+        </div>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="featureLicenseApp">
+      <th mat-header-cell *matHeaderCellDef>License Reservation</th>
+      <td mat-cell *matCellDef="let element">
+        @if(element.isEdit){
+        <div class="show-past-checkbox-wrapper">
+          <mat-checkbox
+            class="show-past-checkbox"
+            (change)="onSelectFeatureLicense($event.checked, element.demo_id)"
+            [checked]="element.feature_license_app || false"
+          >
+            Enable
+          </mat-checkbox>
+        </div>
+        }@else{
+        <div class="status-wrapper">
+          @if(element.feature_license_app===true){
+          <img src="assets/svgs/ic_admin.svg" alt="admin" class="admin-icon" />
+          <span class="status-text">Enabled</span>
+          }@else{
+          <span class="status-text">Disabled</span>
+          }
+        </div>
+        }
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="saasApplications">
+      <th mat-header-cell *matHeaderCellDef>Saas Applications</th>
+      <td mat-cell *matCellDef="let element">
+        <div class="application-wrapper">
+          <div class="app-chip-list">
+            @for(app of applicationList; track app.id){
+            @if(element.applicationIds.includes(app.id)){
+            <div class="app-chip-wrapper">
+              <span class="app-chip-text">{{ app.name }}</span>
+            </div>
+            } }
+          </div>
+          @if(element.isEdit===true){
+          <mat-form-field class="custom-form-field">
+            <mat-label>Add/Remove applications</mat-label>
+            <mat-select
+              [value]="element.applicationIds"
+              (selectionChange)="onSelectionChange($event, element)"
+              multiple
+            >
+              @for(application of applicationList; track application.id){
+              <mat-option
+                [value]="application.id"
+                [disabled]="
+                  application.isEnabled === false &&
+                  !element.applicationIds.includes(application.id)
+                "
+              >
+                {{ application.name }}
+              </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          }
+        </div>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="orgUnit">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Org Unit</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.representative_profile?.org_unit || "" }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="action">
+      <th mat-header-cell *matHeaderCellDef>Action</th>
+      <td mat-cell *matCellDef="let element">
+        @if(element.isEdit===true){
+        <div class="action-wrapper">
+          <div
+            class="edit-wrapper"
+            (click)="onCancelUpdateDemo(element.demo_id)"
+          >
+            <span class="edit-text">Cancel</span>
+          </div>
+          <div
+            class="save-wrapper"
+            (click)="onSaveDemoDetails(element.demo_id)"
+          >
+            <img src="assets/svgs/ic_save.svg" alt="edit" class="edit-icon" />
+            <span class="save-text">Save</span>
+          </div>
+        </div>
+        }@else{
+        <div class="edit-wrapper" (click)="onEditDemo(element.demo_id)">
+          <img src="assets/svgs/edit_square.svg" alt="edit" class="edit-icon" />
+          <span class="edit-text">Edit</span>
+        </div>
+        }
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+  <mat-paginator
+    [pageSizeOptions]="pageSizeOptions"
+    showFirstLastButtons
+    aria-label="Select page of demos"
+  >
+  </mat-paginator>
+  } }
+</div>
