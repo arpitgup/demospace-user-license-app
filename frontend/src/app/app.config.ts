@@ -43,7 +43,11 @@ export const appConfig: ApplicationConfig = {
         }),
 
         concatMap(() => {
-          return userService.getUserDetails();
+          if (iapService.userEmailInfo()?.includes('agentspace-demo')) {
+            return userService.getUserDetails();
+          } else {
+            return of(null);
+          }
         })
       );
     }),
