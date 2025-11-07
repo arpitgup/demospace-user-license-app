@@ -8,6 +8,7 @@ import {
   filter,
   finalize,
   from,
+  map,
   Observable,
   take,
   tap,
@@ -23,16 +24,16 @@ import { AppConfig } from '../models/appConfig.model';
 import { environment } from '../../../environments/environment';
 import { AvailabilityByApplicationRequest } from '../models/availability-by-application-request.model';
 import { AvalaibilityByApplication } from '../models/availability-by-application.model';
-import { MakeReservationRequest } from '../models/make-reservation-request.model';
-import { MakeReservationResponse } from '../models/make-reservation-response.model';
 import { Application } from '../models/application.model';
 import { LoaderService } from './loading.service';
+import { UserCreationService } from './user-creation.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ReservationService {
   private http = inject(HttpClient);
+  private userCreationService = inject(UserCreationService);
   private apiUrl = environment.apiUrl;
   private applicationSubject = new BehaviorSubject<Application[]>([]);
   public applications$ = this.applicationSubject.asObservable();
@@ -44,9 +45,11 @@ export class ReservationService {
   public readonly appConfigData = this.configState.asReadonly();
   loadingService = inject(LoaderService);
   private readonly reservationErrorMessageState = signal<string>('');
-  public readonly reservationErrorMessage = this.reservationErrorMessageState.asReadonly();
+  public readonly reservationErrorMessage =
+    this.reservationErrorMessageState.asReadonly();
   private readonly isReservationLoadingState = signal<boolean>(false);
-  public readonly isReservationLoading = this.isReservationLoadingState.asReadonly();
+  public readonly isReservationLoading =
+    this.isReservationLoadingState.asReadonly();
 
   /**
    * API call to check application availability for a given time range.
@@ -54,30 +57,54 @@ export class ReservationService {
    * @param payload An object containing start and end times for the reservation.
    * @returns An Observable containing a list of available applications.
    */
-  checkAvailabilityByDate(payload: {
-    startTime: string;
-    endTime: string;
-  }): Observable<{ applications: Application[] }> {
-    return this.http.post<{ applications: Application[] }>(
-      `${this.apiUrl}/availability/by-date`,
-      payload
-    );
-  }
+  // checkAvailabilityByDate(payload: {
+  //   startTime: string;
+  //   endTime: string;
+  // }): Observable<{ applications: Application[] }> {
+  //   return this.http.post<{ applications: Application[] }>(
+  //     `${this.apiUrl}/availability/by-date`,
+  //     payload
+  //   );
+  // }
 
   checkBotsAvailabilityByDate(payload: {
     startTime: string;
     endTime: string;
   }): Observable<{ availableBots: BotWithApps[] }> {
-    return this.http.post<{ availableBots: BotWithApps[] }>(
-      `${this.apiUrl}/availability/by-date/v2`,
-      payload
-    );
+    return this.http
+      .post<{ availableBots: BotWithApps[] }>(
+        `${this.apiUrl}/availability/by-date/v2`,
+        payload
+      )
+      .pipe(
+        map((res) => {
+          const saasApplications = this.getSaasApplications();
+          if (saasApplications.length > 0) {
+            res.availableBots = res.availableBots
+              .map((item) => {
+                return {
+                  ...item,
+                  applications: item.applications.filter((element) =>
+                    saasApplications.includes(element.id)
+                  ),
+                };
+              })
+              .filter((element) => element.applications.length > 0);
+          }
+          return res;
+        })
+      );
   }
 
   getApplications(): Observable<Application[]> {
     return this.http.get<Application[]>(`${this.apiUrl}/applications`).pipe(
-      tap((applications) => {
+      map((applications) => {
+        const saasApplications = this.getSaasApplications();
+        applications = applications.filter((item) =>
+          saasApplications.includes(item.id)
+        );
         this.applicationSubject.next(applications);
+        return applications;
       })
     );
   }
@@ -85,15 +112,30 @@ export class ReservationService {
   checkAvailabilityByApplication(
     data: AvailabilityByApplicationRequest
   ): Observable<AvalaibilityByApplication> {
-    return this.http.post<AvalaibilityByApplication>(
-      `${this.apiUrl}/availability/by-application`,
-      data
-    );
+    return this.http
+      .post<AvalaibilityByApplication>(
+        `${this.apiUrl}/availability/by-application`,
+        data
+      )
+      .pipe(
+        map((res) => {
+          const saasApplications = this.getSaasApplications();
+          if (saasApplications.length > 0) {
+            res.nextAvailableSlots = this.filterSlotsApplications(
+              res,
+              saasApplications
+            );
+          }
+          return res;
+        })
+      );
   }
+
   checkLessDurationSlotsApplication(
     duration: number[],
     data: AvailabilityByApplicationRequest
   ): Observable<AvalaibilityByApplication | null> {
+    const saasApplications = this.getSaasApplications();
     return from([...duration].reverse()).pipe(
       concatMap((durationValue) => {
         const request = {
@@ -107,6 +149,10 @@ export class ReservationService {
         (res.nextAvailableSlots?.length ?? 0) >= 1 ? true : false
       ),
       take(1),
+      map((res) => ({
+        ...res,
+        nextAvailableSlots: this.filterSlotsApplications(res, saasApplications),
+      })),
       defaultIfEmpty(null)
     );
   }
@@ -134,16 +180,43 @@ export class ReservationService {
       tap((fetchedReservations) => {
         this.reservationErrorMessageState.set('');
         this.reservationsState.set(fetchedReservations);
-         this.isReservationLoadingState.set(false);
+        this.isReservationLoadingState.set(false);
       }),
       catchError((error) => {
-         this.isReservationLoadingState.set(false);
+        this.isReservationLoadingState.set(false);
         this.reservationErrorMessageState.set(
           error?.error?.detail || 'Something went wrong'
         );
         return throwError(() => error);
       })
     );
+  }
+
+  /**
+   * Cancels a reservation, then updates its status in the local `reservations` signal.
+   * This ensures the UI reflects the change immediately without a full re-fetch.
+   * @param reservationId The ID of the reservation to cancel.
+   * @returns An Observable of the updated (canceled) Reservation object.
+   */
+  cancelReservation(reservationId: number): Observable<Reservation> {
+    this.loadingService.show();
+    return this.http
+      .post<Reservation>(
+        `${this.apiUrl}/reservations/${reservationId}/cancel`,
+        {}
+      )
+      .pipe(
+        tap((canceledReservation) => {
+          this.reservationsState.update((currentReservations) =>
+            currentReservations.map((res) =>
+              res.id === reservationId ? canceledReservation : res
+            )
+          );
+        }),
+        finalize(() => {
+          this.loadingService.hide();
+        })
+      );
   }
 
   /**
@@ -169,43 +242,35 @@ export class ReservationService {
       );
   }
 
-  /**
-   * Cancels a reservation, then updates its status in the local `reservations` signal.
-   * This ensures the UI reflects the change immediately without a full re-fetch.
-   * @param reservationId The ID of the reservation to cancel.
-   * @returns An Observable of the updated (canceled) Reservation object.
-   */
-  cancelReservation(reservationId: number): Observable<Reservation> {
-     this.loadingService.show();
-    return this.http
-      .post<Reservation>(
-        `${this.apiUrl}/reservations/${reservationId}/cancel`,
-        {}
-      )
-      .pipe(
-        tap((canceledReservation) => {
-          this.reservationsState.update((currentReservations) =>
-            currentReservations.map((res) =>
-              res.id === reservationId ? canceledReservation : res
-            )
-          );
-        }),
-        finalize(() => {
-          this.loadingService.hide();
-        })
-      );
+  filterSlotsApplications(
+    res: AvalaibilityByApplication,
+    saasApplications: number[]
+  ) {
+    return res.nextAvailableSlots
+      ?.map((item) => {
+        return {
+          ...item,
+          availableBots: item.availableBots
+            ?.map((item) => {
+              return {
+                ...item,
+                applications: item.applications?.filter((item) =>
+                  saasApplications.includes(item.id)
+                ),
+              };
+            })
+            .filter((item) => (item.applications?.length || 0) > 0),
+        };
+      })
+      .filter((item) => (item.availableBots?.length || 0) > 0);
   }
-
-  callMakeReservation(
-    data: MakeReservationRequest
-  ): Observable<MakeReservationResponse> {
-    this.loadingService.show();
-    return this.http
-      .post<MakeReservationResponse>(`${this.apiUrl}/reservations`, data)
-      .pipe(
-        finalize(() => {
-          this.loadingService.hide();
-        })
-      );
+  getSaasApplications() {
+    const demoApplications =
+      this.userCreationService.demoDetailsInfo()?.saas_applications || '';
+    let saasApplications: number[] = [];
+    if (demoApplications !== '') {
+      saasApplications = demoApplications.split(',').map(Number);
+    }
+    return saasApplications;
   }
 }

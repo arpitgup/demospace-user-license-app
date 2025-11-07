@@ -22,7 +22,7 @@ export class AdminGuard implements CanActivate {
           ) {
             this.router.navigateByUrl('', { replaceUrl: true });
           } else {
-            // this.router.navigateByUrl('/welcome', { replaceUrl: true });
+            this.router.navigateByUrl('/welcome', { replaceUrl: true });
           }
           return false;
         })
