@@ -1119,12 +1119,7 @@ def get_onboarded_demo_details(db: Session = Depends(get_db)):
     return output_list
 
 @router.patch("/update-onboarded-demos/{demo_id}", response_model=UpdateOnboardedDemoDetailsResponse)
-def update_onboarded_demos(
-    demo_id: str,
-    req: UpdateOnboardedDemoDetailsRequest,
-    db: Session = Depends(get_db),
-    user_email: str = Depends(get_user_email),
-):
+def update_onboarded_demos(demo_id: str, req: UpdateOnboardedDemoDetailsRequest, db: Session = Depends(get_db), user_email: str = Depends(get_user_email)):
     """
     Updates demo details using the more efficient SQLAlchemy update method.
     """
@@ -1157,16 +1152,8 @@ def update_onboarded_demos(
     ).first()
     return updated_demo_details 
 
-@router.post(
-    "/onboard_new_demo",
-    response_model=OnboardNewDemoResponse,
-    status_code=status.HTTP_201_CREATED
-)
-def onboard_new_demo(
-    req: OnboardNewDemoRequest,
-    db: Session = Depends(get_db),
-    user_email: str = Depends(get_user_email)
-):
+@router.post("/onboard_new_demo", response_model=OnboardNewDemoResponse, status_code=status.HTTP_201_CREATED)
+def onboard_new_demo(req: OnboardNewDemoRequest, db: Session = Depends(get_db), user_email: str = Depends(get_user_email)):
     """
     Onboard a new demo, creating a DemoDetail record and an associated RepresentativeProfile.
     The RepresentativeProfile details are looked up from the local organization_units table 
@@ -1223,32 +1210,8 @@ def onboard_new_demo(
             detail="An unexpected error occurred while attempting to onboard the new demo."
         )
 
-@router.get("/organization/get_org_units_workspace", response_model=List[OrgUnitOut])
-def get_org_units_workspace(
-    user_email: str = Depends(get_user_email)
-):
-    """
-    Retrieves a list of all organizational units from the workspace.
-    """
-    logger.info(f"Admin User {user_email}: Attempting to retrieve organization units from workspace.")
-    
-    try:
-        response_data = get_organization_units()
-        logger.info(f"Admin User {user_email}: Successfully retrieved organization units from workspace.")
-        return response_data
-    except Exception as e:
-        logger.error(f"Admin User {user_email}: An unexpected error occurred while retrieving organization units: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve organization units for customer {customerId}. Details: {e}"
-        )
-
-
-@router.get("/organization/get_organization_units_local", response_model=List[OrganizationUnitLocalOut])
-def get_organization_units_local(
-    db: Session = Depends(get_db),
-    user_email: str = Depends(get_user_email)
-):
+@router.get("/organization/list_organization_units", response_model=List[OrganizationUnitLocalOut])
+def list_organization_units(db: Session = Depends(get_db), user_email: str = Depends(get_user_email)):
     """
     Retrieves unique organizational units (all fields) from the local 'organization_units' database table.
     """
@@ -1269,54 +1232,75 @@ def get_organization_units_local(
             detail=f"Failed to retrieve local organization units. Details: {e}"
         )
 
-@router.post("/organization/create_org_unit", response_model=OrgUnitResponse, status_code=status.HTTP_201_CREATED)
-def create_org_unit_api(
-    req: CreateOrgUnitRequest,    
-    user_email: str = Depends(get_user_email),
-    db: Session = Depends(get_db)
-):
-    """
-    Creates a new organizational unit for a workspace.
-    """
-    logger.info(f"Admin User {user_email}: Attempting to create new org unit '{req.org_unit_name}' for workspace.")
+# @router.get("/organization/get_org_units_workspace", response_model=List[OrgUnitOut])
+# def get_org_units_workspace(
+#     user_email: str = Depends(get_user_email)
+# ):
+#     """
+#     Retrieves a list of all organizational units from the workspace.
+#     """
+#     logger.info(f"Admin User {user_email}: Attempting to retrieve organization units from workspace.")
     
-    try:
-        org_unit_data = req.model_dump()
-        org_unit_info = {
-            'name': org_unit_data.get('org_unit_name'),
-            'parentOrgUnitPath': "/",
-            'description': org_unit_data.get('description'),
-        }
-        created_unit_data = create_organization_unit(org_unit_info=org_unit_info)
-        if not created_unit_data:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to create organization unit."
-            )
-        local_db_data = {
-            'orgunitpath': created_unit_data.get('orgUnitPath'),
-            'description': created_unit_data.get('description'),
-            'cost_centre': org_unit_data.get('cost_centre'),
-            'manager_name': org_unit_data.get('manager_name'),
-            'manager_email': org_unit_data.get('manager_email'),
-            'manager_title': org_unit_data.get('manager_title'),
-            'rep_role': org_unit_data.get('rep_role'),
-            'rep_department': org_unit_data.get('rep_department'),
-        }
+#     try:
+#         response_data = get_organization_units()
+#         logger.info(f"Admin User {user_email}: Successfully retrieved organization units from workspace.")
+#         return response_data
+#     except Exception as e:
+#         logger.error(f"Admin User {user_email}: An unexpected error occurred while retrieving organization units: {e}")
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail=f"Failed to retrieve organization units for customer {customerId}. Details: {e}"
+#         )
 
-        new_local_org_unit = OrganizationUnits(**local_db_data)
-        db.add(new_local_org_unit)
-        db.commit()
 
-        logger.info(f"Admin User {user_email}: Successfully created org unit: {created_unit_data.get('orgUnitPath')} & saved data in DB.")        
-        return created_unit_data
+# @router.post("/organization/create_org_unit", response_model=OrgUnitResponse, status_code=status.HTTP_201_CREATED)
+# def create_org_unit_api(
+#     req: CreateOrgUnitRequest,    
+#     user_email: str = Depends(get_user_email),
+#     db: Session = Depends(get_db)
+# ):
+#     """
+#     Creates a new organizational unit for a workspace.
+#     """
+#     logger.info(f"Admin User {user_email}: Attempting to create new org unit '{req.org_unit_name}' for workspace.")
     
-    except Exception as e:
-        db.rollback()
-        error_detail = str(e)
-        logger.error(f"Admin User {user_email}: Error during org unit creation: {e}")
+#     try:
+#         org_unit_data = req.model_dump()
+#         org_unit_info = {
+#             'name': org_unit_data.get('org_unit_name'),
+#             'parentOrgUnitPath': "/",
+#             'description': org_unit_data.get('description'),
+#         }
+#         created_unit_data = create_organization_unit(org_unit_info=org_unit_info)
+#         if not created_unit_data:
+#             raise HTTPException(
+#                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#                 detail="Failed to create organization unit."
+#             )
+#         local_db_data = {
+#             'orgunitpath': created_unit_data.get('orgUnitPath'),
+#             'description': created_unit_data.get('description'),
+#             'cost_centre': org_unit_data.get('cost_centre'),
+#             'manager_name': org_unit_data.get('manager_name'),
+#             'manager_email': org_unit_data.get('manager_email'),
+#             'manager_title': org_unit_data.get('manager_title'),
+#             'rep_role': org_unit_data.get('rep_role'),
+#             'rep_department': org_unit_data.get('rep_department'),
+#         }
 
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create organization unit due to an unexpected server error. Details: {e}"
-        )
+#         new_local_org_unit = OrganizationUnits(**local_db_data)
+#         db.add(new_local_org_unit)
+#         db.commit()
+
+#         logger.info(f"Admin User {user_email}: Successfully created org unit: {created_unit_data.get('orgUnitPath')} & saved data in DB.")        
+#         return created_unit_data
+    
+#     except Exception as e:
+#         db.rollback()
+#         error_detail = str(e)
+#         logger.error(f"Admin User {user_email}: Error during org unit creation: {e}")
+
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail=f"Failed to create organization unit due to an unexpected server error. Details: {e}"
+#         )
