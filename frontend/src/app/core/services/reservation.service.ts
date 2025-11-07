@@ -77,7 +77,7 @@ export class ReservationService {
         payload
       )
       .pipe(
-        tap((res) => {
+        map((res) => {
           const saasApplications = this.getSaasApplications();
           if (saasApplications.length > 0) {
             res.availableBots = res.availableBots
@@ -91,18 +91,20 @@ export class ReservationService {
               })
               .filter((element) => element.applications.length > 0);
           }
+          return res;
         })
       );
   }
 
   getApplications(): Observable<Application[]> {
     return this.http.get<Application[]>(`${this.apiUrl}/applications`).pipe(
-      tap((applications) => {
+      map((applications) => {
         const saasApplications = this.getSaasApplications();
         applications = applications.filter((item) =>
           saasApplications.includes(item.id)
         );
         this.applicationSubject.next(applications);
+        return applications;
       })
     );
   }
@@ -116,7 +118,7 @@ export class ReservationService {
         data
       )
       .pipe(
-        tap((res) => {
+        map((res) => {
           const saasApplications = this.getSaasApplications();
           if (saasApplications.length > 0) {
             res.nextAvailableSlots = this.filterSlotsApplications(
@@ -124,6 +126,7 @@ export class ReservationService {
               saasApplications
             );
           }
+          return res;
         })
       );
   }
