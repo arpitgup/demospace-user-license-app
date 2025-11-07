@@ -1177,7 +1177,6 @@ def onboard_new_demo(
     existing_demo = db.query(DemoDetail).filter(
         DemoDetail.demo_id == req.demo_id
     ).first()
-
     if existing_demo:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -1186,41 +1185,25 @@ def onboard_new_demo(
 
     try:
         org_unit_path = req.organization_unit
-        
-        if not org_unit_path:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Representative Profile must include 'org_unit' for canonical lookup."
-            )
-
         canonical_org_unit = db.query(OrganizationUnits).filter(
             OrganizationUnits.orgunitpath == org_unit_path
         ).first()
-
         if not canonical_org_unit:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Organizational Unit path '{org_unit_path}' not found in table 'Organization Unit'."
             )
 
-        demo_data = req.model_dump(exclude={'representative_profile'})
+        demo_user_group_email = req.demo_user_group_email
+        if not is_group_exists(demo_user_group_email):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{demo_user_group_email} is not a valid group.",
+            )
+
+        demo_data = req.model_dump()
         new_demo = DemoDetail(**demo_data)
         
-        profile_data = {
-            'demo_id': req.demo_id,
-            'cost_centre': canonical_org_unit.cost_centre,
-            'manager_name': canonical_org_unit.manager_name,
-            'manager_email': canonical_org_unit.manager_email,
-            'manager_title': canonical_org_unit.manager_title,
-            'rep_role': canonical_org_unit.rep_role,
-            'rep_department': canonical_org_unit.rep_department,
-            'org_unit': canonical_org_unit.orgunitpath
-        }
-        
-        # new_profile = RepresentativeProfile(**profile_data)
-        # db.add(new_profile) 
-        # db.flush() 
-
         db.add(new_demo)        
         db.commit()
         db.refresh(new_demo)
