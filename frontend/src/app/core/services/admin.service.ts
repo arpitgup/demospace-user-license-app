@@ -103,4 +103,15 @@ export class AdminService {
       request
     );
   }
+
+  fetchAllActiveApplications(): Observable<Application[]> {
+    return this.http
+      .get<Application[]>(`${this.apiUrl}/admin/applications`)
+      .pipe(
+        map((applications) => {
+          applications = applications.filter((item) => item.isActive === true);
+          return applications;
+        })
+      );
+  }
 }
