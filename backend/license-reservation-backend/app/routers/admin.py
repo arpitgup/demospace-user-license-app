@@ -1339,9 +1339,9 @@ def list_organization_units(db: Session = Depends(get_db), user_email: str = Dep
         )
 
 @router.post("/organization-units", response_model=OrganizationUnitLocalOut, status_code=status.HTTP_201_CREATED)
-def create_organization_unit(req: OrganizationUnitCreateRequest, db: Session = Depends(get_db)):
+def write_organization_unit(req: OrganizationUnitCreateRequest, db: Session = Depends(get_db)):
     """
-    Creates a new Organization Unit record in the database.
+    Write a new Organization Unit record in the database.
     """
     logger.info(f"Attempting to create new Organization Unit for path: {req.orgunitpath}")
     organization_unit_path = req.orgunitpath
