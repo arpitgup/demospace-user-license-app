@@ -4,10 +4,74 @@
 @use "../../../../styles/mixins" as *;
 
 .table-wrapper {
-  width: 100%;
+  width: 130%;
   display: flex;
   flex-direction: column;
   margin-top: 1rem;
+
+  .search-content {
+    width: 100%;
+    border-radius: 0.25rem;
+    background: #f6f9fe;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    min-height: 3.62rem;
+    border-radius: 0.25rem;
+    align-items: center;
+    flex-wrap: wrap;
+
+    .custom-form-field {
+      backdrop-filter: blur(17.100000381469727px);
+      margin-top: 0.3rem;
+      width: fit-content;
+      margin-right: 1rem;
+
+      @include mat.form-field-overrides(
+        (
+          outlined-container-shape: 2.81rem,
+          container-height: 4.093rem,
+          outlined-input-text-placeholder-color: #3e4143,
+          outlined-outline-color: #dde6f6,
+          filled-container-color: #fff,
+          outlined-hover-outline-color: #4285f4,
+        )
+      );
+    }
+
+    .custom-reset {
+      height: 4.093rem;
+      align-self: stretch;
+      border-radius: 2.25rem;
+      border: 0.9px solid var(--light-blue, #dde6f6);
+      opacity: 0.9;
+      width: fit-content;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 0.3rem;
+      margin-bottom: 1rem;
+      padding: 0rem 2rem;
+      cursor: pointer;
+
+      .refresh-icon {
+        width: 1.625rem;
+        flex-shrink: 0;
+        fill: var(--new-black, #1f1f1f);
+        padding-right: 1.5rem;
+      }
+      .reset-text {
+        color: var(--new-black, #1f1f1f);
+        font-family: Roboto;
+        font-size: 1rem;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 1.35rem; /* 135% */
+        text-align: center;
+      }
+    }
+  }
 
   .empty-data-message {
     @include flex-center;
@@ -29,7 +93,7 @@
 
   .custom-table {
     border: 1px solid #ccc;
-    width: 100%;
+    width: 130%;
     th.mat-mdc-header-cell {
       @include table-header-text;
       color: $color-black;
@@ -53,16 +117,18 @@
       width: 10%;
     }
     .mat-column-geminiEnterpriseAppLink {
-      width: 10%;
+      width: 20%;
+      word-break: break-all;
     }
     .mat-column-driveFolderLink {
-      width: 10%;
+      width: 20%;
+      word-break: break-all;
     }
     .mat-column-demoOnBoardedStatus {
-      width: 5%;
+      width: 10%;
     }
     .mat-column-featureLicenseApp {
-      width: 5%;
+      width: 10%;
     }
 
     .mat-column-saasApplications {
@@ -87,7 +153,19 @@
       color: $color-black;
       height: fit-content !important;
       word-wrap: break-word;
+      padding-top: 1rem;
+      padding-bottom: 1rem;
     }
+    @include mat.form-field-overrides(
+      (
+        outlined-container-shape: 2.81rem,
+        container-height: 4.093rem,
+        outlined-input-text-placeholder-color: #3e4143,
+        outlined-outline-color: #dde6f6,
+        filled-container-color: #fff,
+        outlined-hover-outline-color: #4285f4,
+      )
+    );
     .status-wrapper {
       display: flex;
       align-items: center;
@@ -107,14 +185,14 @@
         line-height: 1.5rem; /* 133.333% */
       }
     }
-    .show-past-checkbox-wrapper {
+    .show-demo-checkbox-wrapper {
       background-color: $color-bg-lighter;
       height: 4.59231rem;
       align-items: center;
       width: fit-content;
       margin-right: 1rem;
 
-      .show-past-checkbox {
+      .show-demo-checkbox {
         display: block;
       }
       ::ng-deep .mat-mdc-checkbox label {
@@ -239,8 +317,16 @@
 }
 
 :host ::ng-deep {
+  .mat-mdc-header-cell {
+    background-color: #ecf3fe;
+  }
   .mdc-floating-label {
-    padding-bottom: 0.8rem;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+  }
+  .mdc-text-field--outlined .mat-mdc-form-field-infix {
+    padding-top: null; /* Example value, adjust as needed */
+    padding-bottom: null;
   }
 }
 ::ng-deep .mat-mdc-select-panel {

@@ -6,6 +6,7 @@
         <mat-label>Demo ID</mat-label>
         <input
           matInput
+          type="number"
           placeholder="Demo ID*"
           [formControlName]="DEMO_ID_FORM"
           maxlength="50"
@@ -30,7 +31,7 @@
           matInput
           placeholder="Demo Group Email*"
           [formControlName]="DEMO_GROUP_EMAIL_FORM"
-          maxlength="50"
+          maxlength="100"
         />
       </mat-form-field>
       <mat-form-field appearance="outline" class="custom-form-field">
@@ -39,7 +40,7 @@
           matInput
           placeholder="Gemini Enterprise App Link*"
           [formControlName]="GEMINI_ENTERPRISE_APP_LINK_FORM"
-          maxlength="50"
+          maxlength="100"
         />
       </mat-form-field>
     </div>
@@ -53,6 +54,17 @@
           [formControlName]="DRIVE_FOLDER_LINK_FORM"
           maxlength="50"
         />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="custom-form-field">
+        <mat-label>Organization Unit</mat-label>
+        <mat-select [formControlName]="ORGANIZARION_UNIT_FORM">
+          @for(orgUnit of organizationUnit(); track orgUnit.id){
+          <mat-option [value]="orgUnit">
+            {{ orgUnit.orgunitpath }}
+          </mat-option>
+          }
+        </mat-select>
       </mat-form-field>
     </div>
 
@@ -119,4 +131,16 @@
       </mat-checkbox>
     </div>
   </form>
+
+  <div class="button-wrapper">
+    <button matButton class="cancel-button" (click)="onCancel()">Cancel</button>
+    <button
+      matButton
+      id="btn-confirm"
+      class="confirm-button"
+      (click)="onConfirm()"
+    >
+      Add
+    </button>
+  </div>
 </div>

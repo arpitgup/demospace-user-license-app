@@ -176,7 +176,7 @@ export class HomeComponent implements OnInit {
         },
       });
   }
-  updateHomeMenuList(feature_license_app: string | undefined) {
+  updateHomeMenuList(feature_license_app: boolean | undefined) {
     if ((feature_license_app || false) === false) {
       this.homeMenuItems = this.homeMenuItems.filter(
         (item) => item.type !== HomeItems.LICENSE_RESERVATION

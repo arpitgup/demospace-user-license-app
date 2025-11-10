@@ -5,6 +5,9 @@ import { environment } from '../../../environments/environment';
 import { map, Observable, tap } from 'rxjs';
 
 import { DemoDetails } from '../models/demo-details.model';
+import { OrganizationUnit } from '../models/organization-unit.model';
+import { OnBoardNewDemoRequest } from '../models/onboard-new-demo-request.model';
+import { UpdateDemoRequest } from '../models/update-demo-request.model';
 
 @Injectable({
   providedIn: 'root',
@@ -25,9 +28,41 @@ export class DemoService {
             return {
               ...item,
               applicationIds: item.saas_applications.split(',').map(Number),
-              applications:[]
+              applications: [],
             };
           });
+        })
+      );
+  }
+
+  fetchAllOrganizations(): Observable<OrganizationUnit[]> {
+    return this.http.get<OrganizationUnit[]>(
+      `${this.apiUrl}/admin/organization/list_organization_units`
+    );
+  }
+
+  createNewDemo(payload: OnBoardNewDemoRequest): Observable<DemoDetails> {
+    return this.http.post<DemoDetails>(
+      `${this.apiUrl}/admin/onboard_new_demo`,
+      payload
+    );
+  }
+  updateOnBoardDemo(
+    payload: UpdateDemoRequest,
+    demoId: string
+  ): Observable<DemoDetails> {
+    return this.http
+      .patch<DemoDetails>(
+        `${this.apiUrl}/admin/update-onboarded-demos/${demoId}`,
+        payload
+      )
+      .pipe(
+        map((res) => {
+          return {
+            ...res,
+            applicationIds: res.saas_applications.split(',').map(Number),
+            applications: [],
+          };
         })
       );
   }

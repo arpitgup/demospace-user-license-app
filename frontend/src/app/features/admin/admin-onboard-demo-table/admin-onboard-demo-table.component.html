@@ -6,7 +6,62 @@
     [errorMessage]="errorMessage()"
     (retryClicked)="onRetryCall()"
   ></app-error-message>
-  } @else{ @if(dataSource.data.length===0){
+  } @else{
+  <form [formGroup]="searchForm" class="search-content">
+    <div class="custom-form-field">
+      <mat-form-field class="custom-form-field" appearance="outline">
+        <mat-label class="custom-label">Search by Demo Id</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          [formControlName]="SEARCH_DEMO_ID_FORM"
+          placeholder="Search by Demo Id"
+        />
+      </mat-form-field>
+    </div>
+    <div class="custom-form-field">
+      <mat-form-field appearance="outline">
+        <mat-label>Search by Demo Title</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          [formControlName]="SEARCH_DEMO_TITLE_FORM"
+          placeholder="Search by Demo Title"
+        />
+      </mat-form-field>
+    </div>
+
+    <div class="custom-form-field">
+      <mat-form-field appearance="outline">
+        <mat-label>Search by Applications</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          [formControlName]="SEARCH_APPLICATIONS_FORM"
+          placeholder="Search by Applications"
+        />
+      </mat-form-field>
+    </div>
+
+    <div class="custom-form-field">
+      <mat-form-field appearance="outline">
+        <mat-label>Search by Org Unit</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          [formControlName]="SEARCH_ORG_UNIT_FORM"
+          placeholder="Search by Org Unit"
+        />
+      </mat-form-field>
+    </div>
+
+    <div class="custom-reset" (click)="onRefreshCall()">
+      <mat-icon class="refresh-icon">refresh</mat-icon>
+      <span class="reset-text">Refresh</span>
+    </div>
+  </form>
+
+  @if(dataSource.data.length===0){
   <div class="empty-data-message">
     <mat-icon class="empty-data-icon">info_outline</mat-icon>
     <span> No demos to display</span>
@@ -29,7 +84,7 @@
             matInput
             placeholder="Demo Title*"
             [formControl]="demoTitleController"
-            maxlength="50"
+            maxlength="100"
           />
           @if(demoTitleController!==null &&
           demoTitleController.hasError('required')&&
@@ -48,7 +103,27 @@
         Demo User Group Email
       </th>
       <td mat-cell *matCellDef="let element">
+        @if(element.isEdit===true){
+        <mat-form-field appearance="fill">
+          <input
+            matInput
+            placeholder=" Demo User Group Email*"
+            [formControl]="groupEmailController"
+            maxlength="100"
+          />
+          @if(groupEmailController!==null &&
+          groupEmailController.hasError('required')&&
+          groupEmailController.touched){
+          <mat-error>Demo user group email required</mat-error>
+          }@else if(groupEmailController!==null &&
+          groupEmailController.hasError('email')&&
+          groupEmailController.touched){
+          <mat-error>Invalid demo user group email</mat-error>
+          }
+        </mat-form-field>
+        }@else{
         {{ element.demo_user_group_email }}
+        }
       </td>
     </ng-container>
 
@@ -57,7 +132,27 @@
         Gemini Enterprise App Link
       </th>
       <td mat-cell *matCellDef="let element">
+        @if(element.isEdit===true){
+        <mat-form-field appearance="fill">
+          <input
+            matInput
+            placeholder="Gemini Enterprise Link*"
+            [formControl]="geminiEnterpriseLinkController"
+            maxlength="100"
+          />
+          @if(geminiEnterpriseLinkController!==null &&
+          geminiEnterpriseLinkController.hasError('required')&&
+          geminiEnterpriseLinkController.touched){
+          <mat-error>Gemini Enterprise Link required</mat-error>
+          }@else if(geminiEnterpriseLinkController!==null &&
+          geminiEnterpriseLinkController.hasError('pattern')&&
+          geminiEnterpriseLinkController.touched){
+          <mat-error>Invalid Gemini Enterprise Link</mat-error>
+          }
+        </mat-form-field>
+        }@else{
         {{ element.gemini_enterprise_app_link }}
+        }
       </td>
     </ng-container>
 
@@ -66,17 +161,33 @@
         Drive Folder Link
       </th>
       <td mat-cell *matCellDef="let element">
+        @if(element.isEdit===true){
+        <mat-form-field appearance="fill">
+          <input
+            matInput
+            placeholder="Drive Folder Link"
+            [formControl]="driveLinkController"
+            maxlength="100"
+          />
+          @if(driveLinkController!==null &&
+          driveLinkController.hasError('pattern')&&
+          driveLinkController.touched){
+          <mat-error>Invalid Driver Link</mat-error>
+          }
+        </mat-form-field>
+        }@else{
         {{ element.drive_folder_link }}
+        }
       </td>
     </ng-container>
 
     <ng-container matColumnDef="demoOnBoardedStatus">
       <th mat-header-cell *matHeaderCellDef>Demo OnBoarded</th>
       <td mat-cell *matCellDef="let element">
-        @if(element.isEdit){
-        <div class="show-past-checkbox-wrapper">
+        @if(element.isEdit===true){
+        <div class="show-demo-checkbox-wrapper">
           <mat-checkbox
-            class="show-past-checkbox"
+            class="show-demo-checkbox"
             (change)="onSelectDemoOnBoarded($event.checked, element.demo_id)"
             [checked]="element.demo_onboarding_status === 'live' ? true : false"
           >
@@ -86,7 +197,6 @@
         }@else{
         <div class="status-wrapper">
           @if(element.demo_onboarding_status==='live'){
-          <img src="assets/svgs/ic_admin.svg" alt="admin" class="admin-icon" />
           <span class="status-text">Active</span>
           }@else{
           <span class="status-text">InActive</span>
@@ -99,10 +209,10 @@
     <ng-container matColumnDef="featureLicenseApp">
       <th mat-header-cell *matHeaderCellDef>License Reservation</th>
       <td mat-cell *matCellDef="let element">
-        @if(element.isEdit){
-        <div class="show-past-checkbox-wrapper">
+        @if(element.isEdit===true){
+        <div class="show-demo-checkbox-wrapper">
           <mat-checkbox
-            class="show-past-checkbox"
+            class="show-demo-checkbox"
             (change)="onSelectFeatureLicense($event.checked, element.demo_id)"
             [checked]="element.feature_license_app || false"
           >
@@ -112,7 +222,6 @@
         }@else{
         <div class="status-wrapper">
           @if(element.feature_license_app===true){
-          <img src="assets/svgs/ic_admin.svg" alt="admin" class="admin-icon" />
           <span class="status-text">Enabled</span>
           }@else{
           <span class="status-text">Disabled</span>
@@ -128,7 +237,7 @@
         <div class="application-wrapper">
           <div class="app-chip-list">
             @for(app of applicationList; track app.id){
-            @if(element.applicationIds.includes(app.id)){
+            @if(element.applicationIds&&element.applicationIds.includes(app.id)){
             <div class="app-chip-wrapper">
               <span class="app-chip-text">{{ app.name }}</span>
             </div>
@@ -163,7 +272,20 @@
     <ng-container matColumnDef="orgUnit">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Org Unit</th>
       <td mat-cell *matCellDef="let element">
-        {{ element.representative_profile?.org_unit || "" }}
+        @if(element.isEdit===true){
+        <mat-form-field appearance="fill">
+          <mat-label>Organization Unit</mat-label>
+          <mat-select [formControl]="orgUnitController">
+            @for(orgUnit of organizationUnit; track orgUnit.id){
+            <mat-option [value]="orgUnit.orgunitpath">
+              {{ orgUnit.orgunitpath }}
+            </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        }@else{
+        {{ element.organization_unit || "" }}
+        }
       </td>
     </ng-container>
 

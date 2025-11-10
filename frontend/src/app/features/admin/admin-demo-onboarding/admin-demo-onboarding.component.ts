@@ -26,4 +26,7 @@ export class AdminDemoOnboardingComponent {
   changeTabContent() {
     this.tabGroup.selectedIndex = 1;
   }
+   demoOnBoarding() {
+    this.tabGroup.selectedIndex = 0;
+  }
 }
