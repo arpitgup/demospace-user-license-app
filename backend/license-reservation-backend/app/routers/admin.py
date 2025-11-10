@@ -1266,10 +1266,10 @@ def update_onboarded_demos(demo_id: str, req: UpdateOnboardedDemoDetailsRequest,
         )
 
     feature_license_app = req.feature_license_app
-    if not feature_license_app:
+    if feature_license_app is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Feature License App is required."
+            detail="Feature License App is required and must be a boolean value (True or False)."
         )
     
     org_unit_path = req.organization_unit
