@@ -393,7 +393,7 @@ class DemoDetailOut(BaseModel):
     gemini_enterprise_app_link: Optional[str]
     drive_folder_link: Optional[str]
     demo_onboarding_status: Optional[str]
-    feature_license_app: Optional[bool]
+    feature_license_app: bool
     saas_applications: Optional[str]
     organization_unit: Optional[str]
     representative_profile: Optional[RepresentativeProfileOut]
@@ -422,7 +422,7 @@ class UpdateOnboardedDemoDetailsRequest(BaseModel):
     gemini_enterprise_app_link: str
     drive_folder_link: Optional[str] = None
     demo_onboarding_status: str
-    feature_license_app: str
+    feature_license_app: bool
     saas_applications: Optional[str] = None
     organization_unit: str
 
@@ -433,7 +433,7 @@ class UpdateOnboardedDemoDetailsResponse(BaseModel):
     gemini_enterprise_app_link: Optional[str] = None
     drive_folder_link: Optional[str] = None
     demo_onboarding_status: Optional[str] = None
-    feature_license_app: Optional[bool] = None
+    feature_license_app: bool
     saas_applications: Optional[str] = None
     organization_unit: Optional[str] = None
 
