@@ -20,8 +20,6 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTimepickerModule } from '@angular/material/timepicker';
-import { ReservationService } from '../../../core/services/reservation.service';
-
 import { Application } from '../../../core/models/application.model';
 import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
@@ -66,7 +64,6 @@ import { LoaderService } from '../../../core/services/loading.service';
 export class AdminCreateReservationComponenet implements OnInit {
   private fb = inject(FormBuilder);
   private platformId = inject(PLATFORM_ID);
-  private reservationService = inject(ReservationService);
   private adminService = inject(AdminService);
   readonly USER_EMAIL_FORM = 'userEmail';
   readonly START_DATE_FORM = 'startDate';
@@ -261,7 +258,7 @@ export class AdminCreateReservationComponenet implements OnInit {
   }
   getAllUserApplications() {
     this.isApplicationLoading.set(true);
-    this.reservationService.getApplications().subscribe({
+    this.adminService.fetchAllActiveApplications().subscribe({
       next: (res) => {
         this.applications = res;
         this.applicationLoadingErrorMessage.set('');
