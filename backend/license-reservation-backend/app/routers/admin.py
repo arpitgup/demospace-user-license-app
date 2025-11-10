@@ -47,11 +47,9 @@ from ..common.schemas import (
     UpdateOnboardedDemoDetailsResponse,
     OnboardNewDemoRequest,
     OnboardNewDemoResponse,
-    OrgUnitOut,
-    OrgUnitResponse,
-    CreateOrgUnitRequest,
     OrganizationUnitLocalOut,
-    RepresentativeProfileOut
+    RepresentativeProfileOut,
+    OrganizationUnitCreateRequest
 )
 from ..utils.background_tasks import (
     delete_reservation_tasks,
@@ -1338,6 +1336,43 @@ def list_organization_units(db: Session = Depends(get_db), user_email: str = Dep
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to retrieve local organization units. Details: {e}"
+        )
+
+@router.post("/organization-units", response_model=OrganizationUnitLocalOut, status_code=status.HTTP_201_CREATED)
+def write_organization_unit(req: OrganizationUnitCreateRequest, db: Session = Depends(get_db)):
+    """
+    Write a new Organization Unit record in the database.
+    """
+    logger.info(f"Attempting to create new Organization Unit for path: {req.orgunitpath}")
+    organization_unit_path = req.orgunitpath
+    if not organization_unit_path:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Organization Unit path is required."
+        )
+
+    new_org_unit = OrganizationUnits(**req.model_dump())
+    
+    db.add(new_org_unit)
+    
+    try:
+        db.commit()
+        db.refresh(new_org_unit)
+        logger.info(f"Successfully created Organization Unit with ID: {new_org_unit.id}")
+        return new_org_unit
+    except IntegrityError as e:
+        db.rollback()
+        logger.error(f"Organization Unit creation failed: {detail}. Error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=detail
+        )
+    except Exception as e:
+        db.rollback()
+        logger.error(f"An unexpected error occurred during Organization Unit creation: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while creating the organization unit.",
         )
 
 # @router.get("/organization/get_org_units_workspace", response_model=List[OrgUnitOut])
