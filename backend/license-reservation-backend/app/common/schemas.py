@@ -417,14 +417,14 @@ class OnboardedDemoDetailsOut(BaseModel):
         from_attributes = True
 
 class UpdateOnboardedDemoDetailsRequest(BaseModel):
-    demo_title: Optional[str] = None
-    demo_user_group_email: Optional[str] = None
-    gemini_enterprise_app_link: Optional[str] = None
+    demo_title: str
+    demo_user_group_email: str
+    gemini_enterprise_app_link: str
     drive_folder_link: Optional[str] = None
-    demo_onboarding_status: Optional[str] = None
-    feature_license_app: Optional[bool] = None
+    demo_onboarding_status: str
+    feature_license_app: str
     saas_applications: Optional[str] = None
-    organization_unit: Optional[str] = None
+    organization_unit: str
 
 class UpdateOnboardedDemoDetailsResponse(BaseModel):
     demo_id: str
