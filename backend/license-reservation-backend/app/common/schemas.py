@@ -459,12 +459,8 @@ class OnboardNewDemoResponse(BaseModel):
     saas_applications: Optional[str] = None
     organization_unit: str
 
-class OrgUnitOut(BaseModel):
-    orgUnitPath: str
-    description: Optional[str] = None
-
-class CreateOrgUnitRequest(BaseModel):
-    org_unit_name: str
+class OrganizationUnitCreateRequest(BaseModel):
+    orgunitpath: str
     description: Optional[str] = None
     cost_centre: Optional[str] = None
     manager_name: Optional[str] = None
@@ -473,26 +469,16 @@ class CreateOrgUnitRequest(BaseModel):
     rep_role: Optional[str] = None
     rep_department: Optional[str] = None
 
-class OrgUnitResponse(BaseModel):
-    kind: str
-    etag: str
-    name: str
-    description: Optional[str] = None
-    orgUnitPath: str
-    orgUnitId: str
-    parentOrgUnitPath: str
-    parentOrgUnitId: str
-
 class OrganizationUnitLocalOut(BaseModel):
-    id: Optional[int] = None
+    id: int
     orgunitpath: str
     description: Optional[str] = None
-    cost_centre: str
+    cost_centre: Optional[str] = None
     manager_name: str
     manager_email: str
-    manager_title: str
-    rep_role: str
-    rep_department: str
-    
+    manager_title: Optional[str] = None
+    rep_role: Optional[str] = None
+    rep_department: Optional[str] = None
+
     class Config:
         from_attributes = True
