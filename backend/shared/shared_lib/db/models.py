@@ -11,12 +11,9 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.dialects.postgresql import ENUM as PGEnum
-from ..enums import ReservationStatus, ApplicationLicenseType, DowntimeStatus
-
-
+from ..enums import ReservationStatus, ApplicationLicenseType, DowntimeStatus, DemoOnboardingStatus
 
 Base = declarative_base()
-
 
 reservation_applications_table = Table(
     "reservation_applications",
@@ -158,42 +155,45 @@ class ApplicationDowntime(Base):
 #     name = Column(String(255))
 #     email = Column(String(255), unique=True)
 
-class RepresentativeProfile(Base):
-    __tablename__ = "representative_profile"
-    
-    # *** THIS IS THE CRITICAL LINE TO FIX THE MAPPER ERROR ***
-    # It tells SQLAlchemy that this primary key is also a foreign key referencing the other table.
-    demo_id = Column(String(10), ForeignKey("demo_details.demo_id"), primary_key=True)
-    
+# class RepresentativeProfile(Base):
+#     __tablename__ = "representative_profile"
+#     demo_id = Column(String(10), ForeignKey("demo_details.demo_id"), primary_key=True)
+#     cost_centre = Column(String(20))
+#     manager_name = Column(String(100), nullable=False)
+#     manager_email = Column(String(255), nullable=False)
+#     manager_title = Column(String(100))
+#     rep_role = Column(String(100))
+#     rep_department = Column(String(50))
+#     org_unit = Column(String(100))
+
+#     demo = relationship(
+#         "DemoDetail",
+#         back_populates="representative_profile",
+#         uselist=False
+#     )
+
+class DemoDetail(Base):
+    __tablename__ = "demo_details"
+    demo_id = Column(String(10), primary_key=True)
+    demo_title = Column(String(255), unique=True, nullable=False)
+    demo_user_group_email = Column(String(255))
+    gemini_enterprise_app_link = Column(String) 
+    drive_folder_link = Column(String)    
+    demo_onboarding_status = Column(
+        PGEnum(DemoOnboardingStatus), default=DemoOnboardingStatus.ACTIVE, index=True
+    )
+    feature_license_app = Column(Boolean)
+    saas_applications = Column(String)
+    organization_unit = Column(String(255))
+
+class OrganizationUnits(Base):
+    __tablename__ = "organization_units"
+    id = Column(Integer, primary_key=True, autoincrement=True) 
+    orgunitpath = Column(String(255), nullable=False)
+    description = Column(String(255))
     cost_centre = Column(String(20))
     manager_name = Column(String(100), nullable=False)
     manager_email = Column(String(255), nullable=False)
     manager_title = Column(String(100))
     rep_role = Column(String(100))
     rep_department = Column(String(50))
-    org_unit = Column(String(100))
-
-    # The relationship is now automatically determined by the ForeignKey above
-    demo = relationship("DemoDetail", back_populates="representative_profile", uselist=False)
-
-class DemoDetail(Base):
-    __tablename__ = "demo_details"
-    
-    demo_id = Column(String(10), primary_key=True)
-    demo_title = Column(String(255), unique=True, nullable=False)
-    # ... (other columns)
-    
-    demo_user_group_email = Column(String(255))
-    gemini_enterprise_app_link = Column(String) 
-    drive_folder_link = Column(String)
-    feedback_bug_link = Column(String)
-    demo_onboarding_status = Column(String(50))
-    feature_license_app = Column(Boolean)
-    saas_applications = Column(String)
-
-    # The back-reference relationship is also correct.
-    representative_profile = relationship(
-        "RepresentativeProfile",
-        back_populates="demo",
-        uselist=False
-    )

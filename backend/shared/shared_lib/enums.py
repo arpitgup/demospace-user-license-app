@@ -16,3 +16,8 @@ class DowntimeStatus(str, Enum):
     ACTIVE = "ACTIVE"
     COMPLETED = "COMPLETED"
     CANCELLED = "CANCELLED"
+
+class DemoOnboardingStatus(str, Enum):
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+    DEPRECATED = "DEPRECATED"

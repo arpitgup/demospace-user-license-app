@@ -1,10 +1,11 @@
 import { Component, signal } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { MenuItems } from './admin-home.enums';
-import { AdminReservation } from '../admin-reservation/admin-reservation';
+import { MenuItems } from '../../../enums/admin-home.enums';
+import { AdminReservation } from '../reservation/admin-reservation/admin-reservation';
 import { AdminDowntimeComponent } from '../admin-downtime/admin-downtime.component';
-import { AdminBotsComponent } from '../admin-bots/admin-bots.component';
-import { AdminApplicationsComponent } from '../admin-applications/admin-applications.component';
+import { AdminApplicationsComponent } from '../applications/admin-applications/admin-applications.component';
+import { AdminBotsComponent } from '../bots/admin-bots/admin-bots.component';
+import { AdminDemoOnboardingComponent } from '../demo/admin-demo-onboarding/admin-demo-onboarding.component';
 
 export interface AdminMenuItems {
   id: number;
@@ -21,6 +22,7 @@ export interface AdminMenuItems {
     AdminBotsComponent,
     AdminDowntimeComponent,
     AdminApplicationsComponent,
+    AdminDemoOnboardingComponent
   ],
   templateUrl: './admin-home.component.html',
   styleUrl: './admin-home.component.scss',
@@ -56,6 +58,13 @@ export class AdminHomeComponent {
       name: 'Application Downtime',
       isSelected: false,
       type: MenuItems.APPLICATION_DOWNTIME,
+    },
+    {
+      id: 5,
+      icon: 'assets/svgs/ic_nav_downTime.svg',
+      name: 'Demo Onboarding',
+      isSelected: false,
+      type: MenuItems.DEMO_ONBOARDING,
     },
   ];
 
