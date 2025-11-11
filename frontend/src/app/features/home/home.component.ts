@@ -18,6 +18,7 @@ import { ErrorMessage } from '../../shared/components/error-message/error-messag
 import { INVALID_DEMO_ID_MESSAGE } from '../../shared/constants/error.constants';
 import { BUGANIZER_URL } from '../../shared/constants/links.contants';
 import { HowToLoginComponent } from '../how-to-login/how-to-login.component';
+import { DemoOnBoardingEnum } from '../../enums/admin-demo-onboarding.enums';
 
 export interface HomeMenuItems {
   id: number;
@@ -55,6 +56,7 @@ export class HomeComponent implements OnInit {
   userDetails = this.userService.userInfo;
   demoId: string = '';
   private platformId = inject(PLATFORM_ID);
+  demoOnBoardingStatus=DemoOnBoardingEnum;
   homeMenuItems: HomeMenuItems[] = [
     {
       id: 1,
@@ -176,7 +178,7 @@ export class HomeComponent implements OnInit {
         },
       });
   }
-  updateHomeMenuList(feature_license_app: string | undefined) {
+  updateHomeMenuList(feature_license_app: boolean | undefined) {
     if ((feature_license_app || false) === false) {
       this.homeMenuItems = this.homeMenuItems.filter(
         (item) => item.type !== HomeItems.LICENSE_RESERVATION
