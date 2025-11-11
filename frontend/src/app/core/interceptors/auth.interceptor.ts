@@ -64,7 +64,9 @@ function callApi(
     retry({
       count: 5,
       delay: (error) => {
-        if (error.status === 503) {
+        if (error.status === 404 || error.status === 400) {
+          return throwError(() => error);
+        } else if (error.status === 503) {
           return timer(1000);
         }
 

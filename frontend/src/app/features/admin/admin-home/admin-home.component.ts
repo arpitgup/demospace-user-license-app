@@ -1,11 +1,11 @@
 import { Component, signal } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { MenuItems } from './admin-home.enums';
-import { AdminReservation } from '../admin-reservation/admin-reservation';
+import { MenuItems } from '../../../enums/admin-home.enums';
+import { AdminReservation } from '../reservation/admin-reservation/admin-reservation';
 import { AdminDowntimeComponent } from '../admin-downtime/admin-downtime.component';
-import { AdminBotsComponent } from '../admin-bots/admin-bots.component';
-import { AdminApplicationsComponent } from '../admin-applications/admin-applications.component';
-import { AdminDemoOnboardingComponent } from '../admin-demo-onboarding/admin-demo-onboarding.component';
+import { AdminApplicationsComponent } from '../applications/admin-applications/admin-applications.component';
+import { AdminBotsComponent } from '../bots/admin-bots/admin-bots.component';
+import { AdminDemoOnboardingComponent } from '../demo/admin-demo-onboarding/admin-demo-onboarding.component';
 
 export interface AdminMenuItems {
   id: number;

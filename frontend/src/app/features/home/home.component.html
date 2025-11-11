@@ -9,11 +9,14 @@
 </div>
 
 }@else if(demoDetails()!==null
-&&demoDetails()?.demo_onboarding_status!=='live'){
-<app-error-message
-  errorMessage="Demo is not live yet"
-  (retryClicked)="onRetryCall()"
-></app-error-message>
+&&demoDetails()?.demo_onboarding_status!=='live'&&
+demoDetails()?.demo_onboarding_status!==demoOnBoardingStatus.ACTIVE){
+<div class="error-container">
+  <app-error-message
+    errorMessage="Demo is not live yet"
+    (retryClicked)="onRetryCall()"
+  ></app-error-message>
+</div>
 } @else{
 <mat-drawer-container class="mat-container">
   <mat-drawer mode="side" opened class="side-nav">
