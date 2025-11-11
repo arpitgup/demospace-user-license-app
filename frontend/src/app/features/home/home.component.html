@@ -12,10 +12,17 @@
 &&demoDetails()?.demo_onboarding_status!=='live'&&
 demoDetails()?.demo_onboarding_status!==demoOnBoardingStatus.ACTIVE){
 <div class="error-container">
+  @if(demoDetails()?.demo_onboarding_status===demoOnBoardingStatus.INACTIVE){
   <app-error-message
-    errorMessage="Demo is not live yet"
+    errorMessage="User application not enabled for this demo."
     (retryClicked)="onRetryCall()"
   ></app-error-message>
+  }@else{
+  <app-error-message
+    errorMessage="User application has been deprecated for this demo."
+    (retryClicked)="onRetryCall()"
+  ></app-error-message>
+  }
 </div>
 } @else{
 <mat-drawer-container class="mat-container">
