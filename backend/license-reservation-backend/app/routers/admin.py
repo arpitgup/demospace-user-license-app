@@ -18,7 +18,7 @@ from shared_lib.db.models import (
 )
 from shared_lib.dependencies import get_user_email, get_db, get_app_config
 from typing import List
-from shared_lib.enums import DowntimeStatus
+from shared_lib.enums import DowntimeStatus, DemoOnboardingStatus
 from shared_lib.admin_service import create_custom_schema, is_group_exists, get_user, get_organization_units, create_organization_unit
 from ..common.constants import ACCOUNT_CUSTOMERID, RESERVATION_EMAIL_SENDER, BOOKED_RESERVATION_EMAIL_CONTENT
 from datetime import datetime

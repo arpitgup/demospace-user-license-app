@@ -11,12 +11,9 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.dialects.postgresql import ENUM as PGEnum
-from ..enums import ReservationStatus, ApplicationLicenseType, DowntimeStatus
-
-
+from ..enums import ReservationStatus, ApplicationLicenseType, DowntimeStatus, DemoOnboardingStatus
 
 Base = declarative_base()
-
 
 reservation_applications_table = Table(
     "reservation_applications",
@@ -182,7 +179,9 @@ class DemoDetail(Base):
     demo_user_group_email = Column(String(255))
     gemini_enterprise_app_link = Column(String) 
     drive_folder_link = Column(String)    
-    demo_onboarding_status = Column(String(50))
+    demo_onboarding_status = Column(
+        PGEnum(DemoOnboardingStatus), default=DemoOnboardingStatus.ACTIVE, index=True
+    )
     feature_license_app = Column(Boolean)
     saas_applications = Column(String)
     organization_unit = Column(String(255))

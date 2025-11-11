@@ -9,7 +9,7 @@ from pydantic import (
 from pydantic.alias_generators import to_camel
 from typing import List, Optional
 from datetime import datetime, timezone
-from shared_lib.enums import ReservationStatus, ApplicationLicenseType, DowntimeStatus
+from shared_lib.enums import ReservationStatus, ApplicationLicenseType, DowntimeStatus, DemoOnboardingStatus
 
 
 def convert_to_utc(v: datetime) -> datetime:
@@ -392,7 +392,7 @@ class DemoDetailOut(BaseModel):
     demo_user_group_email: Optional[str]
     gemini_enterprise_app_link: Optional[str]
     drive_folder_link: Optional[str]
-    demo_onboarding_status: Optional[str]
+    demo_onboarding_status: DemoOnboardingStatus
     feature_license_app: bool
     saas_applications: Optional[str]
     organization_unit: Optional[str]
@@ -407,7 +407,7 @@ class OnboardedDemoDetailsOut(BaseModel):
     demo_user_group_email: str
     gemini_enterprise_app_link: str
     drive_folder_link: Optional[str]
-    demo_onboarding_status: str
+    demo_onboarding_status: DemoOnboardingStatus
     feature_license_app: bool
     saas_applications: str
     organization_unit: str
@@ -421,7 +421,7 @@ class UpdateOnboardedDemoDetailsRequest(BaseModel):
     demo_user_group_email: str
     gemini_enterprise_app_link: str
     drive_folder_link: Optional[str] = None
-    demo_onboarding_status: str
+    demo_onboarding_status: DemoOnboardingStatus
     feature_license_app: bool
     saas_applications: Optional[str] = None
     organization_unit: str
@@ -432,7 +432,7 @@ class UpdateOnboardedDemoDetailsResponse(BaseModel):
     demo_user_group_email: Optional[str] = None
     gemini_enterprise_app_link: Optional[str] = None
     drive_folder_link: Optional[str] = None
-    demo_onboarding_status: Optional[str] = None
+    demo_onboarding_status: DemoOnboardingStatus
     feature_license_app: bool
     saas_applications: Optional[str] = None
     organization_unit: Optional[str] = None
@@ -443,7 +443,7 @@ class OnboardNewDemoRequest(BaseModel):
     demo_user_group_email: str
     gemini_enterprise_app_link: str
     drive_folder_link: Optional[str] = None
-    demo_onboarding_status: str
+    demo_onboarding_status: DemoOnboardingStatus
     feature_license_app: bool
     saas_applications: Optional[str] = None
     organization_unit: str
@@ -454,7 +454,7 @@ class OnboardNewDemoResponse(BaseModel):
     demo_user_group_email: str
     gemini_enterprise_app_link: str
     drive_folder_link: Optional[str] = None
-    demo_onboarding_status: str
+    demo_onboarding_status: DemoOnboardingStatus
     feature_license_app: bool
     saas_applications: Optional[str] = None
     organization_unit: str
