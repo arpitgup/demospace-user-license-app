@@ -1375,39 +1375,39 @@ def write_organization_unit(req: OrganizationUnitCreateRequest, db: Session = De
             detail="An unexpected error occurred while creating the organization unit.",
         )
 
-@router.delete("/delete-onboarded-demos/{demo_id}")
-def delete_onboarded_demos(
-    demo_id: str, 
-    db: Session = Depends(get_db), 
-    user_email: str = Depends(get_user_email)
-):
-    """
-    Deletes an onboarded demo record from the DemoDetail table.
-    """
-    logger.warning(f"Admin User {user_email}: Attempting to delete demo ID: {demo_id}")
+# @router.delete("/delete-onboarded-demos/{demo_id}")
+# def delete_onboarded_demos(
+#     demo_id: str, 
+#     db: Session = Depends(get_db), 
+#     user_email: str = Depends(get_user_email)
+# ):
+#     """
+#     Deletes an onboarded demo record from the DemoDetail table.
+#     """
+#     logger.warning(f"Admin User {user_email}: Attempting to delete demo ID: {demo_id}")
 
-    demo_details = db.query(DemoDetail).filter(
-        DemoDetail.demo_id == demo_id).all()
-    if not demo_details:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Demo ID {demo_id} not found."
-        )
+#     demo_details = db.query(DemoDetail).filter(
+#         DemoDetail.demo_id == demo_id).all()
+#     if not demo_details:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail=f"Demo ID {demo_id} not found."
+#         )
 
-    try:
-        db.query(DemoDetail).filter(DemoDetail.demo_id == demo_id).delete()
-        db.commit()
-        logger.info(f"Admin User {user_email}: Successfully deleted Demo: {demo_id}")
+#     try:
+#         db.query(DemoDetail).filter(DemoDetail.demo_id == demo_id).delete()
+#         db.commit()
+#         logger.info(f"Admin User {user_email}: Successfully deleted Demo: {demo_id}")
         
-    except Exception as e:
-        db.rollback()
-        logger.error(
-            f"Admin user {user_email}: An unexpected error occurred during deletion: {e}"
-        )
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An unexpected error occurred while attempting to delete the demo details.{e}",
-        )
+#     except Exception as e:
+#         db.rollback()
+#         logger.error(
+#             f"Admin user {user_email}: An unexpected error occurred during deletion: {e}"
+#         )
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail=f"An unexpected error occurred while attempting to delete the demo details.{e}",
+#         )
 
 # @router.get("/organization/get_org_units_workspace", response_model=List[OrgUnitOut])
 # def get_org_units_workspace(
