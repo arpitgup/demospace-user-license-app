@@ -57,8 +57,7 @@
         @if(addDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.hasError('required')&&
         addDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.touched){
         <mat-error>Gemini Enterprise App Link required</mat-error>
-        }@else
-        if(addDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.hasError('pattern')&&
+        }@else if(addDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.hasError('pattern')&&
         addDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.touched){
         <mat-error>Invalid Gemini Enterprise App Link</mat-error>
         }
