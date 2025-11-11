@@ -21,4 +21,3 @@ class DemoOnboardingStatus(str, Enum):
     ACTIVE = "ACTIVE"
     INACTIVE = "INACTIVE"
     DEPRECATED = "DEPRECATED"
-    

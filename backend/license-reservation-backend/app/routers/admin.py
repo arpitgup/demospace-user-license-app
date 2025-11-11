@@ -1127,22 +1127,11 @@ def onboard_new_demo(req: OnboardNewDemoRequest, db: Session = Depends(get_db), 
         DemoDetail.demo_id == req.demo_id
     ).first()
     if existing_demo:
-        demo_onboarding_status = existing_demo.demo_onboarding_status
-        if demo_onboarding_status == DemoOnboardingStatus.ACTIVE :
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Demo with ID '{req.demo_id}' is already exist. It's status is currently 'Active'."
-            )
-        if demo_onboarding_status == DemoOnboardingStatus.INACTIVE:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Demo with ID '{req.demo_id}' is already exist. It's status is currently 'Inactive'."
-            )
-        if demo_onboarding_status == DemoOnboardingStatus.DEPRECATED:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Demo with ID '{req.demo_id}' is already exist. It's status is currently 'Deprecated'."
-            )
+        current_status = existing_demo.demo_onboarding_status.value
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Demo with ID '{req.demo_id}' already exists. Current status is {current_status}."
+        )
     try:
         demo_title = req.demo_title
         if not demo_title:
