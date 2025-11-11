@@ -29,6 +29,7 @@ import { OnBoardNewDemoRequest } from '../../../../core/models/onboard-new-demo-
 import { UpdateDemoRequest } from '../../../../core/models/update-demo-request.model';
 import { OrganizationUnit } from '../../../../core/models/organization-unit.model';
 import { DemoOnBoardingEnum } from '../../../../enums/admin-demo-onboarding.enums';
+import { SuccessDialog } from '../../../../shared/dialogs/success-dialog/success-dialog';
 
 @Component({
   selector: 'app-admin-onboard-demo-table',
@@ -455,6 +456,7 @@ export class AdminOnboardDemoTableComponent {
         });
 
         this.updateDemosTable();
+        this.showSuccessDialog();
       },
       error: (error) => {
         this.showErrorDialog(error?.error?.detail || 'Something went wrong');
@@ -465,6 +467,23 @@ export class AdminOnboardDemoTableComponent {
   updateDemosTable() {
     this.fetchSearchDemos(false);
   }
+  showSuccessDialog() {
+    const dialogRef = this.dialog.open(SuccessDialog, {
+      width: 'auto',
+      minWidth: 'none',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        title: 'Success',
+        message: 'Demo updated successfully',
+        confirmText: 'OK',
+      },
+    });
+    dialogRef.afterClosed().subscribe(() => {});
+  }
+
   showErrorDialog(errorMessage: string) {
     this.dialog.open(ErrorDialog, {
       width: 'auto',

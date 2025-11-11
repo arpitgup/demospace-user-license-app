@@ -139,14 +139,14 @@
 
     <ng-container matColumnDef="geminiEnterpriseAppLink">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        Gemini Enterprise App Link
+        Application Link
       </th>
       <td mat-cell *matCellDef="let element">
         @if(element.isEdit===true){
         <mat-form-field appearance="fill">
           <input
             matInput
-            placeholder="Gemini Enterprise Link*"
+            placeholder="Application Link*"
             [formControl]="geminiEnterpriseLinkController"
             maxlength="100"
           />
@@ -167,15 +167,13 @@
     </ng-container>
 
     <ng-container matColumnDef="driveFolderLink">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        Drive Folder Link
-      </th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Drive Link</th>
       <td mat-cell *matCellDef="let element">
         @if(element.isEdit===true){
         <mat-form-field appearance="fill">
           <input
             matInput
-            placeholder="Drive Folder Link"
+            placeholder="Drive Link"
             [formControl]="driveLinkController"
             maxlength="100"
           />
@@ -192,11 +190,11 @@
     </ng-container>
 
     <ng-container matColumnDef="demoOnBoardedStatus">
-      <th mat-header-cell *matHeaderCellDef>Demo OnBoarded</th>
+      <th mat-header-cell *matHeaderCellDef>Demo OnBoarding Status</th>
       <td mat-cell *matCellDef="let element">
         @if(element.isEdit===true){
         <mat-form-field appearance="fill">
-          <mat-label>Demo OnBoarded</mat-label>
+          <mat-label>Demo OnBoarding Status</mat-label>
           <mat-select [formControl]="demoStatusController">
             @for(status of demoOnBoardingStatus; track $index){
             <mat-option [value]="status">
