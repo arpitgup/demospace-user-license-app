@@ -34,6 +34,15 @@ $spacing-md: 1.5rem;
 $spacing-sm: 1rem;
 $spacing-xs: 0.75rem;
 
+.error-container {
+  width: auto;
+  height: auto;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .add-demo-wrapper {
   border-radius: 1.5rem;
   border: 1px solid rgba(190, 191, 192, 0.5);
