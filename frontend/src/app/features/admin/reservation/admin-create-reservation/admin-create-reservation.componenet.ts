@@ -364,7 +364,7 @@ export class AdminCreateReservationComponenet implements OnInit {
       startTime: startDateTime.toISOString(),
       endTime: endDateTime.toISOString(),
       candidateUserEmail: this.createReservationForm.get(this.USER_EMAIL_FORM)
-        ?.value,
+        ?.value?.trim(),
     };
     this.adminService.createReservationByAdmin(request).subscribe({
       next: () => {
