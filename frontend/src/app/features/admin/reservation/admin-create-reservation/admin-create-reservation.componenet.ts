@@ -27,7 +27,10 @@ import {
   isNextDay,
   isSameDay,
 } from '../../../search-by-date/search-by-date.utils';
-import { getLocalTimeZoneAbbreviation } from '../../../../../utilities/utils';
+import {
+  ADMIN_USER_RESERVATION_EMAIL_VALIDATION,
+  getLocalTimeZoneAbbreviation,
+} from '../../../../../utilities/utils';
 import { SearchByApplicationLoader } from '../../../../loaders/search-by-application-loader/search-by-application-loader';
 import { AdminCreateReservationLoaderComponent } from '../../../../loaders/admin-create-reservation-loader/admin-create-reservation-loader.component';
 import { ErrorMessage } from '../../../../shared/components/error-message/error-message';
@@ -96,9 +99,7 @@ export class AdminCreateReservationComponenet implements OnInit {
       [
         Validators.required,
         Validators.email,
-        Validators.pattern(
-          /^[a-zA-Z0-9-]+-agentspace-demo-user@1987984870407.altostrat.com$/
-        ),
+        Validators.pattern(ADMIN_USER_RESERVATION_EMAIL_VALIDATION),
       ],
     ],
     [this.START_DATE_FORM]: ['', Validators.required],
@@ -327,6 +328,13 @@ export class AdminCreateReservationComponenet implements OnInit {
     this.getAllUserApplications();
   }
   onConfirmReservation() {
+    if (
+      this.createReservationForm.invalid ||
+      this.minDurationError().length > 0 ||
+      this.selectedApplications().trim().length <= 0
+    ) {
+      return;
+    }
     this.loaderService.show();
     const selectedApplicationIds = this.applications
       .filter((element) => element.isSelected === true)

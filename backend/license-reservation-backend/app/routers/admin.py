@@ -787,14 +787,26 @@ def create_bots(request: BotsCreateRequest, db: Session = Depends(get_db)):
 def update_bots(request: BotsUpdateRequest, db: Session = Depends(get_db)):
     """
     Updates one or more existing bots and their associated applications,
-    checking for license and reservation conflicts first.
+    checking for license availability only for newly added applications.
     """
-    # CHECK 1: # Check for license count for apps first if elegible to allocate or not.
-    new_app_ids = set()
-    for bot_data in request.bots:
-        new_app_ids.update(bot_data.application_ids)
+    all_newly_added_app_ids = set()
 
-    if new_app_ids:
+    for bot_data in request.bots:
+        bot_id = bot_data.id
+        requested_app_ids = set(bot_data.application_ids)
+
+        current_bot = db.query(Bot).filter(Bot.id == bot_id).first()
+        if not current_bot:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Bot with ID '{bot_id}' not found.",
+            )
+
+        existing_app_ids = {app.id for app in current_bot.applications}
+        newly_added_app_ids = requested_app_ids - existing_app_ids
+        all_newly_added_app_ids.update(newly_added_app_ids)
+
+    if all_newly_added_app_ids:
         license_counts = (
             db.query(
                 Application.id,
@@ -803,7 +815,7 @@ def update_bots(request: BotsUpdateRequest, db: Session = Depends(get_db)):
                 func.count(Bot.id).label("assigned_licenses"),
             )
             .join(Application.bots, isouter=True)
-            .filter(Application.id.in_(new_app_ids))
+            .filter(Application.id.in_(all_newly_added_app_ids))
             .group_by(Application.id, Application.name, Application.license_count)
             .all()
         )

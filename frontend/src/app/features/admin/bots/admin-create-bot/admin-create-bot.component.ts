@@ -29,6 +29,7 @@ import { SuccessDialog } from '../../../../shared/dialogs/success-dialog/success
 import { MatDialog } from '@angular/material/dialog';
 import { ErrorDialog } from '../../../../shared/dialogs/error-dialog/error-dialog';
 import { BotService } from '../../../../core/services/bot.service';
+import { ADMIN_BOT_EMAIL_VALIDATION } from '../../../../../utilities/utils';
 
 @Component({
   selector: 'app-admin-create-bot',
@@ -61,7 +62,7 @@ export class AdminCreateBotComponent implements OnInit {
       [
         Validators.required,
         Validators.email,
-        Validators.pattern(/^[a-zA-Z0-9-]+@1987984870407.altostrat.com$/),
+        Validators.pattern(ADMIN_BOT_EMAIL_VALIDATION),
       ],
     ],
     [this.BOT_APPLICATIONS_FORM]: ['', Validators.required],
