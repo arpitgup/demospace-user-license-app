@@ -136,7 +136,7 @@ export class AdminCreateApplicationComponent implements OnInit {
         .trim(),
       license_group: this.createApplicationForm.get(
         this.PLATFORM_GROUP_EMAIL_FORM
-      )?.value,
+      )?.value?.trim(),
       license_count: this.createApplicationForm.get(
         this.NUMBER_OF_LICENSES_FORM
       )?.value,

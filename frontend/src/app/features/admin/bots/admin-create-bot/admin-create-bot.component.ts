@@ -152,8 +152,8 @@ export class AdminCreateBotComponent implements OnInit {
     }
     const applicationsIds = this.selectedApplications().map((item) => item.id);
     const botDetais: BotDetails = {
-      name: this.createBotForm.get(this.BOT_NAME_FORM)?.value ?? '',
-      email: this.createBotForm.get(this.BOT_EMAIL_FORM)?.value ?? '',
+      name: this.createBotForm.get(this.BOT_NAME_FORM)?.value?.trim() ?? '',
+      email: this.createBotForm.get(this.BOT_EMAIL_FORM)?.value?.trim() ?? '',
       is_admin: this.isAdmin(),
       application_ids: applicationsIds,
     };
