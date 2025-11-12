@@ -6,6 +6,7 @@ import { AdminDowntimeComponent } from '../admin-downtime/admin-downtime.compone
 import { AdminApplicationsComponent } from '../applications/admin-applications/admin-applications.component';
 import { AdminBotsComponent } from '../bots/admin-bots/admin-bots.component';
 import { AdminDemoOnboardingComponent } from '../demo/admin-demo-onboarding/admin-demo-onboarding.component';
+import { AdminHomeConstants } from './admin-home.constants';
 
 export interface AdminMenuItems {
   id: number;
@@ -30,6 +31,7 @@ export interface AdminMenuItems {
 export class AdminHomeComponent {
   menuItemType = signal(MenuItems.RESERVATION_OVERVIEW);
   menuItemsEnums = MenuItems;
+  adminHomeConstants=AdminHomeConstants
   adminMenuItems: AdminMenuItems[] = [
     {
       id: 1,

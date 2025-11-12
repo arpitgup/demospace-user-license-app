@@ -92,10 +92,13 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   }
   listenSearchBotValues() {
     this.searchBotControl?.valueChanges?.subscribe((value) => {
-      this.filteredListWithSearch(value?.toString || '', true);
+      this.filteredListWithSearch(value || '', true);
     });
   }
   filteredListWithSearch(value: string, redirctToInitialPage: boolean) {
+    if (value === null || value === undefined) {
+      return;
+    }
     const newValue = value.trim().toLowerCase();
     if (newValue && newValue !== '') {
       this.dataSource.data = this.adminBotsList.filter(
@@ -317,7 +320,7 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   }
 
   updateBotsTable() {
-    this.filteredListWithSearch(this.searchBotControl?.value, false);
+    this.filteredListWithSearch(this.searchBotControl?.value || '', false);
   }
   showErrorDialog(errorMessage: string) {
     this.dialog.open(ErrorDialog, {

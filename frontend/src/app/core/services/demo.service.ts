@@ -27,7 +27,12 @@ export class DemoService {
           return res.map((item) => {
             return {
               ...item,
-              applicationIds: item.saas_applications.split(',').map(Number),
+              applicationIds:
+                item.saas_applications &&
+                item.saas_applications.trim().length > 0 &&
+                item.saas_applications !== '0'
+                  ? item.saas_applications.split(',').map(Number)
+                  : [],
               applications: [],
             };
           });
@@ -60,7 +65,12 @@ export class DemoService {
         map((res) => {
           return {
             ...res,
-            applicationIds: res.saas_applications.split(',').map(Number),
+            applicationIds:
+              res.saas_applications &&
+              res.saas_applications.trim().length > 0 &&
+              res.saas_applications !== '0'
+                ? res.saas_applications.split(',').map(Number)
+                : [],
             applications: [],
           };
         })
