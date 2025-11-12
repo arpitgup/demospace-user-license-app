@@ -781,7 +781,7 @@ def create_bots(request: BotsCreateRequest, db: Session = Depends(get_db)):
 
     return newly_created_bots
 
-@router.put(
+@router.patch(
     "/bots/update", response_model=List[BotWithApplicationsOut], status_code=200
 )
 def update_bots(request: BotsUpdateRequest, db: Session = Depends(get_db)):
