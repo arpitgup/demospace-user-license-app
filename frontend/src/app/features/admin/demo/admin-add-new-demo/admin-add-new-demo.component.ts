@@ -30,6 +30,7 @@ import { OnBoardNewDemoRequest } from '../../../../core/models/onboard-new-demo-
 import { ErrorDialog } from '../../../../shared/dialogs/error-dialog/error-dialog';
 import { SuccessDialog } from '../../../../shared/dialogs/success-dialog/success-dialog';
 import { DemoOnBoardingEnum } from '../../../../enums/admin-demo-onboarding.enums';
+import { ErrorMessage } from '../../../../shared/components/error-message/error-message';
 
 @Component({
   selector: 'app-admin-add-new-demo',
@@ -42,6 +43,7 @@ import { DemoOnBoardingEnum } from '../../../../enums/admin-demo-onboarding.enum
     MatChipsModule,
     MatIconModule,
     MatCheckbox,
+    ErrorMessage
   ],
   templateUrl: './admin-add-new-demo.component.html',
   styleUrl: './admin-add-new-demo.component.scss',
@@ -66,6 +68,7 @@ export class AdminAddNewDemoComponent implements OnInit {
   readonly selectedApplications = signal<Application[]>([]);
   readonly applicationErrorMessage = signal<string>('');
   public isLicenseReservation = signal<boolean>(false);
+  public readonly errorMessage = signal<string>('');
   addDemoForm: FormGroup = this.fb.group({
     [this.DEMO_ID_FORM]: ['', Validators.required],
     [this.DEMO_TITLE_FORM]: ['', [Validators.required]],
@@ -87,12 +90,14 @@ export class AdminAddNewDemoComponent implements OnInit {
     this.fetchAllAdminApplications();
   }
   fetchAllAdminApplications() {
+    this.errorMessage.update(() => '');
     this.loaderService.show();
     forkJoin({
       applications: this.adminService.fetchAllApplications(),
       organizationUnit: this.demoService.fetchAllOrganizations(),
     }).subscribe({
       next: (res) => {
+        this.errorMessage.update(() => '');
         this.applicationErrorMessage.set('');
         this.loaderService.hide();
         this.adminApplications.set(res.applications);
@@ -102,6 +107,9 @@ export class AdminAddNewDemoComponent implements OnInit {
         this.loaderService.hide();
         this.applicationErrorMessage.set(
           error?.error?.detail || 'Something went wrong'
+        );
+        this.errorMessage.update(
+          () => error?.error?.detail || 'Something went wrong'
         );
       },
     });

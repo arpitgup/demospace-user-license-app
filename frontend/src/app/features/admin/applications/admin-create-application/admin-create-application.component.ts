@@ -24,6 +24,7 @@ import { SuccessDialog } from '../../../../shared/dialogs/success-dialog/success
 import { ErrorDialog } from '../../../../shared/dialogs/error-dialog/error-dialog';
 import { LoaderService } from '../../../../core/services/loading.service';
 import { ApplicationType } from '../../../../core/models/application-type.model';
+import { ADMIN_APPLICATION_EMAIL_VALIDATION } from '../../../../../utilities/utils';
 
 @Component({
   selector: 'app-admin-create-application',
@@ -82,7 +83,7 @@ export class AdminCreateApplicationComponent implements OnInit {
             ?.setValidators([
               Validators.required,
               Validators.email,
-              Validators.pattern(/^[a-zA-Z0-9-]+@1987984870407.altostrat.com$/),
+              Validators.pattern(ADMIN_APPLICATION_EMAIL_VALIDATION),
             ]);
           this.createApplicationForm
             .get(this.SAML_GROUP_NAME_FORM)

@@ -30,6 +30,7 @@ import { UpdateApplicationRequest } from '../../../../core/models/update-applica
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { ApplicationsConstants } from '../applications.constants';
 
 @Component({
   selector: 'app-admin-application-table',
@@ -65,6 +66,7 @@ export class AdminApplicationTableComponent implements OnInit, AfterViewInit {
   readonly applicationNameController = new FormControl('');
   readonly licenseCountController = new FormControl('');
   private cdr = inject(ChangeDetectorRef);
+  applicationConstants = ApplicationsConstants;
   @ViewChild(MatSort) set sort(sort: MatSort) {
     if (sort) {
       this.dataSource.sort = sort;

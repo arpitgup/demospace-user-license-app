@@ -10,29 +10,29 @@
   <form [formGroup]="searchForm" class="search-content">
     <div class="custom-form-field">
       <mat-form-field class="custom-form-field" appearance="outline">
-        <mat-label class="custom-label">Search by application</mat-label>
+        <mat-label class="custom-label">{{applicationConstants.SEARCH_BY_APPLICATION}}</mat-label>
         <mat-icon matPrefix>search</mat-icon>
         <input
           matInput
           [formControlName]="SEARCH_APPLICATION_FORM"
-          placeholder="Search by application"
+          [placeholder]=applicationConstants.SEARCH_BY_APPLICATION
         />
       </mat-form-field>
     </div>
     <div class="custom-form-field">
       <mat-form-field appearance="outline">
-        <mat-label>Search by license type</mat-label>
+        <mat-label>{{applicationConstants.SEARCH_BY_LICENSE_TYPE}}</mat-label>
         <mat-icon matPrefix>search</mat-icon>
         <input
           matInput
           [formControlName]="SEARCH_LICENSE_TYPE"
-          placeholder="Search by license type"
+          [placeholder]=applicationConstants.SEARCH_BY_LICENSE_TYPE
         />
       </mat-form-field>
     </div>
     <div class="custom-reset" (click)="onRefreshCall()">
       <mat-icon class="refresh-icon">refresh</mat-icon>
-      <span class="reset-text">Refresh</span>
+      <span class="reset-text">{{applicationConstants.REFRESH}}</span>
     </div>
   </form>
 
