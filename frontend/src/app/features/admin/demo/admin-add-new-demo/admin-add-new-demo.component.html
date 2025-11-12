@@ -30,7 +30,7 @@
             matInput
             placeholder="Demo Title*"
             [formControlName]="DEMO_TITLE_FORM"
-            maxlength="100"
+            maxlength="200"
           />
           @if(addDemoForm.get(DEMO_TITLE_FORM)?.hasError('required')&&
           addDemoForm.get(DEMO_TITLE_FORM)?.touched){
@@ -46,7 +46,7 @@
             matInput
             placeholder="Demo Group Email*"
             [formControlName]="DEMO_GROUP_EMAIL_FORM"
-            maxlength="100"
+            maxlength="200"
           />
           @if(addDemoForm.get(DEMO_GROUP_EMAIL_FORM)?.hasError('required')&&
           addDemoForm.get(DEMO_GROUP_EMAIL_FORM)?.touched){
@@ -59,7 +59,7 @@
             matInput
             placeholder="Gemini Enterprise App Link*"
             [formControlName]="GEMINI_ENTERPRISE_APP_LINK_FORM"
-            maxlength="100"
+            maxlength="400"
           />
           @if(addDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.hasError('required')&&
           addDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.touched){
@@ -78,7 +78,7 @@
             matInput
             placeholder="Drive Folder Link"
             [formControlName]="DRIVE_FOLDER_LINK_FORM"
-            maxlength="50"
+            maxlength="400"
           />
           @if(addDemoForm.get(DRIVE_FOLDER_LINK_FORM)?.hasError('pattern')&&
           addDemoForm.get(DRIVE_FOLDER_LINK_FORM)?.touched){
