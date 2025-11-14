@@ -20,7 +20,8 @@ def setup_admin_service():
     SCOPES = [
         "https://www.googleapis.com/auth/admin.directory.group",
         "https://www.googleapis.com/auth/admin.directory.user",
-        "https://www.googleapis.com/auth/admin.directory.userschema"
+        "https://www.googleapis.com/auth/admin.directory.userschema",
+        "https://www.googleapis.com/auth/admin.directory.orgunit"
     ]
     project_id = os.getenv("GCP_PROJECT_ID")
     secret_name = os.getenv("ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME")
@@ -284,3 +285,25 @@ def update_user_profile_with_new_info(user_email, updated_user_info):
     except Exception as e:
         logger.error(f"An unexpected error occurred during user profile update: {e}")
         raise e
+
+def get_organization_units(customerId='C03ff1ejf'):
+    """
+    Retrieves a list of all organizational units for an account.
+    """
+    try:
+        organization_units = admin_service.orgunits().list(customerId=customerId).execute()
+        return organization_units.get('organizationUnits', [])
+    except Exception as e:
+        logger.error(f"An unexpected error occurred while retrieving organization units: {e}")
+        raise e
+
+def create_organization_unit(org_unit_info):
+    """
+    Calls the Admin SDK to create a new organizational unit.
+    """
+    try:
+        response = admin_service.orgunits().insert(customerId='C03ff1ejf', body=org_unit_info).execute()
+        return response
+    except Exception as e:
+        logger.error(f"Error creating organization unit: {e}")
+        raise

@@ -12,12 +12,14 @@ from shared_lib.db.models import (
     BotApplication,
     Reservation,
     ReservationStatus,
-    ApplicationDowntime    
+    ApplicationDowntime,
+    DemoDetail,
+    OrganizationUnits
 )
 from shared_lib.dependencies import get_user_email, get_db, get_app_config
 from typing import List
-from shared_lib.enums import DowntimeStatus
-from shared_lib.admin_service import create_custom_schema, is_group_exists, get_user
+from shared_lib.enums import DowntimeStatus, DemoOnboardingStatus
+from shared_lib.admin_service import create_custom_schema, is_group_exists, get_user, get_organization_units, create_organization_unit
 from ..common.constants import ACCOUNT_CUSTOMERID, RESERVATION_EMAIL_SENDER, BOOKED_RESERVATION_EMAIL_CONTENT
 from datetime import datetime
 from ..common.schemas import (
@@ -39,7 +41,15 @@ from ..common.schemas import (
     DowntimeBulkCancelResponse,
     ApplicationCreateRequest,
     ApplicationCreateResponse,
-    RemoveAppFromReservationsRequest
+    RemoveAppFromReservationsRequest,
+    OnboardedDemoDetailsOut,
+    UpdateOnboardedDemoDetailsRequest,
+    UpdateOnboardedDemoDetailsResponse,
+    OnboardNewDemoRequest,
+    OnboardNewDemoResponse,
+    OrganizationUnitLocalOut,
+    RepresentativeProfileOut,
+    OrganizationUnitCreateRequest
 )
 from ..utils.background_tasks import (
     delete_reservation_tasks,
@@ -777,14 +787,26 @@ def create_bots(request: BotsCreateRequest, db: Session = Depends(get_db)):
 def update_bots(request: BotsUpdateRequest, db: Session = Depends(get_db)):
     """
     Updates one or more existing bots and their associated applications,
-    checking for license and reservation conflicts first.
+    checking for license availability only for newly added applications.
     """
-    # CHECK 1: # Check for license count for apps first if elegible to allocate or not.
-    new_app_ids = set()
-    for bot_data in request.bots:
-        new_app_ids.update(bot_data.application_ids)
+    all_newly_added_app_ids = set()
 
-    if new_app_ids:
+    for bot_data in request.bots:
+        bot_id = bot_data.id
+        requested_app_ids = set(bot_data.application_ids)
+
+        current_bot = db.query(Bot).filter(Bot.id == bot_id).first()
+        if not current_bot:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Bot with ID '{bot_id}' not found.",
+            )
+
+        existing_app_ids = {app.id for app in current_bot.applications}
+        newly_added_app_ids = requested_app_ids - existing_app_ids
+        all_newly_added_app_ids.update(newly_added_app_ids)
+
+    if all_newly_added_app_ids:
         license_counts = (
             db.query(
                 Application.id,
@@ -793,7 +815,7 @@ def update_bots(request: BotsUpdateRequest, db: Session = Depends(get_db)):
                 func.count(Bot.id).label("assigned_licenses"),
             )
             .join(Application.bots, isouter=True)
-            .filter(Application.id.in_(new_app_ids))
+            .filter(Application.id.in_(all_newly_added_app_ids))
             .group_by(Application.id, Application.name, Application.license_count)
             .all()
         )
@@ -1047,3 +1069,427 @@ def bulk_cancel_downtime(
         successfully_cancelled=successfully_cancelled,
         failed_to_cancel=failed_to_cancel
     )
+
+@router.get("/get-onboarded-demos", response_model=List[OnboardedDemoDetailsOut])
+def get_onboarded_demo_details(db: Session = Depends(get_db)):
+    """
+    Retrieves all demos that have been onboarded in license app.
+    """
+    query_results = (
+        db.query(DemoDetail, OrganizationUnits)
+        .join(
+            OrganizationUnits,
+            DemoDetail.organization_unit == OrganizationUnits.orgunitpath,
+            isouter=True
+        )
+        .all()
+    )
+    
+    output_list: List[OnboardedDemoDetailsOut] = []
+
+    for demo_record, org_unit_record in query_results:
+        representative_profile_out = RepresentativeProfileOut(
+            org_unit=demo_record.organization_unit, 
+            description=None,
+            cost_centre=None,
+            manager_name=None,
+            manager_email=None,
+            manager_title=None,
+            rep_role=None,
+            rep_department=None,
+        )
+
+        if org_unit_record:
+            representative_profile_out = RepresentativeProfileOut(
+                org_unit=org_unit_record.orgunitpath,
+                description=org_unit_record.description,
+                cost_centre=org_unit_record.cost_centre,
+                manager_name=org_unit_record.manager_name,
+                manager_email=org_unit_record.manager_email,
+                manager_title=org_unit_record.manager_title,
+                rep_role=org_unit_record.rep_role,
+                rep_department=org_unit_record.rep_department,
+            )
+
+        demo_details_out = OnboardedDemoDetailsOut(
+            demo_id=demo_record.demo_id,
+            demo_title=demo_record.demo_title,
+            demo_user_group_email=demo_record.demo_user_group_email,
+            gemini_enterprise_app_link=demo_record.gemini_enterprise_app_link,
+            drive_folder_link=demo_record.drive_folder_link,
+            demo_onboarding_status=demo_record.demo_onboarding_status,
+            feature_license_app=demo_record.feature_license_app,
+            saas_applications=demo_record.saas_applications,
+            organization_unit=demo_record.organization_unit,
+            representative_profile=representative_profile_out,
+        )
+        
+        output_list.append(demo_details_out)
+        
+    return output_list
+
+@router.post("/onboard_new_demo", response_model=OnboardNewDemoResponse, status_code=status.HTTP_201_CREATED)
+def onboard_new_demo(req: OnboardNewDemoRequest, db: Session = Depends(get_db), user_email: str = Depends(get_user_email)):
+    """
+    Onboard a new demo.
+    """
+    logger.info(f"Admin User {user_email}: Attempting to onboard new demo: {req.demo_id}")
+
+    existing_demo = db.query(DemoDetail).filter(
+        DemoDetail.demo_id == req.demo_id
+    ).first()
+    if existing_demo:
+        current_status = existing_demo.demo_onboarding_status.value
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Demo with ID '{req.demo_id}' already exists. Current status is {current_status}."
+        )
+    try:
+        demo_title = req.demo_title
+        if not demo_title:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Demo Title is required."
+            )
+
+        demo_user_group_email = req.demo_user_group_email
+        if not demo_user_group_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Demo User Group Email is required."
+            )
+        if not is_group_exists(demo_user_group_email):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"{demo_user_group_email} is not a valid group.",
+            )
+        
+        gemini_enterprise_app_link = req.gemini_enterprise_app_link
+        if not gemini_enterprise_app_link:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Gemini Enterprise App Link is required."
+            )
+        
+        demo_onboarding_status = req.demo_onboarding_status
+        if not demo_onboarding_status:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Demo Onboarding Status is required."
+            )
+
+        feature_license_app = req.feature_license_app
+        if feature_license_app is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Feature License App is required and must be a boolean value (True or False)."
+            )
+        
+        org_unit_path = req.organization_unit
+        if not org_unit_path:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Organization Unit path is required."
+            )
+        existing_organization_units = get_organization_units()
+
+        org_unit_exists = any(
+            org_unit.get('orgUnitPath') == org_unit_path
+            for org_unit in existing_organization_units
+        )
+
+        if not org_unit_exists:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Organization Unit path '{org_unit_path}' does not exist."
+            )
+
+        canonical_org_unit = db.query(OrganizationUnits).filter(
+            OrganizationUnits.orgunitpath == org_unit_path
+        ).first()
+        if not canonical_org_unit:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Organizational Unit path '{org_unit_path}' not found in table 'Organization Unit'."
+            )        
+
+        demo_data = req.model_dump()
+        new_demo = DemoDetail(**demo_data)
+        
+        db.add(new_demo)        
+        db.commit()
+        db.refresh(new_demo)
+        
+        logger.info(f"Admin User {user_email}: Successfully onboarded new demo: {req.demo_id}")
+        return new_demo
+
+    except HTTPException as http_exc:
+        raise http_exc
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"Admin user {user_email}: An unexpected error occurred during demo onboarding: {e}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while attempting to onboard the new demo."
+        )
+
+@router.patch("/update-onboarded-demos/{demo_id}", response_model=UpdateOnboardedDemoDetailsResponse)
+def update_onboarded_demos(demo_id: str, req: UpdateOnboardedDemoDetailsRequest, db: Session = Depends(get_db), user_email: str = Depends(get_user_email)):
+    """
+    Updates demo details using the more efficient SQLAlchemy update method.
+    """
+    logger.info(f"Admin User {user_email}: Attempting to update onboarded demo ID: {demo_id}")
+
+    demo_title = req.demo_title
+    if not demo_title:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Demo Title is required."
+        )
+
+    demo_user_group_email = req.demo_user_group_email
+    if not demo_user_group_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Demo User Group Email is required."
+        )
+    if not is_group_exists(demo_user_group_email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"{demo_user_group_email} is not a valid group.",
+        )
+    
+    gemini_enterprise_app_link = req.gemini_enterprise_app_link
+    if not gemini_enterprise_app_link:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Gemini Enterprise App Link is required."
+        )
+    
+    demo_onboarding_status = req.demo_onboarding_status
+    if not demo_onboarding_status:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Demo Onboarding Status is required."
+        )
+
+    feature_license_app = req.feature_license_app
+    if feature_license_app is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Feature License App is required and must be a boolean value (True or False)."
+        )
+    
+    org_unit_path = req.organization_unit
+    if not org_unit_path:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Organization Unit path is required."
+        )
+    existing_organization_units = get_organization_units()
+
+    org_unit_exists = any(
+        org_unit.get('orgUnitPath') == org_unit_path
+        for org_unit in existing_organization_units
+    )
+
+    if not org_unit_exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Organization Unit path '{org_unit_path}' does not exist."
+        )
+
+    update_data = req.model_dump(exclude_unset=True)
+    # If someone mistakly passed demoID from request model
+    update_data.pop('demo_id', None)
+
+    updated_rows = db.query(DemoDetail).filter(DemoDetail.demo_id == demo_id).update(update_data, synchronize_session="fetch")
+    
+    if updated_rows == 0:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=f"Demo Detail Update failed: Demo ID {demo_id} not found.")
+
+    try:
+        db.commit()
+        logger.info(f"Admin User {user_email}: Successfully updated {updated_rows} row(s) for demo ID: {demo_id}")
+    except Exception as e:
+        db.rollback()
+        logger.error(
+            f"Admin user {user_email}: An unexpected error occurred during update: {e}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while attempting to update the demo details.",
+        )
+    
+    updated_demo_details = db.query(DemoDetail).filter(
+        DemoDetail.demo_id == demo_id
+    ).first()
+    return updated_demo_details
+
+@router.get("/organization/list_organization_units", response_model=List[OrganizationUnitLocalOut])
+def list_organization_units(db: Session = Depends(get_db), user_email: str = Depends(get_user_email)):
+    """
+    Retrieves unique organizational units (all fields) from the local 'organization_units' database table.
+    """
+    logger.info(f"Admin User {user_email}: Attempting to retrieve unique organization units (full details) from local database.")
+    
+    try:
+        unique_units_list = db.query(OrganizationUnits).distinct().all()        
+        units_count = len(unique_units_list)
+        logger.info(f"Admin User {user_email}: Successfully retrieved {units_count} unique organization units from local database.")
+        
+        return unique_units_list
+        
+    except Exception as e:
+        logger.error(f"Admin User {user_email}: An unexpected error occurred while retrieving local organization units: {e}")
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve local organization units. Details: {e}"
+        )
+
+@router.post("/organization-units", response_model=OrganizationUnitLocalOut, status_code=status.HTTP_201_CREATED)
+def write_organization_unit(req: OrganizationUnitCreateRequest, db: Session = Depends(get_db)):
+    """
+    Write a new Organization Unit record in the database.
+    """
+    logger.info(f"Attempting to create new Organization Unit for path: {req.orgunitpath}")
+    organization_unit_path = req.orgunitpath
+    if not organization_unit_path:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Organization Unit path is required."
+        )
+
+    new_org_unit = OrganizationUnits(**req.model_dump())
+    
+    db.add(new_org_unit)
+    
+    try:
+        db.commit()
+        db.refresh(new_org_unit)
+        logger.info(f"Successfully created Organization Unit with ID: {new_org_unit.id}")
+        return new_org_unit
+    except IntegrityError as e:
+        db.rollback()
+        logger.error(f"Organization Unit creation failed: {detail}. Error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=detail
+        )
+    except Exception as e:
+        db.rollback()
+        logger.error(f"An unexpected error occurred during Organization Unit creation: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while creating the organization unit.",
+        )
+
+# @router.delete("/delete-onboarded-demos/{demo_id}")
+# def delete_onboarded_demos(
+#     demo_id: str, 
+#     db: Session = Depends(get_db), 
+#     user_email: str = Depends(get_user_email)
+# ):
+#     """
+#     Deletes an onboarded demo record from the DemoDetail table.
+#     """
+#     logger.warning(f"Admin User {user_email}: Attempting to delete demo ID: {demo_id}")
+
+#     demo_details = db.query(DemoDetail).filter(
+#         DemoDetail.demo_id == demo_id).all()
+#     if not demo_details:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail=f"Demo ID {demo_id} not found."
+#         )
+
+#     try:
+#         db.query(DemoDetail).filter(DemoDetail.demo_id == demo_id).delete()
+#         db.commit()
+#         logger.info(f"Admin User {user_email}: Successfully deleted Demo: {demo_id}")
+        
+#     except Exception as e:
+#         db.rollback()
+#         logger.error(
+#             f"Admin user {user_email}: An unexpected error occurred during deletion: {e}"
+#         )
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail=f"An unexpected error occurred while attempting to delete the demo details.{e}",
+#         )
+
+# @router.get("/organization/get_org_units_workspace", response_model=List[OrgUnitOut])
+# def get_org_units_workspace(
+#     user_email: str = Depends(get_user_email)
+# ):
+#     """
+#     Retrieves a list of all organizational units from the workspace.
+#     """
+#     logger.info(f"Admin User {user_email}: Attempting to retrieve organization units from workspace.")
+    
+#     try:
+#         response_data = get_organization_units()
+#         logger.info(f"Admin User {user_email}: Successfully retrieved organization units from workspace.")
+#         return response_data
+#     except Exception as e:
+#         logger.error(f"Admin User {user_email}: An unexpected error occurred while retrieving organization units: {e}")
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail=f"Failed to retrieve organization units for customer {customerId}. Details: {e}"
+#         )
+
+
+# @router.post("/organization/create_org_unit", response_model=OrgUnitResponse, status_code=status.HTTP_201_CREATED)
+# def create_org_unit_api(
+#     req: CreateOrgUnitRequest,    
+#     user_email: str = Depends(get_user_email),
+#     db: Session = Depends(get_db)
+# ):
+#     """
+#     Creates a new organizational unit for a workspace.
+#     """
+#     logger.info(f"Admin User {user_email}: Attempting to create new org unit '{req.org_unit_name}' for workspace.")
+    
+#     try:
+#         org_unit_data = req.model_dump()
+#         org_unit_info = {
+#             'name': org_unit_data.get('org_unit_name'),
+#             'parentOrgUnitPath': "/",
+#             'description': org_unit_data.get('description'),
+#         }
+#         created_unit_data = create_organization_unit(org_unit_info=org_unit_info)
+#         if not created_unit_data:
+#             raise HTTPException(
+#                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#                 detail="Failed to create organization unit."
+#             )
+#         local_db_data = {
+#             'orgunitpath': created_unit_data.get('orgUnitPath'),
+#             'description': created_unit_data.get('description'),
+#             'cost_centre': org_unit_data.get('cost_centre'),
+#             'manager_name': org_unit_data.get('manager_name'),
+#             'manager_email': org_unit_data.get('manager_email'),
+#             'manager_title': org_unit_data.get('manager_title'),
+#             'rep_role': org_unit_data.get('rep_role'),
+#             'rep_department': org_unit_data.get('rep_department'),
+#         }
+
+#         new_local_org_unit = OrganizationUnits(**local_db_data)
+#         db.add(new_local_org_unit)
+#         db.commit()
+
+#         logger.info(f"Admin User {user_email}: Successfully created org unit: {created_unit_data.get('orgUnitPath')} & saved data in DB.")        
+#         return created_unit_data
+    
+#     except Exception as e:
+#         db.rollback()
+#         error_detail = str(e)
+#         logger.error(f"Admin User {user_email}: Error during org unit creation: {e}")
+
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail=f"Failed to create organization unit due to an unexpected server error. Details: {e}"
+#         )

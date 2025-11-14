@@ -11,4 +11,6 @@ export const EXCLUDED_URLS = [
   '/user-management/demo-details',
   '/user-management/update_user_profile',
   '/user-management/adding_user_to_group',
+  '/admin/organization/list_organization_units',
+  '/admin/get-onboarded-demos'
 ];

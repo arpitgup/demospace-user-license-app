@@ -1,6 +1,6 @@
 <mat-drawer-container class="mat-container">
   <mat-drawer mode="side" opened class="side-nav">
-    <h3 class="admin-text">Admin actions</h3>
+    <h3 class="admin-text">{{ adminHomeConstants.ADMIN_ACTIONS }}</h3>
     @for(menuItems of adminMenuItems; track menuItems.id){
     <div
       class="menu-items"
@@ -24,6 +24,8 @@
     <app-admin-applications></app-admin-applications>
     } @else if(menuItemType()===menuItemsEnums.APPLICATION_DOWNTIME){
     <app-admin-downtime></app-admin-downtime>
+    } @else if(menuItemType()===menuItemsEnums.DEMO_ONBOARDING){
+    <app-admin-demo-onboarding></app-admin-demo-onboarding>
     }
   </mat-drawer-content>
 </mat-drawer-container>
