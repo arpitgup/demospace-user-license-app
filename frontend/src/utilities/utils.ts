@@ -167,7 +167,7 @@ export function getLocalTimeZoneAbbreviation(
           date,
           timeZone
         )})`;
-  } catch  {
+  } catch {
     return getGMTOffset(date, timeZone);
   }
 }
@@ -246,6 +246,9 @@ export function isSameDay(selectedDate: Date, endDate: Date): boolean {
   );
 }
 
-export const ADMIN_USER_RESERVATION_EMAIL_VALIDATION= /^[a-zA-Z0-9.]+-agentspace-demo-user@1987984870407.altostrat.com$/;
-export const ADMIN_BOT_EMAIL_VALIDATION=/^[a-zA-Z0-9.]+@1987984870407.altostrat.com$/;
-export const ADMIN_APPLICATION_EMAIL_VALIDATION=/^[a-zA-Z0-9.]+@1987984870407.altostrat.com$/;
+export const ADMIN_USER_RESERVATION_EMAIL_VALIDATION =
+  /^[a-zA-Z0-9.-]+-agentspace-demo-user@1987984870407.altostrat.com\s*$/;
+export const ADMIN_BOT_EMAIL_VALIDATION =
+  /^[a-zA-Z0-9-.]+@1987984870407.altostrat.com\s*$/;
+export const ADMIN_APPLICATION_EMAIL_VALIDATION =
+  /^[a-zA-Z0-9.-]+@1987984870407.altostrat.com\s*$/;
