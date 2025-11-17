@@ -10,6 +10,7 @@ import {
 } from '@angular/material/tabs';
 import { AdminApplicationTableComponent } from '../admin-application-table/admin-application-table.component';
 import { AdminCreateApplicationComponent } from '../admin-create-application/admin-create-application.component';
+import { ApplicationsConstants } from '../applications.constants';
 
 @Component({
   selector: 'app-admin-applications',
@@ -27,6 +28,7 @@ import { AdminCreateApplicationComponent } from '../admin-create-application/adm
 })
 export class AdminApplicationsComponent {
   @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
+  applicationConstants = ApplicationsConstants;
   selectedIndex = 0;
 
   onTabChange(event: MatTabChangeEvent): void {

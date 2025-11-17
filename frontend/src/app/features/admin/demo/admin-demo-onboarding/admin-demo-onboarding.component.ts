@@ -6,6 +6,7 @@ import {
 } from '@angular/material/tabs';
 import { AdminAddNewDemoComponent } from '../admin-add-new-demo/admin-add-new-demo.component';
 import { AdminOnboardDemoTableComponent } from '../../demo/admin-onboard-demo-table/admin-onboard-demo-table.component';
+import { DEMOCONSTANTS } from '../demo.constants';
 
 @Component({
   selector: 'app-admin-demo-onboarding',
@@ -20,6 +21,7 @@ import { AdminOnboardDemoTableComponent } from '../../demo/admin-onboard-demo-ta
 export class AdminDemoOnboardingComponent {
   selectedIndex = 0;
   @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;
+  demoConstants=DEMOCONSTANTS;
   onTabChange(event: MatTabChangeEvent): void {
     this.selectedIndex = event.index;
   }

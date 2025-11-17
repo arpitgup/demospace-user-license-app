@@ -31,6 +31,7 @@ import { ErrorDialog } from '../../../../shared/dialogs/error-dialog/error-dialo
 import { SuccessDialog } from '../../../../shared/dialogs/success-dialog/success-dialog';
 import { DemoOnBoardingEnum } from '../../../../enums/admin-demo-onboarding.enums';
 import { ErrorMessage } from '../../../../shared/components/error-message/error-message';
+import { DEMOCONSTANTS } from '../demo.constants';
 
 @Component({
   selector: 'app-admin-add-new-demo',
@@ -69,6 +70,7 @@ export class AdminAddNewDemoComponent implements OnInit {
   readonly applicationErrorMessage = signal<string>('');
   public isLicenseReservation = signal<boolean>(false);
   public readonly errorMessage = signal<string>('');
+  readonly demoConstants=DEMOCONSTANTS;
   addDemoForm: FormGroup = this.fb.group({
     [this.DEMO_ID_FORM]: ['', Validators.required],
     [this.DEMO_TITLE_FORM]: ['', [Validators.required]],

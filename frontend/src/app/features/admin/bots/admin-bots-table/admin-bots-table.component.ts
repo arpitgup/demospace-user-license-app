@@ -29,6 +29,7 @@ import { ErrorDialog } from '../../../../shared/dialogs/error-dialog/error-dialo
 import { MatDialog } from '@angular/material/dialog';
 import { ErrorMessage } from '../../../../shared/components/error-message/error-message';
 import { MatIconModule } from '@angular/material/icon';
+import { BotsConstants } from '../bots.constants';
 
 @Component({
   selector: 'app-admin-bots-table',
@@ -61,6 +62,7 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   private dialog = inject(MatDialog);
   applicationList: Application[] = [];
   botApplicationDetailsList: AdminBotsResponse[] = [];
+  botsConstants=BotsConstants;
   @ViewChild(MatSort) set sort(sort: MatSort) {
     if (sort) {
       this.dataSource.sort = sort;

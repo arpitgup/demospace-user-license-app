@@ -3,10 +3,10 @@
     class="demo-onboarding-tabs"
     (selectedTabChange)="onTabChange($event)"
   >
-    <mat-tab label="Demo Details">
+    <mat-tab [label]="demoConstants.DEMO_DETAILS">
       <app-admin-onboard-demo-table></app-admin-onboard-demo-table>
     </mat-tab>
-    <mat-tab label="Add new Demo">
+    <mat-tab [label]="demoConstants.ADD_NEW_DEMO">
       @if(selectedIndex===1){
       <app-admin-add-new-demo
         (demoOnBoardSuccess)="demoOnBoarding()"

@@ -10,61 +10,69 @@
   <form [formGroup]="searchForm" class="search-content">
     <div class="custom-form-field">
       <mat-form-field class="custom-form-field" appearance="outline">
-        <mat-label class="custom-label">{{applicationConstants.SEARCH_BY_APPLICATION}}</mat-label>
+        <mat-label class="custom-label">{{
+          applicationConstants.SEARCH_BY_APPLICATION
+        }}</mat-label>
         <mat-icon matPrefix>search</mat-icon>
         <input
           matInput
           [formControlName]="SEARCH_APPLICATION_FORM"
-          [placeholder]=applicationConstants.SEARCH_BY_APPLICATION
+          [placeholder]="applicationConstants.SEARCH_BY_APPLICATION"
         />
       </mat-form-field>
     </div>
     <div class="custom-form-field">
       <mat-form-field appearance="outline">
-        <mat-label>{{applicationConstants.SEARCH_BY_LICENSE_TYPE}}</mat-label>
+        <mat-label>{{ applicationConstants.SEARCH_BY_LICENSE_TYPE }}</mat-label>
         <mat-icon matPrefix>search</mat-icon>
         <input
           matInput
           [formControlName]="SEARCH_LICENSE_TYPE"
-          [placeholder]=applicationConstants.SEARCH_BY_LICENSE_TYPE
+          [placeholder]="applicationConstants.SEARCH_BY_LICENSE_TYPE"
         />
       </mat-form-field>
     </div>
     <div class="custom-reset" (click)="onRefreshCall()">
       <mat-icon class="refresh-icon">refresh</mat-icon>
-      <span class="reset-text">{{applicationConstants.REFRESH}}</span>
+      <span class="reset-text">{{ applicationConstants.REFRESH }}</span>
     </div>
   </form>
 
   @if(dataSource.data.length===0){
   <div class="empty-data-message">
     <mat-icon class="empty-data-icon">info_outline</mat-icon>
-    <span> No applications to display</span>
+    <span>{{ applicationConstants.NO_APPLICATIONS_TO_DISPLAY }}</span>
   </div>
   }@else{
   <table mat-table [dataSource]="dataSource" matSort class="custom-table">
     <ng-container matColumnDef="applicationId">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Application ID</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{ applicationConstants.APPLICATION_ID }}
+      </th>
       <td mat-cell *matCellDef="let element">
         {{ element.id }}
       </td>
     </ng-container>
 
     <ng-container matColumnDef="application">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Application</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{ applicationConstants.APPLICATION }}
+      </th>
       <td mat-cell *matCellDef="let element">
         @if(element.isEditable===true){
         <mat-form-field appearance="fill">
           <input
             matInput
-            placeholder="Application Name*"
+            [placeholder]="applicationConstants.APPLICATION_NAME +'*'"
             [formControl]="applicationNameController"
             maxlength="50"
           />
           @if(applicationNameController!==null &&
           applicationNameController.hasError('required')&&
           applicationNameController.touched){
-          <mat-error>Application name required</mat-error>
+          <mat-error>{{
+            applicationConstants.APPLICATION_NAME_REQUIRED
+          }}</mat-error>
           }
         </mat-form-field>
         }@else{
@@ -75,7 +83,7 @@
 
     <ng-container matColumnDef="customSamlAttribute">
       <th mat-header-cell *matHeaderCellDef class="centered">
-        Custom SAML Attribute
+        {{ applicationConstants.CUSTOM_SAML_ATTRIBUTE }}
       </th>
       <td mat-cell *matCellDef="let element" class="centered">
         {{ element.customSamlAttribute }}
@@ -83,14 +91,18 @@
     </ng-container>
 
     <ng-container matColumnDef="licenseType">
-      <th mat-header-cell *matHeaderCellDef class="centered">License Type</th>
+      <th mat-header-cell *matHeaderCellDef class="centered">
+        {{ applicationConstants.LICENSE_TYPE }}
+      </th>
       <td mat-cell *matCellDef="let element" class="centered">
         {{ element.licenseType }}
       </td>
     </ng-container>
 
     <ng-container matColumnDef="status">
-      <th mat-header-cell *matHeaderCellDef class="centered">Status</th>
+      <th mat-header-cell *matHeaderCellDef class="centered">
+        {{ applicationConstants.STATUS }}
+      </th>
       <td mat-cell *matCellDef="let element" class="centered">
         @if(element.isEditable===true){
         <div class="active-application-wrapper">
@@ -99,7 +111,7 @@
             (change)="onActiveApplication($event.checked, element.id)"
             [checked]="element.isActive || false"
           >
-            Activate Application
+            {{ applicationConstants.ACTIVATE_APPLICATION }}
           </mat-checkbox>
         </div>
         }@else{ @if(element.isActive===true){ Active }
@@ -108,14 +120,16 @@
     </ng-container>
 
     <ng-container matColumnDef="licenseCount">
-      <th mat-header-cell *matHeaderCellDef class="centered">License Count</th>
+      <th mat-header-cell *matHeaderCellDef class="centered">
+        {{ applicationConstants.LICENSE_COUNT }}
+      </th>
       <td mat-cell *matCellDef="let element" class="centered">
         @if(element.isEditable===true){
         <mat-form-field>
           <input
             matInput
             type="number"
-            placeholder="Number of Licenses/Seats*"
+            [placeholder]="applicationConstants.NUMBER_OF_LICENSES_SEATS +'*'"
             [formControl]="licenseCountController"
             max="999"
             step="1"
@@ -123,10 +137,12 @@
           />
           @if(licenseCountController.hasError('required')&&
           licenseCountController.touched){
-          <mat-error>Licenses required</mat-error>
+          <mat-error>{{ applicationConstants.LICENSES_REQUIRED }}</mat-error>
           }@else if (licenseCountController.hasError('max')&&
           licenseCountController.touched){
-          <mat-error>Max 999 licenses can be assigned</mat-error>
+          <mat-error>{{
+            applicationConstants.MAX_LICENSES_CANE_BE_ASSIGNED
+          }}</mat-error>
           }@else if (licenseCountController.hasError('min')&&
           licenseCountController.touched){
           <mat-error
@@ -143,7 +159,7 @@
 
     <ng-container matColumnDef="assignedToBots">
       <th mat-header-cell *matHeaderCellDef class="centered">
-        Assigned To Bots
+        {{ applicationConstants.ASSIGNED_TO_BOTS }}
       </th>
       <td mat-cell *matCellDef="let element" class="centered">
         {{ element.licenseAssignedToBots }}
@@ -151,12 +167,14 @@
     </ng-container>
 
     <ng-container matColumnDef="action">
-      <th mat-header-cell *matHeaderCellDef>Action</th>
+      <th mat-header-cell *matHeaderCellDef>
+        {{ applicationConstants.ACTION }}
+      </th>
       <td mat-cell *matCellDef="let element">
         @if(element.isEditable===true){
         <div class="action-wrapper">
           <div class="edit-wrapper" (click)="onCancelUpdate(element.id)">
-            <span class="edit-text">Cancel</span>
+            <span class="edit-text">{{ applicationConstants.CANCEL }}</span>
           </div>
           <div
             class="save-wrapper"
@@ -167,13 +185,13 @@
             "
           >
             <img src="assets/svgs/ic_save.svg" alt="save" class="edit-icon" />
-            <span class="save-text">Save</span>
+            <span class="save-text">{{ applicationConstants.SAVE }}</span>
           </div>
         </div>
         }@else{
         <div class="edit-wrapper" (click)="onEditApplication(element.id)">
           <img src="assets/svgs/edit_square.svg" alt="edit" class="edit-icon" />
-          <span class="edit-text">Edit</span>
+          <span class="edit-text">{{ applicationConstants.EDIT }}</span>
         </div>
         }
       </td>

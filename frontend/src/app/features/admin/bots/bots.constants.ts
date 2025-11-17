@@ -1,0 +1,27 @@
+export const BotsConstants = {
+  CURRENT_BOT_TAB_LABEL: 'Current Bot Details',
+  ADD_NEW_BOT_TAB_LABEL: 'Add New Bot',
+  SEARCH_BOT: 'Search bot',
+  NO_BOTS_TO_DISPLAY: 'No bots to display',
+  BOT_ID: 'Bot ID',
+  BOT_NAME: 'Bot Name',
+  BOT_EMAIL_ID: 'Bot Email ID',
+  APPLICATIONS: 'Applications',
+  ADD_REMOVE_APPLICATIONS: 'Add/Remove applications',
+  BOT_RESERVED_FOR_ADMIN: 'Bot reserved for admin',
+  ADMIN: 'Admin',
+  OPEN: 'Open',
+  ACTION: 'Action',
+  CANCEL: 'Cancel',
+  SAVE: 'Save',
+  EDIT: 'Edit',
+  ADD_BOT_DETAILS: 'Add Bot Details',
+  BOT_NAME_REQUIRED: 'Bot name required',
+  BOT_EMAIL_REQUIRED: 'Bot email required',
+  BOT_EMAIL_NOT_VALID:
+    'Email not valid. 1987984870407.altostrat.com email required',
+  ATLEAST_ONE_APPLICATION_REQUIRED: 'At least one application is required',
+  PICK_ONE_MORE_APPS: 'Pick one or more apps',
+  ADD: 'Add',
+  ADD_APPLICATION:'Add Applications'
+};

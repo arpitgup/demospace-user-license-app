@@ -30,6 +30,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ErrorDialog } from '../../../../shared/dialogs/error-dialog/error-dialog';
 import { BotService } from '../../../../core/services/bot.service';
 import { ADMIN_BOT_EMAIL_VALIDATION } from '../../../../../utilities/utils';
+import { BotsConstants } from '../bots.constants';
 
 @Component({
   selector: 'app-admin-create-bot',
@@ -54,6 +55,7 @@ export class AdminCreateBotComponent implements OnInit {
   readonly BOT_NAME_FORM = 'botName';
   readonly BOT_EMAIL_FORM = 'botEmail';
   readonly BOT_APPLICATIONS_FORM = 'botApplications';
+  readonly botsConstants = BotsConstants;
 
   createBotForm: FormGroup = this.fb.group({
     [this.BOT_NAME_FORM]: ['', Validators.required],
