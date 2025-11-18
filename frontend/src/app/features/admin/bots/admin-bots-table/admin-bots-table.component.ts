@@ -198,14 +198,7 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   }
 
   onSaveBotDetails(botId: number) {
-    this.adminBotsList = this.adminBotsList.map((item) => {
-      if (item.id === botId) {
-        item.isEditable = false;
-      }
-      return item;
-    });
     const adminBot = this.adminBotsList.filter((item) => item.id === botId);
-    this.updateBotsTable();
     this.callUpdateBotApi(botId, adminBot[0]);
   }
 
@@ -295,6 +288,12 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
       )
       .subscribe({
         next: (res) => {
+          this.adminBotsList = this.adminBotsList.map((item) => {
+            if (item.id === botId) {
+              item.isEditable = false;
+            }
+            return item;
+          });
           this.updateApplicationAvailability(res.applications);
           this.applicationList = res.applications;
           const index = this.adminBotsList.findIndex(
