@@ -11,26 +11,30 @@
 
   .cancel-wrapper {
     min-height: 3.62rem;
-    background: #fff;
-    width: 100%;
-    background: #f6f9fe;
+    width: fit-content;
     margin-top: 1.5rem;
     margin-bottom: 1.5rem;
     .cancel-text-wrapper {
       width: fit-content;
       height: fit-content;
-      padding: 1rem 2rem;
+      padding: 0.8rem 1.1rem;
       justify-content: center;
       align-items: center;
-      border: 1px solid rgba(22, 26, 29, 0.8);
-      border-radius: 1.875rem;
+      background: #e62020;
+      border-radius: 2rem;
       display: flex;
       flex-direction: row;
-      gap: 1rem;
+      gap: 0.5rem;
       cursor: pointer;
-
+      justify-content: center;
+      align-items: center;
+      .cancel-icon-wrapper {
+        color: #fff;
+        font-size: 1.5rem;
+        padding-top: 0.2rem;
+      }
       .cancel-text {
-        color: rgba(22, 26, 29, 0.8);
+        color: #fff;
         font-family: Roboto;
         font-size: 1rem;
         font-style: normal;

@@ -44,7 +44,7 @@ import { DEMOCONSTANTS } from '../demo.constants';
     MatChipsModule,
     MatIconModule,
     MatCheckbox,
-    ErrorMessage
+    ErrorMessage,
   ],
   templateUrl: './admin-add-new-demo.component.html',
   styleUrl: './admin-add-new-demo.component.scss',
@@ -70,7 +70,7 @@ export class AdminAddNewDemoComponent implements OnInit {
   readonly applicationErrorMessage = signal<string>('');
   public isLicenseReservation = signal<boolean>(false);
   public readonly errorMessage = signal<string>('');
-  readonly demoConstants=DEMOCONSTANTS;
+  readonly demoConstants = DEMOCONSTANTS;
   addDemoForm: FormGroup = this.fb.group({
     [this.DEMO_ID_FORM]: ['', Validators.required],
     [this.DEMO_TITLE_FORM]: ['', [Validators.required]],
@@ -172,7 +172,7 @@ export class AdminAddNewDemoComponent implements OnInit {
       this.featureLicenseApp() === true
     ) {
       this.showErrorDialog(
-        'Saas applications should not be empty if license reservation is enabled'
+        this.demoConstants.SAAS_APPLICATION_SHOULD_NOT_BE_EMPTY
       );
       return;
     }
@@ -198,7 +198,9 @@ export class AdminAddNewDemoComponent implements OnInit {
         this.showSuccessDialog();
       },
       error: (error) => {
-        this.showErrorDialog(error.error.detail || 'Something went wrong');
+        this.showErrorDialog(
+          error.error.detail || this.demoConstants.SOMETHING_WENT_WRONG
+        );
       },
     });
   }
@@ -211,9 +213,9 @@ export class AdminAddNewDemoComponent implements OnInit {
       maxHeight: 'none',
       disableClose: true,
       data: {
-        title: 'Success',
-        message: 'Demo OnBoarded successfully',
-        confirmText: 'OK',
+        title: this.demoConstants.SUCCESS,
+        message: this.demoConstants.DEMO_ONBOARDED_SUCCESS,
+        confirmText: this.demoConstants.OK,
       },
     });
     dialogRef.afterClosed().subscribe((result) => {

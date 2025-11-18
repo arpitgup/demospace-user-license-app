@@ -1,0 +1,160 @@
+<ng-container>
+  @if(errorMessage()!==''){
+  <app-error-message
+    [errorMessage]="errorMessage()"
+    (retryClicked)="onRetryCall()"
+  ></app-error-message>
+  }@else{
+  <div class="add-org-unit-wrapper">
+    <h2>{{ demoConstants.ADD_NEW_ORG_UNIT }}</h2>
+    <form [formGroup]="addOrgUnitForm" class="org-unit-form-wrapper">
+      <div class="org-unit-wrapper">
+        <mat-form-field appearance="outline" class="custom-form-field">
+          <mat-label>{{ demoConstants.ORG_UNIT_PATH }}</mat-label>
+          <input
+            matInput
+            [placeholder]="demoConstants.ORG_UNIT_PATH + '*'"
+            [formControlName]="ORG_UNIT_PATH_FORM"
+            maxlength="100"
+          />
+          @if(addOrgUnitForm.get(ORG_UNIT_PATH_FORM)?.hasError('required')&&
+          addOrgUnitForm.get(ORG_UNIT_PATH_FORM)?.touched){
+          <mat-error>{{ demoConstants.ORG_UNIT_PATH_REQUIRED }}</mat-error>
+          }@else if(addOrgUnitForm.get(ORG_UNIT_PATH_FORM)?.hasError('pattern')&&
+          addOrgUnitForm.get(ORG_UNIT_PATH_FORM)?.touched){
+          <mat-error>{{ demoConstants.INVALID_ORG_UNIT }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="custom-form-field">
+          <mat-label>{{ demoConstants.DESCRIPTION }}</mat-label>
+          <input
+            matInput
+            [placeholder]="demoConstants.DESCRIPTION + '*'"
+            [formControlName]="DESCRIPTION_FORM"
+            maxlength="500"
+          />
+          @if(addOrgUnitForm.get(DESCRIPTION_FORM)?.hasError('required')&&
+          addOrgUnitForm.get(DESCRIPTION_FORM)?.touched){
+          <mat-error>{{ demoConstants.DESCRIPTION_REQUIRED }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="org-unit-wrapper">
+        <mat-form-field appearance="outline" class="custom-form-field">
+          <mat-label>{{ demoConstants.COST_CENTRE }}</mat-label>
+          <input
+            matInput
+            type="number"
+            [placeholder]="demoConstants.COST_CENTRE + '*'"
+            [formControlName]="COST_CENTRE_FORM"
+            maxlength="200"
+          />
+          @if(addOrgUnitForm.get(COST_CENTRE_FORM)?.hasError('required')&&
+          addOrgUnitForm.get(COST_CENTRE_FORM)?.touched){
+          <mat-error>{{ demoConstants.COST_CENTRE_REQUIRED }}</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="custom-form-field">
+          <mat-label>{{ demoConstants.MANAGER_NAME }}</mat-label>
+          <input
+            matInput
+            [placeholder]="demoConstants.MANAGER_NAME + '*'"
+            [formControlName]="MANAGER_NAME_FORM"
+            maxlength="400"
+          />
+          @if(addOrgUnitForm.get(MANAGER_NAME_FORM)?.hasError('required')&&
+          addOrgUnitForm.get(MANAGER_NAME_FORM)?.touched){
+          <mat-error>{{ demoConstants.MANAGER_NAME_REQUIRED }}</mat-error>
+          }@else if(addOrgUnitForm.get(MANAGER_NAME_FORM)?.hasError('pattern')&&
+          addOrgUnitForm.get(MANAGER_NAME_FORM)?.touched){
+          <mat-error>{{ demoConstants.INVALID_MANAGER_NAME }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="org-unit-wrapper">
+        <mat-form-field appearance="outline" class="custom-form-field">
+          <mat-label>{{ demoConstants.MANAGER_EMAIL }}</mat-label>
+          <input
+            matInput
+            [placeholder]="demoConstants.MANAGER_EMAIL + '*'"
+            [formControlName]="MANAGER_EMAIL_FORM"
+            maxlength="400"
+          />
+          @if(addOrgUnitForm.get(MANAGER_EMAIL_FORM)?.hasError('required')&&
+          addOrgUnitForm.get(MANAGER_EMAIL_FORM)?.touched){
+          <mat-error>{{ demoConstants.MANAGER_EMAIL_REQUIRED }}</mat-error>
+          }@else if(addOrgUnitForm.get(MANAGER_EMAIL_FORM)?.hasError('email')&&
+          addOrgUnitForm.get(MANAGER_EMAIL_FORM)?.touched){
+          <mat-error>{{ demoConstants.INVALID_MANAGER_EMAIL }}</mat-error>
+          }@else if(addOrgUnitForm.get(MANAGER_EMAIL_FORM)?.hasError('pattern')&&
+          addOrgUnitForm.get(MANAGER_EMAIL_FORM)?.touched){
+          <mat-error>{{ demoConstants.EMAIL_NOT_VALID }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="custom-form-field">
+          <mat-label>{{ demoConstants.MANAGER_TITLE }}</mat-label>
+          <input
+            matInput
+            [placeholder]="demoConstants.MANAGER_TITLE + '*'"
+            [formControlName]="MANAGER_TITLE_FORM"
+            maxlength="400"
+          />
+          @if(addOrgUnitForm.get(MANAGER_TITLE_FORM)?.hasError('required')&&
+          addOrgUnitForm.get(MANAGER_TITLE_FORM)?.touched){
+          <mat-error>{{ demoConstants.MANAGER_TITLE_REQUIRED }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="org-unit-wrapper">
+        <mat-form-field appearance="outline" class="custom-form-field">
+          <mat-label>{{ demoConstants.REP_ROLE }}</mat-label>
+
+          <input
+            matInput
+            [placeholder]="demoConstants.REP_ROLE + '*'"
+            [formControlName]="REP_ROLE_FORM"
+            maxlength="400"
+          />
+          @if(addOrgUnitForm.get(REP_ROLE_FORM)?.hasError('required')&&
+          addOrgUnitForm.get(REP_ROLE_FORM)?.touched){
+          <mat-error>{{ demoConstants.REP_ROLE_REQUIRED }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="custom-form-field">
+          <mat-label>{{ demoConstants.REP_DEPARTMENT }}</mat-label>
+          <input
+            matInput
+            [placeholder]="demoConstants.REP_DEPARTMENT + '*'"
+            [formControlName]="REP_DEPARTMENT_FORM"
+            maxlength="400"
+          />
+          @if(addOrgUnitForm.get(REP_DEPARTMENT_FORM)?.hasError('required')&&
+          addOrgUnitForm.get(REP_DEPARTMENT_FORM)?.touched){
+          <mat-error>{{ demoConstants.REP_DEPARTMENT_REQUIRED }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </form>
+
+    <div class="button-wrapper">
+      <button matButton class="cancel-button" (click)="onCancel()">
+        {{ demoConstants.CANCEL }}
+      </button>
+      <button
+        matButton
+        id="btn-confirm"
+        class="confirm-button"
+        (click)="onConfirm()"
+      >
+        {{ demoConstants.ADD }}
+      </button>
+    </div>
+  </div>
+  }
+</ng-container>

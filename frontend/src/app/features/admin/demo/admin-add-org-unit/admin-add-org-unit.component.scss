@@ -1,0 +1,140 @@
+@use "../../../../../styles/variables" as *;
+@use "../../../../../styles/typography" as *;
+@use "@angular/material" as mat;
+@use "../../../../../styles/mixins" as *;
+
+// Colors
+$color-text-primary: #161a1d;
+$color-text-disabled: #cccccc;
+$color-primary: #4285f4;
+$color-primary-light-bg: rgba(66, 133, 244, 0.2);
+$color-primary-light-hover: rgba(66, 133, 244, 0.28);
+$color-primary-light-text: rgba(66, 133, 244, 0.7);
+$color-border-default: rgba(190, 191, 192, 0.5);
+$color-border-stroked: #8d8f90;
+$color-bg-disabled: #e6e6e6;
+$color-error: #d93025; // A common Google error red
+$color-error-bg: #fce8e6;
+$color-error-border: #fce8e6;
+
+// Borders
+$border-radius-container: 1.5rem;
+$border-radius-pill: 25px;
+$border-radius-action: 2.56rem;
+
+// Typography
+$font-family-base: Roboto, "Helvetica Neue", sans-serif;
+$font-size-header: 1.5rem;
+$font-size-pill: 1.125rem;
+
+// Spacing & Dimensions
+$spacing-xl: 3rem;
+$spacing-lg: 2.5rem;
+$spacing-md: 1.5rem;
+$spacing-sm: 1rem;
+$spacing-xs: 0.75rem;
+
+.error-container {
+  width: auto;
+  height: auto;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-org-unit-wrapper {
+  border-radius: 1.5rem;
+  border: 1px solid rgba(190, 191, 192, 0.5);
+  margin: 3.06rem;
+  padding: 2.75rem;
+  display: flex;
+  flex-direction: column;
+  h2 {
+    color: var(--Black, #161a1d);
+    font-family: Roboto;
+    font-size: 1.5rem;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 1.5rem; /* 100% */
+    margin-bottom: 3rem;
+  }
+  .org-unit-form-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+
+    .org-unit-wrapper {
+      display: flex;
+      flex-direction: row;
+      gap: 3rem;
+      .custom-form-field {
+        width: 40%;
+        max-width: 30rem;
+        margin-bottom: 0rem;
+        margin-top: 0.5rem;
+        display: flex;
+        flex: 1;
+      }
+    }
+  }
+
+  .button-wrapper {
+    justify-content: center;
+    align-items: center;
+    margin-top: 6rem;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: row;
+    gap: 2.31rem;
+    .cancel-button {
+      display: flex;
+      padding: 1rem 2rem;
+      justify-content: center;
+      align-items: center;
+      flex-shrink: 0;
+      border-radius: 2.5625rem;
+      border: 1px solid var(--light-grey, #8d8f90);
+      background: #fff;
+      color: var(--light-grey, #8d8f90);
+      font-family: Roboto;
+      font-size: 1rem;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 1.5rem; /* 150% */
+      letter-spacing: 0.025rem;
+      cursor: pointer;
+    }
+    .confirm-button {
+      display: flex;
+      padding: 1rem 2rem;
+      justify-content: center;
+      align-items: center;
+      flex-shrink: 0;
+      border-radius: 2.5625rem;
+      background: #4285f4;
+      color: #fff;
+      font-family: Roboto;
+      font-size: 1rem;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 1.5rem; /* 150% */
+      letter-spacing: 0.025rem;
+      border: none;
+      cursor: pointer;
+      &:disabled {
+        background: rgba(66, 133, 244, 0.2) !important;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+:host ::ng-deep {
+  .mat-mdc-floating-label {
+    padding-bottom: 0.6rem;
+  }
+  .mat-mdc-input-element {
+    padding-top: 0.2rem;
+  }
+}

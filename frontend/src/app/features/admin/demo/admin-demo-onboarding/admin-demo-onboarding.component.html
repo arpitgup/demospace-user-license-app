@@ -4,13 +4,23 @@
     (selectedTabChange)="onTabChange($event)"
   >
     <mat-tab [label]="demoConstants.DEMO_DETAILS">
+      @if(selectedIndex===0){
       <app-admin-onboard-demo-table></app-admin-onboard-demo-table>
+      }
     </mat-tab>
     <mat-tab [label]="demoConstants.ADD_NEW_DEMO">
       @if(selectedIndex===1){
       <app-admin-add-new-demo
         (demoOnBoardSuccess)="demoOnBoarding()"
       ></app-admin-add-new-demo>
+      }
+    </mat-tab>
+    <mat-tab [label]="demoConstants.ADD_NEW_ORGANIZATION">
+      @if(selectedIndex===2){
+      <app-admin-add-org-unit
+        (orgAddedSuccesfully)="orgAddedSuccesfully()"
+      ></app-admin-add-org-unit>
+
       }
     </mat-tab>
   </mat-tab-group>
