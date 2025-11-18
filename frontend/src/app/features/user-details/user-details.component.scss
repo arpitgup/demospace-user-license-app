@@ -114,6 +114,14 @@
     margin-left: 2rem;
     margin-right: 4rem;
     flex: 1;
+    .user-info-wrapper-invisible {
+      display: flex;
+      flex-direction: column;
+      align-items: start;
+      justify-content: start;
+      flex: 1;
+      visibility: hidden;
+    }
     .user-info-wrapper {
       display: flex;
       flex-direction: column;
@@ -156,8 +164,8 @@
       @include mat.form-field-overrides(
         (
           container-height: none,
-          outlined-container-shape:0.8rem,
-          filled-label-display:none
+          outlined-container-shape: 0.8rem,
+          filled-label-display: none,
         )
       );
     }
