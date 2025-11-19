@@ -27,6 +27,7 @@ export class ConfirmationDialog implements OnInit {
     endDateTime: string;
     confirmText: string;
     cancelText: string;
+    isDeleteConfirmation?:boolean;
   };
   onConfirm(): void {
     this.dialogRef.close(true);

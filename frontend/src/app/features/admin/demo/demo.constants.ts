@@ -77,4 +77,15 @@ export const DEMOCONSTANTS = {
     'Saas applications should not be empty if license reservation is enabled',
   INVALID_ORG_UNIT: 'Organization unit should starts with /',
   EMAIL_NOT_VALID: 'Email not valid. Agentspace-demo-user email required',
+  ID: 'ID',
+  TITLE: 'Title',
+  TITLE_REQUIRED: 'Title Required',
+  USER_GROUP_EMAIL: 'User Email',
+  USER_EMAIL_REQUIRED: 'User group email required',
+  INVALID_USER_EMAIL:'Invalid user email',
+  APP_LINK:'App Link',
+  APP_LINK_REQUIRED:'App link required',
+  INVALID_APP_LINK:'Invalid app link',
+  DRIVE:'Drive',
+  STATUS:'Status'
 };
