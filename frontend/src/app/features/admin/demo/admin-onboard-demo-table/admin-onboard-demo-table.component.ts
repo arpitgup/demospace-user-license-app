@@ -351,7 +351,7 @@ export class AdminOnboardDemoTableComponent {
     const demo = this.adminDemoList.filter((item) => item.demo_id === demoId);
     if (demo[0].applicationIds.length <= 0 && demo[0].feature_license_app) {
       this.showErrorDialog(
-        'Saas applications should not be empty if license reservation is enabled'
+       this.demoConstants.SAAS_APPLICATION_SHOULD_NOT_BE_EMPTY
       );
       return;
     }

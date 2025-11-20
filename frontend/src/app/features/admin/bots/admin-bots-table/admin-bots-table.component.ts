@@ -30,6 +30,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { ErrorMessage } from '../../../../shared/components/error-message/error-message';
 import { MatIconModule } from '@angular/material/icon';
 import { BotsConstants } from '../bots.constants';
+import {MatRadioModule} from '@angular/material/radio';
+
 
 @Component({
   selector: 'app-admin-bots-table',
@@ -43,6 +45,7 @@ import { BotsConstants } from '../bots.constants';
     MatCheckbox,
     ErrorMessage,
     MatIconModule,
+    MatRadioModule
   ],
   templateUrl: './admin-bots-table.component.html',
   styleUrl: './admin-bots-table.component.scss',
@@ -59,10 +62,11 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   adminBotsList: AdminBotsResponse[] = [];
   public readonly botsResponse = this.adminService.bots;
   public readonly errorMessage = signal<string>('');
+  public selectAllBots = signal<boolean>(false);
   private dialog = inject(MatDialog);
   applicationList: Application[] = [];
   botApplicationDetailsList: AdminBotsResponse[] = [];
-  botsConstants=BotsConstants;
+  botsConstants = BotsConstants;
   @ViewChild(MatSort) set sort(sort: MatSort) {
     if (sort) {
       this.dataSource.sort = sort;
@@ -76,6 +80,7 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   }
 
   displayedColumns: string[] = [
+    'select',
     'botId',
     'botName',
     'botEmail',
@@ -339,5 +344,25 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
 
   onRetryCall() {
     this.getAllAdminBots();
+  }
+  onSelectAllBots(value: boolean) {
+    this.adminBotsList = this.adminBotsList.map((item) => ({
+      ...item,
+      isSelect: value,
+    }));
+    this.updateBotsTable();
+  }
+
+  onSelectBots(value: boolean, id: number) {
+    this.adminBotsList = this.adminBotsList.map((item) => ({
+      ...item,
+      isSelect: id === item.id ? value : item.isSelect,
+    }));
+  }
+  addApp(application:Application){
+
+  }
+  onConfirmLicenses(){
+
   }
 }

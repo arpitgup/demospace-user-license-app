@@ -12,7 +12,56 @@
     <span>{{ botsConstants.NO_BOTS_TO_DISPLAY }}</span>
   </div>
   }@else{
+  <div class="option-selection-wrapper">
+    <mat-radio-group aria-label="Select an option">
+      <mat-radio-button value="1">Assign By Bot Selection</mat-radio-button>
+      <mat-radio-button value="2">Assign By Bot Range</mat-radio-button>
+    </mat-radio-group>
+  </div>
+
+  <div class="pill-bank" role="list" aria-label="Available applications">
+    @for (application of adminApplications; track application.id) {
+    @if(application.isEnabled===true){
+    <div class="pill" role="listitem">
+      <mat-checkbox
+        class="show-assignment-checkbox"
+        (change)="onSelectBots($event.checked, application.id)"
+        [checked]="true"
+      />
+      <span
+        >{{ application.name }}({{ application.remainingLicenseCount }})
+      </span>
+    </div>
+    } }
+  </div>
+  <div class="license-assignment-wrapper">
+    <div class="items-selected-box"></div>
+    <span class="items-selected-text">2 Items Selected</span>
+    <button matButton class="bulk-assignment-btn" (click)="onConfirmLicenses()">
+      Assign Licenses
+    </button>
+  </div>
+
   <table mat-table [dataSource]="dataSource" matSort class="custom-table">
+    <ng-container matColumnDef="select">
+      <th mat-header-cell *matHeaderCellDef>
+        <div class="assign-license-checkbox-wrapper">
+          <mat-checkbox
+            class="show-assignment-checkbox"
+            (change)="onSelectAllBots($event.checked)"
+            [checked]="selectAllBots()"
+          />
+        </div>
+      </th>
+      <td mat-cell *matCellDef="let element">
+        <mat-checkbox
+          class="show-assignment-checkbox"
+          (change)="onSelectBots($event.checked, element.id)"
+          [checked]="element.isSelect"
+        />
+      </td>
+    </ng-container>
+
     <ng-container matColumnDef="botId">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         {{ botsConstants.BOT_ID }}
