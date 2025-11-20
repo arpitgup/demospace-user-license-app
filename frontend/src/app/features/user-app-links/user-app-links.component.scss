@@ -11,6 +11,11 @@
     padding: 0;
     margin: 0;
   }
+  .how-to-login-wrapper {
+    color: rgba(0, 0, 255, 0.5);
+    text-decoration: underline;
+    cursor: pointer;
+  }
   .user-wrapper {
     display: flex;
     padding-top: 2rem;
@@ -146,20 +151,59 @@
       .credentials-details {
         display: flex;
         flex-direction: column;
-        h2 {
-          margin: 0;
-          padding: 0;
-          font-size: 2rem;
-          font-family: Roboto;
-          font-style: normal;
-          font-weight: 600;
-          letter-spacing: 0.02rem;
+        .demo-info-wrapper {
           display: flex;
-          color: #000;
-          text-align: start;
-          margin-bottom: 2rem;
-          text-align: center;
+          flex-direction: row;
           justify-content: center;
+          align-items: center;
+          h2 {
+            margin: 0;
+            padding: 0;
+            font-size: 2rem;
+            font-family: Roboto;
+            font-style: normal;
+            font-weight: 600;
+            letter-spacing: 0.02rem;
+            display: flex;
+            color: #000;
+            text-align: start;
+            margin-bottom: 2rem;
+            text-align: center;
+            justify-content: center;
+          }
+          .info-detail-wrapper {
+            position: relative;
+            display: inline-block;
+            justify-content: center;
+            align-items: center;
+            margin-left: 0.5rem;
+            cursor: pointer;
+            margin-bottom: 1.4rem;
+            .info-tooltip-wrapper {
+              justify-content: center;
+              align-items: center;
+              color:  rgba(0, 0, 255, 0.5);
+            }
+            .tooltip {
+              visibility: hidden;
+              background: #f2e5e5;
+              color: rgba(0, 0, 255, 0.5);
+              padding: 0.6rem 1.5rem;
+              border-radius: 0.2rem;
+              position: absolute;
+              top: -2.6rem;
+              left: 50%;
+              font-size: 1rem;
+              transform: translateX(-50%);
+              white-space: nowrap;
+              z-index: 10;
+              font-size: 1rem;
+              text-decoration: underline;
+            }
+            &:hover .tooltip {
+              visibility: visible;
+            }
+          }
         }
 
         .email-wrapper {
@@ -330,7 +374,7 @@
     margin-top: 4rem;
     .note-wrapper {
       display: flex;
-      padding: 1rem 2rem;
+      padding: 0.2rem 1rem;
       border-radius: 0.5rem;
       border-radius: 0.5rem;
       border: 1px solid rgba(190, 191, 192, 0.5);
@@ -339,18 +383,21 @@
       width: fit-content;
       align-items: center;
       justify-content: center;
-
-      p {
-        margin: 0;
-        padding: 0;
+      li {
         font-size: 1.2rem;
-        color: #555555;
-        font-family: Roboto;
-        font-style: normal;
-        font-weight: 400;
-        letter-spacing: 0.02rem;
-        text-align: center;
+        color: #000;
       }
+      // p {
+      //   margin: 0;
+      //   padding: 0;
+      //   font-size: 1.2rem;
+      //   color: #555555;
+      //   font-family: Roboto;
+      //   font-style: normal;
+      //   font-weight: 400;
+      //   letter-spacing: 0.02rem;
+      //   text-align: center;
+      // }
     }
   }
 

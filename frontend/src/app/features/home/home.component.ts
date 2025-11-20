@@ -56,7 +56,7 @@ export class HomeComponent implements OnInit {
   userDetails = this.userService.userInfo;
   demoId: string = '';
   private platformId = inject(PLATFORM_ID);
-  demoOnBoardingStatus=DemoOnBoardingEnum;
+  demoOnBoardingStatus = DemoOnBoardingEnum;
   homeMenuItems: HomeMenuItems[] = [
     {
       id: 1,
@@ -210,6 +210,13 @@ export class HomeComponent implements OnInit {
       return;
     }
     this.callDemoDetailsApi(demoId);
+  }
+
+  redirectHowToLogin() {
+    this.menuItemType.set(HomeItems.HOW_TO_LOGIN_IN);
+    this.homeMenuItems = this.homeMenuItems.map((item) => {
+      return { ...item, isSelected: item.type === HomeItems.HOW_TO_LOGIN_IN };
+    });
   }
 
   goProfileSection() {

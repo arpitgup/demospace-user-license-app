@@ -11,7 +11,10 @@
           rel="noopener noreferrer"
           class="link-wrapper"
           >go/demos</a
-        >. For comprehensive instructions, please refer to the 'how to log-in'
+        >. For comprehensive instructions, please refer to the
+        <span class="how-to-login-wrapper" (click)="redirectToHowLogin()"
+          >'how to log-in'</span
+        >
         section (located in the left panel) and the specific demo guides
         provided on
         <a [href]="goDemoUrl" target="_blank" rel="noopener noreferrer"
@@ -36,7 +39,15 @@
         @slideInFromLeft
       />
       <div class="credentials-details" @fadeIn>
-        <h2>Demo Credential</h2>
+        <div class="demo-info-wrapper">
+          <h2>Demo Credential</h2>
+          <div class="info-detail-wrapper">
+            <mat-icon class="info-tooltip-wrapper">info</mat-icon>
+            <span class="tooltip" (click)="redirectToHowLogin()"
+              >How-To-Login</span
+            >
+          </div>
+        </div>
         <div class="email-wrapper">
           <mat-icon class="circle-icon">email</mat-icon>
           <h5 class="email-content">
@@ -123,11 +134,28 @@
   </div>
   <div class="note-container" @fadeIn>
     <div class="note-wrapper">
-      <mat-icon class="info-wrapper">info</mat-icon>
-      <p class="signup-note">
+      <!-- <mat-icon class="info-wrapper">info</mat-icon> -->
+      <ul>
+        <li>
+          For comprehensive instructions, please refer to the
+          <span class="how-to-login-wrapper" (click)="redirectToHowLogin()"
+            >'how to log-in'</span
+          >
+          section (located in the left panel) and the specific demo guides
+          provided on
+          <a [href]="goDemoUrl" target="_blank" rel="noopener noreferrer"
+            >go/demos</a
+          >.
+        </li>
+        <li>
+          Environment will be reset and user data deleted after 7 days of
+          inactivity. Please ensure uploaded files are backed up.
+        </li>
+      </ul>
+      <!-- <p class="signup-note">
         Note: Environment will be reset and user data deleted after 7 days of
         inactivity. Please ensure uploaded files are backed up.
-      </p>
+      </p> -->
     </div>
   </div>
   <section class="chat-wrapper" @fadeIn>
@@ -158,7 +186,11 @@
           Google Licenses: This application allows Googlers to create demo
           profiles within a dedicated environment for showcasing Gemini
           Enterprise. Demo users are issued Google Workspace Enterprise Plus and
-          Gemini Enterprise Plus licenses. See How to login section for more.
+          Gemini Enterprise Plus licenses. See
+          <span class="how-to-login-wrapper" (click)="redirectToHowLogin()"
+            >How to login</span
+          >
+          section for more.
         </li>
         <li class="desc-wrapper">
           For 3rd party resources: The License reservation feature (see left

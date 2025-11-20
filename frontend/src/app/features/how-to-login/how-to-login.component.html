@@ -4,15 +4,17 @@
     class="how-to-login-tabs"
     (selectedTabChange)="onTabChange($event)"
   >
-    <mat-tab label="For New User">
+    <mat-tab label="How to access Demo">
       <app-new-user></app-new-user>
     </mat-tab>
 
-    <mat-tab label="For Existing User">
+    <!-- <mat-tab label="For Existing User">
       <app-exisiting-user></app-exisiting-user>
-    </mat-tab>
+    </mat-tab> -->
     <mat-tab label="How To Reserve Licenses">
-      <app-how-to-reserve-licenses [demoDetails]="demoDetails"></app-how-to-reserve-licenses>
+      <app-how-to-reserve-licenses
+        [demoDetails]="demoDetails"
+      ></app-how-to-reserve-licenses>
     </mat-tab>
   </mat-tab-group>
 </div>

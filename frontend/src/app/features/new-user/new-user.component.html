@@ -1,8 +1,7 @@
 <div class="new-user-wrapper">
   <h2>
-    This application manages demo user profiles for multiple Gemini Enterprise
-    demos listed on go/demos. Please follow the steps below to log in as an
-    Existing User.
+    This demo user application manages user profiles for multiple demos on
+    go/demos.
   </h2>
   <h4>
     1. Login to the Application from your Google profile to lookup Gemini
@@ -16,95 +15,92 @@
       </mat-expansion-panel-header>
       @for(imageData of loginData.image; track $index){
       <img [src]="imageData" [alt]="loginData.title" class="image-wrapper" />
+      } @if(loginData.footerText.length>0){
+      <div class="note-container">
+        <div class="note-wrapper">
+          <p>
+            {{ loginData.footerText[0] }}
+          </p>
+        </div>
+      </div>
       }
     </mat-expansion-panel>
   </mat-accordion>
   }
+
+  <h4>2. Existing/Returning Users</h4>
+  <mat-accordion class="panel-wrapper">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title class="title">
+          Reset password option is available to existing/returning users
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <img
+        src="assets/images/new_home.png"
+        alt="enteremail"
+        class="image-email-page"
+      />
+    </mat-expansion-panel>
+  </mat-accordion>
+
   <h4>
-    2. Please refer to the Demo Guide's 'How to Log In' section for instructions
-    on how to login using user credentials.
+    3. Create a Chrome profile for your demo user. This way you will be able to
+    save your password and come back without having to remember or regenerate
+    your demo user password.
   </h4>
 
   <mat-accordion class="panel-wrapper">
     <mat-expansion-panel>
       <mat-expansion-panel-header>
         <mat-panel-title class="title">
-          Login using credentials
+          For more see:
+          <a
+            [href]="manageProfileLink"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Manage Chrome with multiple profiles.</a
+          >
         </mat-panel-title>
       </mat-expansion-panel-header>
-      <div class="login-image-wrapper">
-        <img
-          src="assets/images/enter_email.png"
-          alt="enteremail"
-          class="image-email-page"
-        />
-        <img
-          src="assets/images/enter_password.png"
-          alt="enteremail"
-          class="image-email-page"
-        />
-      </div>
 
       <img
-        src="assets/images/gmail_drive.png"
+        src="assets/images/new_gmail_login.png"
         alt="gmailpage"
+        class="image-wrapper"
+      />
+    </mat-expansion-panel>
+  </mat-accordion>
+
+  <h4>4. Open Demo application in you demo user’s chrome profile</h4>
+
+  <mat-accordion class="panel-wrapper">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title class="title">Access Demo App</mat-panel-title>
+      </mat-expansion-panel-header>
+      <img
+        src="assets/images/new_demo-user-profile.png"
+        alt="agentspace"
         class="image-wrapper"
       />
       <div class="note-container">
         <div class="note-wrapper">
-          <mat-icon class="info-wrapper">info</mat-icon>
           <p>
-            At first log-in and till you setup a
-            <a
-              [href]="manageProfileLink"
-              target="_blank"
-              rel="noopener noreferrer"
-              >Chrome profile,</a
-            >please refer to the Demo Guide's 'How to Log In' section for
-            instructions on how to access the URL and user credentials.
+            NOTE: This is a sample image. Your application may look different
+            according to your demo.
           </p>
         </div>
       </div>
-    </mat-expansion-panel>
-  </mat-accordion>
-
-  <h4>
-    3. Please refer to the Demo Guide's 'How to Log In' section for instructions
-    on how to access the demo artifact's URL.
-  </h4>
-
-  <mat-accordion class="panel-wrapper">
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>
-        <mat-panel-title class="title">
-          Access Gemini Enterprise App
-        </mat-panel-title>
-      </mat-expansion-panel-header>
-      <img
-        src="assets/images/agentspaceapp.png"
-        alt="agentspace"
-        class="image-wrapper"
-      />
-    </mat-expansion-panel>
-  </mat-accordion>
-
-  <h4>
-    4. Optional : To discuss demo related topics, click & join Gemini Enterprise
-    Sales Demo Chatspace.
-  </h4>
-
-  <mat-accordion class="panel-wrapper">
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>
-        <mat-panel-title class="title">
-          Gemini Enterprise Sales Demo Chatspace.
-        </mat-panel-title>
-      </mat-expansion-panel-header>
-      <img
-        src="assets/images/chat_space.png"
-        alt="chatspace"
-        class="image-wrapper"
-      />
+      <div class="title">
+        If applicable, open the demo drive link provided in your demo user’s
+        profile.
+        <img
+          src="assets/images/new_gmail_drive.png"
+          alt="agentspace"
+          class="image-wrapper"
+        />
+      </div>
     </mat-expansion-panel>
   </mat-accordion>
 
@@ -121,14 +117,34 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
       <img
-        src="assets/images/gmailpage.png"
+        src="assets/images/new_gmail_profile.png"
+        alt="chatspace"
+        class="image-wrapper"
+      />
+    </mat-expansion-panel>
+  </mat-accordion>
+
+  <h4>
+    6. Optional: For Gemini Enterprise demo ONLY, join discussing on demo
+    related topics, click & join Gemini Enterprise Sales Demo Chatspace.
+  </h4>
+
+  <mat-accordion class="panel-wrapper">
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title class="title">
+          Gemini Enterprise Sales Demo Chatspace.
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <img
+        src="assets/images/chat_space.png"
         alt="gmailworkspace"
         class="image-wrapper"
       />
     </mat-expansion-panel>
   </mat-accordion>
 
-  <div class="note-container">
+  <!-- <div class="note-container">
     <div class="note-wrapper">
       <mat-icon class="info-wrapper">info</mat-icon>
       <p>
@@ -140,5 +156,5 @@
         >
       </p>
     </div>
-  </div>
+  </div> -->
 </div>

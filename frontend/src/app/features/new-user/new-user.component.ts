@@ -10,12 +10,15 @@ import { AppInstructions } from '../../core/models/app-instructions.model';
   templateUrl: './new-user.component.html',
   styleUrl: './new-user.component.scss',
 })
+
+
 export class NewUserComponent {
   manageProfileLink = MANAGE_PROFILE_INSTRUCTIONS_URL;
   loginSteps: AppInstructions[] = [
     {
       id: 1,
-      title: 'Select Gemini Enterprise Demo from go/demos',
+      title:
+        'Click on “Launch Live Application” from the demo page on go/demos',
       image: ['assets/images/godemosagentspacepage.png'],
       headerText: [],
       footerText: [],
@@ -39,10 +42,12 @@ export class NewUserComponent {
     },
     {
       id: 4,
-      title: 'Get artifacts for Demo Walkthrough',
+      title: 'Important links for demo',
       image: ['assets/images/drive_links.png'],
       headerText: [],
-      footerText: [],
+      footerText: [
+        'NOTE: This is a sample image, your demo may have a different set of links.',
+      ],
       isOpen: false,
     },
   ];

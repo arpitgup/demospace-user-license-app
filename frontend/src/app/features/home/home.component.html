@@ -26,7 +26,7 @@ demoDetails()?.demo_onboarding_status!==demoOnBoardingStatus.ACTIVE){
 </div>
 } @else{
 <mat-drawer-container class="mat-container">
-  <mat-drawer mode="side" opened class="side-nav">
+  <mat-drawer mode="side" opened="true" position="start" class="side-nav">
     <div class="profile-image-wrapper">
       <mat-icon class="profile-image" (click)="goProfileSection()"
         >person</mat-icon
@@ -54,7 +54,10 @@ demoDetails()?.demo_onboarding_status!==demoOnBoardingStatus.ACTIVE){
   </mat-drawer>
   <mat-drawer-content class="mat-content">
     @if(menuItemType()===menuItemsEnums.APPLICATION_LINKS){
-    <app-user-app-links [demoDetails]="demoDetails()!"></app-user-app-links>
+    <app-user-app-links
+      [demoDetails]="demoDetails()!"
+      (redirectHowToLogin)="redirectHowToLogin()"
+    ></app-user-app-links>
     }@else if(menuItemType()===menuItemsEnums.LICENSE_RESERVATION){
     <app-landing-page></app-landing-page>
     }@else if(menuItemType()===menuItemsEnums.USER_PROFILE){

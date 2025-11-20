@@ -5,7 +5,6 @@ import {
   MatTabsModule,
 } from '@angular/material/tabs';
 import { NewUserComponent } from '../new-user/new-user.component';
-import { ExisitingUserComponent } from '../exisiting-user/exisiting-user.component';
 import { HowToReserveLicensesComponent } from '../how-to-reserve-licenses/how-to-reserve-licenses.component';
 import { DemoDetails } from '../../core/models/demo-details.model';
 
@@ -14,7 +13,6 @@ import { DemoDetails } from '../../core/models/demo-details.model';
   imports: [
     MatTabsModule,
     NewUserComponent,
-    ExisitingUserComponent,
     HowToReserveLicensesComponent,
   ],
   templateUrl: './how-to-login.component.html',
