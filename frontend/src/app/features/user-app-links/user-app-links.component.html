@@ -11,14 +11,6 @@
           rel="noopener noreferrer"
           class="link-wrapper"
           >go/demos</a
-        >. For comprehensive instructions, please refer to the
-        <span class="how-to-login-wrapper" (click)="redirectToHowLogin()"
-          >'how to log-in'</span
-        >
-        section (located in the left panel) and the specific demo guides
-        provided on
-        <a [href]="goDemoUrl" target="_blank" rel="noopener noreferrer"
-          >go/demos</a
         >.
       </p>
     </div>
@@ -48,33 +40,35 @@
             >
           </div>
         </div>
-        <div class="email-wrapper">
-          <mat-icon class="circle-icon">email</mat-icon>
-          <h5 class="email-content">
-            {{ userDetails()!.primary_email }}
-          </h5>
-        </div>
-        @if((userDetails()?.password || '')!==''){
-        <div class="sized-box-password"></div>
-        <div class="email-wrapper">
-          <mat-icon class="circle-icon">lock</mat-icon>
-          @if(showPassword()===true){
-          <h5 class="email-content">
-            {{ userDetails()!.password }}
-          </h5>
-          }@else{
-          <h5 class="email-content">
-            {{ passwordMasked() }}
-          </h5>
+        <div class="email-password-wrapper">
+          <div class="email-wrapper">
+            <mat-icon class="circle-icon">email</mat-icon>
+            <h5 class="email-content">
+              {{ userDetails()!.primary_email }}
+            </h5>
+          </div>
+          @if((userDetails()?.password || '')!==''){
+          <div class="sized-box-password"></div>
+          <div class="email-wrapper">
+            <mat-icon class="circle-icon">lock</mat-icon>
+            @if(showPassword()===true){
+            <h5 class="email-content">
+              {{ userDetails()!.password }}
+            </h5>
+            }@else{
+            <h5 class="email-content">
+              {{ passwordMasked() }}
+            </h5>
+            }
+            <div class="spacer"></div>
+            <mat-icon
+              class="visibility-icon"
+              (click)="updateShowPasswordValue()"
+              >{{ showPassword() ? "visibility_off" : "visibility" }}</mat-icon
+            >
+          </div>
           }
-          <div class="spacer"></div>
-          <mat-icon
-            class="visibility-icon"
-            (click)="updateShowPasswordValue()"
-            >{{ showPassword() ? "visibility_off" : "visibility" }}</mat-icon
-          >
         </div>
-        }
 
         <h5 class="desc-wrapper">
           Forgot password? Click the Reset Password button below to reset your

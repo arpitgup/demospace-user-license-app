@@ -1,7 +1,10 @@
 import { Component } from '@angular/core';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
-import { MANAGE_PROFILE_INSTRUCTIONS_URL } from '../../shared/constants/links.contants';
+import {
+  DEMO_PAGE_URL,
+  MANAGE_PROFILE_INSTRUCTIONS_URL,
+} from '../../shared/constants/links.contants';
 import { AppInstructions } from '../../core/models/app-instructions.model';
 
 @Component({
@@ -10,15 +13,18 @@ import { AppInstructions } from '../../core/models/app-instructions.model';
   templateUrl: './new-user.component.html',
   styleUrl: './new-user.component.scss',
 })
-
-
 export class NewUserComponent {
   manageProfileLink = MANAGE_PROFILE_INSTRUCTIONS_URL;
+  demoPageUrl = DEMO_PAGE_URL;
   loginSteps: AppInstructions[] = [
     {
       id: 1,
-      title:
-        'Click on “Launch Live Application” from the demo page on go/demos',
+      title: `Click on “Launch Live Application” from the demo page on <a
+          [href]="${DEMO_PAGE_URL}"
+          target="_blank"
+          rel="noopener noreferrer"
+          >go/demos</a
+        >.`,
       image: ['assets/images/godemosagentspacepage.png'],
       headerText: [],
       footerText: [],

@@ -3,15 +3,21 @@
     This demo user application manages user profiles for multiple demos on
     go/demos.
   </h2>
-  <h4>
-    1. Login to the Application from your Google profile to lookup Gemini
-    Enterprise credentials.
-  </h4>
+  <h4>1. Follow the steps below to log in to the demo.</h4>
   @for(loginData of loginSteps; track loginData.id){
   <mat-accordion class="panel-wrapper">
     <mat-expansion-panel>
       <mat-expansion-panel-header>
+        @if(loginData.id===1){
+        <mat-panel-title class="title">
+          Click on “Launch Live Application” from the demo page on&nbsp;
+          <a [href]="demoPageUrl" target="_blank" rel="noopener noreferrer">
+            go/demos.</a
+          >
+        </mat-panel-title>
+        }@else{
         <mat-panel-title class="title"> {{ loginData.title }} </mat-panel-title>
+        }
       </mat-expansion-panel-header>
       @for(imageData of loginData.image; track $index){
       <img [src]="imageData" [alt]="loginData.title" class="image-wrapper" />
@@ -39,7 +45,7 @@
       <img
         src="assets/images/new_home.png"
         alt="enteremail"
-        class="image-email-page"
+        class="image-wrapper"
       />
     </mat-expansion-panel>
   </mat-accordion>
