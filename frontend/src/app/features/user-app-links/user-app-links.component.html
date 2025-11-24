@@ -36,7 +36,7 @@
           <div class="info-detail-wrapper">
             <mat-icon class="info-tooltip-wrapper">info</mat-icon>
             <span class="tooltip" (click)="redirectToHowLogin()"
-              >How-To-Login</span
+              >How to login</span
             >
           </div>
         </div>
@@ -87,12 +87,17 @@
         class="drive-logo"
         @slideInFromRight
       />
-      <h2 @fadeIn>Demo Links</h2>
-
+      <div class="demo-info-wrapper" @fadeIn>
+        <h2 @fadeIn>Demo Links</h2>
+        <div class="info-detail-wrapper">
+          <mat-icon class="info-tooltip-wrapper">info</mat-icon>
+          <span class="tooltip" (click)="redirectToHowLogin()"
+            >How to login</span
+          >
+        </div>
+      </div>
       @if((demoDetails.gemini_enterprise_app_link || '')!==''){
-      <h5 class="link-tile-wrapper" @fadeIn>
-        Access Gemini Enterprise Application
-      </h5>
+      <h5 class="link-tile-wrapper" @fadeIn>Access Demo Application</h5>
       <div class="link-wrapper" @fadeIn>
         <h5 class="desc-wrapper">
           {{ demoDetails.gemini_enterprise_app_link }}
@@ -108,7 +113,7 @@
         }
       </div>
       } @if((demoDetails.drive_folder_link || '')!==''){
-      <h5 class="link-tile-wrapper" @fadeIn>Access Demo User's Drive</h5>
+      <h5 class="link-tile-wrapper" @fadeIn>Access Demo Drive</h5>
       <div class="link-wrapper" @fadeIn>
         <h5 class="desc-wrapper">
           {{ demoDetails.drive_folder_link }}
@@ -133,7 +138,7 @@
         <li>
           For comprehensive instructions, please refer to the
           <span class="how-to-login-wrapper" (click)="redirectToHowLogin()"
-            >'how to log-in'</span
+            >'How to login'</span
           >
           section (located in the left panel) and the specific demo guides
           provided on
@@ -156,8 +161,8 @@
     <h4>
       Optional :
       <a [href]="chatSpaceUrl" target="_blank" rel="noopener noreferrer"
-        >Join Gemini Enterprise Sales Demo Chatspace</a
-      >
+        >Join Demo Chatspace
+      </a>
     </h4>
   </section>
   <section class="demo-summary-wrapper" @fadeIn>

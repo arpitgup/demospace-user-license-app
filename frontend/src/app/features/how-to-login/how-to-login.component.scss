@@ -46,3 +46,20 @@
     }
   }
 }
+
+.mat-tab-disabled .mat-tab-label,
+.mat-tab-disabled .mat-tab-label .disabled-tab-label {
+  pointer-events: auto !important;
+}
+.mat-tab-header,
+.mat-tab-label-container{
+  overflow: visible !important;
+}
+cdk-overlay-container{
+  z-index:9999;
+}
+
+.disabled-tab-label {
+  cursor: not-allowed; /* Change the cursor to indicate it's not clickable */
+  pointer-events: auto !important; /* Use a disabled text color */
+}
