@@ -11,36 +11,15 @@
     <mat-icon class="empty-data-icon">info_outline</mat-icon>
     <span>{{ botsConstants.NO_BOTS_TO_DISPLAY }}</span>
   </div>
-  }@else{
-  <div class="option-selection-wrapper">
-    <mat-radio-group aria-label="Select an option">
-      <mat-radio-button value="1">Assign By Bot Selection</mat-radio-button>
-      <mat-radio-button value="2">Assign By Bot Range</mat-radio-button>
-    </mat-radio-group>
-  </div>
-
-  <div class="pill-bank" role="list" aria-label="Available applications">
-    @for (application of adminApplications; track application.id) {
-    @if(application.isEnabled===true){
-    <div class="pill" role="listitem">
-      <mat-checkbox
-        class="show-assignment-checkbox"
-        (change)="onSelectBots($event.checked, application.id)"
-        [checked]="true"
-      />
-      <span
-        >{{ application.name }}({{ application.remainingLicenseCount }})
-      </span>
-    </div>
-    } }
-  </div>
-  <div class="license-assignment-wrapper">
-    <div class="items-selected-box"></div>
-    <span class="items-selected-text">2 Items Selected</span>
-    <button matButton class="bulk-assignment-btn" (click)="onConfirmLicenses()">
-      Assign Licenses
-    </button>
-  </div>
+  }@else{ @if(isBulkAllocationVisible()===true){
+  <button
+    matButton
+    class="assign-application-btn"
+    (click)="callAssigApplicationToBots()"
+  >
+    {{ botsConstants.ASSIGN_APPLICATIONS }}
+  </button>
+  }
 
   <table mat-table [dataSource]="dataSource" matSort class="custom-table">
     <ng-container matColumnDef="select">

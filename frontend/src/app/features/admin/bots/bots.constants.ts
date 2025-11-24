@@ -23,5 +23,6 @@ export const BotsConstants = {
   ATLEAST_ONE_APPLICATION_REQUIRED: 'At least one application is required',
   PICK_ONE_MORE_APPS: 'Pick one or more apps',
   ADD: 'Add',
-  ADD_APPLICATION:'Add Applications'
+  ADD_APPLICATION: 'Add Applications',
+  ASSIGN_APPLICATIONS: 'Assign Applications',
 };
