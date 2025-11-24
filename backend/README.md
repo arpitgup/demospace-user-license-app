@@ -1,7 +1,7 @@
 # Agentspace License Reservation Backend
 
 
-## Folder Structure 📂
+## Folder Structures 📂
 
 ```
 backend/
