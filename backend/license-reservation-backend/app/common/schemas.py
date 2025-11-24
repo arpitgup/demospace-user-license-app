@@ -353,6 +353,7 @@ class ResetPasswordResponse(BaseModel):
 class UpdateUserProfileRequestResponse(BaseModel):
     """Schema for useremail profile update endpoint."""
     primary_email: EmailStr
+    secondary_email: EmailStr
     orgUnitPath: Optional[str]
     department: Optional[str] = None
     jobTitle: Optional[str] = None

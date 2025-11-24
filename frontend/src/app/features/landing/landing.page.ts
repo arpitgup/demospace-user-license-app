@@ -8,6 +8,8 @@ import {
   computed,
   PLATFORM_ID,
   ChangeDetectorRef,
+  EventEmitter,
+  Output,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ReservationTableComponent } from '../../shared/components/reservation-table/reservation-table.component';
@@ -69,7 +71,7 @@ export class LandingPage implements OnInit {
   private platformId = inject(PLATFORM_ID);
   private cdr = inject(ChangeDetectorRef);
   private readonly currentUserSignal = this.userService.currentUser;
-
+  @Output() redirectHowToLogin = new EventEmitter();
   public selectedSearchType = signal<SearchType | null>(null);
   public showPastReservations = signal(false);
   public userEmail: string | null = null;
@@ -276,5 +278,8 @@ export class LandingPage implements OnInit {
     this.isFetchingData = isLoading;
     this.isError = isError;
     this.errorMessage = errorMessage;
+  }
+  redirectToHowToLogin() {
+    this.redirectHowToLogin.emit();
   }
 }

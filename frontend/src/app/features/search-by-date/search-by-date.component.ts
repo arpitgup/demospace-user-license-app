@@ -117,7 +117,7 @@ export class SearchByDateComponent implements OnInit {
   @ViewChild(FormGroupDirective) private formDir?: FormGroupDirective;
 
   readonly HIDE_CONFLICTING_END_SLOTS = HIDE_CONFLICTING_END_SLOTS;
-  private readonly FIXED_END_DURATIONS: number[] = [2, 4, 8, 12, 24, 48];
+  private readonly FIXED_END_DURATIONS: number[] = [2, 4, 8, 12, 24, 48, 72];
 
   dailyAvailability = signal<DailyAvailabilityMap>({});
 

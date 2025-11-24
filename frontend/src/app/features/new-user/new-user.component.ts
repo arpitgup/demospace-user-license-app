@@ -1,7 +1,10 @@
 import { Component } from '@angular/core';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
-import { MANAGE_PROFILE_INSTRUCTIONS_URL } from '../../shared/constants/links.contants';
+import {
+  DEMO_PAGE_URL,
+  MANAGE_PROFILE_INSTRUCTIONS_URL,
+} from '../../shared/constants/links.contants';
 import { AppInstructions } from '../../core/models/app-instructions.model';
 
 @Component({
@@ -12,10 +15,16 @@ import { AppInstructions } from '../../core/models/app-instructions.model';
 })
 export class NewUserComponent {
   manageProfileLink = MANAGE_PROFILE_INSTRUCTIONS_URL;
+  demoPageUrl = DEMO_PAGE_URL;
   loginSteps: AppInstructions[] = [
     {
       id: 1,
-      title: 'Select Gemini Enterprise Demo from go/demos',
+      title: `Click on “Launch Live Application” from the demo page on <a
+          [href]="${DEMO_PAGE_URL}"
+          target="_blank"
+          rel="noopener noreferrer"
+          >go/demos</a
+        >.`,
       image: ['assets/images/godemosagentspacepage.png'],
       headerText: [],
       footerText: [],
@@ -39,10 +48,12 @@ export class NewUserComponent {
     },
     {
       id: 4,
-      title: 'Get artifacts for Demo Walkthrough',
+      title: 'Important links for demo',
       image: ['assets/images/drive_links.png'],
       headerText: [],
-      footerText: [],
+      footerText: [
+        'NOTE: This is a sample image, your demo may have a different set of links.',
+      ],
       isOpen: false,
     },
   ];

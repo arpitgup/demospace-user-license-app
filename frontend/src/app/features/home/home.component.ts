@@ -27,6 +27,7 @@ export interface HomeMenuItems {
   type: HomeItems;
   icon: string;
   url: string;
+  redirctToReserveLicense: boolean;
 }
 
 @Component({
@@ -56,7 +57,7 @@ export class HomeComponent implements OnInit {
   userDetails = this.userService.userInfo;
   demoId: string = '';
   private platformId = inject(PLATFORM_ID);
-  demoOnBoardingStatus=DemoOnBoardingEnum;
+  demoOnBoardingStatus = DemoOnBoardingEnum;
   homeMenuItems: HomeMenuItems[] = [
     {
       id: 1,
@@ -65,6 +66,7 @@ export class HomeComponent implements OnInit {
       type: HomeItems.APPLICATION_LINKS,
       icon: 'home',
       url: '',
+      redirctToReserveLicense: false,
     },
     {
       id: 2,
@@ -73,6 +75,7 @@ export class HomeComponent implements OnInit {
       type: HomeItems.LICENSE_RESERVATION,
       icon: 'calendar_month',
       url: '',
+      redirctToReserveLicense: false,
     },
     {
       id: 3,
@@ -81,6 +84,7 @@ export class HomeComponent implements OnInit {
       type: HomeItems.USER_PROFILE,
       icon: 'person',
       url: '',
+      redirctToReserveLicense: false,
     },
     {
       id: 4,
@@ -89,6 +93,7 @@ export class HomeComponent implements OnInit {
       type: HomeItems.HOW_TO_LOGIN_IN,
       icon: 'login',
       url: '',
+      redirctToReserveLicense: false,
     },
     {
       id: 5,
@@ -97,6 +102,7 @@ export class HomeComponent implements OnInit {
       type: HomeItems.FILE_A_TICKET,
       icon: 'bug_report_outlined',
       url: '',
+      redirctToReserveLicense: false,
     },
   ];
 
@@ -198,7 +204,11 @@ export class HomeComponent implements OnInit {
     }
     this.menuItemType.set(type);
     this.homeMenuItems = this.homeMenuItems.map((item) => {
-      return { ...item, isSelected: item.type === type };
+      return {
+        ...item,
+        isSelected: item.type === type,
+        redirctToReserveLicense: false,
+      };
     });
   }
 
@@ -212,10 +222,41 @@ export class HomeComponent implements OnInit {
     this.callDemoDetailsApi(demoId);
   }
 
+  redirectHowToLogin() {
+    this.menuItemType.set(HomeItems.HOW_TO_LOGIN_IN);
+    this.homeMenuItems = this.homeMenuItems.map((item) => {
+      return {
+        ...item,
+        isSelected: item.type === HomeItems.HOW_TO_LOGIN_IN,
+        redirctToReserveLicense: false,
+      };
+    });
+  }
+  redirectHowToReserveLicense() {
+    this.menuItemType.set(HomeItems.HOW_TO_LOGIN_IN);
+    this.homeMenuItems = this.homeMenuItems.map((item) => {
+      return {
+        ...item,
+        isSelected: item.type === HomeItems.HOW_TO_LOGIN_IN,
+        redirctToReserveLicense: true,
+      };
+    });
+  }
+
   goProfileSection() {
     this.menuItemType.set(HomeItems.USER_PROFILE);
     this.homeMenuItems = this.homeMenuItems.map((item) => {
-      return { ...item, isSelected: item.type === HomeItems.USER_PROFILE };
+      return {
+        ...item,
+        isSelected: item.type === HomeItems.USER_PROFILE,
+        redirctToReserveLicense: false,
+      };
     });
+  }
+
+  get isRedirectToReserveLicense() {
+    return this.homeMenuItems
+      .filter((item) => item.type === HomeItems.HOW_TO_LOGIN_IN)
+      .map((item) => item.redirctToReserveLicense)[0];
   }
 }

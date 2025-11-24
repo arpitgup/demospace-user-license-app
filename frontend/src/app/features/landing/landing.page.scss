@@ -147,4 +147,45 @@
       margin-bottom: 3.37rem;
     }
   }
+
+  .note-container {
+    display: flex;
+    flex: 1;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-top: 4rem;
+    margin-bottom: 4rem;
+    .note-wrapper {
+      display: flex;
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgba(190, 191, 192, 0.5);
+      background: #fff;
+      gap: 2rem;
+      width: fit-content;
+      justify-content: center;
+      .info-wrapper {
+        font-size: 2rem;
+        padding-right: 0.8rem;
+      }
+      p {
+        margin: 0;
+        padding: 0;
+        font-size: 1.2rem;
+        color: #555555;
+        font-family: Roboto;
+        font-style: normal;
+        font-weight: 400;
+        letter-spacing: 0.02rem;
+      }
+      .link-wrapper {
+        color: rgba(0, 0, 255, 0.5);
+        text-decoration: underline;
+        cursor: pointer;
+      }
+    }
+  }
 }

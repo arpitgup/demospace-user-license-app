@@ -146,6 +146,7 @@ async def create_user_in_workspace(
         "primaryEmail": req.primary_email,
         "orgUnitPath": req.orgUnitPath, 
         "changePasswordAtNextLogin": "true",
+        "recoveryEmail": req.secondary_email,
         "emails": [{
             "address": req.secondary_email,
             "type": "work"
@@ -357,6 +358,7 @@ async def update_user_profile(
     ):
     """Update User Profile API."""
     primary_email = user_email
+    secondary_email = req.secondary_email
     orgUnitPath = req.orgUnitPath
     department = req.department
     jobTitle = req.jobTitle
@@ -374,6 +376,7 @@ async def update_user_profile(
                 "givenName": req.first_name,
                 "familyName": req.last_name
             },
+            "recoveryEmail": secondary_email,
             "orgUnitPath": req.orgUnitPath,
             "organizations": [{
                 "department": req.department,
@@ -406,6 +409,7 @@ async def update_user_profile(
 
         return UpdateUserProfileRequestResponse(
             primary_email=primary_email,
+            secondary_email=secondary_email,
             orgUnitPath=orgUnitPath,
             department=department,
             jobTitle=jobTitle,

@@ -29,6 +29,12 @@
         </p>
       </div>
       <div class="user-info-wrapper">
+        <h6>Employee ID</h6>
+        <p class="user-details">{{ profileDetails?.employeeID || "" }}</p>
+      </div>
+    </div>
+    <div class="user-content-wrapper">
+      <div class="user-info-wrapper">
         <h6>First Name</h6>
         @if(isEditable()===true){
         <mat-form-field appearance="outline" class="form-field">
@@ -52,8 +58,7 @@
         </p>
         }
       </div>
-    </div>
-    <div class="user-content-wrapper">
+
       <div class="user-info-wrapper">
         <h6>Last Name</h6>
         @if(isEditable()===true){
@@ -78,16 +83,12 @@
         </p>
         }
       </div>
-      <div class="user-info-wrapper">
-        <h6>Job Title</h6>
-        <p class="user-details">{{ profileDetails?.jobTitle || "" }}</p>
-      </div>
     </div>
 
     <div class="user-content-wrapper">
       <div class="user-info-wrapper">
-        <h6>Employee ID</h6>
-        <p class="user-details">{{ profileDetails?.employeeID || "" }}</p>
+        <h6>Job Title</h6>
+        <p class="user-details">{{ profileDetails?.jobTitle || "" }}</p>
       </div>
       <div class="user-info-wrapper">
         <h6>Cost Center</h6>
@@ -107,6 +108,17 @@
         <p class="user-details">
           {{ demoDetails.representative_profile.manager_title || "" }}
         </p>
+      </div>
+    </div>
+    <div class="user-content-wrapper">
+      <div class="user-info-wrapper">
+        <h6>Recovery Email</h6>
+        <p class="user-details">
+          {{ profileDetails?.secondary_email || "" }}
+        </p>
+      </div>
+      <div class="user-info-wrapper-invisible">
+      
       </div>
     </div>
   </form>

@@ -11,6 +11,11 @@
     padding: 0;
     margin: 0;
   }
+  .how-to-login-wrapper {
+    color: rgba(0, 0, 255, 0.5);
+    text-decoration: underline;
+    cursor: pointer;
+  }
   .user-wrapper {
     display: flex;
     padding-top: 2rem;
@@ -130,11 +135,62 @@
     margin-right: 2rem;
     gap: 2rem;
     margin-top: 4rem;
+    .demo-info-wrapper {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      h2 {
+        margin: 0;
+        padding: 0;
+        font-size: 2rem;
+        font-family: Roboto;
+        font-style: normal;
+        font-weight: 600;
+        letter-spacing: 0.02rem;
+        display: flex;
+        color: #000;
+        text-align: start;
+        margin-bottom: 2rem;
+        text-align: center;
+        justify-content: center;
+      }
+      .info-detail-wrapper {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+        margin-bottom: 2rem;
+        .info-tooltip-wrapper {
+          font-size: 1.3rem;
+          color: rgba(0, 0, 255, 0.5);
+        }
+        .tooltip {
+          visibility: hidden;
+          background: #f2e5e5;
+          color: rgba(0, 0, 255, 0.5);
+          padding: 0.6rem 1.5rem;
+          border-radius: 0.2rem;
+          position: absolute;
+          top: -2.6rem;
+          left: 50%;
+          font-size: 1rem;
+          transform: translateX(-50%);
+          white-space: nowrap;
+          z-index: 10;
+          font-size: 1rem;
+          text-decoration: underline;
+        }
+        &:hover .tooltip {
+          visibility: visible;
+        }
+      }
+    }
     .user-credentials-wrapper {
       display: flex;
       flex-direction: column;
       padding: 0 5rem;
       flex: 1;
+      min-width: 0;
       gap: 2rem;
 
       .credentials-logo {
@@ -146,54 +202,46 @@
       .credentials-details {
         display: flex;
         flex-direction: column;
-        h2 {
-          margin: 0;
-          padding: 0;
-          font-size: 2rem;
-          font-family: Roboto;
-          font-style: normal;
-          font-weight: 600;
-          letter-spacing: 0.02rem;
-          display: flex;
-          color: #000;
-          text-align: start;
-          margin-bottom: 2rem;
-          text-align: center;
-          justify-content: center;
-        }
 
-        .email-wrapper {
-          display: flex;
-          flex-direction: row;
-          gap: 1rem;
-          align-items: center;
-          .circle-icon {
-            background-color: rgb(232, 233, 252);
-            color: rgb(101, 102, 233);
-            border-radius: 50%;
-            padding: 0.5rem;
-            display: inline-flex;
-          }
-          .email-content {
-            color: rgba(0, 0, 0, 0.9);
-            font-family: Roboto;
-            font-size: 1.2rem;
-            font-style: normal;
-            font-weight: 400;
-            letter-spacing: 0.02rem;
-          }
+        .email-password-wrapper {
+          display: block;
+          width: fit-content;
+          flex-direction: column;
+          .email-wrapper {
+            display: flex;
+            flex-direction: row;
+            gap: 1rem;
+            align-items: center;
 
-          .visibility-icon {
-            color: rgb(101, 102, 233);
-            padding: 0.5rem;
-            display: inline-flex;
-            &:hover {
-              background-color: rgb(0, 0, 0, 0.1);
-              cursor: pointer;
+            .circle-icon {
+              background-color: rgb(232, 233, 252);
+              color: rgb(101, 102, 233);
               border-radius: 50%;
+              padding: 0.5rem;
+              display: inline-flex;
+            }
+            .email-content {
+              color: rgba(0, 0, 0, 0.9);
+              font-family: Roboto;
+              font-size: 1.2rem;
+              font-style: normal;
+              font-weight: 400;
+              letter-spacing: 0.02rem;
+            }
+
+            .visibility-icon {
+              color: rgb(101, 102, 233);
+              padding: 0.5rem;
+              display: inline-flex;
+              &:hover {
+                background-color: rgb(0, 0, 0, 0.1);
+                cursor: pointer;
+                border-radius: 50%;
+              }
             }
           }
         }
+
         .spacer {
           flex: 1 1 auto;
         }
@@ -246,28 +294,15 @@
       display: flex;
       flex-direction: column;
       flex: 1;
+      min-width: 0;
       .drive-logo {
         height: 8rem;
         width: 100%;
         object-fit: contain;
         align-items: center;
+        padding-bottom: 2rem;
       }
-      h2 {
-        margin: 0;
-        padding: 0;
-        font-size: 2rem;
-        font-family: Roboto;
-        font-style: normal;
-        font-weight: 600;
-        letter-spacing: 0.02rem;
-        display: flex;
-        color: #000;
-        display: flex;
-        text-align: center;
-        justify-content: center;
-        margin-top: 1.5rem;
-        margin-bottom: 1.5rem;
-      }
+
       .link-tile-wrapper {
         color: rgba(0, 0, 0, 0.8);
         font-family: Roboto;
@@ -275,7 +310,6 @@
         font-style: normal;
         font-weight: 550;
         letter-spacing: 0.02rem;
-        margin-top: 1.2rem;
       }
 
       .link-wrapper {
@@ -291,6 +325,10 @@
         justify-content: space-between;
         margin-top: 1rem;
         gap: 0.5rem;
+        margin-bottom: 1.2rem;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
         .desc-wrapper {
           color: rgba(0, 0, 0, 0.7);
           font-family: Roboto;
@@ -327,10 +365,10 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    margin-top: 4rem;
+    margin-top: 2.8rem;
     .note-wrapper {
       display: flex;
-      padding: 1rem 2rem;
+      padding: 0.2rem 1rem;
       border-radius: 0.5rem;
       border-radius: 0.5rem;
       border: 1px solid rgba(190, 191, 192, 0.5);
@@ -339,18 +377,21 @@
       width: fit-content;
       align-items: center;
       justify-content: center;
-
-      p {
-        margin: 0;
-        padding: 0;
+      li {
         font-size: 1.2rem;
-        color: #555555;
-        font-family: Roboto;
-        font-style: normal;
-        font-weight: 400;
-        letter-spacing: 0.02rem;
-        text-align: center;
+        color: #000;
       }
+      // p {
+      //   margin: 0;
+      //   padding: 0;
+      //   font-size: 1.2rem;
+      //   color: #555555;
+      //   font-family: Roboto;
+      //   font-style: normal;
+      //   font-weight: 400;
+      //   letter-spacing: 0.02rem;
+      //   text-align: center;
+      // }
     }
   }
 
