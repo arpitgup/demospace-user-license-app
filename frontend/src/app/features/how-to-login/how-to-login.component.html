@@ -2,16 +2,33 @@
   <mat-tab-group
     mat-stretch-tabs="false"
     class="how-to-login-tabs"
+    [selectedIndex]="selectedIndex"
     (selectedTabChange)="onTabChange($event)"
   >
-    <mat-tab label="How To Access Demo">
+    <mat-tab label="How to access demo">
       <app-new-user></app-new-user>
     </mat-tab>
 
     <!-- <mat-tab label="For Existing User">
       <app-exisiting-user></app-exisiting-user>
     </mat-tab> -->
-    <mat-tab label="How To Reserve Licenses">
+    <mat-tab
+      label="How to reserve licenses"
+      [disabled]="
+        (demoDetails!.feature_license_app || false) === true ? false : true
+      "
+    >
+      @if((demoDetails!.feature_license_app || false) === false){
+      <ng-template mat-tab-label>
+        <span
+          class="disabled-tab-label"
+          matTooltip="Not available for this demo."
+        >
+          How to reserve licenses
+        </span>
+      </ng-template>
+      }
+
       <app-how-to-reserve-licenses
         [demoDetails]="demoDetails"
       ></app-how-to-reserve-licenses>
