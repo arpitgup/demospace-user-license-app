@@ -68,7 +68,7 @@ export class UserDetailsComponent {
       costCenter: this.demoDetails.representative_profile.cost_centre,
       jobTitle: this.demoDetails.representative_profile.rep_role,
       department: this.demoDetails.representative_profile.rep_department,
-      orgUnitPath: this.demoDetails.representative_profile.org_unit,
+      orgUnitPath: this.demoDetails.organization_unit,
       demoName: this.demoDetails.demo_title,
       managerEmail: this.demoDetails.representative_profile.manager_email,
       employeeID: this.userService.userInfo()?.employeeID ?? '',
