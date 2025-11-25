@@ -275,7 +275,6 @@ def create_applications(
 
     except HTTPException:
         raise
-
     except Exception as e:
         db.rollback()
         logger.error(
@@ -1211,8 +1210,8 @@ def onboard_new_demo(req: OnboardNewDemoRequestResponse, db: Session = Depends(g
         logger.info(f"Admin User {user_email}: Successfully onboarded new demo: {req.demo_id}")
         return new_demo
 
-    except HTTPException as http_exc:
-        raise http_exc
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
         logger.error(
