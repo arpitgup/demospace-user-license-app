@@ -33,7 +33,7 @@ export class NewUserComponent {
     {
       id: 2,
       title: 'Welcome screen',
-      image: ['assets/images/signup_user.png'],
+      image: ['assets/images/welcome.png'],
       headerText: [],
       footerText: [],
       isOpen: false,
