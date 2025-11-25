@@ -32,7 +32,7 @@ export class NewUserComponent {
     },
     {
       id: 2,
-      title: 'Create User Profile',
+      title: 'Welcome screen',
       image: ['assets/images/signup_user.png'],
       headerText: [],
       footerText: [],
@@ -40,14 +40,22 @@ export class NewUserComponent {
     },
     {
       id: 3,
-      title: 'Use Credentials to Login',
-      image: ['assets/images/demo_credentials.png'],
+      title: 'Create user profile',
+      image: ['assets/images/signup_user.png'],
       headerText: [],
       footerText: [],
       isOpen: false,
     },
     {
       id: 4,
+      title: 'Use credentials to login',
+      image: ['assets/images/demo_credentials.png'],
+      headerText: [],
+      footerText: [],
+      isOpen: false,
+    },
+    {
+      id: 5,
       title: 'Important links for demo',
       image: ['assets/images/drive_links.png'],
       headerText: [],
