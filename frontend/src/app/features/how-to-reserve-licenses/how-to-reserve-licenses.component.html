@@ -19,6 +19,23 @@
       </ul>
       } } @for(image of data.image; track $index){
       <img [src]="image" alt="reserveByDate" class="image-wrapper" />
+      } @if(data.id===3){
+      <div class="note-info-container">
+        <div class="note-info-wrapper">
+          <mat-icon class="info-wrapper">info</mat-icon>
+          <p>
+            NOTE: Screen above is just a sample, initially one or two
+            applications will be available via this app. We will release more as
+            we procure more licenses.See Release Notes/Change Log in the
+            <a
+              [href]="goDemoUrl + '/demo/' + demoDetails.demo_id"
+              target="_blank"
+              rel="noopener noreferrer"
+              >demo guide </a
+            >to confirm application availability.
+          </p>
+        </div>
+      </div>
       }
     </mat-expansion-panel>
   </mat-accordion>
@@ -38,7 +55,9 @@
           <h5>{{ headerText }}</h5>
         </li>
       </ul>
-      } } @if(data.id===3){
+      } } @for(image of data.image; track $index){
+      <img [src]="image" alt="reserveByApplication" class="image-wrapper" />
+      } @if(data.id===3){
       <div class="note-info-container">
         <div class="note-info-wrapper">
           <mat-icon class="info-wrapper">info</mat-icon>
@@ -55,8 +74,6 @@
           </p>
         </div>
       </div>
-      } @for(image of data.image; track $index){
-      <img [src]="image" alt="reserveByApplication" class="image-wrapper" />
       }
     </mat-expansion-panel>
   </mat-accordion>

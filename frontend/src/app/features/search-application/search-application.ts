@@ -123,6 +123,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     { value: 12, viewValue: '12 Hours', isDisabled: false, endTime: '' },
     { value: 24, viewValue: '24 Hours', isDisabled: false, endTime: '' },
     { value: 48, viewValue: '48 Hours', isDisabled: false, endTime: '' },
+    { value: 72, viewValue: '72 Hours', isDisabled: false, endTime: '' },
   ];
 
   private readonly reservationsSig = this.reservationService;

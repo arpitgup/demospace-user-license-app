@@ -36,7 +36,7 @@ export class HowToReserveLicensesComponent {
         "2. Select Date, start and end time, then click on 'Check Availability'",
       image: ['assets/images/select_date_range.png'],
       headerText: [
-        'Reservation can be for up to 48 hours and 30 days in advance.',
+        'Reservation can be for up to 72 hours and 30 days in advance.',
       ],
       footerText: [],
       isOpen: false,
@@ -71,7 +71,7 @@ export class HowToReserveLicensesComponent {
       image: ['assets/images/search_by_app_date.png'],
       headerText: [
         '“Primary Application” is the application you need the most for your demo.',
-        'Reservation can be for up to 48 hours and 30 days in advance.',
+        'Reservation can be for up to 72 hours and 30 days in advance.',
       ],
       footerText: [],
       isOpen: false,

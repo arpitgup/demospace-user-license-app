@@ -1,5 +1,12 @@
 import { animate, style, transition, trigger } from '@angular/animations';
-import { Component, inject, Input, signal } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  inject,
+  Input,
+  Output,
+  signal,
+} from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { DemoDetails } from '../../core/models/demo-details.model';
@@ -64,6 +71,7 @@ import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
 })
 export class UserAppLinksComponent {
   @Input() demoDetails!: DemoDetails;
+  @Output() redirectHowToLogin = new EventEmitter();
   private userService = inject(UserCreationService);
   userDetails = this.userService.userInfo;
   public copyGeminiSuccess = signal(false);
@@ -135,6 +143,9 @@ export class UserAppLinksComponent {
     dialogRef.afterClosed().subscribe(() => {});
   }
 
+  redirectToHowLogin() {
+    this.redirectHowToLogin.emit();
+  }
   showErrorDialog(message: string) {
     this.dialog.open(ErrorDialog, {
       width: 'auto',
