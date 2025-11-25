@@ -9,33 +9,69 @@
   } @else{ @if(dataSource.data.length===0){
   <div class="empty-data-message">
     <mat-icon class="empty-data-icon">info_outline</mat-icon>
-    <span> No bots to display</span>
+    <span>{{ botsConstants.NO_BOTS_TO_DISPLAY }}</span>
   </div>
-  }@else{
+  }@else{ @if(isBulkAllocationVisible()===true){
+  <button
+    matButton
+    class="assign-application-btn"
+    (click)="callAssigApplicationToBots()"
+  >
+    {{ botsConstants.ASSIGN_APPLICATIONS }}
+  </button>
+  }
+
   <table mat-table [dataSource]="dataSource" matSort class="custom-table">
+    <ng-container matColumnDef="select">
+      <th mat-header-cell *matHeaderCellDef>
+        <div class="assign-license-checkbox-wrapper">
+          <mat-checkbox
+            class="show-assignment-checkbox"
+            (change)="onSelectAllBots($event.checked)"
+            [checked]="selectAllBots()"
+          />
+        </div>
+      </th>
+      <td mat-cell *matCellDef="let element">
+        <mat-checkbox
+          class="show-assignment-checkbox"
+          (change)="onSelectBots($event.checked, element.id)"
+          [checked]="element.isSelect"
+        />
+      </td>
+    </ng-container>
+
     <ng-container matColumnDef="botId">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Bot ID</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{ botsConstants.BOT_ID }}
+      </th>
       <td mat-cell *matCellDef="let element">
         {{ element.id }}
       </td>
     </ng-container>
 
     <ng-container matColumnDef="botName">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Bot Name</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{ botsConstants.BOT_NAME }}
+      </th>
       <td mat-cell *matCellDef="let element">
         {{ element.name }}
       </td>
     </ng-container>
 
     <ng-container matColumnDef="botEmail">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Bot Email ID</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{ botsConstants.BOT_EMAIL_ID }}
+      </th>
       <td mat-cell *matCellDef="let element">
         {{ element.email }}
       </td>
     </ng-container>
 
     <ng-container matColumnDef="applications">
-      <th mat-header-cell *matHeaderCellDef>Applications</th>
+      <th mat-header-cell *matHeaderCellDef>
+        {{ botsConstants.APPLICATIONS }}
+      </th>
       <td mat-cell *matCellDef="let element">
         <div class="application-wrapper">
           <div class="app-chip-list">
@@ -48,7 +84,7 @@
           </div>
           @if(element.isEditable===true){
           <mat-form-field class="custom-form-field">
-            <mat-label>Add/Remove applications</mat-label>
+            <mat-label>{{ botsConstants.ADD_REMOVE_APPLICATIONS }}</mat-label>
             <mat-select
               [value]="element.applicationIds"
               (selectionChange)="onSelectionChange($event, element)"
@@ -82,16 +118,16 @@
             (change)="onSelectAdminReserved($event.checked, element.id)"
             [checked]="element.isAdmin || false"
           >
-            Bot reserved for admin
+            {{ botsConstants.BOT_RESERVED_FOR_ADMIN }}
           </mat-checkbox>
         </div>
         }@else{
         <div class="status-wrapper">
           @if(element.isAdmin===true){
           <img src="assets/svgs/ic_admin.svg" alt="admin" class="admin-icon" />
-          <span class="status-text">Admin</span>
+          <span class="status-text">{{ botsConstants.ADMIN }}</span>
           }@else{
-          <span class="status-text">Open</span>
+          <span class="status-text">{{ botsConstants.OPEN }}</span>
           }
         </div>
         }
@@ -99,22 +135,22 @@
     </ng-container>
 
     <ng-container matColumnDef="action">
-      <th mat-header-cell *matHeaderCellDef>Action</th>
+      <th mat-header-cell *matHeaderCellDef>{{ botsConstants.ACTION }}</th>
       <td mat-cell *matCellDef="let element">
         @if(element.isEditable===true){
         <div class="action-wrapper">
           <div class="edit-wrapper" (click)="onCancelUpdateBot(element.id)">
-            <span class="edit-text">Cancel</span>
+            <span class="edit-text">{{ botsConstants.CANCEL }}</span>
           </div>
           <div class="save-wrapper" (click)="onSaveBotDetails(element.id)">
             <img src="assets/svgs/ic_save.svg" alt="edit" class="edit-icon" />
-            <span class="save-text">Save</span>
+            <span class="save-text">{{ botsConstants.SAVE }}</span>
           </div>
         </div>
         }@else{
         <div class="edit-wrapper" (click)="onEditBot(element.id)">
           <img src="assets/svgs/edit_square.svg" alt="edit" class="edit-icon" />
-          <span class="edit-text">Edit</span>
+          <span class="edit-text">{{ botsConstants.EDIT }}</span>
         </div>
         }
       </td>

@@ -5,7 +5,7 @@
     (retryClicked)="onRetryCall()"
   ></app-error-message>
   }@else{
-  <h2>Add Bot Details</h2>
+  <h2>{{ botsConstants.ADD_BOT_DETAILS }}</h2>
 
   <form
     [formGroup]="createBotForm"
@@ -14,43 +14,43 @@
   >
     <div class="bot-details-wrapper">
       <mat-form-field appearance="outline" class="custom-form-field">
-        <mat-label>Bot Name</mat-label>
+        <mat-label>{{ botsConstants.BOT_NAME }}</mat-label>
         <input
           matInput
-          placeholder="Bot Name*"
+          placeholder="botsConstants.BOT_NAME+'*'"
           [formControlName]="BOT_NAME_FORM"
         />
         @if(createBotForm.get(BOT_NAME_FORM)?.hasError('required')&&
         createBotForm.get(BOT_NAME_FORM)?.touched){
-        <mat-error>Bot name required</mat-error>
+        <mat-error>{{botsConstants.BOT_NAME_REQUIRED}}</mat-error>
         }
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="custom-form-field">
-        <mat-label>Bot Email ID</mat-label>
+        <mat-label>{{ botsConstants.BOT_EMAIL_ID }}</mat-label>
         <input
           matInput
-          placeholder="Bot Email ID*"
+          [placeholder]="botsConstants.BOT_EMAIL_ID + '*'"
           [formControlName]="BOT_EMAIL_FORM"
         />
         @if(createBotForm.get(BOT_EMAIL_FORM)?.hasError('required')&&
         createBotForm.get(BOT_EMAIL_FORM)?.touched){
-        <mat-error>Bot Email required</mat-error>
+        <mat-error>{{ botsConstants.BOT_EMAIL_REQUIRED }}</mat-error>
         } @else if(createBotForm.get(BOT_EMAIL_FORM)?.hasError('pattern')&&
         createBotForm.get(BOT_EMAIL_FORM)?.touched){
-        <mat-error>Email not valid. 1987984870407.altostrat.com email required</mat-error>
+        <mat-error>{{ botsConstants.BOT_EMAIL_NOT_VALID }}</mat-error>
         }
       </mat-form-field>
     </div>
 
-    <h2>Add Applications</h2>
+    <h2>{{ botsConstants.ADD_APPLICATION }}</h2>
 
     <mat-form-field
       appearance="outline"
       class="w-full app-input-field figma-field"
       floatLabel="always"
     >
-      <mat-label>Application</mat-label>
+      <mat-label>{{ botsConstants.APPLICATIONS }}</mat-label>
 
       <div class="selected-chipbox">
         <mat-chip-set>
@@ -78,9 +78,11 @@
         [formControlName]="BOT_APPLICATIONS_FORM"
       />
       @if (selectedApplications().length===0) {
-      <mat-error>At least one application is required</mat-error>
+      <mat-error>{{
+        botsConstants.ATLEAST_ONE_APPLICATION_REQUIRED
+      }}</mat-error>
       }
-      <mat-hint>Pick one or more apps</mat-hint>
+      <mat-hint>{{ botsConstants.PICK_ONE_MORE_APPS }}</mat-hint>
     </mat-form-field>
 
     <div class="pill-bank" role="list" aria-label="Available applications">
@@ -104,19 +106,21 @@
       (change)="onSelectAdminReserved($event.checked)"
       [checked]="isAdmin() || false"
     >
-      Bot reserved for admin
+      {{ botsConstants.BOT_RESERVED_FOR_ADMIN }}
     </mat-checkbox>
   </div>
 
   <div class="button-wrapper">
-    <button matButton class="cancel-button" (click)="onCancel()">Cancel</button>
+    <button matButton class="cancel-button" (click)="onCancel()">
+      {{ botsConstants.CANCEL }}
+    </button>
     <button
       matButton
       id="btn-confirm"
       class="confirm-button"
       (click)="onConfirm()"
     >
-      Add
+      {{ botsConstants.ADD }}
     </button>
   </div>
   }

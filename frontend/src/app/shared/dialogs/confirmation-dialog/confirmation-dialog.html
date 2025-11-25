@@ -4,7 +4,7 @@
 <h2>{{ data.title }}</h2>
 
 <mat-dialog-content>
-  <p class="booking-details" [innerHTML]="data.message "></p>
+  <p class="booking-details" [innerHTML]="data.message"></p>
   @if(data.applications!==''){
   <p class="application-details">{{ data.applications }}</p>
   } @if(data.licenseTitle!==''){
@@ -34,6 +34,7 @@
     matButton
     id="btn-confirm"
     class="confirm-button"
+    [class.isDelete]="data.isDeleteConfirmation || false"
     (click)="onConfirm()"
   >
     {{ data.confirmText }}

@@ -96,6 +96,9 @@ export class ReservationService {
       );
   }
 
+  /**
+   * API call to get applications and return response with specific to demo id i.e only that applications visible to user whicg are enable for demo
+   */
   getApplications(): Observable<Application[]> {
     return this.http.get<Application[]>(`${this.apiUrl}/applications`).pipe(
       map((applications) => {
@@ -109,6 +112,9 @@ export class ReservationService {
     );
   }
 
+  /**
+   * API call to check availaibility of bots with specific to applications
+   */
   checkAvailabilityByApplication(
     data: AvailabilityByApplicationRequest
   ): Observable<AvalaibilityByApplication> {
@@ -131,6 +137,9 @@ export class ReservationService {
       );
   }
 
+  /**
+   * API call to get less duration slots if required slot is not available in search by application option
+   */
   checkLessDurationSlotsApplication(
     duration: number[],
     data: AvailabilityByApplicationRequest
@@ -264,6 +273,9 @@ export class ReservationService {
       })
       .filter((item) => (item.availableBots?.length || 0) > 0);
   }
+  /**
+   * Get saas applications id's of demo
+   */
   getSaasApplications() {
     const demoApplications =
       this.userCreationService.demoDetailsInfo()?.saas_applications || '';

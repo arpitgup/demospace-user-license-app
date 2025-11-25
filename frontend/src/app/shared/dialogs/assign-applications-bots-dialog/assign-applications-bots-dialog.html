@@ -1,0 +1,39 @@
+<button mat-icon-button (click)="onCancel()" class="close-button">
+  <mat-icon>close</mat-icon>
+</button>
+<h2>Select Applications</h2>
+
+<mat-dialog-content>
+  <div class="app-chip-list">
+    @for(app of data.applications; track app.id){
+    <div
+      class="app-chip-wrapper"
+      (click)="onApplicationSelected(app)"
+      [class.selected]="app.isSelected"
+      [class.disabled]="(app.remainingLicenseCount || 0)<=0"
+    >
+      <span class="tick-icon">&#10003;</span>
+      <span class="app-chip-text"
+        >{{ app.name }}({{ app.remainingLicenseCount }})</span
+      >
+    </div>
+    }
+  </div>
+  @if(selectedApplications().trim().length>0){
+  <p class="selected-application-wrapper">
+    Selected Application :
+    <span class="selected-application-title">{{ selectedApplications() }}</span>
+  </p>
+  }
+</mat-dialog-content>
+<mat-dialog-actions class="dialog-actions">
+  <button matButton class="cancel-button" (click)="onCancel()">Cancel</button>
+  <button
+    matButton
+    id="btn-confirm"
+    class="confirm-button"
+    (click)="onConfirm()"
+  >
+    Assign
+  </button>
+</mat-dialog-actions>

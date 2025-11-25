@@ -6,88 +6,92 @@
   ></app-error-message>
   }@else{
   <div class="add-demo-wrapper">
-    <h2>Add New Demo</h2>
+    <h2>{{ demoConstants.ADD_NEW_DEMO }}</h2>
     <form [formGroup]="addDemoForm" class="demo-form-wrapper">
       <div class="demo-details-wrapper">
         <mat-form-field appearance="outline" class="custom-form-field">
-          <mat-label>Demo ID</mat-label>
+          <mat-label>{{ demoConstants.DEMO_ID }}</mat-label>
           <input
             matInput
             type="number"
-            placeholder="Demo ID*"
+            [placeholder]="demoConstants.DEMO_ID+'*'"
             [formControlName]="DEMO_ID_FORM"
             maxlength="50"
           />
           @if(addDemoForm.get(DEMO_ID_FORM)?.hasError('required')&&
           addDemoForm.get(DEMO_ID_FORM)?.touched){
-          <mat-error>Demo ID required</mat-error>
+          <mat-error>{{ demoConstants.DEMO_ID_REQUIRED }}</mat-error>
           }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="custom-form-field">
-          <mat-label>Demo Title</mat-label>
+          <mat-label>{{ demoConstants.DEMO_TITLE }}</mat-label>
           <input
             matInput
-            placeholder="Demo Title*"
+            [placeholder]="demoConstants.DEMO_TITLE+'*'"
             [formControlName]="DEMO_TITLE_FORM"
             maxlength="200"
           />
           @if(addDemoForm.get(DEMO_TITLE_FORM)?.hasError('required')&&
           addDemoForm.get(DEMO_TITLE_FORM)?.touched){
-          <mat-error>Demo Title required</mat-error>
+          <mat-error>{{ demoConstants.DEMO_TITLE_REQUIRED }}</mat-error>
           }
         </mat-form-field>
       </div>
 
       <div class="demo-details-wrapper">
         <mat-form-field appearance="outline" class="custom-form-field">
-          <mat-label>Demo Group Email</mat-label>
+          <mat-label>{{ demoConstants.DEMO_GROUP_EMAIL }}</mat-label>
           <input
             matInput
-            placeholder="Demo Group Email*"
+            [placeholder]="demoConstants.DEMO_GROUP_EMAIL + '*'"
             [formControlName]="DEMO_GROUP_EMAIL_FORM"
             maxlength="200"
           />
           @if(addDemoForm.get(DEMO_GROUP_EMAIL_FORM)?.hasError('required')&&
           addDemoForm.get(DEMO_GROUP_EMAIL_FORM)?.touched){
-          <mat-error>Demo Group Email required</mat-error>
+          <mat-error>{{ demoConstants.DEMO_GROUP_EMAIL_REQUIRED }}</mat-error>
           }
         </mat-form-field>
         <mat-form-field appearance="outline" class="custom-form-field">
-          <mat-label>Gemini Enterprise App Link</mat-label>
+          <mat-label>{{ demoConstants.GEMINI_ENTERPRISE_APP_LINK }}</mat-label>
           <input
             matInput
-            placeholder="Gemini Enterprise App Link*"
+            [placeholder]="demoConstants.GEMINI_ENTERPRISE_APP_LINK + '*'"
             [formControlName]="GEMINI_ENTERPRISE_APP_LINK_FORM"
             maxlength="400"
           />
           @if(addDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.hasError('required')&&
           addDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.touched){
-          <mat-error>Gemini Enterprise App Link required</mat-error>
+          <mat-error>{{
+            demoConstants.GEMINI_ENTERPRISE_APP_LINK_REQUIRED
+          }}</mat-error>
           }@else if(addDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.hasError('pattern')&&
           addDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.touched){
-          <mat-error>Invalid Gemini Enterprise App Link</mat-error>
+          <mat-error>{{
+            demoConstants.INVALID_GEMINI_ENTERPRISE_APP_LINK
+          }}</mat-error>
           }
         </mat-form-field>
       </div>
 
       <div class="demo-details-wrapper">
         <mat-form-field appearance="outline" class="custom-form-field">
-          <mat-label>Drive Folder Link</mat-label>
+          <mat-label>{{ demoConstants.DRIVE_FOLDER_LINK }}</mat-label>
           <input
             matInput
-            placeholder="Drive Folder Link"
+            [placeholder]="demoConstants.DRIVE_FOLDER_LINK"
             [formControlName]="DRIVE_FOLDER_LINK_FORM"
             maxlength="400"
           />
           @if(addDemoForm.get(DRIVE_FOLDER_LINK_FORM)?.hasError('pattern')&&
           addDemoForm.get(DRIVE_FOLDER_LINK_FORM)?.touched){
-          <mat-error>Invalid Drive Folder Link</mat-error>
+          <mat-error>{{ demoConstants.INVALID_DRIVE_FOLDER_LINK }}</mat-error>
           }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="custom-form-field">
-          <mat-label>Organization Unit</mat-label>
+          <mat-label>{{ demoConstants.ORGABNIZATION_UNIT }}</mat-label>
           <mat-select [formControlName]="ORGANIZARION_UNIT_FORM">
             @for(orgUnit of organizationUnit(); track orgUnit.id){
             <mat-option [value]="orgUnit">
@@ -97,19 +101,19 @@
           </mat-select>
           @if(addDemoForm.get(ORGANIZARION_UNIT_FORM)?.hasError('required')&&
           addDemoForm.get(ORGANIZARION_UNIT_FORM)?.touched){
-          <mat-error>Organization Unit required</mat-error>
+          <mat-error>{{ demoConstants.ORGANIZATION_UNIT_REQUIRED }}</mat-error>
           }
         </mat-form-field>
       </div>
 
-      <h2>Add Applications</h2>
+      <h2>{{ demoConstants.ADD_APPLICATIONS }}</h2>
 
       <mat-form-field
         appearance="outline"
         class="w-full app-input-field figma-field"
         floatLabel="always"
       >
-        <mat-label>Application</mat-label>
+        <mat-label>{{ demoConstants.APPLICATION }}</mat-label>
 
         <div class="selected-chipbox">
           <mat-chip-set>
@@ -137,9 +141,11 @@
           [formControlName]="DEMO_APPLICATION_FORM"
         />
         @if (selectedApplications().length===0) {
-        <mat-error>At least one application is required</mat-error>
+        <mat-error>{{
+          demoConstants.AT_LEAST_ONE_APPLICATION_REQUIRED
+        }}</mat-error>
         }
-        <mat-hint>Pick one or more apps</mat-hint>
+        <mat-hint>{{ demoConstants.PICK_ONE_MORE_APPS }}</mat-hint>
       </mat-form-field>
 
       <div class="pill-bank" role="list" aria-label="Available applications">
@@ -161,14 +167,14 @@
           (change)="onSelecteLicenseReservation($event.checked)"
           [checked]="featureLicenseApp() || false"
         >
-          Enable License Reservation
+          {{ demoConstants.ENABLE_LICENSE_RESERVATION }}
         </mat-checkbox>
       </div>
     </form>
 
     <div class="button-wrapper">
       <button matButton class="cancel-button" (click)="onCancel()">
-        Cancel
+        {{ demoConstants.CANCEL }}
       </button>
       <button
         matButton
@@ -176,7 +182,7 @@
         class="confirm-button"
         (click)="onConfirm()"
       >
-        Add
+        {{ demoConstants.ADD }}
       </button>
     </div>
   </div>

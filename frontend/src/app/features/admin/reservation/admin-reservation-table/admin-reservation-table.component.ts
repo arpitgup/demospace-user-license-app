@@ -10,7 +10,6 @@ import {
 } from '@angular/core';
 import { AdminService } from '../../../../core/services/admin.service';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ADMIN_RESERVATION_CONSTANTS } from '../admin-reservation/admin-reservation.constant';
 import { ReservationApiStatus } from '../../../landing/landing.enums';
 import { MatDialog } from '@angular/material/dialog';
 import { Reservation } from '../../../../core/models/reservation.model';
@@ -36,6 +35,7 @@ import { TableLoaderComponent } from '../../../../loaders/table-loader/table-loa
 import { ReservationApplicationRequest } from '../../../../core/models/reservation-application-request.model';
 import { ErrorMessage } from '../../../../shared/components/error-message/error-message';
 import { toObservable } from '@angular/core/rxjs-interop';
+import { ReservationConstants } from '../reservation.constants';
 
 @Component({
   selector: 'app-admin-reservation-table',
@@ -61,7 +61,7 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
   private platformId = inject(PLATFORM_ID);
   private readonly adminService = inject(AdminService);
   private fb = inject(FormBuilder);
-  readonly adminReservationConstants = ADMIN_RESERVATION_CONSTANTS;
+  readonly adminReservationConstants = ReservationConstants;
   readonly reservationApiStatus = ReservationApiStatus;
   private dialog = inject(MatDialog);
   public userEmail: string | null = null;
@@ -395,8 +395,9 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
         licenseTitle: '',
         startDateTime: '',
         endDateTime: '',
-        confirmText: 'Confirm',
+        confirmText: 'Delete',
         cancelText: 'Cancel',
+        isDeleteConfirmation: true,
       },
     });
     dialogRef.afterClosed().subscribe((result) => {

@@ -30,6 +30,7 @@ import { UpdateDemoRequest } from '../../../../core/models/update-demo-request.m
 import { OrganizationUnit } from '../../../../core/models/organization-unit.model';
 import { DemoOnBoardingEnum } from '../../../../enums/admin-demo-onboarding.enums';
 import { SuccessDialog } from '../../../../shared/dialogs/success-dialog/success-dialog';
+import { DEMOCONSTANTS } from '../demo.constants';
 
 @Component({
   selector: 'app-admin-onboard-demo-table',
@@ -70,6 +71,7 @@ export class AdminOnboardDemoTableComponent {
   readonly groupEmailController = new FormControl('');
   readonly orgUnitController = new FormControl('');
   readonly demoStatusController = new FormControl('');
+  readonly demoConstants = DEMOCONSTANTS;
   public isRefreshCall = signal(false);
   public showDeprecatedDemos = signal(false);
   demoOnBoardingStatus: DemoOnBoardingEnum[] = [
@@ -349,7 +351,7 @@ export class AdminOnboardDemoTableComponent {
     const demo = this.adminDemoList.filter((item) => item.demo_id === demoId);
     if (demo[0].applicationIds.length <= 0 && demo[0].feature_license_app) {
       this.showErrorDialog(
-        'Saas applications should not be empty if license reservation is enabled'
+       this.demoConstants.SAAS_APPLICATION_SHOULD_NOT_BE_EMPTY
       );
       return;
     }

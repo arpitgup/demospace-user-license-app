@@ -8,6 +8,8 @@ import { DemoDetails } from '../models/demo-details.model';
 import { OrganizationUnit } from '../models/organization-unit.model';
 import { OnBoardNewDemoRequest } from '../models/onboard-new-demo-request.model';
 import { UpdateDemoRequest } from '../models/update-demo-request.model';
+import { AddOrgUnitRequest } from '../models/add-org-unit-request.model';
+import { AddOrgUnitResponse } from '../models/add-org-unit-response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -75,5 +77,14 @@ export class DemoService {
           };
         })
       );
+  }
+
+  createNewOrganization(
+    payload: AddOrgUnitRequest
+  ): Observable<AddOrgUnitResponse> {
+    return this.http.post<AddOrgUnitResponse>(
+      `${this.apiUrl}/admin/organization-units`,
+      payload
+    );
   }
 }

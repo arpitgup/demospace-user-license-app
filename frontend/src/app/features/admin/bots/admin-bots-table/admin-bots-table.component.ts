@@ -29,6 +29,9 @@ import { ErrorDialog } from '../../../../shared/dialogs/error-dialog/error-dialo
 import { MatDialog } from '@angular/material/dialog';
 import { ErrorMessage } from '../../../../shared/components/error-message/error-message';
 import { MatIconModule } from '@angular/material/icon';
+import { BotsConstants } from '../bots.constants';
+import { MatRadioModule } from '@angular/material/radio';
+import { AssignApplicationsBotsDialog } from '../../../../shared/dialogs/assign-applications-bots-dialog/assign-applications-bots-dialog';
 
 @Component({
   selector: 'app-admin-bots-table',
@@ -42,6 +45,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatCheckbox,
     ErrorMessage,
     MatIconModule,
+    MatRadioModule,
   ],
   templateUrl: './admin-bots-table.component.html',
   styleUrl: './admin-bots-table.component.scss',
@@ -58,9 +62,12 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   adminBotsList: AdminBotsResponse[] = [];
   public readonly botsResponse = this.adminService.bots;
   public readonly errorMessage = signal<string>('');
+  public selectAllBots = signal<boolean>(false);
+  public isBulkAllocationVisible = signal<boolean>(false);
   private dialog = inject(MatDialog);
   applicationList: Application[] = [];
   botApplicationDetailsList: AdminBotsResponse[] = [];
+  botsConstants = BotsConstants;
   @ViewChild(MatSort) set sort(sort: MatSort) {
     if (sort) {
       this.dataSource.sort = sort;
@@ -74,6 +81,7 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   }
 
   displayedColumns: string[] = [
+    'select',
     'botId',
     'botName',
     'botEmail',
@@ -101,6 +109,24 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
     }
     const newValue = value.trim().toLowerCase();
     if (newValue && newValue !== '') {
+      if (newValue.includes('to') || newValue.includes('-')) {
+        const parts = newValue.includes('to')
+          ? newValue.split('to').map((v) => v.trim())
+          : newValue.split('-').map((v) => v.trim());
+        if (parts.length === 2) {
+          const [start, end] = parts;
+          if (!isNaN(Number(start)) && !isNaN(Number(end))) {
+            const startIndex = Number(start);
+            const endIndex = Number(end);
+            if (startIndex < endIndex && startIndex >= 1) {
+              this.dataSource.data = this.adminBotsList.filter(
+                (item) => item.id >= startIndex && item.id <= endIndex
+              );
+              return;
+            }
+          }
+        }
+      }
       this.dataSource.data = this.adminBotsList.filter(
         (item) =>
           item.applications.some((application) =>
@@ -337,5 +363,46 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
 
   onRetryCall() {
     this.getAllAdminBots();
+  }
+  onSelectAllBots(value: boolean) {
+    this.adminBotsList = this.adminBotsList.map((item) => ({
+      ...item,
+      isSelect: value,
+    }));
+    this.updateBotsTable();
+    this.updateBulkAllocationValue(value);
+  }
+
+  onSelectBots(value: boolean, id: number) {
+    this.adminBotsList = this.adminBotsList.map((item) => ({
+      ...item,
+      isSelect: id === item.id ? value : item.isSelect,
+    }));
+    if (this.adminBotsList.some((item) => item.isSelect === true)) {
+      this.updateBulkAllocationValue(true);
+    } else {
+      this.updateBulkAllocationValue(false);
+    }
+  }
+  updateBulkAllocationValue(value: boolean) {
+    this.isBulkAllocationVisible.update(() => value);
+  }
+
+  callAssigApplicationToBots() {
+    const dialogRef = this.dialog.open(AssignApplicationsBotsDialog, {
+      width: 'auto',
+      minWidth: 'none',
+      maxWidth: '50rem',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        applications: this.applicationList,
+      },
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+      }
+    });
   }
 }

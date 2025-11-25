@@ -252,3 +252,5 @@ export const ADMIN_BOT_EMAIL_VALIDATION =
   /^[a-zA-Z0-9-.]+@1987984870407.altostrat.com\s*$/;
 export const ADMIN_APPLICATION_EMAIL_VALIDATION =
   /^[a-zA-Z0-9.-]+@1987984870407.altostrat.com\s*$/;
+export const NAME_VALIDATION = /^[A-Za-z ]+$/;
+export const ORG_UNIT_VALIDATION = /^\/.*/;
