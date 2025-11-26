@@ -32,6 +32,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { BotsConstants } from '../bots.constants';
 import { MatRadioModule } from '@angular/material/radio';
 import { AssignApplicationsBotsDialog } from '../../../../shared/dialogs/assign-applications-bots-dialog/assign-applications-bots-dialog';
+import { AllocationErrorMessage } from '../../../../core/models/allocation-error-message.model';
+import { SuccessDialog } from '../../../../shared/dialogs/success-dialog/success-dialog';
 
 @Component({
   selector: 'app-admin-bots-table',
@@ -214,6 +216,9 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
       if (item.id === botId) {
         item.isEditable = true;
       } else {
+        if (item.isEditable === true) {
+          this.updateWithPreviousValue(item, botId);
+        }
         item.isEditable = false;
       }
       return item;
@@ -223,23 +228,34 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
 
   onSaveBotDetails(botId: number) {
     const adminBot = this.adminBotsList.filter((item) => item.id === botId);
-    this.callUpdateBotApi(botId, adminBot[0]);
+    const bots: BotRequest[] = [
+      {
+        id: botId,
+        is_admin: adminBot[0].isAdmin,
+        application_ids: adminBot[0].applicationIds,
+      },
+    ];
+
+    this.callUpdateBotApi(bots, 'Bot updated successfully');
   }
 
   onCancelUpdateBot(botId: number) {
-    this.updateApplicationAvailability(this.applicationList);
-    const bot = this.botApplicationDetailsList.find(
-      (item) => item.id === botId
-    );
     this.adminBotsList = this.adminBotsList.map((item) => {
       if (item.id === botId) {
-        item.isEditable = false;
-        item.applicationIds = bot?.applicationIds ?? [];
-        item.isAdmin = bot?.isAdmin ?? false;
+        this.updateWithPreviousValue(item, botId);
       }
       return item;
     });
     this.updateBotsTable();
+  }
+  updateWithPreviousValue(botResponse: AdminBotsResponse, botId: number) {
+    this.updateApplicationAvailability(this.applicationList);
+    const bot = this.botApplicationDetailsList.find(
+      (item) => item.id === botId
+    );
+    botResponse.isEditable = false;
+    botResponse.applicationIds = bot?.applicationIds ?? [];
+    botResponse.isAdmin = bot?.isAdmin ?? false;
   }
 
   onSelectionChange(event: MatSelectChange, bot: AdminBotsResponse) {
@@ -285,24 +301,15 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
     this.updateBotsTable();
   }
 
-  callUpdateBotApi(botId: number, botResponse: AdminBotsResponse) {
+  callUpdateBotApi(botsRequest: BotRequest[], botUpdationMessage: string) {
     this.loadingService.show();
-    const bots: BotRequest[] = [
-      {
-        id: botId,
-        is_admin: botResponse.isAdmin,
-        application_ids: botResponse.applicationIds,
-      },
-    ];
-    const botsRequest: UpdateBotRequest = {
-      bots: bots,
+    const payload: UpdateBotRequest = {
+      bots: botsRequest,
     };
     of(null)
       .pipe(
         concatMap(() =>
-          this.botsService
-            .updateBots(botsRequest)
-            .pipe(map((bots) => ({ bots })))
+          this.botsService.updateBots(payload).pipe(map((bots) => ({ bots })))
         ),
         concatMap((bots) =>
           this.adminService
@@ -313,26 +320,34 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (res) => {
           this.adminBotsList = this.adminBotsList.map((item) => {
-            if (item.id === botId) {
-              item.isEditable = false;
-            }
+            item.isEditable = false;
             return item;
           });
           this.updateApplicationAvailability(res.applications);
           this.applicationList = res.applications;
-          const index = this.adminBotsList.findIndex(
-            (item) => item.id === botId
-          );
-          const adminBotResponse = res.bots.filter((item) => item.id === botId);
-          adminBotResponse[0].applicationIds = res.bots[0].applications.map(
-            (item) => item.id
-          );
+          const updatedBotIds = botsRequest.map((item) => item.id);
 
-          this.adminBotsList.splice(index, 1, adminBotResponse[0]);
+          this.adminBotsList = this.adminBotsList.map((item) => {
+            if (updatedBotIds.includes(item.id)) {
+              const bot = res.bots.find((bot) => item.id === bot.id);
+              if (bot) {
+                bot.applicationIds = bot.applications.map((item) => item.id);
+                return bot;
+              } else {
+                return item;
+              }
+            }
+            return item;
+          });
+
           this.botApplicationDetailsList = this.adminBotsList.map((item) => ({
             ...item,
           }));
+          this.selectAllBots.update(() => false);
+
+          this.updateBulkAllocationValue(false);
           this.updateBotsTable();
+          this.showSuccessDialog(botUpdationMessage);
         },
         error: (error) => {
           this.loadingService.hide();
@@ -342,6 +357,22 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
           this.loadingService.hide();
         },
       });
+  }
+  showSuccessDialog(botUpdationMessage: string) {
+    const dialogRef = this.dialog.open(SuccessDialog, {
+      width: 'auto',
+      minWidth: 'none',
+      maxWidth: 'none',
+      minHeight: 'none',
+      maxHeight: 'none',
+      disableClose: true,
+      data: {
+        title: 'Success',
+        message: botUpdationMessage,
+        confirmText: 'OK',
+      },
+    });
+    dialogRef.afterClosed();
   }
 
   updateBotsTable() {
@@ -365,10 +396,20 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
     this.getAllAdminBots();
   }
   onSelectAllBots(value: boolean) {
-    this.adminBotsList = this.adminBotsList.map((item) => ({
-      ...item,
-      isSelect: value,
-    }));
+    if (value === true) {
+      const adminBotIds = this.dataSource.data.map((item) => item.id);
+      this.adminBotsList = this.adminBotsList.map((item) => ({
+        ...item,
+        isSelect: adminBotIds.includes(item.id) ? value : false,
+      }));
+    } else {
+      this.adminBotsList = this.adminBotsList.map((item) => ({
+        ...item,
+        isSelect: value,
+      }));
+    }
+
+    this.selectAllBots.update(() => value);
     this.updateBotsTable();
     this.updateBulkAllocationValue(value);
   }
@@ -389,6 +430,10 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   }
 
   callAssigApplicationToBots() {
+    const bot = this.adminBotsList.find((item) => item.isEditable === true);
+    if (bot) {
+      this.updateWithPreviousValue(bot, bot.id);
+    }
     const dialogRef = this.dialog.open(AssignApplicationsBotsDialog, {
       width: 'auto',
       minWidth: 'none',
@@ -397,11 +442,77 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
       maxHeight: 'none',
       disableClose: true,
       data: {
-        applications: this.applicationList,
+        applications: this.adminApplications,
       },
     });
     dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
+      if (result && Array.isArray(result) && result.length > 0) {
+        const adminBot = this.adminBotsList.filter(
+          (item) => item.isSelect === true
+        );
+        const allocationErrorMessage: AllocationErrorMessage[] = [];
+        let alredyApplicationExistCount = 0;
+        const botsRequest: BotRequest[] = [];
+        const applications = this.adminApplications
+          .filter((item) => result.includes(item.id))
+          .map((item) => {
+            return item;
+          });
+        for (let i = 0; i < applications.length; i++) {
+          if (
+            adminBot.filter((item) =>
+              item.applicationIds.includes(applications[i].id)
+            ).length === adminBot.length
+          ) {
+            ++alredyApplicationExistCount;
+            allocationErrorMessage.push({
+              id: applications[i].id,
+              title: applications[i].name,
+              message:
+                'No allocation is needed for this application, as it is already present in all the bots.',
+            });
+          } else if (
+            (applications[i].remainingLicenseCount || 0) < adminBot.length
+          ) {
+            allocationErrorMessage.push({
+              id: applications[i].id,
+              title: applications[i].name,
+              message: `Only ${
+                applications[i].remainingLicenseCount || 0
+              } bots have been assigned, as no more licenses are available.`,
+            });
+          }
+        }
+        if (alredyApplicationExistCount === applications.length) {
+          this.showErrorDialog('All bots has already selected applications');
+          return;
+        }
+        for (let i = 0; i < adminBot.length; i++) {
+          for (let k = 0; k < applications.length; k++) {
+            if (
+              (!adminBot[i].applicationIds.includes(applications[k].id) &&
+                applications[k].remainingLicenseCount) ||
+              0 > 0
+            ) {
+              adminBot[i].applicationIds.push(applications[k].id);
+              applications[k].remainingLicenseCount =
+                (applications[k].remainingLicenseCount || 0) - 1;
+            }
+          }
+          botsRequest.push({
+            id: adminBot[i].id,
+            is_admin: adminBot[i].isAdmin,
+            application_ids: adminBot[i].applicationIds,
+          });
+        }
+        if (allocationErrorMessage.length > 0) {
+          const botUpdationMessage = allocationErrorMessage
+            .map((model) => `${model.title} : ${model.message}`)
+            .join('<br>');
+          this.callUpdateBotApi(botsRequest, botUpdationMessage);
+        } else {
+          this.callUpdateBotApi(botsRequest, 'All bots updated successfully');
+        }
       }
     });
   }

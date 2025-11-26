@@ -9,7 +9,7 @@ import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-assign-applications-bots-dialog',
-  imports: [ MatDialogModule, MatIcon],
+  imports: [MatDialogModule, MatIcon],
   templateUrl: './assign-applications-bots-dialog.html',
   styleUrl: './assign-applications-bots-dialog.scss',
 })
@@ -20,7 +20,10 @@ export class AssignApplicationsBotsDialog implements OnInit {
     applications: Application[];
   };
   onConfirm(): void {
-    this.dialogRef.close(true);
+    const selectedApplicationIds = this.data.applications
+      .filter((element) => element.isSelected === true)
+      .map((element) => element.id);
+    this.dialogRef.close(selectedApplicationIds);
   }
 
   onCancel(): void {
@@ -40,7 +43,7 @@ export class AssignApplicationsBotsDialog implements OnInit {
   }
 
   onApplicationSelected(app: Application) {
-    if(app.isSelected!==true && (app.remainingLicenseCount || 0)<=0){
+    if (app.isSelected !== true && (app.remainingLicenseCount || 0) <= 0) {
       return;
     }
     this.data.applications = this.data.applications.map((element) => {

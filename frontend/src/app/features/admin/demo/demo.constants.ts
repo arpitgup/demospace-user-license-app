@@ -87,5 +87,7 @@ export const DEMOCONSTANTS = {
   APP_LINK_REQUIRED:'App link required',
   INVALID_APP_LINK:'Invalid app link',
   DRIVE:'Drive',
-  STATUS:'Status'
+  STATUS:'Status',
+  ADD_REPRESENTATIVE_PROFILE:'Add Representative Profile',
+  RESERVATION:'Reservation'
 };

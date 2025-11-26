@@ -32,6 +32,10 @@ import { SuccessDialog } from '../../../../shared/dialogs/success-dialog/success
 import { DemoOnBoardingEnum } from '../../../../enums/admin-demo-onboarding.enums';
 import { ErrorMessage } from '../../../../shared/components/error-message/error-message';
 import { DEMOCONSTANTS } from '../demo.constants';
+import {
+  ADMIN_USER_RESERVATION_EMAIL_VALIDATION,
+  NAME_VALIDATION,
+} from '../../../../../utilities/utils';
 
 @Component({
   selector: 'app-admin-add-new-demo',
@@ -62,6 +66,12 @@ export class AdminAddNewDemoComponent implements OnInit {
   readonly GEMINI_ENTERPRISE_APP_LINK_FORM = 'gemini_enterprise_app_link_form';
   readonly DRIVE_FOLDER_LINK_FORM = 'drive_folder_link_form';
   readonly DEMO_APPLICATION_FORM = 'demo_application_form';
+  readonly COST_CENTRE_FORM = 'cost_centre_form';
+  readonly MANAGER_NAME_FORM = 'manager_name_form';
+  readonly MANAGER_EMAIL_FORM = 'manage_email_form';
+  readonly MANAGER_TITLE_FORM = 'manager_title';
+  readonly REP_ROLE_FORM = 'rep_role_form';
+  readonly REP_DEPARTMENT_FORM = 'rep_department_form';
   readonly featureLicenseApp = signal<boolean>(false);
   readonly selectedIds = signal<number[]>([]);
   readonly adminApplications = signal<Application[]>([]);
@@ -85,6 +95,23 @@ export class AdminAddNewDemoComponent implements OnInit {
     ],
     [this.DEMO_APPLICATION_FORM]: [''],
     [this.ORGANIZARION_UNIT_FORM]: ['', Validators.required],
+    [this.COST_CENTRE_FORM]: ['', Validators.required],
+    [this.MANAGER_NAME_FORM]: [
+      '',
+      [Validators.required, Validators.pattern(NAME_VALIDATION)],
+    ],
+    [this.MANAGER_EMAIL_FORM]: [
+      '',
+
+      [
+        Validators.required,
+        Validators.email,
+        Validators.pattern(ADMIN_USER_RESERVATION_EMAIL_VALIDATION),
+      ],
+    ],
+    [this.MANAGER_TITLE_FORM]: ['', Validators.required],
+    [this.REP_ROLE_FORM]: ['', Validators.required],
+    [this.REP_DEPARTMENT_FORM]: ['', Validators.required],
   });
   @Output() demoOnBoardSuccess = new EventEmitter();
 
@@ -192,6 +219,23 @@ export class AdminAddNewDemoComponent implements OnInit {
       organization_unit:
         this.addDemoForm.get(this.ORGANIZARION_UNIT_FORM)?.value?.orgunitpath ||
         '',
+      cost_centre:
+        this.addDemoForm
+          .get(this.COST_CENTRE_FORM)
+          ?.value?.toString()
+          ?.trim() || '',
+      manager_name:
+        this.addDemoForm.get(this.MANAGER_NAME_FORM)?.value?.trim() || '',
+      manager_email:
+        this.addDemoForm.get(this.MANAGER_EMAIL_FORM)?.value?.trim() || '',
+      manager_title:
+        this.addDemoForm.get(this.MANAGER_TITLE_FORM)?.value?.trim() || '',
+      rep_role: this.addDemoForm.get(this.REP_ROLE_FORM)?.value?.trim() || '',
+
+      rep_department:
+        this.addDemoForm
+          .get(this.REP_DEPARTMENT_FORM)
+          ?.value?.trim() || '',
     };
     this.demoService.createNewDemo(payload).subscribe({
       next: () => {

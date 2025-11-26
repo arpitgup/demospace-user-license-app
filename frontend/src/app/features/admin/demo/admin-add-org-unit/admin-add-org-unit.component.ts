@@ -48,12 +48,7 @@ export class AdminAddOrgUnitComponent implements OnInit {
   readonly dialog = inject(MatDialog);
   readonly ORG_UNIT_PATH_FORM = 'org_unit_path_form';
   readonly DESCRIPTION_FORM = 'description';
-  readonly COST_CENTRE_FORM = 'cost_centre_form';
-  readonly MANAGER_NAME_FORM = 'manager_name_form';
-  readonly MANAGER_EMAIL_FORM = 'manage_email_form';
-  readonly MANAGER_TITLE_FORM = 'manager_title';
-  readonly REP_ROLE_FORM = 'rep_role_form';
-  readonly REP_DEPARTMENT_FORM = 'rep_department_form';
+
   public readonly errorMessage = signal<string>('');
   readonly demoConstants = DEMOCONSTANTS;
   addOrgUnitForm: FormGroup = this.fb.group({
@@ -62,23 +57,7 @@ export class AdminAddOrgUnitComponent implements OnInit {
       [Validators.required, Validators.pattern(ORG_UNIT_VALIDATION)],
     ],
     [this.DESCRIPTION_FORM]: ['', Validators.required],
-    [this.COST_CENTRE_FORM]: ['', Validators.required],
-    [this.MANAGER_NAME_FORM]: [
-      '',
-      [Validators.required, Validators.pattern(NAME_VALIDATION)],
-    ],
-    [this.MANAGER_EMAIL_FORM]: [
-      '',
-
-      [
-        Validators.required,
-        Validators.email,
-        Validators.pattern(ADMIN_USER_RESERVATION_EMAIL_VALIDATION),
-      ],
-    ],
-    [this.MANAGER_TITLE_FORM]: ['', Validators.required],
-    [this.REP_ROLE_FORM]: ['', Validators.required],
-    [this.REP_DEPARTMENT_FORM]: ['', Validators.required],
+   
   });
   @Output() orgAddedSuccesfully = new EventEmitter();
 
@@ -98,24 +77,6 @@ export class AdminAddOrgUnitComponent implements OnInit {
       }`,
       description:
         this.addOrgUnitForm.get(this.DESCRIPTION_FORM)?.value?.trim() || '',
-      cost_centre:
-        this.addOrgUnitForm
-          .get(this.COST_CENTRE_FORM)
-          ?.value?.toString()
-          ?.trim() || '',
-      manager_name:
-        this.addOrgUnitForm.get(this.MANAGER_NAME_FORM)?.value?.trim() || '',
-      manager_email:
-        this.addOrgUnitForm.get(this.MANAGER_EMAIL_FORM)?.value?.trim() || '',
-      manager_title:
-        this.addOrgUnitForm.get(this.MANAGER_TITLE_FORM)?.value?.trim() || '',
-      rep_role:
-        this.addOrgUnitForm.get(this.REP_ROLE_FORM)?.value?.trim() || '',
-
-      rep_department:
-        this.addOrgUnitForm
-          .get(this.REP_DEPARTMENT_FORM)
-          ?.value?.orgunitpath?.trim() || '',
     };
     this.demoService.createNewOrganization(payload).subscribe({
       next: () => {
