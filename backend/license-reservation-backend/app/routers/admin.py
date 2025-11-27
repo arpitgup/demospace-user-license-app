@@ -1344,11 +1344,11 @@ def list_organization_units(db: Session = Depends(get_db), user_email: str = Dep
         )
 
 @router.post("/organization-units", response_model=OrganizationUnitLocalOut, status_code=status.HTTP_201_CREATED)
-def write_organization_unit(req: OrganizationUnitCreateRequest, db: Session = Depends(get_db)):
+def write_organization_unit(req: OrganizationUnitCreateRequest, db: Session = Depends(get_db), user_email: str = Depends(get_user_email)):
     """
-    Write a new Organization Unit record in the database.
+    Write a new Organization Unit record in the database, checking for existing records first.
     """
-    logger.info(f"Attempting to create new Organization Unit for path: {req.orgunitpath}")
+    logger.info(f"Admin User {user_email}: Attempting to create new Organization Unit for path: {req.orgunitpath}")
     organization_unit_path = req.orgunitpath
     if not organization_unit_path:
         raise HTTPException(
@@ -1356,21 +1356,34 @@ def write_organization_unit(req: OrganizationUnitCreateRequest, db: Session = De
             detail="Organization Unit path is required."
         )
 
+    existing_org_unit = db.query(OrganizationUnits).filter(
+        OrganizationUnits.orgunitpath.ilike(organization_unit_path)
+    ).first()
+    if existing_org_unit:
+        error_detail = f"Organization Unit with path '{organization_unit_path}' already exists."
+        logger.warning(error_detail)
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=error_detail
+        )
+
     new_org_unit = OrganizationUnits(**req.model_dump())
     db.add(new_org_unit)
-    
     try:
         db.commit()
         db.refresh(new_org_unit)
         logger.info(f"Successfully created Organization Unit with ID: {new_org_unit.id}")
         return new_org_unit
+    
     except IntegrityError as e:
         db.rollback()
-        logger.error(f"Organization Unit creation failed: {detail}. Error: {e}")
+        detail = "A database constraint violation occurred (e.g., duplicate key)."
+        logger.error(f"Organization Unit creation failed due to IntegrityError: {detail}. Error: {e}")
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=detail
         )
+        
     except Exception as e:
         db.rollback()
         logger.error(f"An unexpected error occurred during Organization Unit creation: {e}")
