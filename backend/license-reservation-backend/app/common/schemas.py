@@ -365,15 +365,6 @@ class UpdateUserProfileRequestResponse(BaseModel):
     last_name: Optional[str] = None
     user_name: Optional[str] = None
 
-class RepresentativeProfileRequest(BaseModel):
-    cost_centre: Optional[str] = None
-    manager_name: Optional[str] = None
-    manager_email: Optional[str] = None
-    manager_title: Optional[str] = None
-    rep_role: Optional[str] = None
-    rep_department: Optional[str] = None
-    org_unit: str
-
 class RepresentativeProfileOut(BaseModel):
     cost_centre: Optional[str] = None
     manager_name: Optional[str] = None
@@ -418,6 +409,12 @@ class UpdateOnboardedDemoDetailsRequest(BaseModel):
     feature_license_app: bool
     saas_applications: Optional[str] = None
     organization_unit: str
+    cost_centre: Optional[str] = None
+    manager_name: Optional[str] = None
+    manager_email: Optional[str] = None
+    manager_title: Optional[str] = None
+    rep_role: Optional[str] = None
+    rep_department: Optional[str] = None
 
 class UpdateOnboardedDemoDetailsResponse(BaseModel):
     demo_id: str
@@ -429,6 +426,12 @@ class UpdateOnboardedDemoDetailsResponse(BaseModel):
     feature_license_app: bool
     saas_applications: Optional[str] = None
     organization_unit: Optional[str] = None
+    cost_centre: Optional[str] = None
+    manager_name: Optional[str] = None
+    manager_email: Optional[str] = None
+    manager_title: Optional[str] = None
+    rep_role: Optional[str] = None
+    rep_department: Optional[str] = None
 
 class OnboardNewDemoRequestResponse(BaseModel):
     demo_id: str

@@ -275,7 +275,6 @@ def create_applications(
 
     except HTTPException:
         raise
-
     except Exception as e:
         db.rollback()
         logger.error(
@@ -1211,8 +1210,8 @@ def onboard_new_demo(req: OnboardNewDemoRequestResponse, db: Session = Depends(g
         logger.info(f"Admin User {user_email}: Successfully onboarded new demo: {req.demo_id}")
         return new_demo
 
-    except HTTPException as http_exc:
-        raise http_exc
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
         logger.error(
@@ -1226,7 +1225,7 @@ def onboard_new_demo(req: OnboardNewDemoRequestResponse, db: Session = Depends(g
 @router.patch("/update-onboarded-demos/{demo_id}", response_model=UpdateOnboardedDemoDetailsResponse)
 def update_onboarded_demos(demo_id: str, req: UpdateOnboardedDemoDetailsRequest, db: Session = Depends(get_db), user_email: str = Depends(get_user_email)):
     """
-    Updates demo details using the more efficient SQLAlchemy update method.
+    Updates demo details.
     """
     logger.info(f"Admin User {user_email}: Attempting to update onboarded demo ID: {demo_id}")
 
@@ -1277,16 +1276,22 @@ def update_onboarded_demos(demo_id: str, req: UpdateOnboardedDemoDetailsRequest,
             detail="Organization Unit path is required."
         )
     existing_organization_units = get_organization_units()
-
     org_unit_exists = any(
         org_unit.get('orgUnitPath') == org_unit_path
         for org_unit in existing_organization_units
     )
-
     if not org_unit_exists:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Organization Unit path '{org_unit_path}' does not exist."
+        )
+
+    if req.manager_email:
+        manager_details = get_user(req.manager_email)
+        if not manager_details:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"detail": f"Manager Email {req.manager_email} is not a valid email."}
         )
 
     update_data = req.model_dump(exclude_unset=True)
