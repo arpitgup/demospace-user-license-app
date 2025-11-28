@@ -10,6 +10,7 @@ import { OnBoardNewDemoRequest } from '../models/onboard-new-demo-request.model'
 import { UpdateDemoRequest } from '../models/update-demo-request.model';
 import { AddOrgUnitRequest } from '../models/add-org-unit-request.model';
 import { AddOrgUnitResponse } from '../models/add-org-unit-response.model';
+import { UpdateDemoDetails } from '../models/update-demo-details.model';
 
 @Injectable({
   providedIn: 'root',
@@ -59,14 +60,38 @@ export class DemoService {
     demoId: string
   ): Observable<DemoDetails> {
     return this.http
-      .patch<DemoDetails>(
+      .patch<UpdateDemoDetails>(
         `${this.apiUrl}/admin/update-onboarded-demos/${demoId}`,
         payload
       )
       .pipe(
         map((res) => {
+          const demoDetails: DemoDetails = {
+            demo_id: res.demo_id,
+            demo_title: res.demo_title,
+            demo_user_group_email: res.demo_user_group_email,
+            gemini_enterprise_app_link: res.gemini_enterprise_app_link,
+            drive_folder_link: res.drive_folder_link,
+            demo_onboarding_status: res.demo_onboarding_status,
+            feature_license_app: res.feature_license_app,
+            saas_applications: res.saas_applications,
+            organization_unit: res.organization_unit,
+            applicationIds: [],
+            applications: [],
+            isEdit: false,
+            representative_profile: {
+              cost_centre: res.cost_centre,
+              manager_name: res.manager_name,
+              manager_email: res.manager_email,
+              manager_title: res.manager_title,
+              rep_role: res.rep_role,
+              rep_department: res.rep_department,
+              org_unit: res.organization_unit,
+            },
+          };
+
           return {
-            ...res,
+            ...demoDetails,
             applicationIds:
               res.saas_applications &&
               res.saas_applications.trim().length > 0 &&

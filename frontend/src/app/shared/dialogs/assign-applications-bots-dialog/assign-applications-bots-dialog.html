@@ -10,7 +10,7 @@
       class="app-chip-wrapper"
       (click)="onApplicationSelected(app)"
       [class.selected]="app.isSelected"
-      [class.disabled]="(app.remainingLicenseCount || 0)<=0"
+      [class.disabled]="(app.remainingLicenseCount || 0) <= 0"
     >
       <span class="tick-icon">&#10003;</span>
       <span class="app-chip-text"

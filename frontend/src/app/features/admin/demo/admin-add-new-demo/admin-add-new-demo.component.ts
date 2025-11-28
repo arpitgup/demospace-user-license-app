@@ -73,12 +73,10 @@ export class AdminAddNewDemoComponent implements OnInit {
   readonly REP_ROLE_FORM = 'rep_role_form';
   readonly REP_DEPARTMENT_FORM = 'rep_department_form';
   readonly featureLicenseApp = signal<boolean>(false);
-  readonly selectedIds = signal<number[]>([]);
   readonly adminApplications = signal<Application[]>([]);
   readonly organizationUnit = signal<OrganizationUnit[]>([]);
   readonly selectedApplications = signal<Application[]>([]);
   readonly applicationErrorMessage = signal<string>('');
-  public isLicenseReservation = signal<boolean>(false);
   public readonly errorMessage = signal<string>('');
   readonly demoConstants = DEMOCONSTANTS;
   addDemoForm: FormGroup = this.fb.group({
@@ -233,9 +231,7 @@ export class AdminAddNewDemoComponent implements OnInit {
       rep_role: this.addDemoForm.get(this.REP_ROLE_FORM)?.value?.trim() || '',
 
       rep_department:
-        this.addDemoForm
-          .get(this.REP_DEPARTMENT_FORM)
-          ?.value?.trim() || '',
+        this.addDemoForm.get(this.REP_DEPARTMENT_FORM)?.value?.trim() || '',
     };
     this.demoService.createNewDemo(payload).subscribe({
       next: () => {
