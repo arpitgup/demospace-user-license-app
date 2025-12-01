@@ -32,6 +32,7 @@
     matButton
     id="btn-confirm"
     class="confirm-button"
+    [class.disabled]="selectedApplicationsCount <= 0"
     (click)="onConfirm()"
   >
     Assign

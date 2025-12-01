@@ -23,7 +23,15 @@ export class AssignApplicationsBotsDialog implements OnInit {
     const selectedApplicationIds = this.data.applications
       .filter((element) => element.isSelected === true)
       .map((element) => element.id);
+    if (selectedApplicationIds.length <= 0) {
+      return;
+    }
     this.dialogRef.close(selectedApplicationIds);
+  }
+  get selectedApplicationsCount() {
+    return this.data.applications
+      .filter((element) => element.isSelected === true)
+      .map((element) => element.id).length;
   }
 
   onCancel(): void {

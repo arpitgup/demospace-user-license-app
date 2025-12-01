@@ -167,5 +167,12 @@ mat-dialog-content {
     &.isDelete {
       background: #e62020;
     }
+    &.disabled {
+      cursor: not-allowed;
+      background: #e6e6e6;
+      .app-chip-text {
+        color: #000;
+      }
+    }
   }
 }
