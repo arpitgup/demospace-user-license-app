@@ -59,7 +59,10 @@ export class AdminCreateApplicationComponent implements OnInit {
   ];
 
   createApplicationForm: FormGroup = this.fb.group({
-    [this.APPLICATION_NAME_FORM]: ['', Validators.required],
+    [this.APPLICATION_NAME_FORM]: [
+      '',
+      [Validators.required, Validators.pattern('^[a-zA-Z]+$')],
+    ],
     [this.APPLICATION_TYPE_FORM]: ['', [Validators.required]],
     [this.PLATFORM_GROUP_EMAIL_FORM]: [''],
     [this.SAML_GROUP_NAME_FORM]: [''],
@@ -90,8 +93,7 @@ export class AdminCreateApplicationComponent implements OnInit {
           this.createApplicationForm
             .get(this.SAML_GROUP_NAME_FORM)
             ?.setValidators([]);
-        } 
-        else if (newValue === AdminCreateApplicationEnums.SUBSCRIPTION) {
+        } else if (newValue === AdminCreateApplicationEnums.SUBSCRIPTION) {
           this.createApplicationForm
             .get(this.PLATFORM_GROUP_EMAIL_FORM)
             ?.setValidators([]);

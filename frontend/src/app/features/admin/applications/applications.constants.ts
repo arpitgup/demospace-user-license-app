@@ -30,7 +30,7 @@ export const ApplicationsConstants = {
     'Email not valid. 1987984870407.altostrat.com email',
   CUSTOM_SAML_REQUIRED: 'Custom saml attribute required',
   CUSTOM_VALIDATION_ERROR:
-    'Custom saml attribute not valid. Only characters allowed',
+    'Application name not valid. Only characters allowed',
   NUMBER_LICENSES_REQUIRED: 'Number of licenses required',
   ADD: 'Add',
   SOMETHING_WENT_WRONG: 'Something went wrong',
