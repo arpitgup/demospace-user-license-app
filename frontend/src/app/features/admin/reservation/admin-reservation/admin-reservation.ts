@@ -1,5 +1,4 @@
 import { Component, ViewChild } from '@angular/core';
-import { ADMIN_RESERVATION_CONSTANTS } from './admin-reservation.constant';
 import {
   MatTabChangeEvent,
   MatTabGroup,
@@ -8,6 +7,7 @@ import {
 import { ReservationApiStatus } from '../../../landing/landing.enums';
 import { AdminReservationTableComponent } from '../admin-reservation-table/admin-reservation-table.component';
 import { AdminCreateReservationComponenet } from '../admin-create-reservation/admin-create-reservation.componenet';
+import { ReservationConstants } from '../reservation.constants';
 
 @Component({
   selector: 'app-admin-reservation',
@@ -20,7 +20,7 @@ import { AdminCreateReservationComponenet } from '../admin-create-reservation/ad
   styleUrl: './admin-reservation.scss',
 })
 export class AdminReservation {
-  readonly adminReservationConstants = ADMIN_RESERVATION_CONSTANTS;
+  readonly adminReservationConstants = ReservationConstants;
   readonly reservationApiStatus = ReservationApiStatus;
   selectedIndex = 0;
   @ViewChild(MatTabGroup) tabGroup!: MatTabGroup;

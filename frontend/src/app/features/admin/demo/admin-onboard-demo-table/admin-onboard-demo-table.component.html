@@ -14,92 +14,98 @@
         (change)="onShowDeprecatedDemo($event.checked)"
         [checked]="showDeprecatedDemos()"
       >
-        Show Deprecated Demos
+        {{ demoConstants.SHOW_DEPRECATED_DEMOS }}
       </mat-checkbox>
     </div>
 
     <div class="custom-form-field">
       <mat-form-field class="custom-form-field" appearance="outline">
-        <mat-label class="custom-label">Search by Demo Id</mat-label>
+        <mat-label class="custom-label">{{
+          demoConstants.SEARCH_BY_DEMO_ID
+        }}</mat-label>
         <mat-icon matPrefix>search</mat-icon>
         <input
           matInput
           [formControlName]="SEARCH_DEMO_ID_FORM"
-          placeholder="Search by Demo Id"
+          [placeholder]="demoConstants.SEARCH_BY_DEMO_ID"
         />
       </mat-form-field>
     </div>
     <div class="custom-form-field">
       <mat-form-field appearance="outline">
-        <mat-label>Search by Demo Title</mat-label>
+        <mat-label>{{ demoConstants.SEARCH_BY_DEMO_TITLE }}</mat-label>
         <mat-icon matPrefix>search</mat-icon>
         <input
           matInput
           [formControlName]="SEARCH_DEMO_TITLE_FORM"
-          placeholder="Search by Demo Title"
+          [placeholder]="demoConstants.SEARCH_BY_DEMO_TITLE"
         />
       </mat-form-field>
     </div>
 
     <div class="custom-form-field">
       <mat-form-field appearance="outline">
-        <mat-label>Search by Applications</mat-label>
+        <mat-label>{{ demoConstants.SEARCH_BY_APPLICATIONS }}</mat-label>
         <mat-icon matPrefix>search</mat-icon>
         <input
           matInput
           [formControlName]="SEARCH_APPLICATIONS_FORM"
-          placeholder="Search by Applications"
+          [placeholder]="demoConstants.SEARCH_BY_APPLICATIONS"
         />
       </mat-form-field>
     </div>
 
     <div class="custom-form-field">
       <mat-form-field appearance="outline">
-        <mat-label>Search by Org Unit</mat-label>
+        <mat-label>{{ demoConstants.SEARCH_BY_ORG_UNIT }}</mat-label>
         <mat-icon matPrefix>search</mat-icon>
         <input
           matInput
           [formControlName]="SEARCH_ORG_UNIT_FORM"
-          placeholder="Search by Org Unit"
+          [placeholder]="demoConstants.SEARCH_BY_ORG_UNIT"
         />
       </mat-form-field>
     </div>
 
     <div class="custom-reset" (click)="onRefreshCall()">
       <mat-icon class="refresh-icon">refresh</mat-icon>
-      <span class="reset-text">Refresh</span>
+      <span class="reset-text">{{ demoConstants.REFRESH }}</span>
     </div>
   </form>
 
   @if(dataSource.data.length===0){
   <div class="empty-data-message">
     <mat-icon class="empty-data-icon">info_outline</mat-icon>
-    <span> No demos to display</span>
+    <span>{{ demoConstants.NO_DEMOS_TO_DISPLAY }}</span>
   </div>
   }@else{
   <table mat-table [dataSource]="dataSource" matSort class="custom-table">
     <ng-container matColumnDef="demoId">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Demo ID</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{ demoConstants.ID }}
+      </th>
       <td mat-cell *matCellDef="let element">
         {{ element.demo_id }}
       </td>
     </ng-container>
 
     <ng-container matColumnDef="demoTitle">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Demo Title</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{ demoConstants.TITLE }}
+      </th>
       <td mat-cell *matCellDef="let element">
         @if(element.isEdit===true){
         <mat-form-field appearance="fill">
           <input
             matInput
-            placeholder="Demo Title*"
+            [placeholder]="demoConstants.TITLE + '*'"
             [formControl]="demoTitleController"
             maxlength="200"
           />
           @if(demoTitleController!==null &&
           demoTitleController.hasError('required')&&
           demoTitleController.touched){
-          <mat-error>Demo title required</mat-error>
+          <mat-error>{{ demoConstants.TITLE_REQUIRED }}</mat-error>
           }
         </mat-form-field>
         }@else{
@@ -110,25 +116,25 @@
 
     <ng-container matColumnDef="demoUserGroupEmail">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        Demo User Group Email
+        {{ demoConstants.USER_GROUP_EMAIL }}
       </th>
       <td mat-cell *matCellDef="let element">
         @if(element.isEdit===true){
         <mat-form-field appearance="fill">
           <input
             matInput
-            placeholder=" Demo User Group Email*"
+            [placeholder]="demoConstants.USER_GROUP_EMAIL + '*'"
             [formControl]="groupEmailController"
             maxlength="200"
           />
           @if(groupEmailController!==null &&
           groupEmailController.hasError('required')&&
           groupEmailController.touched){
-          <mat-error>Demo user group email required</mat-error>
+          <mat-error>{{ demoConstants.USER_EMAIL_REQUIRED }}</mat-error>
           }@else if(groupEmailController!==null &&
           groupEmailController.hasError('email')&&
           groupEmailController.touched){
-          <mat-error>Invalid demo user group email</mat-error>
+          <mat-error>{{ demoConstants.INVALID_USER_EMAIL }}</mat-error>
           }
         </mat-form-field>
         }@else{
@@ -139,62 +145,81 @@
 
     <ng-container matColumnDef="geminiEnterpriseAppLink">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        Application Link
+        {{ demoConstants.APP_LINK }}
       </th>
       <td mat-cell *matCellDef="let element">
         @if(element.isEdit===true){
         <mat-form-field appearance="fill">
           <input
             matInput
-            placeholder="Application Link*"
+            placeholder="demoConstants.APP_LINK+'*'"
             [formControl]="geminiEnterpriseLinkController"
             maxlength="400"
           />
           @if(geminiEnterpriseLinkController!==null &&
           geminiEnterpriseLinkController.hasError('required')&&
           geminiEnterpriseLinkController.touched){
-          <mat-error>Gemini Enterprise Link required</mat-error>
+          <mat-error>{{ demoConstants.APP_LINK_REQUIRED }}</mat-error>
           }@else if(geminiEnterpriseLinkController!==null &&
           geminiEnterpriseLinkController.hasError('pattern')&&
           geminiEnterpriseLinkController.touched){
-          <mat-error>Invalid Gemini Enterprise Link</mat-error>
+          <mat-error>{{ demoConstants.INVALID_APP_LINK }}</mat-error>
           }
         </mat-form-field>
         }@else{
-        {{ element.gemini_enterprise_app_link }}
+        <a
+          [href]="element.gemini_enterprise_app_link"
+          [attr.data-url]="element.gemini_enterprise_app_link"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="link-wrapper"
+          >Link</a
+        >
         }
       </td>
     </ng-container>
 
     <ng-container matColumnDef="driveFolderLink">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Drive Link</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{ demoConstants.DRIVE }}
+      </th>
       <td mat-cell *matCellDef="let element">
         @if(element.isEdit===true){
         <mat-form-field appearance="fill">
           <input
             matInput
-            placeholder="Drive Link"
+            [placeholder]="demoConstants.DRIVE"
             [formControl]="driveLinkController"
             maxlength="400"
           />
           @if(driveLinkController!==null &&
           driveLinkController.hasError('pattern')&&
           driveLinkController.touched){
-          <mat-error>Invalid Driver Link</mat-error>
+          <mat-error>{{ demoConstants.INVALID_DRIVE_LINK }}</mat-error>
           }
         </mat-form-field>
-        }@else{
-        {{ element.drive_folder_link }}
+        }@else if((element.drive_folder_link || '').trim() !==''){
+        <a
+          [href]="element.drive_folder_link"
+          [attr.data-url]="element.drive_folder_link"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="link-wrapper"
+          >Link</a
+        >
+        <!-- {{ element.drive_folder_link }} -->
         }
       </td>
     </ng-container>
 
     <ng-container matColumnDef="demoOnBoardedStatus">
-      <th mat-header-cell *matHeaderCellDef>Demo OnBoarding Status</th>
+      <th mat-header-cell *matHeaderCellDef>
+        {{ demoConstants.STATUS }}
+      </th>
       <td mat-cell *matCellDef="let element">
         @if(element.isEdit===true){
         <mat-form-field appearance="fill">
-          <mat-label>Demo OnBoarding Status</mat-label>
+          <mat-label>{{ demoConstants.STATUS }}</mat-label>
           <mat-select [formControl]="demoStatusController">
             @for(status of demoOnBoardingStatus; track $index){
             <mat-option [value]="status">
@@ -212,7 +237,9 @@
     </ng-container>
 
     <ng-container matColumnDef="featureLicenseApp">
-      <th mat-header-cell *matHeaderCellDef>License Reservation</th>
+      <th mat-header-cell *matHeaderCellDef>
+        {{ demoConstants.RESERVATION }}
+      </th>
       <td mat-cell *matCellDef="let element">
         @if(element.isEdit===true){
         <div class="show-demo-checkbox-wrapper">
@@ -221,15 +248,15 @@
             (change)="onSelectFeatureLicense($event.checked, element.demo_id)"
             [checked]="element.feature_license_app || false"
           >
-            Enable
+            {{ demoConstants.ENABLE }}
           </mat-checkbox>
         </div>
         }@else{
         <div class="status-wrapper">
           @if(element.feature_license_app===true){
-          <span class="status-text">Enabled</span>
+          <span class="status-text">{{ demoConstants.ENABLED }}</span>
           }@else{
-          <span class="status-text">Disabled</span>
+          <span class="status-text">{{ demoConstants.DISABLED }}</span>
           }
         </div>
         }
@@ -237,7 +264,9 @@
     </ng-container>
 
     <ng-container matColumnDef="saasApplications">
-      <th mat-header-cell *matHeaderCellDef>Saas Applications</th>
+      <th mat-header-cell *matHeaderCellDef>
+        {{ demoConstants.SAAS_APPLICATIONS }}
+      </th>
       <td mat-cell *matCellDef="let element">
         <div class="application-wrapper">
           <div class="app-chip-list">
@@ -250,7 +279,7 @@
           </div>
           @if(element.isEdit===true){
           <mat-form-field class="custom-form-field">
-            <mat-label>Add/Remove applications</mat-label>
+            <mat-label>{{ demoConstants.ADD_REMOVE_APPLICATIONS }}</mat-label>
             <mat-select
               [value]="element.applicationIds"
               (selectionChange)="onSelectionChange($event, element)"
@@ -275,11 +304,13 @@
     </ng-container>
 
     <ng-container matColumnDef="orgUnit">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>Org Unit</th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        {{ demoConstants.ORG_UNIT }}
+      </th>
       <td mat-cell *matCellDef="let element">
         @if(element.isEdit===true){
         <mat-form-field appearance="fill">
-          <mat-label>Organization Unit</mat-label>
+          <mat-label>{{ demoConstants.ORGANIZATION_UNIT }}</mat-label>
           <mat-select [formControl]="orgUnitController">
             @for(orgUnit of organizationUnit; track orgUnit.id){
             <mat-option [value]="orgUnit.orgunitpath">
@@ -295,7 +326,7 @@
     </ng-container>
 
     <ng-container matColumnDef="action">
-      <th mat-header-cell *matHeaderCellDef>Action</th>
+      <th mat-header-cell *matHeaderCellDef>{{ demoConstants.ACTION }}</th>
       <td mat-cell *matCellDef="let element">
         @if(element.isEdit===true){
         <div class="action-wrapper">
@@ -303,20 +334,20 @@
             class="edit-wrapper"
             (click)="onCancelUpdateDemo(element.demo_id)"
           >
-            <span class="edit-text">Cancel</span>
+            <span class="edit-text">{{ demoConstants.CANCEL }}</span>
           </div>
           <div
             class="save-wrapper"
             (click)="onSaveDemoDetails(element.demo_id)"
           >
             <img src="assets/svgs/ic_save.svg" alt="edit" class="edit-icon" />
-            <span class="save-text">Save</span>
+            <span class="save-text">{{ demoConstants.SAVE }}</span>
           </div>
         </div>
         }@else{
         <div class="edit-wrapper" (click)="onEditDemo(element.demo_id)">
           <img src="assets/svgs/edit_square.svg" alt="edit" class="edit-icon" />
-          <span class="edit-text">Edit</span>
+          <span class="edit-text">{{ demoConstants.EDIT }}</span>
         </div>
         }
       </td>

@@ -30,6 +30,8 @@ import { UpdateDemoRequest } from '../../../../core/models/update-demo-request.m
 import { OrganizationUnit } from '../../../../core/models/organization-unit.model';
 import { DemoOnBoardingEnum } from '../../../../enums/admin-demo-onboarding.enums';
 import { SuccessDialog } from '../../../../shared/dialogs/success-dialog/success-dialog';
+import { DEMOCONSTANTS } from '../demo.constants';
+import { UpdateDemoDialog } from '../../../../shared/dialogs/update-demo-dialog/update-demo-dialog';
 
 @Component({
   selector: 'app-admin-onboard-demo-table',
@@ -70,6 +72,7 @@ export class AdminOnboardDemoTableComponent {
   readonly groupEmailController = new FormControl('');
   readonly orgUnitController = new FormControl('');
   readonly demoStatusController = new FormControl('');
+  readonly demoConstants = DEMOCONSTANTS;
   public isRefreshCall = signal(false);
   public showDeprecatedDemos = signal(false);
   demoOnBoardingStatus: DemoOnBoardingEnum[] = [
@@ -257,6 +260,7 @@ export class AdminOnboardDemoTableComponent {
   }
 
   getAllDemos() {
+    this.isLoading.update(() => true);
     forkJoin({
       adminDemos: this.demoService.fetchAllDemos(),
       applications: this.adminService.fetchAllApplications(),
@@ -295,22 +299,52 @@ export class AdminOnboardDemoTableComponent {
   }
 
   onEditDemo(demoId: string) {
-    this.adminDemoList = this.adminDemoList.map((item) => {
-      if (item.demo_id === demoId) {
-        this.setValidatorsAndFormValues(item);
-      } else {
-        if (item.isEdit === true) {
-          const demo = this.initialAdminDemoResponse.find(
-            (item) => item.demo_id === demoId
-          );
-          this.setPreviousDemoValues(demo, item);
-        }
-        item.isEdit = false;
-      }
-      return item;
-    });
+    // this.adminDemoList = this.adminDemoList.map((item) => {
+    //   if (item.demo_id === demoId) {
+    //     this.setValidatorsAndFormValues(item);
+    //   } else {
+    //     if (item.isEdit === true) {
+    //       const demo = this.initialAdminDemoResponse.find(
+    //         (item) => item.demo_id === demoId
+    //       );
+    //       this.setPreviousDemoValues(demo, item);
+    //     }
+    //     item.isEdit = false;
+    //   }
+    //   return item;
+    // });
 
-    this.updateDemosTable();
+    // this.updateDemosTable();
+
+    const dialogRef = this.dialog.open(UpdateDemoDialog, {
+      width: 'auto',
+      minWidth: 'none',
+      maxWidth: '70rem',
+      minHeight: 'none',
+      maxHeight: 'none',
+      data: {
+        application: this.applicationList,
+        organizationUnit: this.organizationUnit,
+        demoDetails: this.initialAdminDemoResponse.find(
+          (item) => item.demo_id === demoId
+        ),
+      },
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      console.log(result);
+      if (result && typeof result.demo_id === 'string') {
+        this.showSuccessDialog();
+        const index = this.adminDemoList.findIndex(
+          (item) => item.demo_id == result.demo_id
+        );
+        this.adminDemoList.splice(index, 1, result);
+
+        this.initialAdminDemoResponse = this.adminDemoList.map((item) => {
+          return item;
+        });
+        this.updateDemosTable();
+      }
+    });
   }
 
   onSelectionChange(event: MatSelectChange, demo: DemoDetails) {
@@ -349,7 +383,7 @@ export class AdminOnboardDemoTableComponent {
     const demo = this.adminDemoList.filter((item) => item.demo_id === demoId);
     if (demo[0].applicationIds.length <= 0 && demo[0].feature_license_app) {
       this.showErrorDialog(
-        'Saas applications should not be empty if license reservation is enabled'
+        this.demoConstants.SAAS_APPLICATION_SHOULD_NOT_BE_EMPTY
       );
       return;
     }
@@ -420,48 +454,47 @@ export class AdminOnboardDemoTableComponent {
   }
 
   callUpdateDemoApi(demoDetails: DemoDetails) {
-    const payload: UpdateDemoRequest = {
-      demo_title: this.demoTitleController?.value || '',
-      demo_user_group_email: this.groupEmailController?.value || '',
-      gemini_enterprise_app_link:
-        this.geminiEnterpriseLinkController.value || '',
-      drive_folder_link: this.driveLinkController.value || '',
-      demo_onboarding_status: this.demoStatusController.value || '',
-      feature_license_app: demoDetails.feature_license_app,
-      saas_applications: demoDetails.applicationIds.join(','),
-      organization_unit: this.orgUnitController.value || '',
-    };
-    this.demoService.updateOnBoardDemo(payload, demoDetails.demo_id).subscribe({
-      next: (res) => {
-        this.adminDemoList = this.adminDemoList.map((item) => {
-          if (item.demo_id === demoDetails.demo_id) {
-            item = res;
-            item.applications = this.getDemoApplications(
-              item.saas_applications,
-              this.applicationList
-            );
-            return item;
-          } else {
-            return item;
-          }
-        });
-        this.initialAdminDemoResponse = this.adminDemoList.map((item) => ({
-          ...item,
-        }));
-        this.adminDemoList = this.adminDemoList.map((item) => {
-          if (item.demo_id === demoDetails.demo_id) {
-            item.isEdit = false;
-          }
-          return item;
-        });
-
-        this.updateDemosTable();
-        this.showSuccessDialog();
-      },
-      error: (error) => {
-        this.showErrorDialog(error?.error?.detail || 'Something went wrong');
-      },
-    });
+    // const payload: UpdateDemoRequest = {
+    //   demo_title: this.demoTitleController?.value || '',
+    //   demo_user_group_email: this.groupEmailController?.value || '',
+    //   gemini_enterprise_app_link:
+    //     this.geminiEnterpriseLinkController.value || '',
+    //   drive_folder_link: this.driveLinkController.value || '',
+    //   demo_onboarding_status: this.demoStatusController.value || '',
+    //   feature_license_app: demoDetails.feature_license_app,
+    //   saas_applications: demoDetails.applicationIds.join(','),
+    //   organization_unit: this.orgUnitController.value || '',
+    // };
+    // this.demoService.updateOnBoardDemo(payload, demoDetails.demo_id).subscribe({
+    //   next: (res) => {
+    //     this.adminDemoList = this.adminDemoList.map((item) => {
+    //       if (item.demo_id === demoDetails.demo_id) {
+    //         item = res;
+    //         item.applications = this.getDemoApplications(
+    //           item.saas_applications,
+    //           this.applicationList
+    //         );
+    //         return item;
+    //       } else {
+    //         return item;
+    //       }
+    //     });
+    //     this.initialAdminDemoResponse = this.adminDemoList.map((item) => ({
+    //       ...item,
+    //     }));
+    //     this.adminDemoList = this.adminDemoList.map((item) => {
+    //       if (item.demo_id === demoDetails.demo_id) {
+    //         item.isEdit = false;
+    //       }
+    //       return item;
+    //     });
+    //     this.updateDemosTable();
+    //     this.showSuccessDialog();
+    //   },
+    //   error: (error) => {
+    //     this.showErrorDialog(error?.error?.detail || 'Something went wrong');
+    //   },
+    // });
   }
 
   updateDemosTable() {

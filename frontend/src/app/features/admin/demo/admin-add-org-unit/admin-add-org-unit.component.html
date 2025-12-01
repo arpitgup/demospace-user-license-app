@@ -1,0 +1,62 @@
+<ng-container>
+  @if(errorMessage()!==''){
+  <app-error-message
+    [errorMessage]="errorMessage()"
+    (retryClicked)="onRetryCall()"
+  ></app-error-message>
+  }@else{
+  <div class="add-org-unit-wrapper">
+    <h2>{{ demoConstants.ADD_NEW_ORG_UNIT }}</h2>
+    <form [formGroup]="addOrgUnitForm" class="org-unit-form-wrapper">
+      <div class="org-unit-wrapper">
+        <mat-form-field appearance="outline" class="custom-form-field">
+          <mat-label>{{ demoConstants.ORG_UNIT_PATH }}</mat-label>
+          <input
+            matInput
+            [placeholder]="demoConstants.ORG_UNIT_PATH + '*'"
+            [formControlName]="ORG_UNIT_PATH_FORM"
+            maxlength="100"
+          />
+          @if(addOrgUnitForm.get(ORG_UNIT_PATH_FORM)?.hasError('required')&&
+          addOrgUnitForm.get(ORG_UNIT_PATH_FORM)?.touched){
+          <mat-error>{{ demoConstants.ORG_UNIT_PATH_REQUIRED }}</mat-error>
+          }@else if(addOrgUnitForm.get(ORG_UNIT_PATH_FORM)?.hasError('pattern')&&
+          addOrgUnitForm.get(ORG_UNIT_PATH_FORM)?.touched){
+          <mat-error>{{ demoConstants.INVALID_ORG_UNIT }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="custom-form-field">
+          <mat-label>{{ demoConstants.DESCRIPTION }}</mat-label>
+          <input
+            matInput
+            [placeholder]="demoConstants.DESCRIPTION + '*'"
+            [formControlName]="DESCRIPTION_FORM"
+            maxlength="500"
+          />
+          @if(addOrgUnitForm.get(DESCRIPTION_FORM)?.hasError('required')&&
+          addOrgUnitForm.get(DESCRIPTION_FORM)?.touched){
+          <mat-error>{{ demoConstants.DESCRIPTION_REQUIRED }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+     
+    </form>
+
+    <div class="button-wrapper">
+      <button matButton class="cancel-button" (click)="onCancel()">
+        {{ demoConstants.CANCEL }}
+      </button>
+      <button
+        matButton
+        id="btn-confirm"
+        class="confirm-button"
+        (click)="onConfirm()"
+      >
+        {{ demoConstants.ADD }}
+      </button>
+    </div>
+  </div>
+  }
+</ng-container>
