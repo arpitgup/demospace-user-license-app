@@ -15,6 +15,11 @@
         <mat-error>{{
           applicationConstants.APPLICATION_NAME_REQUIRED
         }}</mat-error>
+        }@else if(createApplicationForm.get(APPLICATION_NAME_FORM)?.hasError('pattern')&&
+        createApplicationForm.get(APPLICATION_NAME_FORM)?.touched){
+        <mat-error>{{
+          applicationConstants.CUSTOM_VALIDATION_ERROR
+        }}</mat-error>
         }
       </mat-form-field>
 
