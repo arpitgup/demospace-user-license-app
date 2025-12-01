@@ -90,16 +90,17 @@ export class AdminCreateApplicationComponent implements OnInit {
           this.createApplicationForm
             .get(this.SAML_GROUP_NAME_FORM)
             ?.setValidators([]);
-        } else if (newValue === AdminCreateApplicationEnums.SUBSCRIPTION) {
+        } 
+        else if (newValue === AdminCreateApplicationEnums.SUBSCRIPTION) {
           this.createApplicationForm
             .get(this.PLATFORM_GROUP_EMAIL_FORM)
             ?.setValidators([]);
-          this.createApplicationForm
-            .get(this.SAML_GROUP_NAME_FORM)
-            ?.setValidators([
-              Validators.required,
-              Validators.pattern('^[a-zA-Z]+$'),
-            ]);
+          // this.createApplicationForm
+          //   .get(this.SAML_GROUP_NAME_FORM)
+          //   ?.setValidators([
+          //     Validators.required,
+          //     Validators.pattern('^[a-zA-Z]+$'),
+          //   ]);
         }
         this.createApplicationForm
           .get(this.SAML_GROUP_NAME_FORM)
@@ -132,10 +133,7 @@ export class AdminCreateApplicationComponent implements OnInit {
       is_active: true,
       license_type: this.createApplicationForm.get(this.APPLICATION_TYPE_FORM)
         ?.value,
-      custom_SAML_attribute: this.createApplicationForm
-        .get(this.SAML_GROUP_NAME_FORM)
-        ?.value?.toString()
-        .trim(),
+      custom_SAML_attribute: '',
       license_group: this.createApplicationForm
         .get(this.PLATFORM_GROUP_EMAIL_FORM)
         ?.value?.trim(),

@@ -390,7 +390,7 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
       disableClose: true,
       data: {
         title: 'Are You Sure ?',
-        message: `Do you want to cancel the booking for<br> Selected (${reservationIds.length}) reservations?`,
+        message: `Do you want to <b>delete</b> the booking for<br> Selected (${reservationIds.length}) reservations?`,
         applications: '',
         licenseTitle: '',
         startDateTime: '',
