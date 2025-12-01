@@ -15,7 +15,7 @@ import {
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { AdminCreateApplicationEnums } from './admin-create-application.enums';
+import { AdminCreateApplicationEnums } from '../../../../enums/admin-create-application.enums';
 import { MatSelectModule } from '@angular/material/select';
 import { CreateApplicationRequest } from '../../../../core/models/create-application-request.model';
 import { AdminService } from '../../../../core/services/admin.service';
@@ -25,6 +25,7 @@ import { ErrorDialog } from '../../../../shared/dialogs/error-dialog/error-dialo
 import { LoaderService } from '../../../../core/services/loading.service';
 import { ApplicationType } from '../../../../core/models/application-type.model';
 import { ADMIN_APPLICATION_EMAIL_VALIDATION } from '../../../../../utilities/utils';
+import { ApplicationsConstants } from '../applications.constants';
 
 @Component({
   selector: 'app-admin-create-application',
@@ -43,6 +44,7 @@ export class AdminCreateApplicationComponent implements OnInit {
   readonly adminService = inject(AdminService);
   readonly loadingService = inject(LoaderService);
   readonly dialog = inject(MatDialog);
+  applicationConstants = ApplicationsConstants;
 
   readonly APPLICATION_NAME_FORM = 'applicationName';
   readonly APPLICATION_TYPE_FORM = 'appplicationType';
@@ -134,9 +136,9 @@ export class AdminCreateApplicationComponent implements OnInit {
         .get(this.SAML_GROUP_NAME_FORM)
         ?.value?.toString()
         .trim(),
-      license_group: this.createApplicationForm.get(
-        this.PLATFORM_GROUP_EMAIL_FORM
-      )?.value?.trim(),
+      license_group: this.createApplicationForm
+        .get(this.PLATFORM_GROUP_EMAIL_FORM)
+        ?.value?.trim(),
       license_count: this.createApplicationForm.get(
         this.NUMBER_OF_LICENSES_FORM
       )?.value,
@@ -149,7 +151,9 @@ export class AdminCreateApplicationComponent implements OnInit {
       },
       error: (error) => {
         this.loadingService.hide();
-        this.showErrorDialog(error?.error?.detail || 'Something went wrong');
+        this.showErrorDialog(
+          error?.error?.detail || this.applicationConstants.SOMETHING_WENT_WRONG
+        );
       },
     });
   }
@@ -163,9 +167,9 @@ export class AdminCreateApplicationComponent implements OnInit {
       maxHeight: 'none',
       disableClose: true,
       data: {
-        title: 'Success',
-        message: 'Application successfully added',
-        confirmText: 'OK',
+        title: this.applicationConstants.SUCCESS,
+        message: this.applicationConstants.APPLICATION_SUCCESSFULLY_ADDED,
+        confirmText: this.applicationConstants.OK,
       },
     });
     dialogRef.afterClosed().subscribe((result) => {

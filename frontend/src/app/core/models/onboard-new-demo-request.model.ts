@@ -8,4 +8,10 @@ export interface OnBoardNewDemoRequest {
   feature_license_app: boolean;
   saas_applications: string;
   organization_unit: string;
+  cost_centre: string;
+  manager_name: string;
+  manager_email: string;
+  manager_title: string;
+  rep_role: string;
+  rep_department: string;
 }

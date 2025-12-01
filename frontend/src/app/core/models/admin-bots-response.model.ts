@@ -10,4 +10,5 @@ export interface AdminBotsResponse {
   isEditable?: boolean;
   applicationIds: number[];
   isAdmin: boolean;
+  isSelect:boolean;
 }

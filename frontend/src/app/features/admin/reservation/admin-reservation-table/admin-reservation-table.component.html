@@ -9,8 +9,11 @@
   } @else{ @if(showCancelCta()===true){
   <div class="cancel-wrapper">
     <div class="cancel-text-wrapper" (click)="showCancelConfirmationDialog()">
-      <img src="assets/svgs/ic_circle_cancel.svg" alt="circle_canel" />
-      <span class="cancel-text">Cancel</span>
+      <mat-icon class="cancel-icon-wrapper">cancel</mat-icon>
+
+      <span class="cancel-text">{{
+        adminReservationConstants.DELETE_SELECTED_RESERVATIONS
+      }}</span>
     </div>
   </div>
   }@else{

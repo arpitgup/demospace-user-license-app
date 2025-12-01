@@ -41,6 +41,7 @@ import { LoaderService } from '../../../../core/services/loading.service';
 import { Application } from '../../../../core/models/application.model';
 import { SuccessDialog } from '../../../../shared/dialogs/success-dialog/success-dialog';
 import { AdminCreateReservationRequest } from '../../../../core/models/admin-create-reservation-request.model';
+import { ReservationConstants } from '../reservation.constants';
 
 @Component({
   selector: 'app-admin-create-reservation',
@@ -78,6 +79,7 @@ export class AdminCreateReservationComponenet implements OnInit {
   maxEndDate: Date = new Date();
   minStartTime = '00:00';
   minEndTime = '00:00';
+  reservationConstants=ReservationConstants;
 
   applications: Application[] = [];
   readonly selectedApplications = signal<string>('');

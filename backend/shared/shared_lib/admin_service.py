@@ -260,7 +260,7 @@ def is_group_exists(group_email):
         admin_service.groups().get(groupKey=group_email).execute()
         return True
     except HttpError as e:
-        if e.resp.status == 404:
+        if e.resp.status == 404 or e.resp.status == 403:
             logger.error(f"Group {group_email} does not exist.")
             return False
         else:
