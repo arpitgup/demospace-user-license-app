@@ -33,7 +33,6 @@ import { DemoOnBoardingEnum } from '../../../../enums/admin-demo-onboarding.enum
 import { ErrorMessage } from '../../../../shared/components/error-message/error-message';
 import { DEMOCONSTANTS } from '../demo.constants';
 import {
-  ADMIN_USER_RESERVATION_EMAIL_VALIDATION,
   MANAGER_EMAIL_VALIDATION,
   NAME_VALIDATION,
 } from '../../../../../utilities/utils';
