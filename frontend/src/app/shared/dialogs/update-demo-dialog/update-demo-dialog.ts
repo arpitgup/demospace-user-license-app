@@ -23,7 +23,7 @@ import { Application } from '../../../core/models/application.model';
 import { OrganizationUnit } from '../../../core/models/organization-unit.model';
 
 import {
-  ADMIN_USER_RESERVATION_EMAIL_VALIDATION,
+  MANAGER_EMAIL_VALIDATION,
   NAME_VALIDATION,
 } from '../../../../utilities/utils';
 import { ErrorDialog } from '../error-dialog/error-dialog';
@@ -123,7 +123,7 @@ export class UpdateDemoDialog implements OnInit {
       [
         Validators.required,
         Validators.email,
-        Validators.pattern(ADMIN_USER_RESERVATION_EMAIL_VALIDATION),
+        Validators.pattern(MANAGER_EMAIL_VALIDATION),
       ],
     ],
     [this.MANAGER_TITLE_FORM]: [

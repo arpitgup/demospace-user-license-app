@@ -34,6 +34,7 @@ import { ErrorMessage } from '../../../../shared/components/error-message/error-
 import { DEMOCONSTANTS } from '../demo.constants';
 import {
   ADMIN_USER_RESERVATION_EMAIL_VALIDATION,
+  MANAGER_EMAIL_VALIDATION,
   NAME_VALIDATION,
 } from '../../../../../utilities/utils';
 
@@ -104,7 +105,7 @@ export class AdminAddNewDemoComponent implements OnInit {
       [
         Validators.required,
         Validators.email,
-        Validators.pattern(ADMIN_USER_RESERVATION_EMAIL_VALIDATION),
+        Validators.pattern(MANAGER_EMAIL_VALIDATION),
       ],
     ],
     [this.MANAGER_TITLE_FORM]: ['', Validators.required],
