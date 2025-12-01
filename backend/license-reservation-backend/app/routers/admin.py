@@ -239,12 +239,17 @@ def create_applications(
         application_data = req.model_dump()
 
         if req.license_type == ApplicationLicenseType.SUBSCRIPTION:
-            if not req.custom_SAML_attribute:
+            if not req.name:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Custom SAML attribute is required for subscription applications.",
+                    detail="Name is required for applications.",
                 )
-            custom_schema_name = f"SAML_{req.custom_SAML_attribute.upper()}"
+            # if not req.custom_SAML_attribute:
+            #     raise HTTPException(
+            #         status_code=status.HTTP_400_BAD_REQUEST,
+            #         detail="Custom SAML attribute is required for subscription applications.",
+            #     )
+            custom_schema_name = f"SAML_{req.name.upper()}"
             custom_schema_created = create_custom_schema(custom_schema_name, ACCOUNT_CUSTOMERID)
             application_data['custom_SAML_attribute'] = custom_schema_name
 
