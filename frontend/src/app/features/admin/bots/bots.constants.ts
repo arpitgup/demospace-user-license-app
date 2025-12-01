@@ -25,4 +25,5 @@ export const BotsConstants = {
   ADD: 'Add',
   ADD_APPLICATION: 'Add Applications',
   ASSIGN_APPLICATIONS: 'Assign Applications',
+  SEARCH_BOT_WITH_RANGE: 'Search bot (e.g. 1 to 10)',
 };

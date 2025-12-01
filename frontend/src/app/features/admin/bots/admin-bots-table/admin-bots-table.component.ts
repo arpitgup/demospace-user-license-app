@@ -221,8 +221,11 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
         }
         item.isEditable = false;
       }
+      item.isSelect = false;
       return item;
     });
+    this.selectAllBots.update(() => false);
+    this.updateBulkAllocationValue(false);
     this.updateBotsTable();
   }
 
@@ -397,11 +400,19 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   }
   onSelectAllBots(value: boolean) {
     if (value === true) {
+      this.adminBotsList.forEach((value) => {
+        if (value.isEditable === true) {
+          this.onCancelUpdateBot(value.id);
+        }
+      });
       const adminBotIds = this.dataSource.data.map((item) => item.id);
-      this.adminBotsList = this.adminBotsList.map((item) => ({
-        ...item,
-        isSelect: adminBotIds.includes(item.id) ? value : false,
-      }));
+      this.adminBotsList = this.adminBotsList.map((item) => {
+        if (item.isEditable === true) {
+          this.updateWithPreviousValue(item, item.id);
+        }
+        item.isSelect = adminBotIds.includes(item.id) ? value : false;
+        return item;
+      });
     } else {
       this.adminBotsList = this.adminBotsList.map((item) => ({
         ...item,
@@ -415,10 +426,13 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
   }
 
   onSelectBots(value: boolean, id: number) {
-    this.adminBotsList = this.adminBotsList.map((item) => ({
-      ...item,
-      isSelect: id === item.id ? value : item.isSelect,
-    }));
+    this.adminBotsList = this.adminBotsList.map((item) => {
+      item.isSelect = id === item.id ? value : item.isSelect;
+      if (item.isEditable === true) {
+        this.updateWithPreviousValue(item, item.id);
+      }
+      return item;
+    });
     if (this.adminBotsList.some((item) => item.isSelect === true)) {
       this.updateBulkAllocationValue(true);
     } else {
