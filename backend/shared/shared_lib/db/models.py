@@ -185,15 +185,15 @@ class DemoDetail(Base):
     feature_license_app = Column(Boolean)
     saas_applications = Column(String)
     organization_unit = Column(String(255))
+    cost_centre = Column(String(20), nullable=True)
+    manager_name = Column(String(100), nullable=True)
+    manager_email = Column(String(255), nullable=True)
+    manager_title = Column(String(100), nullable=True)
+    rep_role = Column(String(100), nullable=True)
+    rep_department = Column(String(50), nullable=True)
 
 class OrganizationUnits(Base):
     __tablename__ = "organization_units"
     id = Column(Integer, primary_key=True, autoincrement=True) 
     orgunitpath = Column(String(255), nullable=False)
-    description = Column(String(255))
-    cost_centre = Column(String(20))
-    manager_name = Column(String(100), nullable=False)
-    manager_email = Column(String(255), nullable=False)
-    manager_title = Column(String(100))
-    rep_role = Column(String(100))
-    rep_department = Column(String(50))
+    description = Column(String(255))    

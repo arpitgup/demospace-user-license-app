@@ -107,5 +107,8 @@ p {
     margin-left: 0.3rem;
     border: none;
     cursor: pointer;
+    &.isDelete {
+      background: #e62020;
+    }
   }
 }

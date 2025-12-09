@@ -3,21 +3,28 @@
   <form [formGroup]="createApplicationForm" class="form-wrapper">
     <div class="app-details-wrapper">
       <mat-form-field appearance="outline" class="custom-form-field">
-        <mat-label>Application Name</mat-label>
+        <mat-label>{{ applicationConstants.APPLICATION_NAME }}</mat-label>
         <input
           matInput
-          placeholder="Application Name*"
+          [placeholder]="applicationConstants.APPLICATION_NAME + '*'"
           [formControlName]="APPLICATION_NAME_FORM"
           maxlength="50"
         />
         @if(createApplicationForm.get(APPLICATION_NAME_FORM)?.hasError('required')&&
         createApplicationForm.get(APPLICATION_NAME_FORM)?.touched){
-        <mat-error>Application name required</mat-error>
+        <mat-error>{{
+          applicationConstants.APPLICATION_NAME_REQUIRED
+        }}</mat-error>
+        }@else if(createApplicationForm.get(APPLICATION_NAME_FORM)?.hasError('pattern')&&
+        createApplicationForm.get(APPLICATION_NAME_FORM)?.touched){
+        <mat-error>{{
+          applicationConstants.CUSTOM_VALIDATION_ERROR
+        }}</mat-error>
         }
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="custom-form-field">
-        <mat-label>Application Type</mat-label>
+        <mat-label>{{ applicationConstants.APPLICATION_TYPE }}</mat-label>
         <mat-select
           class="custom-select"
           [formControlName]="APPLICATION_TYPE_FORM"
@@ -31,7 +38,9 @@
         </mat-select>
         @if(createApplicationForm.get(APPLICATION_TYPE_FORM)?.hasError('required')&&
         createApplicationForm.get(APPLICATION_TYPE_FORM)?.touched){
-        <mat-error>Application type required</mat-error>
+        <mat-error>{{
+          applicationConstants.APPLICATION_TYPE_REQUIRED
+        }}</mat-error>
         }
       </mat-form-field>
     </div>
@@ -39,50 +48,55 @@
     <div class="app-details-wrapper">
       @if(applicationType()===adminApplicationTypeEnums.ENVIRONMENT){
       <mat-form-field appearance="outline" class="custom-form-field">
-        <mat-label>Platform Group Email</mat-label>
+        <mat-label>{{ applicationConstants.PLATFORM_GROUP_EMAIL }}</mat-label>
         <input
           matInput
-          placeholder="Platform Group Email*"
+          [placeholder]="applicationConstants.PLATFORM_GROUP_EMAIL + '*'"
           [formControlName]="PLATFORM_GROUP_EMAIL_FORM"
           maxlength="200"
         />
         @if(createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.hasError('required')&&
         createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.touched){
-        <mat-error>Platform group email required</mat-error>
+        <mat-error>{{
+          applicationConstants.PLATFORM_GROUP_EMAIL_REQUIRED
+        }}</mat-error>
         } @else if(createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.hasError('pattern')&&
         createApplicationForm.get(PLATFORM_GROUP_EMAIL_FORM)?.touched){
-        <mat-error
-          >Email not valid. 1987984870407.altostrat.com email required</mat-error
-        >
+        <mat-error>{{
+          applicationConstants.APPLICATION_EMAIL_NOT_VALID
+        }}</mat-error>
         }
       </mat-form-field>
-      }@else if(applicationType()===adminApplicationTypeEnums.SUBSCRIPTION){
+      }
+      <!-- @else if(applicationType()===adminApplicationTypeEnums.SUBSCRIPTION){
       <mat-form-field appearance="outline" class="custom-form-field">
-        <mat-label>Custom SAML Attribute</mat-label>
+        <mat-label>{{ applicationConstants.CUSTOM_SAML_ATTRIBUTE }}</mat-label>
         <input
           matInput
-          placeholder="Custom SAML Attribute*"
+          [placeholder]="applicationConstants.CUSTOM_SAML_ATTRIBUTE + '*'"
           [formControlName]="SAML_GROUP_NAME_FORM"
           maxlength="200"
         />
         @if(createApplicationForm.get(SAML_GROUP_NAME_FORM)?.hasError('required')&&
         createApplicationForm.get(SAML_GROUP_NAME_FORM)?.touched){
-        <mat-error>Custom saml attribute required</mat-error>
+        <mat-error>{{ applicationConstants.CUSTOM_SAML_REQUIRED }}</mat-error>
         } @else if(createApplicationForm.get(SAML_GROUP_NAME_FORM)?.hasError('pattern')&&
         createApplicationForm.get(SAML_GROUP_NAME_FORM)?.touched){
-        <mat-error
-          >Custom saml attribute not valid. Only characters allowed</mat-error
-        >
+        <mat-error>{{
+          applicationConstants.CUSTOM_VALIDATION_ERROR
+        }}</mat-error>
         }
       </mat-form-field>
-      }
+      } -->
 
       <mat-form-field appearance="outline" class="custom-form-field">
-        <mat-label>Number of Licenses/Seats</mat-label>
+        <mat-label>{{
+          applicationConstants.NUMBER_OF_LICENSES_SEATS
+        }}</mat-label>
         <input
           matInput
           type="number"
-          placeholder="Number of Licenses/Seats*"
+          [placeholder]="applicationConstants.NUMBER_OF_LICENSES_SEATS + '*'"
           [formControlName]="NUMBER_OF_LICENSES_FORM"
           min="0"
           max="999"
@@ -91,18 +105,24 @@
         />
         @if(createApplicationForm.get(NUMBER_OF_LICENSES_FORM)?.hasError('required')&&
         createApplicationForm.get(NUMBER_OF_LICENSES_FORM)?.touched){
-        <mat-error>Number of licenses required</mat-error>
+        <mat-error>{{
+          applicationConstants.NUMBER_LICENSES_REQUIRED
+        }}</mat-error>
         }@else if
         (createApplicationForm.get(NUMBER_OF_LICENSES_FORM)?.hasError('max')&&
         createApplicationForm.get(NUMBER_OF_LICENSES_FORM)?.touched){
-        <mat-error>Max 999 licenses can be assigned</mat-error>
+        <mat-error>{{
+          applicationConstants.MAX_LICENSES_CANE_BE_ASSIGNED
+        }}</mat-error>
         }
       </mat-form-field>
     </div>
   </form>
 
   <div class="button-wrapper">
-    <button matButton class="cancel-button" (click)="onCancel()">Cancel</button>
+    <button matButton class="cancel-button" (click)="onCancel()">
+      {{ applicationConstants.CANCEL }}
+    </button>
     <button
       matButton
       id="btn-confirm"
@@ -110,7 +130,7 @@
       [disabled]="createApplicationForm.invalid"
       (click)="onConfirm()"
     >
-      Add
+      {{ applicationConstants.ADD }}
     </button>
   </div>
 </div>

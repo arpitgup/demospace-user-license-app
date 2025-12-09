@@ -142,7 +142,7 @@ export class HomeComponent implements OnInit {
             jobTitle: demoDetailsResponse.representative_profile.rep_role,
             department:
               demoDetailsResponse.representative_profile.rep_department,
-            orgUnitPath: demoDetailsResponse.representative_profile.org_unit,
+            orgUnitPath: demoDetailsResponse.organization_unit,
             demoName: demoDetailsResponse.demo_title,
             managerEmail:
               demoDetailsResponse.representative_profile.manager_email,

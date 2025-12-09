@@ -6,7 +6,6 @@ export interface DemoDetails {
   demo_user_group_email: string;
   gemini_enterprise_app_link: string;
   drive_folder_link: string;
-  feedback_bug_link: string;
   demo_onboarding_status: string;
   feature_license_app: boolean;
   saas_applications: string;

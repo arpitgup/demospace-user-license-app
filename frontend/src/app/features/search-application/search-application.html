@@ -217,10 +217,19 @@
         <mat-divider class="custom-divider"></mat-divider>
       </ng-container>
       } @if(secondaryApplications.length>0){
+
       <h2>Secondary Applications</h2>
+      @if(secondaryApplications.length>1){
       <h5>
-        You have already selected 1 applications. You can now select two more.
+        You selected <b>{{ selectedPrimaryApplication?.name || "" }}</b
+        >. You can choose up to TWO additional licenses for this reservation.
       </h5>
+      }@else{
+      <h5>
+        You selected <b>{{ selectedPrimaryApplication?.name || "" }}</b
+        >. You can choose additional licenses for this reservation from below.
+      </h5>
+      }
       <div class="application-container">
         @for(secondaryApplication of secondaryApplications; track
         secondaryApplication.id){

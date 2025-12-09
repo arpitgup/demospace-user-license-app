@@ -8,8 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 from loguru import logger
 from shared_lib.db.models import (
-    DemoDetail,
-    OrganizationUnits
+    DemoDetail
 )
 from ..common.schemas import (
     UserInGroupRequest,
@@ -35,46 +34,29 @@ async def get_demo_details(
 ):
     """
     Retrieves the full details for a demo based on its unique demo_id.
+    The Representative Profile details are now pulled entirely from the DemoDetail table.
     """
-    # CHECK1: CHeck if demoID request exists or not.
-    demo_exists = db.query(DemoDetail).filter(DemoDetail.demo_id == demo_id).first()
-    if not demo_exists:
+    # Query DemoDetail directly
+    demo_record = (
+        db.query(DemoDetail)
+        .filter(DemoDetail.demo_id == demo_id)
+        .first()
+    )
+    if not demo_record:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Demo with ID '{demo_id}' not found."
         )
 
-    # Get DemoID details from DemoDetail table & also OrganizationUnit details from organization unit.
-    result = (
-        db.query(DemoDetail, OrganizationUnits)
-        .join(
-            OrganizationUnits,
-            DemoDetail.organization_unit == OrganizationUnits.orgunitpath,
-            isouter=True
-        )
-        .filter(DemoDetail.demo_id == demo_id)
-        .first()
+    representative_profile_out = RepresentativeProfileOut(
+        org_unit=demo_record.organization_unit,
+        cost_centre=demo_record.cost_centre,
+        manager_name=demo_record.manager_name,
+        manager_email=demo_record.manager_email,
+        manager_title=demo_record.manager_title,
+        rep_role=demo_record.rep_role,
+        rep_department=demo_record.rep_department,
     )
-    if not result:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Something wrong while retrieving DemoDetails & OrganizationUnit details for demoID '{demo_id}'"
-        )
-
-    demo_record, org_unit_record = result
-    
-    if org_unit_record:
-        representative_profile_out = RepresentativeProfileOut(
-            org_unit=org_unit_record.orgunitpath,
-            description=org_unit_record.description,
-            cost_centre=org_unit_record.cost_centre,
-            manager_name=org_unit_record.manager_name,
-            manager_email=org_unit_record.manager_email,
-            manager_title=org_unit_record.manager_title,
-            rep_role=org_unit_record.rep_role,
-            rep_department=org_unit_record.rep_department,
-            
-        )
     
     return DemoDetailOut(
         demo_id = demo_record.demo_id,
@@ -87,7 +69,7 @@ async def get_demo_details(
         saas_applications = demo_record.saas_applications,
         organization_unit = demo_record.organization_unit,
         representative_profile=representative_profile_out,
-        )
+    )
 
 @router.get('/user-details', response_model=CheckUserInWorkspaceResponse)
 async def get_user_details(

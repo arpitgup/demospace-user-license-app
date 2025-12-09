@@ -4,7 +4,7 @@
 @use "../../../../../styles/mixins" as *;
 
 .table-wrapper {
-  width: 130%;
+  width: 100%;
   display: flex;
   flex-direction: column;
   margin-top: 1rem;
@@ -115,7 +115,7 @@
 
   .custom-table {
     border: 1px solid #ccc;
-    width: 130%;
+    width: 100%;
     th.mat-mdc-header-cell {
       @include table-header-text;
       color: $color-black;
@@ -123,6 +123,8 @@
       position: sticky;
       top: 0;
       z-index: 10;
+      text-align: center !important;
+      justify-content: center !important;
     }
 
     th.mat-mdc-header-cell,
@@ -136,21 +138,22 @@
       width: 10%;
     }
     .mat-column-demoUserGroupEmail {
-      width: 10%;
+      width: 15%;
+      word-break: break-all;
     }
     .mat-column-geminiEnterpriseAppLink {
-      width: 20%;
-      word-break: break-all;
+      width: 10%;
+      // word-break: break-all;
     }
     .mat-column-driveFolderLink {
-      width: 20%;
-      word-break: break-all;
+      width: 10%;
+      // word-break: break-all;
     }
     .mat-column-demoOnBoardedStatus {
-      width: 10%;
+      width: 5%;
     }
     .mat-column-featureLicenseApp {
-      width: 10%;
+      width: 5%;
     }
 
     .mat-column-saasApplications {
@@ -160,7 +163,7 @@
       width: 5%;
     }
     .mat-column-action {
-      width: 20%;
+      width: 10%;
     }
 
     .mat-mdc-row:nth-child(odd) {
@@ -177,6 +180,18 @@
       word-wrap: break-word;
       padding-top: 1rem;
       padding-bottom: 1rem;
+      text-align: center;
+    }
+    .link-wrapper {
+      word-break: normal;
+      overflow-wrap: normal;
+      hyphens: none;
+      font-size: 1.2rem;
+      font-family: Roboto;
+      font-style: normal;
+      font-weight: 400;
+      letter-spacing: 0.02rem;
+      color: #4285f4;
     }
     @include mat.form-field-overrides(
       (
@@ -190,7 +205,8 @@
     );
     .status-wrapper {
       display: flex;
-      align-items: center;
+      justify-content: center;
+      text-align: center;
       gap: 0.75rem;
       flex-direction: row;
       .admin-icon {
@@ -231,12 +247,14 @@
     .application-wrapper {
       flex-direction: column;
       display: flex;
+      justify-content: center;
     }
     .app-chip-list {
       display: flex;
       flex-wrap: wrap;
       gap: 0.65rem;
       padding-top: 0.2rem;
+      justify-content: center;
     }
 
     .app-chip-wrapper {
@@ -317,6 +335,13 @@
 :host ::ng-deep {
   .mat-mdc-header-cell {
     background-color: #ecf3fe;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+  .mat-sort-header-container {
+    background-color: #ecf3fe;
+    text-align: center !important;
+    justify-content: center !important;
   }
 }
 
