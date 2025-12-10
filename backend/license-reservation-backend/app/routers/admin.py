@@ -1,4 +1,5 @@
-from datetime import timezone
+from datetime import timezone, datetime
+from dateutil import parser as date_parser
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status, Query
 from fastapi.responses import JSONResponse
 from loguru import logger
@@ -21,7 +22,6 @@ from typing import List, Optional
 from shared_lib.enums import DowntimeStatus, DemoOnboardingStatus
 from shared_lib.admin_service import create_custom_schema, is_group_exists, get_user, get_organization_units, create_organization_unit
 from ..common.constants import ACCOUNT_CUSTOMERID, RESERVATION_EMAIL_SENDER, BOOKED_RESERVATION_EMAIL_CONTENT
-from datetime import datetime
 from ..common.schemas import (
     ApplicationWithLicenseGroupOut,
     BulkCancelReservationsRequest,
@@ -417,8 +417,8 @@ def get_all_reservations(
     if searchbyDate:
         try:
             search_date = date_parser.parse(searchbyDate).date()
-            start_of_day = datetime.combine(search_date, datetime.min.time(), tzinfo=Reservation.start_time.type.timezone)
-            end_of_day = datetime.combine(search_date, datetime.max.time(), tzinfo=Reservation.start_time.type.timezone)
+            start_of_day = datetime.combine(search_date, datetime.min.time(), tzinfo=timezone.utc)
+            end_of_day = datetime.combine(search_date, datetime.max.time(), tzinfo=timezone.utc)
 
             base_query = base_query.filter(
                 Reservation.start_time >= start_of_day,
