@@ -370,14 +370,14 @@ def remove_app_from_reservations(
 def get_all_reservations(
     db: Session = Depends(get_db),
     user_email: str = Depends(get_user_email),
-    pageIndex: Optional[int] = Query(None, ge=1, description="Page number"),
-    pageSize: Optional[int] = Query(None, ge=1, description="Number of items per page"),
+    pageIndex: Optional[int] = Query(None, ge=0, description="Page number (indexing from 0)"),
+    pageSize: Optional[int] = Query(None, ge=1, description="Size of page"),
     pastReservations: Optional[bool] = Query(None, description="Filter by past/current reservations"),
 ):
     """
     Retrieves a paginated list of all reservations, filtered by past/current status.
-    If no pagination is provided, all matching records are returned.
     """
+    
     base_query = db.query(Reservation)
 
     active_and_pending_statuses = [
@@ -406,21 +406,29 @@ def get_all_reservations(
     total_records = base_query.count()
     reservations_query = base_query
 
+    response_page_index = pageIndex if pageIndex is not None else 0
+    response_page_size = pageSize if pageSize is not None else total_records
+
     if pageIndex is not None and pageSize is not None:
         logger.info(
             f"Applying Pagination - pageIndex: {pageIndex}, pageSize: {pageSize}"
         )
         
-        offset = (pageIndex - 1) * pageSize
+        offset = pageIndex * pageSize
         reservations_query = reservations_query.limit(pageSize).offset(offset)
+        
+        response_page_index = pageIndex
+        response_page_size = pageSize
+
 
     reservations = reservations_query.all()
 
+    
     return PaginatedReservationsOut(
         data=reservations,
         totalRecords = total_records,
-        pageIndex = pageIndex,
-        pageSize = pageSize
+        pageIndex = response_page_index,
+        pageSize = response_page_size
     )
 
 
