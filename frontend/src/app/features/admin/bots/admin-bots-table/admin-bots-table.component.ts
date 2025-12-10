@@ -498,7 +498,7 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
           }
         }
         if (alredyApplicationExistCount === applications.length) {
-          this.showErrorDialog('All bots has already selected applications');
+          this.showErrorDialog('Bots have selected application(s) already assigned.');
           return;
         }
         for (let i = 0; i < adminBot.length; i++) {
@@ -525,7 +525,7 @@ export class AdminBotsTableComponent implements OnInit, AfterViewInit {
             .join('<br>');
           this.callUpdateBotApi(botsRequest, botUpdationMessage);
         } else {
-          this.callUpdateBotApi(botsRequest, 'All bots updated successfully');
+          this.callUpdateBotApi(botsRequest, 'Update successful!');
         }
       }
     });

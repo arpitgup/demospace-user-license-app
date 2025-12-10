@@ -13,6 +13,7 @@ import { CreateApplicationRequest } from '../models/create-application-request.m
 import { UpdateApplicationRequest } from '../models/update-application-request.model';
 import { AdminCreateReservationRequest } from '../models/admin-create-reservation-request.model';
 import { MakeReservationResponse } from '../models/make-reservation-response.model';
+import { CreateApplication } from '../models/create-application.model';
 
 @Injectable({
   providedIn: 'root',
@@ -80,8 +81,8 @@ export class AdminService {
 
   createApplication(
     request: CreateApplicationRequest
-  ): Observable<Application> {
-    return this.http.post<Application>(
+  ): Observable<CreateApplication> {
+    return this.http.post<CreateApplication>(
       `${this.apiUrl}/admin/applications`,
       request
     );
