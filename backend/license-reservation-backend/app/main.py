@@ -33,10 +33,10 @@ app.add_middleware(UserCurrentTimeValidationMiddleware)
 
 # TODO: uncomment below line to enable admin validation middleware,
 # ensure that the PORTAL_ADMIN_GROUP_EMAIL  environment variable is updated
-app.add_middleware(AdminValidationMiddleware)
+# app.add_middleware(AdminValidationMiddleware)
 
 common_dependencies = [Depends(get_user_email), Depends(get_user_current_time)]
-admin_dependencies = [Depends(get_user_email), Depends(get_user_current_time), Depends(get_user_token)]
+admin_dependencies = [Depends(get_user_email), Depends(get_user_current_time)]
 
 app.include_router(applications.router, tags=["Applications"], dependencies=common_dependencies)
 app.include_router(availability.router, tags=["Availability"], dependencies=common_dependencies)
