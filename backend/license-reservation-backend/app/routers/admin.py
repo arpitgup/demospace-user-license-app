@@ -1,5 +1,4 @@
 from datetime import timezone, datetime
-from dateutil import parser as date_parser
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status, Query
 from fastapi.responses import JSONResponse
 from loguru import logger
@@ -416,7 +415,7 @@ def get_all_reservations(
 
     if searchbyDate:
         try:
-            search_date = date_parser.parse(searchbyDate).date()
+            search_date = datetime.strptime(searchbyDate, '%Y-%m-%d').date()
             start_of_day = datetime.combine(search_date, datetime.min.time(), tzinfo=timezone.utc)
             end_of_day = datetime.combine(search_date, datetime.max.time(), tzinfo=timezone.utc)
 
