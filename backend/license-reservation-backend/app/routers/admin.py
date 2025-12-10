@@ -411,7 +411,7 @@ def get_all_reservations(
 
     if pageIndex is not None and pageSize is not None:
         logger.info(
-            f"Applying Pagination (0-Based) - pageIndex: {pageIndex}, pageSize: {pageSize}"
+            f"Applying Pagination - pageIndex: {pageIndex}, pageSize: {pageSize}"
         )
         
         offset = pageIndex * pageSize
