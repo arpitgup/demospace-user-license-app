@@ -372,7 +372,7 @@ def get_all_reservations(
     user_email: str = Depends(get_user_email),
     pageIndex: Optional[int] = Query(None, ge=1, description="Page number"),
     pageSize: Optional[int] = Query(None, ge=1, description="Number of items per page"),
-    pastReservations: Optional[bool] = Query(None, description="If true, returns COMPLETED and CANCELLED reservations. If false, returns ACTIVE and PENDING reservations."),
+    pastReservations: Optional[bool] = Query(None, description="Filter by past/current reservations"),
 ):
     """
     Retrieves a paginated list of all reservations, filtered by past/current status.
