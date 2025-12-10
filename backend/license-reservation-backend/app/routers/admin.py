@@ -1,5 +1,5 @@
 from datetime import timezone
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status, Query
 from fastapi.responses import JSONResponse
 from loguru import logger
 from sqlalchemy import func, or_
@@ -17,7 +17,7 @@ from shared_lib.db.models import (
     OrganizationUnits
 )
 from shared_lib.dependencies import get_user_email, get_db, get_app_config
-from typing import List
+from typing import List, Optional
 from shared_lib.enums import DowntimeStatus, DemoOnboardingStatus
 from shared_lib.admin_service import create_custom_schema, is_group_exists, get_user, get_organization_units, create_organization_unit
 from ..common.constants import ACCOUNT_CUSTOMERID, RESERVATION_EMAIL_SENDER, BOOKED_RESERVATION_EMAIL_CONTENT
@@ -48,7 +48,8 @@ from ..common.schemas import (
     OnboardNewDemoRequestResponse,
     OrganizationUnitLocalOut,
     RepresentativeProfileOut,
-    OrganizationUnitCreateRequest
+    OrganizationUnitCreateRequest,
+    PaginatedReservationsOut
 )
 from ..utils.background_tasks import (
     delete_reservation_tasks,
@@ -353,16 +354,75 @@ def remove_app_from_reservations(
             detail="An unexpected error occurred while removing app from reservation.",
         )
 
-@router.get("/reservations", response_model=List[ReservationOut])
+# @router.get("/reservations", response_model=List[ReservationOut])
+# def get_all_reservations(
+#     db: Session = Depends(get_db), user_email: str = Depends(get_user_email)
+# ):
+#     """
+#     Retrieves all reservations.
+#     """
+#     logger.info(f"Admin User {user_email}: Fetching all reservations")
+#     reservations = db.query(Reservation).all()
+#     return reservations
+
+
+@router.get("/reservations", response_model=PaginatedReservationsOut)
 def get_all_reservations(
-    db: Session = Depends(get_db), user_email: str = Depends(get_user_email)
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+    pageIndex: Optional[int] = Query(None, ge=1, description="Page number"),
+    pageSize: Optional[int] = Query(None, ge=1, description="Number of items per page"),
+    pastReservations: Optional[bool] = Query(None, description="If true, returns COMPLETED and CANCELLED reservations. If false, returns ACTIVE and PENDING reservations."),
 ):
     """
-    Retrieves all reservations.
+    Retrieves a paginated list of all reservations, filtered by past/current status.
+    If no pagination is provided, all matching records are returned.
     """
-    logger.info(f"Admin User {user_email}: Fetching all reservations")
-    reservations = db.query(Reservation).all()
-    return reservations
+    base_query = db.query(Reservation)
+
+    active_and_pending_statuses = [
+        ReservationStatus.ACTIVE,
+        ReservationStatus.PENDING,
+    ]
+    completed_and_cancelled_statuses = [
+        ReservationStatus.COMPLETED,
+        ReservationStatus.CANCELLED,
+    ]
+
+    if pastReservations is not None:
+        if pastReservations:
+            logger.info(f"Filtering for past reservations (COMPLETED/CANCELLED)")
+            base_query = base_query.filter(
+                Reservation.status.in_(completed_and_cancelled_statuses)
+            )
+        else:
+            logger.info(f"Filtering for current/upcoming reservations (ACTIVE/PENDING)")
+            base_query = base_query.filter(
+                Reservation.status.in_(active_and_pending_statuses)
+            )
+    else:
+        logger.info(f"No status filter applied.")
+
+    total_records = base_query.count()
+    reservations_query = base_query
+
+    if pageIndex is not None and pageSize is not None:
+        logger.info(
+            f"Applying Pagination - pageIndex: {pageIndex}, pageSize: {pageSize}"
+        )
+        
+        offset = (pageIndex - 1) * pageSize
+        reservations_query = reservations_query.limit(pageSize).offset(offset)
+
+    reservations = reservations_query.all()
+
+    return PaginatedReservationsOut(
+        data=reservations,
+        totalRecords = total_records,
+        pageIndex = pageIndex,
+        pageSize = pageSize
+    )
+
 
 @router.post(
     "/reservations",
