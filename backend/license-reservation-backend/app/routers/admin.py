@@ -416,17 +416,13 @@ def get_all_reservations(
     if searchbyDate:
         try:
             search_date = datetime.strptime(searchbyDate, '%Y-%m-%d').date()
-            start_of_day = datetime.combine(search_date, datetime.min.time(), tzinfo=timezone.utc)
-            end_of_day = datetime.combine(search_date, datetime.max.time(), tzinfo=timezone.utc)
-
             base_query = base_query.filter(
-                Reservation.start_time >= start_of_day,
-                Reservation.start_time <= end_of_day,
+                func.date(Reservation.start_time) == search_date
             )
         except ValueError:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid date format for 'searchbyDate'. Use a format like YYYY-MM-DD.",
+                detail="Invalid date format for 'searchbyDate'. Please use the YYYY-MM-DD format.",
             )
     
     # Sorting: ONLY applied if filtering for current/upcoming reservations
@@ -436,7 +432,6 @@ def get_all_reservations(
             (Reservation.status == ReservationStatus.PENDING, 2),
             else_=3 # Default rank for safety
         )
-        
         base_query = base_query.order_by(asc(status_rank))
 
     base_query = base_query.order_by(desc(Reservation.start_time))
