@@ -1,4 +1,5 @@
-from datetime import timezone, datetime
+from datetime import timezone, datetime, timedelta, time, date
+from dateutil import parser
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status, Query
 from fastapi.responses import JSONResponse
 from loguru import logger
@@ -415,14 +416,31 @@ def get_all_reservations(
 
     if searchbyDate:
         try:
-            search_date = datetime.strptime(searchbyDate, '%Y-%m-%d').date()
+            search_dt_with_tz = parser.parse(searchbyDate)
+            
+            if search_dt_with_tz.tzinfo is None or search_dt_with_tz.tzinfo.utcoffset(search_dt_with_tz) is None:
+                raise ValueError("Timezone information is missing or invalid.")
+            
+            search_date = search_dt_with_tz.date() 
+            search_tz = search_dt_with_tz.tzinfo
+
+            # Calculate the start of the local day and convert to UTC
+            start_of_local_day = datetime.combine(search_date, time.min, tzinfo=search_tz)
+            start_of_utc_day = start_of_local_day.astimezone(timezone.utc)
+
+            # Calculate the end of the local day (start of next day) and convert to UTC
+            end_of_local_day = datetime.combine(search_date + timedelta(days=1), time.min, tzinfo=search_tz)
+            end_of_utc_day = end_of_local_day.astimezone(timezone.utc)
+
             base_query = base_query.filter(
-                func.date(Reservation.start_time) == search_date
+                Reservation.start_time >= start_of_utc_day,
+                Reservation.start_time < end_of_utc_day
             )
-        except ValueError:
+            
+        except (ValueError, TypeError):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid date format for 'searchbyDate'. Please use the YYYY-MM-DD format.",
+                detail="Invalid date format for 'searchbyDate'. Please use a format like 'YYYY-MM-DD±HH:MM', e.g.'2025-12-11T00:00:00+05:30'.",
             )
     
     # Sorting: ONLY applied if filtering for current/upcoming reservations
