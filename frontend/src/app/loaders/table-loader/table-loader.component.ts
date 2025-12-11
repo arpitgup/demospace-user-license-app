@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
 
@@ -9,6 +9,8 @@ import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
   styleUrl: './table-loader.component.scss',
 })
 export class TableLoaderComponent {
+
+   @Input() isShowHeader: boolean=true;
   displayedColumns: string[] = [
     'select',
     'reservationDate',

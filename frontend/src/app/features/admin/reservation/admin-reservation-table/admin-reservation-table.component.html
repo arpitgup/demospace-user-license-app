@@ -1,22 +1,5 @@
 <div class="table-wrapper">
-  @if (isLoading()) {
-  <app-table-loader />
-  } @else if(errorMessage()!==''){
-  <app-error-message
-    [errorMessage]="errorMessage()"
-    (retryClicked)="onRetryCall()"
-  ></app-error-message>
-  } @else{ @if(showCancelCta()===true){
-  <div class="cancel-wrapper">
-    <div class="cancel-text-wrapper" (click)="showCancelConfirmationDialog()">
-      <mat-icon class="cancel-icon-wrapper">cancel</mat-icon>
-
-      <span class="cancel-text">{{
-        adminReservationConstants.DELETE_SELECTED_RESERVATIONS
-      }}</span>
-    </div>
-  </div>
-  }@else{
+  @if(isDataLoaded()===true){
   <form [formGroup]="searchForm" class="search-content">
     <div class="show-past-checkbox-wrapper">
       <mat-checkbox
@@ -86,6 +69,23 @@
       <span class="reset-text">Refresh</span>
     </div>
   </form>
+  } @if (isLoading()) {
+  <app-table-loader [isShowHeader]="!isDataLoaded()" />
+  } @else if(errorMessage()!==''){
+  <app-error-message
+    [errorMessage]="errorMessage()"
+    (retryClicked)="onRetryCall()"
+  ></app-error-message>
+  } @else{ @if(showCancelCta()===true){
+  <div class="cancel-wrapper">
+    <div class="cancel-text-wrapper" (click)="showCancelConfirmationDialog()">
+      <mat-icon class="cancel-icon-wrapper">cancel</mat-icon>
+
+      <span class="cancel-text">{{
+        adminReservationConstants.DELETE_SELECTED_RESERVATIONS
+      }}</span>
+    </div>
+  </div>
   } @if(dataSource.data.length===0){
   <div class="empty-data-message">
     <mat-icon class="empty-data-icon">info_outline</mat-icon>
@@ -204,7 +204,11 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
   <mat-paginator
+    [length]="totalItems"
+    [pageSize]="pageSize"
     [pageSizeOptions]="pageSizeOptions"
+    [pageIndex]="pageIndex"
+    (page)="onPageChange($event)"
     showFirstLastButtons
     aria-label="Select page of reservations"
   >
