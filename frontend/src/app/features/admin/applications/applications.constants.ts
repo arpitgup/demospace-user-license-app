@@ -36,5 +36,5 @@ export const ApplicationsConstants = {
   SOMETHING_WENT_WRONG: 'Something went wrong',
   SUCCESS: 'Success',
   OK: 'Ok',
-  APPLICATION_SUCCESSFULLY_ADDED: 'Application successfully added',
+  APPLICATION_SUCCESSFULLY_ADDED: 'Application added successfully.',
 };

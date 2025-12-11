@@ -13,6 +13,8 @@ import { CreateApplicationRequest } from '../models/create-application-request.m
 import { UpdateApplicationRequest } from '../models/update-application-request.model';
 import { AdminCreateReservationRequest } from '../models/admin-create-reservation-request.model';
 import { MakeReservationResponse } from '../models/make-reservation-response.model';
+import { CreateApplication } from '../models/create-application.model';
+import { AdminReservation } from '../models/admin-reservation.model';
 
 @Injectable({
   providedIn: 'root',
@@ -35,12 +37,36 @@ export class AdminService {
   public readonly refreshReservations =
     this.refreshReservationsState.asReadonly();
 
-  fetchAllReservations(): Observable<Reservation[]> {
+  fetchAllReservations(
+    pageIndex: number,
+    pageSize: number,
+    isShowPastReservation: boolean,
+    applicationName: string,
+    userName: string,
+    date: string,
+    botId: string
+  ): Observable<AdminReservation> {
+    const params = {
+      pageIndex: pageIndex,
+      pageSize: pageSize,
+      pastReservations: isShowPastReservation,
+      searchbyUser: userName,
+      searchbyApp: applicationName,
+      searchbyDate: date,
+      searchbyBot: botId,
+    };
+    const queryParams = Object.entries(params)
+      .filter(([_, v]) => v !== '' && v !== null && v !== undefined)
+      .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+      .join('&');
     return this.http
-      .get<Reservation[]>(`${this.apiUrl}/admin/reservations`)
+      .get<AdminReservation>(
+        `${this.apiUrl}/admin/reservations` +
+          (queryParams ? `?${queryParams}` : '')
+      )
       .pipe(
-        map((elements) =>
-          elements.map((element) => {
+        map((elements) => {
+          elements.data = elements.data.map((element) => {
             return {
               ...element,
               isEditable: false,
@@ -50,8 +76,9 @@ export class AdminService {
                 new Date(element.endTime)
               ),
             };
-          })
-        )
+          });
+          return elements;
+        })
       );
   }
 
@@ -80,8 +107,8 @@ export class AdminService {
 
   createApplication(
     request: CreateApplicationRequest
-  ): Observable<Application> {
-    return this.http.post<Application>(
+  ): Observable<CreateApplication> {
+    return this.http.post<CreateApplication>(
       `${this.apiUrl}/admin/applications`,
       request
     );

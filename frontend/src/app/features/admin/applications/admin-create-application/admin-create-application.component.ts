@@ -145,9 +145,12 @@ export class AdminCreateApplicationComponent implements OnInit {
     };
     this.loadingService.show();
     this.adminService.createApplication(request).subscribe({
-      next: () => {
+      next: (res) => {
         this.loadingService.hide();
-        this.showSuccessDialog();
+        this.showSuccessDialog(
+          res.custom_SAML_attribute || '',
+          res.license_type == AdminCreateApplicationEnums.SUBSCRIPTION
+        );
       },
       error: (error) => {
         this.loadingService.hide();
@@ -158,7 +161,11 @@ export class AdminCreateApplicationComponent implements OnInit {
     });
   }
 
-  showSuccessDialog() {
+  showSuccessDialog(
+    customSamlAttribute: string | undefined,
+    isSubscription: boolean
+  ) {
+    console.log('isSubscription=', isSubscription);
     const dialogRef = this.dialog.open(SuccessDialog, {
       width: 'auto',
       minWidth: 'none',
@@ -168,7 +175,14 @@ export class AdminCreateApplicationComponent implements OnInit {
       disableClose: true,
       data: {
         title: this.applicationConstants.SUCCESS,
-        message: this.applicationConstants.APPLICATION_SUCCESSFULLY_ADDED,
+        message:
+          isSubscription === true
+            ? `${
+                this.applicationConstants.APPLICATION_SUCCESSFULLY_ADDED
+              }<br> <p style="font-size: 1rem;margin:0;padding:0;"><i>Note: Custom SAML attribute created '${
+                customSamlAttribute || ''
+              }'</i></p>`
+            : this.applicationConstants.APPLICATION_SUCCESSFULLY_ADDED,
         confirmText: this.applicationConstants.OK,
       },
     });
