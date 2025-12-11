@@ -413,7 +413,7 @@ def get_all_reservations(
             Application.name.ilike(f"%{searchbyApp}%")
         )
 
-    if searchbyDate:      
+    if searchbyDate:
         try:
             search_date = datetime.strptime(searchbyDate, '%Y-%m-%d').date()
             base_query = base_query.filter(
