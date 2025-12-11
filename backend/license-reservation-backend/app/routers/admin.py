@@ -373,7 +373,7 @@ def get_all_reservations(
     searchbyUser: Optional[str] = Query(None, description="Filter by user email (partial match)"),
     searchbyApp: Optional[str] = Query(None, description="Filter by application name (partial match)"),
     searchbyDate: Optional[str] = Query(None, description="Filter by reservation date (e.g., '2024-10-27')"),
-    searchbyBot: Optional[str] = Query(None, description="Filter by bot name (partial match)"),
+    searchbyBot: Optional[int] = Query(None, description="Filter by bot name (partial match)"),
     pageIndex: Optional[int] = Query(None, ge=0, description="Page number (indexing from 0)"),
     pageSize: Optional[int] = Query(None, ge=1, description="Size of page"),
     pastReservations: Optional[bool] = Query(None, description="Filter by past/current reservations"),
@@ -407,7 +407,7 @@ def get_all_reservations(
         base_query = base_query.filter(Reservation.user_email.ilike(f"%{searchbyUser}%"))
 
     if searchbyBot:
-        base_query = base_query.filter(Reservation.bot_id.ilike(f"%{searchbyBot}%"))
+        base_query = base_query.filter(Reservation.bot_id == searchbyBot)
 
     if searchbyApp:
         base_query = base_query.join(Reservation.applications).filter(
