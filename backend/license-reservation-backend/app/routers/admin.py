@@ -407,7 +407,7 @@ def get_all_reservations(
         base_query = base_query.filter(Reservation.user_email.ilike(f"%{searchbyUser}%"))
 
     if searchbyBot:
-        base_query = base_query.filter(Bot.name.ilike(f"%{searchbyBot}%"))
+        base_query = base_query.filter(Reservation.bot_id.ilike(f"%{searchbyBot}%"))
 
     if searchbyApp:
         base_query = base_query.join(Reservation.applications).filter(
