@@ -1,8 +1,11 @@
 <div class="table-loader-wrapper">
+  @if(isShowHeader===true){
   <ngx-skeleton-loader
     [appearance]="'line'"
     [theme]="{ 'border-radius': '0', height: '60px', width: '100%' }"
   ></ngx-skeleton-loader>
+  }
+
   <table mat-table [dataSource]="dataSource" class="custom-table">
     <!-- Select Column -->
     <ng-container matColumnDef="select">

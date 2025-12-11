@@ -13,12 +13,12 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ReservationApiStatus } from '../../../landing/landing.enums';
 import { MatDialog } from '@angular/material/dialog';
 import { Reservation } from '../../../../core/models/reservation.model';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import {
   getLocalTimeZoneAbbreviation,
-  isSameDay,
+  getSearchDateTimezone,
 } from '../../../../../utilities/utils';
 import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { ErrorDialog } from '../../../../shared/dialogs/error-dialog/error-dialog';
@@ -36,6 +36,7 @@ import { ReservationApplicationRequest } from '../../../../core/models/reservati
 import { ErrorMessage } from '../../../../shared/components/error-message/error-message';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { ReservationConstants } from '../reservation.constants';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
   selector: 'app-admin-reservation-table',
@@ -78,9 +79,14 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
   minDate: Date = new Date(2025, 7, 1);
   maxDate: Date = new Date();
   today: Date = new Date();
-  public readonly pageSizeOptions: number[] = [10];
+  public readonly pageSizeOptions: number[] = [20];
   private cdr = inject(ChangeDetectorRef);
   public readonly errorMessage = signal<string>('');
+  totalItems: number = 0;
+  pageSize: number = 20;
+  pageIndex = 0;
+  pageCache: { [key: number]: Reservation[] } = {};
+  isDataLoaded = signal(false);
 
   displayedColumns: string[] = [
     'select',
@@ -100,12 +106,6 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) set sort(sort: MatSort) {
     if (sort) {
       this.dataSource.sort = sort;
-    }
-  }
-
-  @ViewChild(MatPaginator) set paginator(value: MatPaginator) {
-    if (value) {
-      this.dataSource.paginator = value;
     }
   }
 
@@ -138,108 +138,133 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
     this.listenFormChanges();
   }
 
-  listenFormChanges() {
-    this.searchForm.valueChanges?.subscribe(() => {
-      if (this.isRefreshCall() === true) {
-        return;
+  ngAfterViewInit() {
+    this.dataSource.sortingDataAccessor = (item, property) => {
+      switch (property) {
+        case 'reserrvationDate':
+          return new Date(item.startTime).getTime();
+        case 'reservedBy':
+          return item.userEmail;
+        default:
+          const value = item[property as keyof Reservation];
+          return typeof value === 'string' || typeof value === 'number'
+            ? value
+            : String(value);
       }
-
-      this.fetchSearchReservation(true);
-    });
+    };
   }
 
-  fetchSearchReservation(isRedirectToFirstPage: boolean) {
-    let filteredReservation: Reservation[] = [];
-    if (this.showPastReservations() === true) {
-      filteredReservation = this.reservationList.filter(
-        (item) =>
-          item.status === ReservationApiStatus.COMPLETED ||
-          item.status === ReservationApiStatus.CANCELLED
-      );
-    } else {
-      filteredReservation = this.reservationList.filter(
-        (item) =>
-          item.status === ReservationApiStatus.PENDING ||
-          item.status === ReservationApiStatus.ACTIVE
-      );
-    }
-    this.dataSource.data = filteredReservation
-      .filter((item) =>
-        this.searchForm.get(this.SEARCH_APPLICATION_FORM)?.value !== ''
-          ? item.applications.some((application) =>
-              application.name
-                .toLowerCase()
-                .includes(
-                  this.searchForm
-                    .get(this.SEARCH_APPLICATION_FORM)
-                    ?.value?.toLowerCase()
-                )
-            )
-          : true
-      )
-      .filter((item) =>
-        this.searchForm.get(this.SEARCH_USER_FORM)?.value !== ''
-          ? item.userEmail
-              .toLowerCase()
-              .includes(
-                this.searchForm.get(this.SEARCH_USER_FORM)?.value?.toLowerCase()
-              )
-          : true
-      )
-      .filter((item) =>
-        this.searchForm.get(this.SEARCH_DATE_FORM)?.value !== ''
-          ? isSameDay(
-              new Date(item.endTime),
-              new Date(this.searchForm.get(this.SEARCH_DATE_FORM)?.value)
-            )
-          : true
-      )
-      .filter((item) =>
-        this.searchForm.get(this.SEARCH_BOTID_FORM)?.value !== ''
-          ? item.bot.id
-              .toString()
-              .includes(this.searchForm.get(this.SEARCH_BOTID_FORM)?.value)
-          : true
-      );
-    if (this.dataSource.paginator && isRedirectToFirstPage === true) {
-      this.dataSource.paginator.firstPage();
-    }
+  listenFormChanges() {
+    this.searchForm.valueChanges
+      ?.pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe(() => {
+        if (this.isRefreshCall() === true) {
+          return;
+        }
+        this.resetPaginationValues();
+      });
   }
 
   getAllReservations(isRefresh: boolean) {
+    if (
+      this.pageCache[this.pageIndex] &&
+      this.pageCache[this.pageIndex].length > 0
+    ) {
+      this.dataSource.data = this.pageCache[this.pageIndex];
+      this.cdr.detectChanges();
+      return;
+    }
     if (isRefresh) {
       this.isLoading.set(true);
     }
-    this.adminService.fetchAllReservations().subscribe({
-      next: (data) => {
-        this.reservationList = data;
-        this.reservationApiResponse = this.reservationList.map((element) => ({
-          ...element,
-        }));
-        this.updateReservationDataSource();
-        this.updateShowCancelCta(false);
-        if (isRefresh) {
-          this.isLoading.set(false);
-        } else {
-          this.loadingService.hide();
-        }
-      },
-      error: (err) => {
-        const errorMessage = err?.error?.detail || 'Something went wrong';
-        this.errorMessage.set(errorMessage);
-        if (isRefresh) {
-          this.isLoading.set(false);
-        } else {
-          this.loadingService.hide();
-        }
-      },
-    });
+    const dateValue = this.searchForm.get(this.SEARCH_DATE_FORM)?.value || '';
+    let formattedDate = '';
+    if (dateValue !== '') {
+      const date = new Date(
+        this.searchForm.get(this.SEARCH_DATE_FORM)?.value || ''
+      );
+      formattedDate = `${date.getFullYear()}-${String(
+        date.getMonth() + 1
+      ).padStart(2, '0')}-${String(date.getDate()).padStart(
+        2,
+        '0'
+      )}T00:00:00${getSearchDateTimezone(
+        new Date(new Date()) ?? new Date(),
+        Intl.DateTimeFormat().resolvedOptions().timeZone
+      )}`;
+    }
+
+    this.adminService
+      .fetchAllReservations(
+        this.pageIndex,
+        this.pageSize,
+        this.showPastReservations(),
+        this.searchForm.get(this.SEARCH_APPLICATION_FORM)?.value || '',
+        this.searchForm.get(this.SEARCH_USER_FORM)?.value || '',
+        formattedDate,
+        this.searchForm.get(this.SEARCH_BOTID_FORM)?.value || ''
+      )
+      .subscribe({
+        next: (data) => {
+          if (
+            data.totalRecords > 0 &&
+            data.data.length <= 0 &&
+            this.pageIndex > 0
+          ) {
+            this.pageIndex = this.pageIndex - 1;
+            this.totalItems = 0;
+            this.pageCache = {};
+            this.getAllReservations(isRefresh);
+            return;
+          }
+          this.totalItems = data.totalRecords;
+          this.reservationList = data.data;
+          this.reservationApiResponse = this.reservationList.map((element) => ({
+            ...element,
+          }));
+
+          this.dataSource.data = this.reservationList;
+          this.pageCache[this.pageIndex] = this.reservationList.map(
+            (element) => ({
+              ...element,
+            })
+          );
+          // this.updateReservationDataSource();
+          this.updateShowCancelCta(false);
+          if (isRefresh) {
+            this.isLoading.set(false);
+          } else {
+            this.loadingService.hide();
+          }
+          this.isDataLoaded.update(() => true);
+        },
+        error: (err) => {
+          const errorMessage = err?.error?.detail || 'Something went wrong';
+          this.errorMessage.set(errorMessage);
+          if (isRefresh) {
+            this.isLoading.set(false);
+          } else {
+            this.loadingService.hide();
+          }
+        },
+      });
   }
 
   onShowPastChange(checked: boolean): void {
     this.showPastReservations.set(checked);
     this.clearSearchValues();
-    this.updateReservationDataSource();
+    this.resetPaginationValues();
+  }
+  resetPaginationValues() {
+    this.pageIndex = 0;
+    this.totalItems = 0;
+    this.pageCache = {};
+    this.getAllReservations(true);
+  }
+  onPageChange(event: PageEvent) {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.getAllReservations(true);
   }
   onSelectAllReservations(checked: boolean): void {
     this.selectAllReservations.set(checked);
@@ -263,22 +288,6 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
     }
   }
 
-  updateReservationDataSource() {
-    if (this.showPastReservations() === true) {
-      this.dataSource.data = this.reservationList.filter(
-        (item) =>
-          item.status === ReservationApiStatus.COMPLETED ||
-          item.status === ReservationApiStatus.CANCELLED
-      );
-    } else {
-      this.dataSource.data = this.reservationList.filter(
-        (item) =>
-          item.status === ReservationApiStatus.PENDING ||
-          item.status === ReservationApiStatus.ACTIVE
-      );
-    }
-  }
-
   onEditCall(reservationId: number) {
     this.reservationList = this.reservationList.map((item) => {
       if (item.id === reservationId) {
@@ -286,7 +295,8 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
       }
       return item;
     });
-    this.fetchSearchReservation(false);
+    this.pageCache = {};
+    this.dataSource.data = this.reservationList;
   }
   onSaveCall(reservationId: number) {
     const primaryApplicationId =
@@ -318,7 +328,8 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
           }));
           return item;
         });
-        this.fetchSearchReservation(false);
+        this.pageCache = {};
+        this.dataSource.data = this.reservationList;
       },
       error: (err) => {
         this.loadingService.hide();
@@ -341,7 +352,8 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
       }
       return item;
     });
-    this.fetchSearchReservation(false);
+    this.pageCache = {};
+    this.dataSource.data = this.reservationList;
   }
   onRemoveApplication(reservation: Reservation, applicationId: number) {
     const count = reservation.applications.filter(
@@ -359,6 +371,7 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
       }
       return item;
     });
+
     this.cdr.detectChanges();
   }
   updateShowCancelCta(value: boolean) {
@@ -367,6 +380,7 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
 
   onRefreshCall() {
     this.clearSearchValues();
+    this.resetPaginationValues();
     this.getAllReservations(true);
   }
   clearSearchValues() {
@@ -374,6 +388,7 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
     this.searchForm.get(this.SEARCH_USER_FORM)?.patchValue('');
     this.searchForm.get(this.SEARCH_APPLICATION_FORM)?.patchValue('');
     this.searchForm.get(this.SEARCH_DATE_FORM)?.patchValue('');
+    this.searchForm.get(this.SEARCH_BOTID_FORM)?.patchValue('');
     this.isRefreshCall.set(false);
   }
 
@@ -419,6 +434,8 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
             `Faild to cancel ${data.failedToCancel.length} reservations`
           );
         }
+        this.selectAllReservations.update(() => false);
+        this.pageCache = {};
         this.getAllReservations(false);
       },
       error: (err) => {
@@ -426,22 +443,6 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
         this.showErrorDialog(err?.error?.detail || 'Something went wrong');
       },
     });
-  }
-
-  ngAfterViewInit() {
-    this.dataSource.sortingDataAccessor = (item, property) => {
-      switch (property) {
-        case 'reservationDate':
-          return new Date(item.startTime).getTime();
-        case 'reservedBy':
-          return item.userEmail;
-        default:
-          const value = item[property as keyof Reservation];
-          return typeof value === 'string' || typeof value === 'number'
-            ? value
-            : String(value);
-      }
-    };
   }
 
   showErrorDialog(message: string) {
@@ -472,5 +473,8 @@ export class AdminReservationTableComponent implements OnInit, AfterViewInit {
       }
       this.adminService.refreshReservationsState.update(() => false);
     });
+  }
+  updateCacheValues(reservation: Reservation[]) {
+    this.pageCache[this.pageIndex] = reservation;
   }
 }

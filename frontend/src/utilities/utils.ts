@@ -186,6 +186,24 @@ export function getGMTOffset(date: Date, timeZone: string): string {
   );
 }
 
+export function getSearchDateTimezone(date: Date, timeZone: string): string {
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone,
+    timeZoneName: 'shortOffset',
+  };
+  const formatter = new Intl.DateTimeFormat('en-US', options);
+  const parts = formatter
+    .formatToParts(date)
+    .find((p) => p.type === 'timeZoneName')?.value;
+  let offset = parts?.replace('GMT', '') || '';
+  if (/^[+-]\d{1,2}$/.test(offset)) {
+    const num = Number(offset);
+    const hours = String(Math.floor(Math.abs(num))).padStart(2, '0');
+    offset = `${num >= 0 ? '+' : '-'}${hours}:00`;
+  }
+  return offset;
+}
+
 export function generateHoursList(
   day: Date,
   disabledRanges: NormalizedReservation[],
