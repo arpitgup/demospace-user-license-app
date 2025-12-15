@@ -77,6 +77,12 @@ class ReservationOut(CamelModel):
     _convert_to_utc = field_validator("start_time", "end_time")(convert_to_utc)
 
 
+class PaginatedReservationsOut(BaseModel):
+    data: List[ReservationOut]
+    totalRecords: int
+    pageIndex: Optional[int] = None
+    pageSize: Optional[int] = None
+
 class AvailabilityByApplicationRequest(CamelModel):
     application_id: int
     start_time: datetime

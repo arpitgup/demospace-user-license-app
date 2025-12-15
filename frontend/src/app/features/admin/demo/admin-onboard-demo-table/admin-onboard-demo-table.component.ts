@@ -217,6 +217,8 @@ export class AdminOnboardDemoTableComponent {
           return item.demo_id;
         case 'demoTitle':
           return item.demo_title;
+        case 'orgUnit':
+          return item.organization_unit;
         default:
           const value = item[property as keyof DemoDetails];
           return typeof value === 'string' || typeof value === 'number'

@@ -1,8 +1,9 @@
-from datetime import timezone
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status
+from datetime import timezone, datetime, timedelta, time, date
+from dateutil import parser
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status, Query
 from fastapi.responses import JSONResponse
 from loguru import logger
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, case, asc, desc
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from shared_lib.db.models import (
@@ -17,11 +18,10 @@ from shared_lib.db.models import (
     OrganizationUnits
 )
 from shared_lib.dependencies import get_user_email, get_db, get_app_config
-from typing import List
+from typing import List, Optional
 from shared_lib.enums import DowntimeStatus, DemoOnboardingStatus
 from shared_lib.admin_service import create_custom_schema, is_group_exists, get_user, get_organization_units, create_organization_unit
 from ..common.constants import ACCOUNT_CUSTOMERID, RESERVATION_EMAIL_SENDER, BOOKED_RESERVATION_EMAIL_CONTENT
-from datetime import datetime
 from ..common.schemas import (
     ApplicationWithLicenseGroupOut,
     BulkCancelReservationsRequest,
@@ -48,7 +48,8 @@ from ..common.schemas import (
     OnboardNewDemoRequestResponse,
     OrganizationUnitLocalOut,
     RepresentativeProfileOut,
-    OrganizationUnitCreateRequest
+    OrganizationUnitCreateRequest,
+    PaginatedReservationsOut
 )
 from ..utils.background_tasks import (
     delete_reservation_tasks,
@@ -353,16 +354,128 @@ def remove_app_from_reservations(
             detail="An unexpected error occurred while removing app from reservation.",
         )
 
-@router.get("/reservations", response_model=List[ReservationOut])
+# @router.get("/reservations", response_model=List[ReservationOut])
+# def get_all_reservations(
+#     db: Session = Depends(get_db), user_email: str = Depends(get_user_email)
+# ):
+#     """
+#     Retrieves all reservations.
+#     """
+#     logger.info(f"Admin User {user_email}: Fetching all reservations")
+#     reservations = db.query(Reservation).all()
+#     return reservations
+
+
+@router.get("/reservations", response_model=PaginatedReservationsOut)
 def get_all_reservations(
-    db: Session = Depends(get_db), user_email: str = Depends(get_user_email)
+    db: Session = Depends(get_db),
+    user_email: str = Depends(get_user_email),
+    searchbyUser: Optional[str] = Query(None, description="Filter by user email (partial match)"),
+    searchbyApp: Optional[str] = Query(None, description="Filter by application name (partial match)"),
+    searchbyDate: Optional[str] = Query(None, description="Filter by reservation date (e.g., '2024-10-27')"),
+    searchbyBot: Optional[int] = Query(None, description="Filter by bot name (partial match)"),
+    pageIndex: Optional[int] = Query(None, ge=0, description="Page number (indexing from 0)"),
+    pageSize: Optional[int] = Query(None, ge=1, description="Size of page"),
+    pastReservations: Optional[bool] = Query(None, description="Filter by past/current reservations"),
 ):
     """
-    Retrieves all reservations.
+    Retrieves a paginated list of all reservations, with multiple filtering and sorting.
     """
-    logger.info(f"Admin User {user_email}: Fetching all reservations")
-    reservations = db.query(Reservation).all()
-    return reservations
+    base_query = db.query(Reservation)
+    base_query = base_query.join(Reservation.bot)
+
+    active_and_pending_statuses = [
+        ReservationStatus.ACTIVE,
+        ReservationStatus.PENDING,
+    ]
+    completed_and_cancelled_statuses = [
+        ReservationStatus.COMPLETED,
+        ReservationStatus.CANCELLED,
+    ]
+
+    is_special_sorting = False
+    if pastReservations is not None:
+        if pastReservations:
+            statuses_to_filter = completed_and_cancelled_statuses
+        else:
+            statuses_to_filter = active_and_pending_statuses
+            is_special_sorting = True
+            
+        base_query = base_query.filter(Reservation.status.in_(statuses_to_filter))
+    
+    if searchbyUser:
+        base_query = base_query.filter(Reservation.user_email.ilike(f"%{searchbyUser}%"))
+
+    if searchbyBot:
+        base_query = base_query.filter(Reservation.bot_id == searchbyBot)
+
+    if searchbyApp:
+        base_query = base_query.join(Reservation.applications).filter(
+            Application.name.ilike(f"%{searchbyApp}%")
+        )
+
+    if searchbyDate:
+        try:
+            search_dt_with_tz = parser.parse(searchbyDate)
+            
+            if search_dt_with_tz.tzinfo is None or search_dt_with_tz.tzinfo.utcoffset(search_dt_with_tz) is None:
+                raise ValueError("Timezone information is missing or invalid.")
+            
+            search_date = search_dt_with_tz.date() 
+            search_tz = search_dt_with_tz.tzinfo
+
+            # Calculate the start of the local day and convert to UTC
+            start_of_local_day = datetime.combine(search_date, time.min, tzinfo=search_tz)
+            start_of_utc_day = start_of_local_day.astimezone(timezone.utc)
+
+            # Calculate the end of the local day (start of next day) and convert to UTC
+            end_of_local_day = datetime.combine(search_date + timedelta(days=1), time.min, tzinfo=search_tz)
+            end_of_utc_day = end_of_local_day.astimezone(timezone.utc)
+
+            base_query = base_query.filter(
+                Reservation.start_time >= start_of_utc_day,
+                Reservation.start_time < end_of_utc_day
+            )
+            
+        except (ValueError, TypeError):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid date format for 'searchbyDate'. Please use a format like 'YYYY-MM-DD±HH:MM', e.g.'2025-12-11T00:00:00+05:30'.",
+            )
+    
+    # Sorting: ONLY applied if filtering for current/upcoming reservations
+    if is_special_sorting:
+        status_rank = case(
+            (Reservation.status == ReservationStatus.ACTIVE, 1),
+            (Reservation.status == ReservationStatus.PENDING, 2),
+            else_=3 # Default rank for safety
+        )
+        base_query = base_query.order_by(asc(status_rank))
+
+    base_query = base_query.order_by(desc(Reservation.start_time))
+
+    total_records = base_query.count()
+    reservations_query = base_query
+    
+    response_page_index = pageIndex if pageIndex is not None else 0
+    response_page_size = pageSize if pageSize is not None else total_records
+
+    if pageIndex is not None and pageSize is not None:
+        offset = pageIndex * pageSize
+        reservations_query = reservations_query.limit(pageSize).offset(offset)
+        
+        response_page_index = pageIndex
+        response_page_size = pageSize
+
+    reservations = reservations_query.distinct().all()
+
+    return PaginatedReservationsOut(
+        data=reservations,
+        totalRecords = total_records,
+        pageIndex = response_page_index,
+        pageSize = response_page_size
+    )
+
 
 @router.post(
     "/reservations",
