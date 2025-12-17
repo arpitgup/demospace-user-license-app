@@ -41,7 +41,7 @@ api_router.include_router(admin.router, tags=["Admin"], dependencies=admin_depen
 api_router.include_router(userlogin.router, tags=["User Login"])
 
 # Add the /api/me endpoint to the api_router
-@api_router.get("/api/me", tags=["User"], dependencies=common_dependencies)
+@api_router.get("/me", tags=["User"], dependencies=common_dependencies)
 def get_user_info(user_email: str = Depends(get_user_email)):    
     user_ldap = get_user_ldap(user_email)
     return UserInfo(
