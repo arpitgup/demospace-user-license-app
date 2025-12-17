@@ -17,7 +17,7 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
                 return await call_next(request)            
             if (
                 X-Goog-Authenticated-User-Email not in request.headers
-                or not request.headers[X-Goog-Authenticated-User-Email]
+                or not request.headers["X-Goog-Authenticated-User-Email"]
             ):
                 response = JSONResponse(
                     status_code=400,
