@@ -41,7 +41,10 @@ async def get_user_email(X_Goog_Authenticated_User_Email: str = Header(...)):
     """Dependency to get the custom user email header."""
     if not X_Goog_Authenticated_User_Email:
         raise HTTPException(status_code=400, detail="Missing X-Goog-Authenticated-User-Email")
-    return construct_demouser_email(X_Goog_Authenticated_User_Email)
+    demouser_email = construct_demouser_email(X_Goog_Authenticated_User_Email)
+    logger.info(demouser_email)
+    print(demouser_email)
+    return demouser_email
 
 def construct_demouser_email(user_email_input):
     """
