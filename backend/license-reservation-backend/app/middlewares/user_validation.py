@@ -10,6 +10,14 @@ from loguru import logger
 class UserValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
+            logger.info("=============================")
+            logger.info("=============================")
+            logger.info(f"Request headers: {request.headers}")
+            IAP_Header = request.headers.get(X-Goog-Authenticated-User-Email)
+            logger.info(f"IAP_Header: {IAP_Header}")
+            logger.info("=============================")
+            logger.info("=============================")
+
             if request.method == "OPTIONS":
                 return await call_next(request)
 
