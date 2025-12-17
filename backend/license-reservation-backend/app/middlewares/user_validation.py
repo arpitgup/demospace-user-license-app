@@ -16,8 +16,8 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
             if request.url.path.startswith("/docs") or request.url.path.startswith("/openapi.json") or request.url.path.startswith("/auth"):
                 return await call_next(request)            
             if (
-                X-Goog-Authenticated-User-Email not in request.headers
-                or not request.headers["X-Goog-Authenticated-User-Email"]
+                X_GOG_AUTHENTICATED_USER_EMAIL not in request.headers
+                or not request.headers[X_GOG_AUTHENTICATED_USER_EMAIL]
             ):
                 response = JSONResponse(
                     status_code=400,
