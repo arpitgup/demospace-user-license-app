@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, Request, HTTPException
+from fastapi import Depends, FastAPI, Request, HTTPException, APIRouter
 from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from shared_lib.dependencies import get_user_email, get_user_current_time, get_user_token
@@ -18,6 +18,8 @@ app = FastAPI(
     summary="API for User Management & reserving and managing SaaS licenses for the Agentspace demo environment. This API is designed for a global user base, using UTC for all date-time operations and a hybrid real-time/scheduled model for license provisioning.",
 )
 
+api_router = APIRouter(prefix="/api")
+
 # Add the CORSMiddleware to the application
 app.add_middleware(
     CORSMiddleware,
@@ -27,26 +29,55 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add your modified middleware
-app.add_middleware(UserValidationMiddleware)
-app.add_middleware(UserCurrentTimeValidationMiddleware)
-
-# TODO: uncomment below line to enable admin validation middleware,
-# ensure that the PORTAL_ADMIN_GROUP_EMAIL  environment variable is updated
-app.add_middleware(AdminValidationMiddleware)
-
 common_dependencies = [Depends(get_user_email), Depends(get_user_current_time)]
 admin_dependencies = [Depends(get_user_email), Depends(get_user_current_time), Depends(get_user_token)]
 
-app.include_router(applications.router, tags=["Applications"], dependencies=common_dependencies)
-app.include_router(availability.router, tags=["Availability"], dependencies=common_dependencies)
-app.include_router(reservations.router, tags=["Reservations"], dependencies=common_dependencies)
-app.include_router(config.router, tags=["App Config"], dependencies=common_dependencies)
-app.include_router(usermanagement.router, tags=["UserManagement"], dependencies=common_dependencies)
-app.include_router(admin.router, tags=["Admin"], dependencies=admin_dependencies)
+api_router.include_router(applications.router, tags=["Applications"], dependencies=common_dependencies)
+api_router.include_router(availability.router, tags=["Availability"], dependencies=common_dependencies)
+api_router.include_router(reservations.router, tags=["Reservations"], dependencies=common_dependencies)
+api_router.include_router(config.router, tags=["App Config"], dependencies=common_dependencies)
+api_router.include_router(usermanagement.router, tags=["UserManagement"], dependencies=common_dependencies)
+api_router.include_router(admin.router, tags=["Admin"], dependencies=admin_dependencies)
+api_router.include_router(userlogin.router, tags=["User Login"])
 
-# Include userlogin.router WITHOUT common_dependencies and WITH a prefix
-app.include_router(userlogin.router, tags=["User Login"])
+# Add the /api/me endpoint to the api_router
+@api_router.get("/me", tags=["User"], dependencies=common_dependencies)
+def get_user_info(user_email: str = Depends(get_user_email)):    
+    user_ldap = get_user_ldap(user_email)
+    return UserInfo(
+        email=user_email,
+        given_name=user_ldap,
+        family_name="",
+        full_name=""
+    )
+
+# 5. Finally, include the master api_router into the FastAPI app
+app.include_router(api_router)
+
+# Middleware stays attached to 'app' so it wraps everything
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app.add_middleware(UserValidationMiddleware)
+app.add_middleware(UserCurrentTimeValidationMiddleware)
+app.add_middleware(AdminValidationMiddleware)
+
+# common_dependencies = [Depends(get_user_email), Depends(get_user_current_time)]
+# admin_dependencies = [Depends(get_user_email), Depends(get_user_current_time), Depends(get_user_token)]
+
+# app.include_router(applications.router, tags=["Applications"], dependencies=common_dependencies)
+# app.include_router(availability.router, tags=["Availability"], dependencies=common_dependencies)
+# app.include_router(reservations.router, tags=["Reservations"], dependencies=common_dependencies)
+# app.include_router(config.router, tags=["App Config"], dependencies=common_dependencies)
+# app.include_router(usermanagement.router, tags=["UserManagement"], dependencies=common_dependencies)
+# app.include_router(admin.router, tags=["Admin"], dependencies=admin_dependencies)
+
+# # Include userlogin.router WITHOUT common_dependencies and WITH a prefix
+# app.include_router(userlogin.router, tags=["User Login"])
 
 def get_user_ldap(user_email: str) -> str:
     try:
@@ -61,12 +92,12 @@ def get_user_ldap(user_email: str) -> str:
     except IndexError:
         return ""
 
-@app.get("/api/me", tags=["User"], dependencies=common_dependencies)
-def get_user_info(user_email: str = Depends(get_user_email)):    
-    user_ldap = get_user_ldap(user_email)
-    return UserInfo(
-        email=user_email,
-        given_name=user_ldap,
-        family_name="",
-        full_name=""
-    )
+# @app.get("/api/me", tags=["User"], dependencies=common_dependencies)
+# def get_user_info(user_email: str = Depends(get_user_email)):    
+#     user_ldap = get_user_ldap(user_email)
+#     return UserInfo(
+#         email=user_email,
+#         given_name=user_ldap,
+#         family_name="",
+#         full_name=""
+#     )
