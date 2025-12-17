@@ -16,7 +16,7 @@ class UserCurrentTimeValidationMiddleware(BaseHTTPMiddleware):
             if request.url.path.startswith("/docs") or request.url.path.startswith("/openapi.json") or request.url.path.startswith("/auth"):
                 return await call_next(request)
             print("inside curren time validation")
-            print(request.headers.get(X-Goog-Authenticated-User-Email))
+            print(request.headers.get("X-Goog-Authenticated-User-Email"))
             try:
                 if (
                     X_USER_CURRENT_TIME_HEADER not in request.headers
