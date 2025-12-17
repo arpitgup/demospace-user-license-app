@@ -40,7 +40,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   } else if (req.url.includes('user-management/user-details')) {
     const clonedReq = req.clone({
       headers: req.headers
-        // .set('x-demo-user-email', iapService.userEmailInfo())
         .set('x-user-current-time', new Date().toISOString()),
     });
     return next(clonedReq).pipe(
@@ -68,7 +67,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
   const clonedReq = req.clone({
     headers: req.headers
-      // .set('x-demo-user-email', userEmail || '')
       .set('x-user-current-time', new Date().toISOString())
       .set('x-user-token', userToken || ''),
   });
