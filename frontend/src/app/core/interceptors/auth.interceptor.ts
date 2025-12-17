@@ -28,7 +28,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const loadingService = inject(LoaderService);
   const isExcluded = EXCLUDED_URLS.some((url) => req.url.includes(url));
 
-  const iapService = inject(IapService);
+  // const iapService = inject(IapService);
   if (req.url.includes('_gcp_iap/identity')) {
     return next(req).pipe(
       finalize(() => {
@@ -40,7 +40,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   } else if (req.url.includes('user-management/user-details')) {
     const clonedReq = req.clone({
       headers: req.headers
-        .set('x-demo-user-email', iapService.userEmailInfo())
+        // .set('x-demo-user-email', iapService.userEmailInfo())
         .set('x-user-current-time', new Date().toISOString()),
     });
     return next(clonedReq).pipe(
@@ -51,7 +51,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       })
     );
   }
-  const userEmail = sessionStorage?.getItem('userEmail');
+  // const userEmail = sessionStorage?.getItem('userEmail');
   const userToken = sessionStorage.getItem('userToken');
   const router = inject(Router);
   if (!userToken && req.url.includes('admin')) {
@@ -59,13 +59,16 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return throwError(() => new Error('Invalid request'));
   }
 
-  if (!userEmail && !req.url.includes('login')) {
+  // if (!userEmail && !req.url.includes('login')) {
+  //   return callApi(req, next, false, isExcluded, loadingService);
+  // }
+
+  if (!req.url.includes('login')) {
     return callApi(req, next, false, isExcluded, loadingService);
   }
-
   const clonedReq = req.clone({
     headers: req.headers
-      .set('x-demo-user-email', userEmail || '')
+      // .set('x-demo-user-email', userEmail || '')
       .set('x-user-current-time', new Date().toISOString())
       .set('x-user-token', userToken || ''),
   });
