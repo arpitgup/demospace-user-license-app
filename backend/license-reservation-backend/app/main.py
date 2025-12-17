@@ -41,7 +41,7 @@ api_router.include_router(admin.router, tags=["Admin"], dependencies=admin_depen
 api_router.include_router(userlogin.router, tags=["User Login"])
 
 # Add the /api/me endpoint to the api_router
-@api_router.get("/me", tags=["User"], dependencies=common_dependencies)
+@api_router.get("/api/me", tags=["User"], dependencies=common_dependencies)
 def get_user_info(user_email: str = Depends(get_user_email)):    
     user_ldap = get_user_ldap(user_email)
     return UserInfo(
@@ -51,10 +51,10 @@ def get_user_info(user_email: str = Depends(get_user_email)):
         full_name=""
     )
 
-# 5. Finally, include the master api_router into the FastAPI app
+# Include the master api_router into the FastAPI app
 app.include_router(api_router)
 
-# Middleware stays attached to 'app' so it wraps everything
+# Add middlewares in the app
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -66,19 +66,7 @@ app.add_middleware(UserValidationMiddleware)
 app.add_middleware(UserCurrentTimeValidationMiddleware)
 app.add_middleware(AdminValidationMiddleware)
 
-# common_dependencies = [Depends(get_user_email), Depends(get_user_current_time)]
-# admin_dependencies = [Depends(get_user_email), Depends(get_user_current_time), Depends(get_user_token)]
-
-# app.include_router(applications.router, tags=["Applications"], dependencies=common_dependencies)
-# app.include_router(availability.router, tags=["Availability"], dependencies=common_dependencies)
-# app.include_router(reservations.router, tags=["Reservations"], dependencies=common_dependencies)
-# app.include_router(config.router, tags=["App Config"], dependencies=common_dependencies)
-# app.include_router(usermanagement.router, tags=["UserManagement"], dependencies=common_dependencies)
-# app.include_router(admin.router, tags=["Admin"], dependencies=admin_dependencies)
-
-# # Include userlogin.router WITHOUT common_dependencies and WITH a prefix
-# app.include_router(userlogin.router, tags=["User Login"])
-
+# Helper function to create demo user email
 def get_user_ldap(user_email: str) -> str:
     try:
         local_part = user_email.split('@')[0]
@@ -91,13 +79,3 @@ def get_user_ldap(user_email: str) -> str:
 
     except IndexError:
         return ""
-
-# @app.get("/api/me", tags=["User"], dependencies=common_dependencies)
-# def get_user_info(user_email: str = Depends(get_user_email)):    
-#     user_ldap = get_user_ldap(user_email)
-#     return UserInfo(
-#         email=user_email,
-#         given_name=user_ldap,
-#         family_name="",
-#         full_name=""
-#     )
