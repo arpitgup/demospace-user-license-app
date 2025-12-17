@@ -10,14 +10,6 @@ from loguru import logger
 class UserValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
-            # logger.info(f"Request headers: {request.headers}")
-            # jwt_token = request.headers.get('x-goog-iap-jwt-assertion')
-            # user_data=request.headers.get('x-goog-authenticated-user-email')
-            # logger.info(f"Google Email: {user_data}")
-            # userEmail = await get_authenticated_iap_user_email(jwt_token)
-            # # request.headers[X_GOG_AUTHENTICATED_USER_EMAIL] = userEmail
-            # logger.info(f"User Email: {userEmail}")
-            
             if request.method == "OPTIONS":
                 return await call_next(request)
 
@@ -26,35 +18,36 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
                 return await call_next(request)
 
             if (
-                X_DEMO_USER_EMAIL_HEADER not in request.headers
-                or not request.headers[X_DEMO_USER_EMAIL_HEADER]
+                X-Goog-Authenticated-User-Email not in request.headers
+                or not request.headers[X-Goog-Authenticated-User-Email]
             ):
                 response = JSONResponse(
                     status_code=400,
-                    content={"detail": "Missing X-Demo-User-Email header."},
+                    content={"detail": "Missing X-Goog-Authenticated-User-Email header."},
                 )
                 response.headers["Access-Control-Allow-Origin"]="*"
                 return response
 
-            # if (
-            #     X_GOG_AUTHENTICATED_USER_EMAIL not in request.headers
-            #     or not request.headers[X_GOG_AUTHENTICATED_USER_EMAIL]
-            # ):
-            #     response = JSONResponse(
-            #         status_code=400,
-            #         content={"detail": "Missing X_GOG_AUTHENTICATED_USER_EMAIL header."},
-            #     )
-            #     response.headers["Access-Control-Allow-Origin"]="*"
-            #     return response
-
-            user_email = request.headers.get(X_DEMO_USER_EMAIL_HEADER)
+            user_email = request.headers.get(X-Goog-Authenticated-User-Email)
+            logger.info("=============================")
+            logger.info("=============================")
+            logger.info("=============================")
+            logger.info(user_email)
+            logger.info("=============================")
+            logger.info("=============================")
+            logger.info("=============================")
             try:
-                # user = admin_service.get_user(user_email)
-                is_valid_email = is_agentspace_demo_user(user_email, request)
-                if not is_valid_email:
+                demouser_email = construct_demo_user_email(user_email)
+                if not demouser_email:
                     raise HTTPException(
-                        status_code=401, detail=f"User {user_email} is not valid."
+                        status_code=401, detail=f"Consructed demo user email failed for user {user_email}."
                     )
+
+                # is_valid_email = is_agentspace_demo_user(user_email, request)
+                # if not is_valid_email:
+                #     raise HTTPException(
+                #         status_code=401, detail=f"User {user_email} is not valid."
+                #     )
 
             except HTTPException as http_exc:
                 response = JSONResponse(
@@ -79,3 +72,18 @@ def is_agentspace_demo_user(email: str, request: Request) -> bool:
         return "@1987984870407.altostrat.com" in email
     else:
         return "-agentspace-demo-user@1987984870407.altostrat.com" in email
+
+# Received value 'X-Goog-Authenticated-User-Email' i.e. accounts.google.com:example@gmail.com
+# Take ldap 'example' & change it to 'example-agentspace-demo-user@1987984870407.altostrat.com'
+def construct_demo_user_email(email: str) -> str:
+    try:
+        local_part = email.split('@')[0]
+        dash_index = local_part.find('-')
+
+        if dash_index != -1:
+            return local_part[:dash_index] + "-agentspace-demo-user@1987984870407.altostrat.com"
+        else:
+            return ""
+
+    except IndexError:
+        return ""

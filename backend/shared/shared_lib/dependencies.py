@@ -37,11 +37,11 @@ def get_db():
         db.close()
 
 
-async def get_user_email(x_demo_user_email: str = Header(...)):
+async def get_user_email(X_Goog_Authenticated_User_Email: str = Header(...)):
     """Dependency to get the custom user email header."""
-    if not x_demo_user_email:
-        raise HTTPException(status_code=400, detail="Missing X-Demo-User-Email")
-    return x_demo_user_email
+    if not X_Goog_Authenticated_User_Email:
+        raise HTTPException(status_code=400, detail="Missing X-Goog-Authenticated-User-Email")
+    return X_Goog_Authenticated_User_Email
 
 async def get_user_current_time(x_user_current_time: str = Header(...)):
     """Dependency to get the custom user current time header."""
