@@ -10,16 +10,15 @@ from loguru import logger
 class UserValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
-            print(f"Request headers: {request.headers}")
-            IAP_Header = request.headers.get(X-Goog-Authenticated-User-Email)
-            print(f"IAP_Header: {IAP_Header}")
-
             if request.method == "OPTIONS":
                 return await call_next(request)
 
             # Skip swagger documentation endpoints
             if request.url.path.startswith("/docs") or request.url.path.startswith("/openapi.json") or request.url.path.startswith("/auth"):
                 return await call_next(request)
+            print(f"Request headers: {request.headers}")
+            IAP_Header = request.headers.get(X-Goog-Authenticated-User-Email)
+            print(f"IAP_Header: {IAP_Header}")
 
             if (
                 X-Goog-Authenticated-User-Email not in request.headers
