@@ -21,16 +21,14 @@ app = FastAPI(
 # Add the CORSMiddleware to the application
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Add your modified middleware
-print("Adding middleware")
 app.add_middleware(UserValidationMiddleware)
-print("Middleware added")
 app.add_middleware(UserCurrentTimeValidationMiddleware)
 
 # TODO: uncomment below line to enable admin validation middleware,

@@ -10,13 +10,9 @@ from loguru import logger
 class UserValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
-            logger.info("=============================")
-            logger.info("=============================")
-            logger.info(f"Request headers: {request.headers}")
+            print(f"Request headers: {request.headers}")
             IAP_Header = request.headers.get(X-Goog-Authenticated-User-Email)
-            logger.info(f"IAP_Header: {IAP_Header}")
-            logger.info("=============================")
-            logger.info("=============================")
+            print(f"IAP_Header: {IAP_Header}")
 
             if request.method == "OPTIONS":
                 return await call_next(request)
@@ -31,32 +27,21 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
             ):
                 response = JSONResponse(
                     status_code=400,
-                    content={"detail": "Missing X-Goog-Authenticated-User-Email header."},
+                    content={"detail": "Missing X-Goog-Authenticated-User-Email header. Check if IAP is enabled."},
                 )
                 response.headers["Access-Control-Allow-Origin"]="*"
                 return response
 
             user_email = request.headers.get(X-Goog-Authenticated-User-Email)
-            logger.info("=============================")
-            logger.info("=============================")
-            logger.info("=============================")
-            logger.info(user_email)
-            logger.info("=============================")
-            logger.info("=============================")
-            logger.info("=============================")
+            print(f"user_email: {user_email}")
+
             try:
-                demouser_email = construct_demo_user_email(user_email)
+                demouser_email = construct_demouser_email(user_email)
+                print(f"demouser_email: {demouser_email}")
                 if not demouser_email:
                     raise HTTPException(
                         status_code=401, detail=f"Consructed demo user email failed for user {user_email}."
                     )
-
-                # is_valid_email = is_agentspace_demo_user(user_email, request)
-                # if not is_valid_email:
-                #     raise HTTPException(
-                #         status_code=401, detail=f"User {user_email} is not valid."
-                #     )
-
             except HTTPException as http_exc:
                 response = JSONResponse(
                     status_code=http_exc.status_code, content={"detail": http_exc.detail}
@@ -74,24 +59,21 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
             response.headers["Access-Control-Allow-Origin"]="*"
             return response
 
+# This is not required as now we are directly getting useremail from IAP & constructing user email for there only.
+# def is_agentspace_demo_user(email: str, request: Request) -> bool:
+#     if request.url.path.startswith("/admin") or request.url.path.startswith("/applications"):
+#         return "@1987984870407.altostrat.com" in email
+#     else:
+#         return "-agentspace-demo-user@1987984870407.altostrat.com" in email
 
-def is_agentspace_demo_user(email: str, request: Request) -> bool:
-    if request.url.path.startswith("/admin") or request.url.path.startswith("/applications"):
-        return "@1987984870407.altostrat.com" in email
-    else:
-        return "-agentspace-demo-user@1987984870407.altostrat.com" in email
-
-# Received value 'X-Goog-Authenticated-User-Email' i.e. accounts.google.com:example@gmail.com
-# Take ldap 'example' & change it to 'example-agentspace-demo-user@1987984870407.altostrat.com'
-def construct_demo_user_email(email: str) -> str:
+def construct_demouser_email(user_email_input):
+    """
+    Takes an input like 'accounts.google.com:ldap@google.com',
+    extracts the LDAP (username), and returns a new demo email address.
+    """
     try:
-        local_part = email.split('@')[0]
-        dash_index = local_part.find('-')
-
-        if dash_index != -1:
-            return local_part[:dash_index] + "-agentspace-demo-user@1987984870407.altostrat.com"
-        else:
-            return ""
-
+        ldap = user_email_input.split(':')[1].split('@')[0]
+        demouser_email = f"{ldap}-agentspace-demo-user@1987984870407.altostrat.com"
+        return demouser_email
     except IndexError:
-        return ""
+        return "Invalid input format. Expected 'provider:user@domain.com'"
