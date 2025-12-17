@@ -28,7 +28,10 @@ app.add_middleware(
 )
 
 # Add your modified middleware
+print("Adding middleware")
+print(request.headers.get(X-Goog-Authenticated-User-Email))
 app.add_middleware(UserValidationMiddleware)
+print("Middleware added")
 app.add_middleware(UserCurrentTimeValidationMiddleware)
 
 # TODO: uncomment below line to enable admin validation middleware,
