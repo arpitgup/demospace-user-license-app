@@ -41,7 +41,19 @@ async def get_user_email(X_Goog_Authenticated_User_Email: str = Header(...)):
     """Dependency to get the custom user email header."""
     if not X_Goog_Authenticated_User_Email:
         raise HTTPException(status_code=400, detail="Missing X-Goog-Authenticated-User-Email")
-    return X_Goog_Authenticated_User_Email
+    return construct_demouser_email(X_Goog_Authenticated_User_Email)
+
+def construct_demouser_email(user_email_input):
+    """
+    Takes an input like 'accounts.google.com:ldap@google.com',
+    extracts the LDAP (username), and returns a new demo email address.
+    """
+    try:
+        ldap = user_email_input.split(':')[1].split('@')[0]
+        demouser_email = f"{ldap}-agentspace-demo-user@1987984870407.altostrat.com"
+        return demouser_email
+    except IndexError:
+        return "Invalid input format. Expected 'provider:user@domain.com'"
 
 async def get_user_current_time(x_user_current_time: str = Header(...)):
     """Dependency to get the custom user current time header."""

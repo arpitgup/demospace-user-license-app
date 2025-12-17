@@ -12,14 +12,9 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
         try:
             if request.method == "OPTIONS":
                 return await call_next(request)
-
             # Skip swagger documentation endpoints
             if request.url.path.startswith("/docs") or request.url.path.startswith("/openapi.json") or request.url.path.startswith("/auth"):
-                return await call_next(request)
-            print(f"Request headers: {request.headers}")
-            IAP_Header = request.headers.get(X-Goog-Authenticated-User-Email)
-            print(f"IAP_Header: {IAP_Header}")
-
+                return await call_next(request)            
             if (
                 X-Goog-Authenticated-User-Email not in request.headers
                 or not request.headers[X-Goog-Authenticated-User-Email]
@@ -30,24 +25,6 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
                 )
                 response.headers["Access-Control-Allow-Origin"]="*"
                 return response
-
-            user_email = request.headers.get(X-Goog-Authenticated-User-Email)
-            print(f"user_email: {user_email}")
-
-            try:
-                demouser_email = construct_demouser_email(user_email)
-                print(f"demouser_email: {demouser_email}")
-                if not demouser_email:
-                    raise HTTPException(
-                        status_code=401, detail=f"Consructed demo user email failed for user {user_email}."
-                    )
-            except HTTPException as http_exc:
-                response = JSONResponse(
-                    status_code=http_exc.status_code, content={"detail": http_exc.detail}
-                )
-                response.headers["Access-Control-Allow-Origin"]="*"
-                return response
-
             response = await call_next(request)
             return response
         except Exception as e:
@@ -65,14 +42,3 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
 #     else:
 #         return "-agentspace-demo-user@1987984870407.altostrat.com" in email
 
-def construct_demouser_email(user_email_input):
-    """
-    Takes an input like 'accounts.google.com:ldap@google.com',
-    extracts the LDAP (username), and returns a new demo email address.
-    """
-    try:
-        ldap = user_email_input.split(':')[1].split('@')[0]
-        demouser_email = f"{ldap}-agentspace-demo-user@1987984870407.altostrat.com"
-        return demouser_email
-    except IndexError:
-        return "Invalid input format. Expected 'provider:user@domain.com'"
