@@ -31,7 +31,7 @@ class AdminValidationMiddleware(BaseHTTPMiddleware):
                 return await call_next(request)
 
             # Only run the validation for admin endpoints
-            if not request.url.path.Include("/admin"):
+            if not request.url.path.startswith("/api/admin"):
                 return await call_next(request)
 
             if (
