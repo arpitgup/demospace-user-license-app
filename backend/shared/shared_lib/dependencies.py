@@ -42,7 +42,7 @@ async def get_user_email(X_Goog_Authenticated_User_Email: str = Header(...)):
     if not X_Goog_Authenticated_User_Email:
         raise HTTPException(status_code=400, detail="Missing X-Goog-Authenticated-User-Email")
     if X_Goog_Authenticated_User_Email.__contains__('1987984870407.altostrat.com'):
-        admin_user_email = await construct_admin_user_email(X_Goog_Authenticated_User_Email)
+        admin_user_email = construct_admin_user_email(X_Goog_Authenticated_User_Email)
         return admin_user_email
     demouser_email = construct_demouser_email(X_Goog_Authenticated_User_Email)
     logger.info(demouser_email)
