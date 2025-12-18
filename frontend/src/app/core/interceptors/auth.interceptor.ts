@@ -62,9 +62,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   //   return callApi(req, next, false, isExcluded, loadingService);
   // }
 
-  if (!req.url.includes('login')) {
-    return callApi(req, next, false, isExcluded, loadingService);
-  }
+  // if (!req.url.includes('login')) {
+  //   return callApi(req, next, false, isExcluded, loadingService);
+  // }
   const clonedReq = req.clone({
     headers: req.headers
       .set('x-user-current-time', new Date().toISOString())
