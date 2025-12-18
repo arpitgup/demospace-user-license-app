@@ -3,11 +3,12 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
 from fastapi import Request, HTTPException, status
 from starlette.middleware.base import BaseHTTPMiddleware
-from shared_lib import admin_service
+from shared_lib import admin_service, dependencies
+from shared_lib.dependencies import construct_admin_user_email
 from starlette.responses import JSONResponse
 from loguru import logger
 
-from ..common.constants import X_DEMO_USER_EMAIL_HEADER, PORTAL_ADMIN_GROUP_EMAIL, X_USER_TOKEN_HEADER
+from ..common.constants import PORTAL_ADMIN_GROUP_EMAIL, X_USER_TOKEN_HEADER, X_GOG_AUTHENTICATED_USER_EMAIL
 from ..common.secure_admin import load_admin_validation_keys_from_secret_manager
 
 def decrypt_email(encrypted_email_b64: str, priv_key: rsa.RSAPrivateNumbers) -> str:
@@ -35,12 +36,12 @@ class AdminValidationMiddleware(BaseHTTPMiddleware):
                 return await call_next(request)
 
             if (
-                X_DEMO_USER_EMAIL_HEADER not in request.headers
-                or not request.headers[X_DEMO_USER_EMAIL_HEADER]
+                X_GOG_AUTHENTICATED_USER_EMAIL not in request.headers
+                or not request.headers[X_GOG_AUTHENTICATED_USER_EMAIL]
             ):
                 response = JSONResponse(
                     status_code=400,
-                    content={"detail": "Missing X-Demo-User-Email header."},
+                    content={"detail": "Missing X-Goog-Authenticated-User-Email header. Check if IAP is enabled."},
                 )
                 response.headers["Access-Control-Allow-Origin"]="*"
                 return response
@@ -55,7 +56,7 @@ class AdminValidationMiddleware(BaseHTTPMiddleware):
                 response.headers["Access-Control-Allow-Origin"]="*"
                 return response
 
-            user_email = request.headers.get(X_DEMO_USER_EMAIL_HEADER)
+            user_email = construct_admin_user_email(request.headers.get(X_GOG_AUTHENTICATED_USER_EMAIL))
             user_token = request.headers.get(X_USER_TOKEN_HEADER)
             
             try:

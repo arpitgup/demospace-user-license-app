@@ -4,7 +4,7 @@ from shared_lib import admin_service
 from starlette.responses import JSONResponse
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
-from ..common.constants import X_DEMO_USER_EMAIL_HEADER, X_GOG_AUTHENTICATED_USER_EMAIL
+from ..common.constants import X_GOG_AUTHENTICATED_USER_EMAIL
 from loguru import logger
 
 class UserValidationMiddleware(BaseHTTPMiddleware):
