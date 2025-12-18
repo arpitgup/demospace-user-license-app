@@ -21,13 +21,13 @@ app = FastAPI(
 api_router = APIRouter(prefix="/api")
 
 # Add the CORSMiddleware to the application
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=ALLOWED_ORIGINS,
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 
 common_dependencies = [Depends(get_user_email), Depends(get_user_current_time)]
 admin_dependencies = [Depends(get_user_email), Depends(get_user_current_time), Depends(get_user_token)]

@@ -26,11 +26,12 @@ def decrypt_email(encrypted_email_b64: str, priv_key: rsa.RSAPrivateNumbers) -> 
 class AdminValidationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
+            logger.info("Admin Middleware Called")
             if request.method == "OPTIONS":
                 return await call_next(request)
 
             # Only run the validation for admin endpoints
-            if not request.url.path.startswith("/admin"):
+            if not request.url.path.Include("/admin"):
                 return await call_next(request)
 
             if (
