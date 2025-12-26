@@ -77,8 +77,10 @@ async def get_user_details(
     app_config: dict = Depends(get_app_config)
     ):
     """Get user details from workspace API."""
+    logger.info("Geting user details ---------")
+    logger.info(user_email)
     primary_email = user_email
-
+    
     try:
         user_details = admin_service.get_user(primary_email)        
         if not user_details:

@@ -15,7 +15,6 @@ class UserCurrentTimeValidationMiddleware(BaseHTTPMiddleware):
             # Skip swagger documentation endpoints
             if request.url.path.startswith("/docs") or request.url.path.startswith("/openapi.json") or request.url.path.startswith("/auth"):
                 return await call_next(request)
-
             try:
                 if (
                     X_USER_CURRENT_TIME_HEADER not in request.headers

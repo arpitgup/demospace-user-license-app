@@ -21,7 +21,7 @@ export class UserService {
    * @returns An Observable of the fetched User object.
    */
   fetchCurrentUser(): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/api/me`).pipe(
+    return this.http.get<User>(`${this.apiUrl}/me`).pipe(
       tap((user) => {
         this.userState.set(user);
       }),
