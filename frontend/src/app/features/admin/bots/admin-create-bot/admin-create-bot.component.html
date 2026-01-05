@@ -17,7 +17,7 @@
         <mat-label>{{ botsConstants.BOT_NAME }}</mat-label>
         <input
           matInput
-          placeholder="botsConstants.BOT_NAME+'*'"
+          [placeholder]="botsConstants.BOT_NAME+'*'"
           [formControlName]="BOT_NAME_FORM"
         />
         @if(createBotForm.get(BOT_NAME_FORM)?.hasError('required')&&
