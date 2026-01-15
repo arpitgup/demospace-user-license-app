@@ -22,7 +22,8 @@ steps:
         "--image=gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}",
         "--project=${_PROJECT_ID}",
         "--region=${_REGION}",
-        "--allow-unauthenticated",
+        "--no-allow-unauthenticated",
+        "--ingress=internal-and-cloud-load-balancing",
         "--port=80"
       ]
 
