@@ -3,7 +3,7 @@ FROM python:3.12-slim
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the dependencies file to the working directories
+# Copy the dependencies file to the working directory
 COPY license-reservation-backend/requirements.txt /app/requirements.txt
 COPY shared /app/shared
 
