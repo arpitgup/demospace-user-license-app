@@ -27,17 +27,16 @@ export class UserService {
     return this.http.get<User>(`${this.apiUrl}/me`).pipe(
       tap((data) => {
         this.userState.set(data);
-        const googleEmail = data.email.split('@')[1];
-        if (googleEmail && googleEmail.includes('google.com')) {
-          const email = googleEmail.replace(
+        if (data.email && data.email.includes('google.com')) {
+          const email = data.email.replace(
             /@.*/,
             '-agentspace-demo-user@1987984870407.altostrat.com',
           );
           sessionStorage.setItem('userEmail', email);
           this.userEmailInfoState.update(() => email);
         } else {
-          sessionStorage.setItem('userEmail', googleEmail);
-          this.userEmailInfoState.update(() => googleEmail);
+          sessionStorage.setItem('userEmail', data.email);
+          this.userEmailInfoState.update(() => data.email);
         }
       }),
       catchError((err) => {
