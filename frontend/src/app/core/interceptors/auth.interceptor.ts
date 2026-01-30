@@ -17,7 +17,6 @@ import {
   TimeoutError,
   timer,
 } from 'rxjs';
-import { IapService } from '../services/iap.service';
 import { BUGANIZER_URL } from '../../shared/constants/links.contants';
 import { LoaderService } from '../services/loading.service';
 import { EXCLUDED_URLS } from '../../shared/constants/api.constants';
@@ -29,7 +28,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const isExcluded = EXCLUDED_URLS.some((url) => req.url.includes(url));
 
   // const iapService = inject(IapService);
-  if (req.url.includes('_gcp_iap/identity')) {
+  if (req.url.includes('/me')) {
     return next(req).pipe(
       finalize(() => {
         if (!isExcluded) {

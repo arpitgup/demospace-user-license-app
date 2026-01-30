@@ -17,8 +17,8 @@ import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
 import { DemoDetails } from '../../core/models/demo-details.model';
 import { CreateUserRequest } from '../../core/models/create-user-request.model';
 import { LoaderService } from '../../core/services/loading.service';
-import { IapService } from '../../core/services/iap.service';
 import { INVALID_DEMO_ID_MESSAGE } from '../../shared/constants/error.constants';
+import { UserService } from '../../core/services/user.service';
 
 @Component({
   selector: 'app-signup-user',
@@ -61,7 +61,7 @@ import { INVALID_DEMO_ID_MESSAGE } from '../../shared/constants/error.constants'
 export class SignupUserComponent implements OnInit {
   readonly router = inject(Router);
   private fb = inject(FormBuilder);
-  private iapService = inject(IapService);
+  private userService = inject(UserService);
   private userCreationService = inject(UserCreationService);
   private loaderService = inject(LoaderService);
   private dialog = inject(MatDialog);
@@ -86,7 +86,7 @@ export class SignupUserComponent implements OnInit {
   });
 
   onSignUp() {
-    sessionStorage.setItem('userEmail', this.iapService.userEmailInfo());
+    sessionStorage.setItem('userEmail', this.userService.userEmailInfo());
     if (this.createUserForm.invalid) {
       return;
     }

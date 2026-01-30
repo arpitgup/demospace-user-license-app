@@ -8,7 +8,7 @@ import {
 } from '@angular/router';
 import { UserCreationService } from '../core/services/user-creation.service';
 import { Observable, of, tap } from 'rxjs';
-import { IapService } from '../core/services/iap.service';
+import { UserService } from '../core/services/user.service';
 
 @Injectable({
   providedIn: 'root',
@@ -16,10 +16,10 @@ import { IapService } from '../core/services/iap.service';
 export class EmailGuard implements CanActivate {
   private userCreationService = inject(UserCreationService);
   private router = inject(Router);
-  private iapService = inject(IapService);
+  private userService = inject(UserService);
   private activeRoute = inject(ActivatedRoute);
   canActivate(route: ActivatedRouteSnapshot): Observable<boolean | UrlTree> {
-    const userEmail = this.iapService.userEmailInfo();
+    const userEmail = this.userService.userEmailInfo();
     const demoId = route.queryParamMap.get('demoID') || '';
     if (userEmail?.includes('agentspace-demo')) {
       if (

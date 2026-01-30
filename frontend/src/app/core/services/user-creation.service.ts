@@ -12,11 +12,11 @@ import {
   timer,
 } from 'rxjs';
 import { UserDetails } from '../models/user-details.model';
-import { IapService } from './iap.service';
 import { DemoDetails } from '../models/demo-details.model';
 import { CreateUserRequest } from '../models/create-user-request.model';
 import { UpdateUserRequest } from '../models/update-user-request.model';
 import { AddUserInGroupRequest } from '../models/add-user-in-group-request.model';
+import { UserService } from './user.service';
 
 @Injectable({
   providedIn: 'root',
@@ -24,7 +24,7 @@ import { AddUserInGroupRequest } from '../models/add-user-in-group-request.model
 export class UserCreationService {
   private http = inject(HttpClient);
   private apiUrl = environment.apiUrl;
-  private iapService = inject(IapService);
+  private userService = inject(UserService);
 
   public userInfoState = signal<UserDetails | null>(null);
   public readonly userInfo = this.userInfoState.asReadonly();
@@ -69,7 +69,7 @@ export class UserCreationService {
           },
         }),
         catchError(() => {
-          const userEmail = this.iapService.userEmailInfo();
+          const userEmail = this.userService.userEmailInfo();
           const userDetails: UserDetails = {
             is_exist: false,
             primary_email: userEmail,
