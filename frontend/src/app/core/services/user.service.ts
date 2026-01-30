@@ -27,7 +27,7 @@ export class UserService {
     return this.http.get<User>(`${this.apiUrl}/me`).pipe(
       tap((data) => {
         this.userState.set(data);
-        const googleEmail = data.email.split(':')[1];
+        const googleEmail = data.email.split('@')[1];
         if (googleEmail && googleEmail.includes('google.com')) {
           const email = googleEmail.replace(
             /@.*/,
