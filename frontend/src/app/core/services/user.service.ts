@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, Observable, of, tap } from 'rxjs';
+import { catchError, Observable, of, retry, tap, timer } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { User } from '../models/user.model';
@@ -38,6 +38,12 @@ export class UserService {
           sessionStorage.setItem('userEmail', data.email);
           this.userEmailInfoState.update(() => data.email);
         }
+      }),
+      retry({
+        count: 5,
+        delay: (error) => {
+          return timer(200);
+        },
       }),
       catchError((err) => {
         console.log('error occurred', err);

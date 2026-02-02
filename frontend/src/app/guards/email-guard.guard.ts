@@ -39,7 +39,7 @@ export class EmailGuard implements CanActivate {
             if (data === false) {
               this.redirectToWelcome(demoId);
             }
-          })
+          }),
         );
       }
     } else if (userEmail !== '') {
