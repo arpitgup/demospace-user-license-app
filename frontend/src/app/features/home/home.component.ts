@@ -12,13 +12,13 @@ import { UpdateUserRequest } from '../../core/models/update-user-request.model';
 import { AddUserInGroupRequest } from '../../core/models/add-user-in-group-request.model';
 import { DemoDetails } from '../../core/models/demo-details.model';
 import { isPlatformBrowser } from '@angular/common';
-import { IapService } from '../../core/services/iap.service';
 import { HomeLoaderComponent } from '../../loaders/home-loader/home-loader.component';
 import { ErrorMessage } from '../../shared/components/error-message/error-message';
 import { INVALID_DEMO_ID_MESSAGE } from '../../shared/constants/error.constants';
 import { BUGANIZER_URL } from '../../shared/constants/links.contants';
 import { HowToLoginComponent } from '../how-to-login/how-to-login.component';
 import { DemoOnBoardingEnum } from '../../enums/admin-demo-onboarding.enums';
+import { UserService } from '../../core/services/user.service';
 
 export interface HomeMenuItems {
   id: number;
@@ -51,10 +51,10 @@ export class HomeComponent implements OnInit {
   isLoading = signal<boolean>(true);
   errorMessage = signal<string>('');
   demoDetails = signal<DemoDetails | null>(null);
-  private userService = inject(UserCreationService);
-  private iapService = inject(IapService);
+  private userCreationService = inject(UserCreationService);
+  private userService = inject(UserService);
   private activeRoute = inject(ActivatedRoute);
-  userDetails = this.userService.userInfo;
+  userDetails = this.userCreationService.userInfo;
   demoId: string = '';
   private platformId = inject(PLATFORM_ID);
   demoOnBoardingStatus = DemoOnBoardingEnum;
@@ -108,7 +108,7 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      sessionStorage.setItem('userEmail', this.iapService.userEmailInfo());
+      sessionStorage.setItem('userEmail', this.userService.userEmailInfo());
       this.activeRoute.queryParams.subscribe((params) => {
         this.demoId = params['demoID'] || '';
         if (this.demoId === '') {
@@ -126,7 +126,7 @@ export class HomeComponent implements OnInit {
     of(null)
       .pipe(
         concatMap(() => {
-          return this.userService.getDemoDetails(demoId);
+          return this.userCreationService.getDemoDetails(demoId);
         }),
 
         concatMap((demoDetailsResponse) => {
@@ -136,8 +136,8 @@ export class HomeComponent implements OnInit {
           const request: UpdateUserRequest = {
             primary_email: primaryEmail,
             secondary_email: secondaryEmail,
-            first_name: this.userService.userInfo()?.first_name ?? '',
-            last_name: this.userService.userInfo()?.last_name ?? '',
+            first_name: this.userCreationService.userInfo()?.first_name ?? '',
+            last_name: this.userCreationService.userInfo()?.last_name ?? '',
             costCenter: demoDetailsResponse.representative_profile.cost_centre,
             jobTitle: demoDetailsResponse.representative_profile.rep_role,
             department:
@@ -146,16 +146,16 @@ export class HomeComponent implements OnInit {
             demoName: demoDetailsResponse.demo_title,
             managerEmail:
               demoDetailsResponse.representative_profile.manager_email,
-            employeeID: this.userService.userInfo()?.employeeID ?? '',
+            employeeID: this.userCreationService.userInfo()?.employeeID ?? '',
           };
-          return this.userService.updateUserDetails(request);
+          return this.userCreationService.updateUserDetails(request);
         }),
 
         concatMap(() => {
           const request: AddUserInGroupRequest = {
             group_email: this.demoDetails()?.demo_user_group_email ?? '',
           };
-          return this.userService.addUserToGroup(request);
+          return this.userCreationService.addUserToGroup(request);
         }),
         catchError((error) => {
           this.errorMessage.update(

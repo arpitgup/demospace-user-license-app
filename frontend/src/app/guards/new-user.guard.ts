@@ -6,7 +6,7 @@ import {
 } from '@angular/router';
 import { UserCreationService } from '../core/services/user-creation.service';
 import { map, Observable, of } from 'rxjs';
-import { IapService } from '../core/services/iap.service';
+import { UserService } from '../core/services/user.service';
 
 @Injectable({
   providedIn: 'root',
@@ -14,10 +14,10 @@ import { IapService } from '../core/services/iap.service';
 export class NewUserGuard implements CanActivate {
   private userCreationService = inject(UserCreationService);
   private router = inject(Router);
-  private iapService = inject(IapService);
+  private userService = inject(UserService);
 
   canActivate(route: ActivatedRouteSnapshot): Observable<boolean> {
-    const userEmail = this.iapService.userEmailInfo();
+    const userEmail = this.userService.userEmailInfo();
     const demoId = route.queryParamMap.get('demoID') || '';
     if (userEmail?.includes('agentspace-demo')) {
       if (
