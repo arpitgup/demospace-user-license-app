@@ -21,9 +21,10 @@ import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { provideNgxSkeletonLoader } from 'ngx-skeleton-loader';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { IapService } from './core/services/iap.service';
+
 import { concatMap, of } from 'rxjs';
 import { UserCreationService } from './core/services/user-creation.service';
+import { UserService } from './core/services/user.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -33,22 +34,22 @@ export const appConfig: ApplicationConfig = {
         height: '2rem',
       },
     }),
-    IapService,
+    UserService,
     provideAppInitializer(() => {
-      const iapService = inject(IapService);
-      const userService = inject(UserCreationService);
+      const userDetailsService = inject(UserService);
+      const userCreationService = inject(UserCreationService);
       return of(null).pipe(
         concatMap(() => {
-          return iapService.getIapUserDetails();
+          return userDetailsService.fetchCurrentUser();
         }),
 
         concatMap(() => {
-          if (iapService.userEmailInfo()?.includes('agentspace-demo')) {
-            return userService.getUserDetails();
+          if (userDetailsService.userEmailInfo()?.includes('agentspace-demo')) {
+            return userCreationService.getUserDetails();
           } else {
             return of(null);
           }
-        })
+        }),
       );
     }),
     provideBrowserGlobalErrorListeners(),
@@ -58,7 +59,7 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideHttpClient(
       withFetch(),
-      withInterceptors([authInterceptor, loadingInterceptor])
+      withInterceptors([authInterceptor, loadingInterceptor]),
     ),
   ],
 };

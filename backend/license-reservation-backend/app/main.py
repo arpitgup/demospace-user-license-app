@@ -1,7 +1,7 @@
 from fastapi import Depends, FastAPI, Request, HTTPException, APIRouter
 from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from shared_lib.dependencies import get_user_email, get_user_current_time, get_user_token
+from shared_lib.dependencies import get_user_email, get_user_current_time, get_user_token, get_iap_authenticated_user_email
 from shared_lib import admin_service
 from datetime import datetime, timezone, timedelta
 from .common.constants import ALLOWED_ORIGINS
@@ -29,7 +29,7 @@ api_router = APIRouter(prefix="/api")
 #     allow_headers=["*"],
 # )
 
-common_dependencies = [Depends(get_user_email), Depends(get_user_current_time)]
+common_dependencies = [Depends(get_user_email), Depends(get_user_current_time), Depends(get_iap_authenticated_user_email)]
 admin_dependencies = [Depends(get_user_email), Depends(get_user_current_time), Depends(get_user_token)]
 
 api_router.include_router(applications.router, tags=["Applications"], dependencies=common_dependencies)
@@ -42,12 +42,12 @@ api_router.include_router(userlogin.router, tags=["User Login"])
 
 # Add the /api/me endpoint to the api_router
 @api_router.get("/me", tags=["User"], dependencies=common_dependencies)
-def get_user_info(user_email: str = Depends(get_user_email)):    
+def get_user_info(user_email: str = Depends(get_iap_authenticated_user_email)):    
     user_ldap = get_user_ldap(user_email)
     return UserInfo(
         email=user_email,
         given_name=user_ldap,
-        family_name="",
+        family_name=user_ldap,
         full_name=""
     )
 
@@ -69,13 +69,6 @@ app.add_middleware(AdminValidationMiddleware)
 # Helper function to create demo user email
 def get_user_ldap(user_email: str) -> str:
     try:
-        local_part = user_email.split('@')[0]
-        dash_index = local_part.find('-')
-
-        if dash_index != -1:
-            return local_part[:dash_index]
-        else:
-            return ""
-
+        return user_email.split('@')[0]
     except IndexError:
         return ""

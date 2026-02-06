@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
 import { UserCreationService } from '../core/services/user-creation.service';
 import { map, Observable, of } from 'rxjs';
-import { IapService } from '../core/services/iap.service';
+import { UserService } from '../core/services/user.service';
 
 @Injectable({
   providedIn: 'root',
@@ -10,9 +10,9 @@ import { IapService } from '../core/services/iap.service';
 export class AdminGuard implements CanActivate {
   private userCreationService = inject(UserCreationService);
   private router = inject(Router);
-  private iapService = inject(IapService);
+  private userService = inject(UserService);
   canActivate(): Observable<boolean> {
-    const userEmail = this.iapService.userEmailInfo();
+    const userEmail = this.userService.userEmailInfo();
     if (userEmail?.includes('agentspace-demo')) {
       return this.userCreationService.getUserDetails().pipe(
         map(() => {
@@ -25,7 +25,7 @@ export class AdminGuard implements CanActivate {
             this.router.navigateByUrl('/welcome', { replaceUrl: true });
           }
           return false;
-        })
+        }),
       );
     } else {
       return of(true);

@@ -17,7 +17,6 @@ import {
   TimeoutError,
   timer,
 } from 'rxjs';
-import { IapService } from '../services/iap.service';
 import { BUGANIZER_URL } from '../../shared/constants/links.contants';
 import { LoaderService } from '../services/loading.service';
 import { EXCLUDED_URLS } from '../../shared/constants/api.constants';
@@ -29,25 +28,28 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const isExcluded = EXCLUDED_URLS.some((url) => req.url.includes(url));
 
   // const iapService = inject(IapService);
-  if (req.url.includes('_gcp_iap/identity')) {
-    return next(req).pipe(
-      finalize(() => {
-        if (!isExcluded) {
-          loadingService.hide();
-        }
-      })
-    );
-  } else if (req.url.includes('user-management/user-details')) {
+  // if (req.url.includes('/me')) {
+  //   return next(req).pipe(
+  //     finalize(() => {
+  //       if (!isExcluded) {
+  //         loadingService.hide();
+  //       }
+  //     })
+  //   );
+  // } else
+  if (
+    req.url.includes('user-management/user-details') ||
+    req.url.includes('/me')
+  ) {
     const clonedReq = req.clone({
-      headers: req.headers
-        .set('x-user-current-time', new Date().toISOString()),
+      headers: req.headers.set('x-user-current-time', new Date().toISOString()),
     });
     return next(clonedReq).pipe(
       finalize(() => {
         if (!isExcluded) {
           loadingService.hide();
         }
-      })
+      }),
     );
   }
   // const userEmail = sessionStorage?.getItem('userEmail');
@@ -77,7 +79,7 @@ function callApi(
   next: HttpHandlerFn,
   isLoginRedirect: boolean,
   isExcluded: boolean,
-  loadingService: LoaderService
+  loadingService: LoaderService,
 ): import('rxjs').Observable<
   import('@angular/common/http').HttpEvent<unknown>
 > {
@@ -124,6 +126,6 @@ function callApi(
         return throwError(() => new Error('Unauthorized access'));
       }
       return throwError(() => error);
-    })
+    }),
   );
 }

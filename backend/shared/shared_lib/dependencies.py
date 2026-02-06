@@ -49,6 +49,14 @@ async def get_user_email(X_Goog_Authenticated_User_Email: str = Header(...)):
     print(demouser_email)
     return demouser_email
 
+# This is only being used by '/me' API in main.py
+async def get_iap_authenticated_user_email(X_Goog_Authenticated_User_Email: str =  Header(...)):
+    """Dependency to get the original authenticated IAP user email header."""
+    if not X_Goog_Authenticated_User_Email:
+        raise HTTPException(status_code=400, detail="Missing X-Goog-Authenticated-User-Email")
+    demouser_email = construct_iap_authenticated_user_email(X_Goog_Authenticated_User_Email)
+    return demouser_email
+
 def construct_demouser_email(user_email_input):
     """
     Takes an input like 'accounts.google.com:ldap@google.com',
@@ -69,6 +77,16 @@ def construct_admin_user_email(user_email_input):
     try:
         demouser_email = user_email_input.split(':', 1)[1]
         return demouser_email
+    except IndexError:
+        return "Invalid input format. Expected 'provider:user@domain.com'"
+
+def construct_iap_authenticated_user_email(header_input):
+    """
+    Get usereail from X_Goog_Authenticated_User_Email header.
+    """
+    try:
+        iap_user_email = header_input.split(':', 1)[1]
+        return iap_user_email
     except IndexError:
         return "Invalid input format. Expected 'provider:user@domain.com'"
 
