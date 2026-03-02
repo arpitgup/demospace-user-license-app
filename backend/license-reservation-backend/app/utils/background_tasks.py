@@ -2,7 +2,7 @@ import asyncio
 import json
 import base64
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from google.cloud import tasks_v2
 from google.protobuf import timestamp_pb2
 from shared_lib.email_service import get_email_service
@@ -21,6 +21,7 @@ from ..common.constants import (
     DOWNTIME_END_QUEUE,
     LICENSE_MANAGEMENT_API_ENDPOINT,
     LICENSE_ENDPOINTS_INVOKER_SERVICE_ACCOUNT,
+    LICENSE_PROVISIONING_LEAD_TIME_MINUTES,
 )
 
 
@@ -95,10 +96,12 @@ async def schedule_reservation_tasks(
     """Schedules license provisioning and deprovisioning tasks for a reservation."""
     client = tasks_v2.CloudTasksAsyncClient()
 
+    provisioning_time = start_time - timedelta(minutes=LICENSE_PROVISIONING_LEAD_TIME_MINUTES)
+
     try:
         provisioning_task_response, deprovisioning_task_response = await asyncio.gather(
             schedule_provisioning_task(
-                reservation_id=reservation_id, run_at=start_time
+                reservation_id=reservation_id, run_at=provisioning_time
             ),
             schedule_deprovisioning_task(
                 reservation_id=reservation_id, run_at=end_time
