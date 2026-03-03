@@ -37,7 +37,7 @@ export function onApplicationSelected(
   if (
     ((application.isSelected ?? false) === false &&
       secondaryApplications.filter((item) => item.isSelected === true).length >=
-        maxApplicationSelection) ||
+      maxApplicationSelection) ||
     application.isEnabled === false
   ) {
     return secondaryApplications;
@@ -164,9 +164,9 @@ export function getLocalTimeZoneAbbreviation(
     return tz?.includes('GMT')
       ? `${TIMEZONE_ABBREVIATIONS[timeZone]} (${getGMTOffset(date, timeZone)})`
       : `${tz ?? TIMEZONE_ABBREVIATIONS[timeZone]} (${getGMTOffset(
-          date,
-          timeZone
-        )})`;
+        date,
+        timeZone
+      )})`;
   } catch {
     return getGMTOffset(date, timeZone);
   }
@@ -265,7 +265,7 @@ export function isSameDay(selectedDate: Date, endDate: Date): boolean {
 }
 
 export const ADMIN_USER_RESERVATION_EMAIL_VALIDATION =
-  /^[a-zA-Z0-9.-]+-agentspace-demo-user@1987984870407.altostrat.com\s*$/;
+  /^[a-zA-Z0-9.-]+-(agentspace-demo-user|godemos)@1987984870407.altostrat.com\s*$/;
 export const ADMIN_BOT_EMAIL_VALIDATION =
   /^[a-zA-Z0-9-.]+@1987984870407.altostrat.com\s*$/;
 export const ADMIN_APPLICATION_EMAIL_VALIDATION =

@@ -107,7 +107,7 @@ export class HowToReserveLicensesComponent {
       image: ['assets/images/email_confirmation.png'],
       headerText: [],
       footerText: [
-        ' Sample Email sent to <ldap>-agentspace-demo-user@1987984870407.altostrat.com',
+        ' Sample Email sent to <ldap>-godemos@1987984870407.altostrat.com',
       ],
       isOpen: false,
     },
