@@ -13,7 +13,7 @@ export class AdminGuard implements CanActivate {
   private userService = inject(UserService);
   canActivate(): Observable<boolean> {
     const userEmail = this.userService.userEmailInfo();
-    if (userEmail?.includes('agentspace-demo')) {
+    if (userEmail?.includes('agentspace-demo') || userEmail?.includes('godemos')) {
       return this.userCreationService.getUserDetails().pipe(
         map(() => {
           if (

@@ -19,7 +19,7 @@ export class NewUserGuard implements CanActivate {
   canActivate(route: ActivatedRouteSnapshot): Observable<boolean> {
     const userEmail = this.userService.userEmailInfo();
     const demoId = route.queryParamMap.get('demoID') || '';
-    if (userEmail?.includes('agentspace-demo')) {
+    if (userEmail?.includes('agentspace-demo') || userEmail?.includes('godemos')) {
       if (
         this.userCreationService.userInfo() !== null &&
         userEmail === this.userCreationService.userInfo()?.primary_email &&
@@ -51,7 +51,7 @@ export class NewUserGuard implements CanActivate {
       this.router.navigateByUrl('/admin', { replaceUrl: true });
       return of(false);
     } else {
-       this.router.navigateByUrl('/home', { replaceUrl: true });
+      this.router.navigateByUrl('/home', { replaceUrl: true });
       return of(false);
     }
   }
