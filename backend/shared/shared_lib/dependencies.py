@@ -75,17 +75,19 @@ async def get_iap_authenticated_user_email(X_Goog_Authenticated_User_Email: str 
     demouser_email = construct_iap_authenticated_user_email(X_Goog_Authenticated_User_Email)
     return demouser_email
 
-def construct_demouser_email(user_email_input):
-    """
-    Takes an input like 'accounts.google.com:ldap@google.com',
-    extracts the LDAP (username), and returns a new demo email address.
-    """
-    try:
-        ldap = user_email_input.split(':')[1].split('@')[0]
-        demouser_email = f"{ldap}-godemos@1987984870407.altostrat.com"
-        return demouser_email
-    except IndexError:
-        return "Invalid input format. Expected 'provider:user@domain.com'"
+
+# Now we are directly constructing inside get_user_email function.
+# def construct_demouser_email(user_email_input):
+#     """
+#     Takes an input like 'accounts.google.com:ldap@google.com',
+#     extracts the LDAP (username), and returns a new demo email address.
+#     """
+#     try:
+#         ldap = user_email_input.split(':')[1].split('@')[0]
+#         demouser_email = f"{ldap}-agentspace-demo-user@1987984870407.altostrat.com"
+#         return demouser_email
+#     except IndexError:
+#         return "Invalid input format. Expected 'provider:user@domain.com'"
 
 def construct_admin_user_email(user_email_input):
     """
