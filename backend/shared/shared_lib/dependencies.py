@@ -55,14 +55,18 @@ async def get_user_email(X_Goog_Authenticated_User_Email: str = Header(...)):
         logger.error(f"Invalid input format for user email header: {X_Goog_Authenticated_User_Email}")
         raise HTTPException(status_code=400, detail="Invalid X-Goog-Authenticated-User-Email format")
 
-    deprecated_demouser_email = f"{ldap}-agentspace-demo-user@1987984870407.altostrat.com"
+    legacy_demouser_email = f"{ldap}-agentspace-demo-user@1987984870407.altostrat.com"
     new_demouser_email = f"{ldap}-godemos@1987984870407.altostrat.com"
     
-    # Identity Resolution: Check if user exists with old format
+    # Identity Resolution: Check if user exists with old format.
+    # If yes, then Rename the primary email with new branding.
     from .admin_service import get_user
-    if get_user(deprecated_demouser_email):
-        logger.info(f"Existing user found with old format: {deprecated_demouser_email}")
-        return deprecated_demouser_email
+    if get_user(legacy_demouser_email):
+        # Update the user's email rebranding
+        from .admin_service import rebrand_user_email
+        rebrand_user_email(legacy_demouser_email, new_demouser_email)
+        logger.info(f"User {legacy_demouser_email} found with old format. Rebranded to {new_demouser_email}.")
+        return new_demouser_email
     
     logger.info(f"Resolving to new identity format for LDAP {ldap}: {new_demouser_email}")
     return new_demouser_email
