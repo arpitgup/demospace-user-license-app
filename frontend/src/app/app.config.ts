@@ -44,7 +44,7 @@ export const appConfig: ApplicationConfig = {
         }),
 
         concatMap(() => {
-          if (userDetailsService.userEmailInfo()?.includes('agentspace-demo')) {
+          if (userDetailsService.userEmailInfo()?.includes('agentspace-demo') || userDetailsService.userEmailInfo()?.includes('godemos')) {
             return userCreationService.getUserDetails();
           } else {
             return of(null);

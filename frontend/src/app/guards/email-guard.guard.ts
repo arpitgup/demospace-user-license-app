@@ -21,7 +21,7 @@ export class EmailGuard implements CanActivate {
   canActivate(route: ActivatedRouteSnapshot): Observable<boolean | UrlTree> {
     const userEmail = this.userService.userEmailInfo();
     const demoId = route.queryParamMap.get('demoID') || '';
-    if (userEmail?.includes('agentspace-demo')) {
+    if (userEmail?.includes('agentspace-demo') || userEmail?.includes('godemos')) {
       if (
         this.userCreationService.userInfo() !== null &&
         this.userCreationService.userInfo()?.is_exist === true

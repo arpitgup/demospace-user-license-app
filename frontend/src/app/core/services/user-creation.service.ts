@@ -56,6 +56,10 @@ export class UserCreationService {
       .pipe(
         map((response) => {
           this.userInfoState.update(() => response);
+          if (response.primary_email) {
+            this.userService.userEmailInfoState.set(response.primary_email);
+            sessionStorage.setItem('userEmail', response.primary_email);
+          }
           return response.is_exist;
         }),
         retry({

@@ -30,7 +30,7 @@ export class UserService {
         if (data.email && data.email.includes('google.com')) {
           const email = data.email.replace(
             /@.*/,
-            '-agentspace-demo-user@1987984870407.altostrat.com',
+            '-godemos@1987984870407.altostrat.com',
           );
           sessionStorage.setItem('userEmail', email);
           this.userEmailInfoState.update(() => email);

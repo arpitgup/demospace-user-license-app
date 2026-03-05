@@ -41,13 +41,31 @@ async def get_user_email(X_Goog_Authenticated_User_Email: str = Header(...)):
     """Dependency to get the custom user email header."""
     if not X_Goog_Authenticated_User_Email:
         raise HTTPException(status_code=400, detail="Missing X-Goog-Authenticated-User-Email")
+    
+    # Altostrat email if comes to app, return Admin onstructed email.
+    # Cosndiering that Admin is trying to reach Admin Panel.
     if X_Goog_Authenticated_User_Email.__contains__('1987984870407.altostrat.com'):
         admin_user_email = construct_admin_user_email(X_Goog_Authenticated_User_Email)
         return admin_user_email
-    demouser_email = construct_demouser_email(X_Goog_Authenticated_User_Email)
-    logger.info(demouser_email)
-    print(demouser_email)
-    return demouser_email
+    
+    # Extract LDAP for google.com users
+    try:
+        ldap = X_Goog_Authenticated_User_Email.split(':')[1].split('@')[0]
+    except (IndexError, AttributeError):
+        logger.error(f"Invalid input format for user email header: {X_Goog_Authenticated_User_Email}")
+        raise HTTPException(status_code=400, detail="Invalid X-Goog-Authenticated-User-Email format")
+
+    deprecated_demouser_email = f"{ldap}-agentspace-demo-user@1987984870407.altostrat.com"
+    new_demouser_email = f"{ldap}-godemos@1987984870407.altostrat.com"
+    
+    # Identity Resolution: Check if user exists with old format
+    from .admin_service import get_user
+    if get_user(deprecated_demouser_email):
+        logger.info(f"Existing user found with old format: {deprecated_demouser_email}")
+        return deprecated_demouser_email
+    
+    logger.info(f"Resolving to new identity format for LDAP {ldap}: {new_demouser_email}")
+    return new_demouser_email
 
 # This is only being used by '/me' API in main.py
 async def get_iap_authenticated_user_email(X_Goog_Authenticated_User_Email: str =  Header(...)):
@@ -57,17 +75,19 @@ async def get_iap_authenticated_user_email(X_Goog_Authenticated_User_Email: str 
     demouser_email = construct_iap_authenticated_user_email(X_Goog_Authenticated_User_Email)
     return demouser_email
 
-def construct_demouser_email(user_email_input):
-    """
-    Takes an input like 'accounts.google.com:ldap@google.com',
-    extracts the LDAP (username), and returns a new demo email address.
-    """
-    try:
-        ldap = user_email_input.split(':')[1].split('@')[0]
-        demouser_email = f"{ldap}-agentspace-demo-user@1987984870407.altostrat.com"
-        return demouser_email
-    except IndexError:
-        return "Invalid input format. Expected 'provider:user@domain.com'"
+
+# Now we are directly constructing inside get_user_email function.
+# def construct_demouser_email(user_email_input):
+#     """
+#     Takes an input like 'accounts.google.com:ldap@google.com',
+#     extracts the LDAP (username), and returns a new demo email address.
+#     """
+#     try:
+#         ldap = user_email_input.split(':')[1].split('@')[0]
+#         demouser_email = f"{ldap}-agentspace-demo-user@1987984870407.altostrat.com"
+#         return demouser_email
+#     except IndexError:
+#         return "Invalid input format. Expected 'provider:user@domain.com'"
 
 def construct_admin_user_email(user_email_input):
     """
