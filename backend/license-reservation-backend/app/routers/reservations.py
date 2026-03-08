@@ -40,8 +40,15 @@ def get_user_reservations(
     """
     Retrieves all reservations made by a specific user.
     """
+    from sqlalchemy import or_
+    legacy_email = user_email.replace("-godemos@", "-agentspace-demo-user@")
     reservations = (
-        db.query(Reservation).filter(Reservation.user_email == user_email).all()
+        db.query(Reservation).filter(
+            or_(
+                Reservation.user_email == user_email,
+                Reservation.user_email == legacy_email
+            )
+        ).all()
     )
     return reservations
 
