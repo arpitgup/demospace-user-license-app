@@ -1,5 +1,5 @@
 from fastapi import Header, HTTPException, Depends
-
+from .admin_service import get_user, rebrand_user_email
 from .db.models import AppConfig
 from .db.session import SessionLocal
 import requests
@@ -60,10 +60,8 @@ async def get_user_email(X_Goog_Authenticated_User_Email: str = Header(...)):
     
     # Identity Resolution: Check if user exists with old format.
     # If yes, then Rename the primary email with new branding.
-    from .admin_service import get_user
     if get_user(legacy_demouser_email):
         # Update the user's email rebranding
-        from .admin_service import rebrand_user_email
         rebrand_user_email(legacy_demouser_email, new_demouser_email)
         logger.info(f"User {legacy_demouser_email} found with old format. Rebranded to {new_demouser_email}.")
         return new_demouser_email

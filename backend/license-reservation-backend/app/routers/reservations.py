@@ -2,7 +2,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status
 from loguru import logger
 from shared_lib.dependencies import get_user_email, get_user_current_time, get_db, get_app_config
 from typing import List
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from shared_lib.db.models import (
@@ -40,7 +40,6 @@ def get_user_reservations(
     """
     Retrieves all reservations made by a specific user.
     """
-    from sqlalchemy import or_
     legacy_email = user_email.replace("-godemos@", "-agentspace-demo-user@")
     reservations = (
         db.query(Reservation).filter(
