@@ -51,6 +51,22 @@ def get_user_reservations(
     )
     return reservations
 
+@router.get("/reservations", response_model=List[ReservationOut])
+def get_user_reservations(
+    db: Session = Depends(get_db), user_email: str = Depends(get_user_email)
+):
+    """
+    Retrieves all reservations made by a specific user.
+    """
+    # ldap can be achive from user_email (e.g., <ldap>@demospace.altostrat.com) >> This Domain is in Provisioning state.
+    # Temporary Testing with: {ldap}-godemos@1987984870407.altostrat.com
+    ldap = user_email.split("-")[0]
+    reservations = (
+        db.query(Reservation).filter(
+            Reservation.user_email.contains(ldap)
+        ).all()
+    )
+    return reservations
 
 @router.post(
     "/reservations",
