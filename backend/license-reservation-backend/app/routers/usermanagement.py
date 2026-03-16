@@ -82,7 +82,8 @@ async def get_user_details(
     primary_email = user_email
     
     try:
-        user_details = admin_service.get_user(primary_email)        
+        # primary_email is always 'ldap@demospace.altostrat.com'
+        user_details = admin_service.get_user(primary_email)
         if not user_details:
             return JSONResponse(
                 status_code=status.HTTP_404_NOT_FOUND,

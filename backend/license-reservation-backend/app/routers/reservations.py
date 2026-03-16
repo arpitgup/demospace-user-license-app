@@ -32,40 +32,30 @@ from ..utils.crud import is_user_in_cool_off, is_valid_reservation_lead_time, fo
 
 router = APIRouter()
 
-
 @router.get("/reservations", response_model=List[ReservationOut])
 def get_user_reservations(
     db: Session = Depends(get_db), user_email: str = Depends(get_user_email)
 ):
     """
-    Retrieves all reservations made by a specific user.
+    Retrieves all reservations for:
+    1. <ldap>@...
+    2. <ldap>-...
     """
-    legacy_email = user_email.replace("-godemos@", "-agentspace-demo-user@")
+    ldap = user_email.split("@")[0]
+    
+    # We have two valid patterns:
+    standard_prefix = f"{ldap}@"
+    legacy_prefix = f"{ldap}-"
+
     reservations = (
         db.query(Reservation).filter(
             or_(
-                Reservation.user_email == user_email,
-                Reservation.user_email == legacy_email
+                Reservation.user_email.startswith(standard_prefix),
+                Reservation.user_email.startswith(legacy_prefix)
             )
         ).all()
     )
-    return reservations
-
-@router.get("/reservations", response_model=List[ReservationOut])
-def get_user_reservations(
-    db: Session = Depends(get_db), user_email: str = Depends(get_user_email)
-):
-    """
-    Retrieves all reservations made by a specific user.
-    """
-    # ldap can be achive from user_email (e.g., <ldap>@demospace.altostrat.com) >> This Domain is in Provisioning state.
-    # Temporary Testing with: {ldap}-godemos@1987984870407.altostrat.com
-    ldap = user_email.split("-")[0]
-    reservations = (
-        db.query(Reservation).filter(
-            Reservation.user_email.contains(ldap)
-        ).all()
-    )
+    
     return reservations
 
 @router.post(
