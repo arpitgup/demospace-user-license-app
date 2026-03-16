@@ -75,7 +75,7 @@ triggers:
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
   includedFiles: backend/license-management-api/*
   ignoredFiles:
-  disabled: 
+  disabled: true
   substitutions:
     _SERVICE_NAME: "godemos-license-management-api-dev"
     _PROJECT_ID: "sys-36807655692543323281329778"
@@ -97,7 +97,7 @@ triggers:
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
   includedFiles: backend/license-reservation-backend/*
   ignoredFiles:
-  disabled: 
+  disabled: true
   substitutions:
     _SERVICE_NAME: "godemos-license-reservation-backend-dev"
     _PROJECT_ID: "sys-36807655692543323281329778"
@@ -127,7 +127,7 @@ triggers:
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
   includedFiles: frontend/*
   ignoredFiles:
-  disabled: 
+  disabled: true
   substitutions:
     _SERVICE_NAME: "godemos-license-app-develop"
     _PROJECT_ID: "sys-36807655692543323281329778"
