@@ -47,29 +47,43 @@
               {{ userDetails()!.primary_email }}
             </h5>
           </div>
-          @if((userDetails()?.password || '')!==''){
-          <div class="sized-box-password"></div>
-          <div class="email-wrapper">
-            <mat-icon class="circle-icon">lock</mat-icon>
-            @if(showPassword()===true){
-            <h5 class="email-content">
-              {{ userDetails()!.password }}
-            </h5>
-            }@else{
-            <h5 class="email-content">
-              {{ passwordMasked() }}
-            </h5>
-            }
-            <div class="spacer"></div>
-            <mat-icon
-              class="visibility-icon"
-              (click)="updateShowPasswordValue()"
-              >{{ showPassword() ? "visibility_off" : "visibility" }}</mat-icon
-            >
-          </div>
+          @if ((userDetails()?.password || "") !== "") {
+            <div class="sized-box-password"></div>
+            <div class="email-wrapper">
+              <mat-icon class="circle-icon">lock</mat-icon>
+              @if (showPassword() === true) {
+                <h5 class="email-content">
+                  {{ userDetails()!.password }}
+                </h5>
+              } @else {
+                <h5 class="email-content">
+                  {{ passwordMasked() }}
+                </h5>
+              }
+              <div class="spacer"></div>
+              <mat-icon
+                class="visibility-icon"
+                (click)="updateShowPasswordValue()"
+                >{{
+                  showPassword() ? "visibility_off" : "visibility"
+                }}</mat-icon
+              >
+            </div>
           }
         </div>
-
+        <h5 class="desc-note-wrapper">
+          Important Note : User ID/email has changed but their user profile, reservations, and
+          application activities remain the same,<br />
+          confirming they are not a new user'.Please see
+          <a
+            [href]="goDemoUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="link-wrapper"
+            >link</a
+          >
+          for more information.
+        </h5>
         <h5 class="desc-wrapper">
           Forgot password? Click the Reset Password button below to reset your
           demo user credentials.
@@ -96,38 +110,39 @@
           >
         </div>
       </div>
-      @if((demoDetails.gemini_enterprise_app_link || '')!==''){
-      <h5 class="link-tile-wrapper" @fadeIn>Access Demo Application</h5>
-      <div class="link-wrapper" @fadeIn>
-        <h5 class="desc-wrapper">
-          {{ demoDetails.gemini_enterprise_app_link }}
-        </h5>
-        @if(copyGeminiSuccess()===true){
-        <mat-icon class="copy-icon">done</mat-icon>
-        }@else{
-        <mat-icon
-          class="copy-icon"
-          (click)="copyText(demoDetails.gemini_enterprise_app_link, true)"
-          >content_copy</mat-icon
-        >
-        }
-      </div>
-      } @if((demoDetails.drive_folder_link || '')!==''){
-      <h5 class="link-tile-wrapper" @fadeIn>Access Demo Drive</h5>
-      <div class="link-wrapper" @fadeIn>
-        <h5 class="desc-wrapper">
-          {{ demoDetails.drive_folder_link }}
-        </h5>
-        @if(copyDriveSuccess()===true){
-        <mat-icon class="copy-icon">done</mat-icon>
-        }@else{
-        <mat-icon
-          class="copy-icon"
-          (click)="copyText(demoDetails.drive_folder_link, false)"
-          >content_copy</mat-icon
-        >
-        }
-      </div>
+      @if ((demoDetails.gemini_enterprise_app_link || "") !== "") {
+        <h5 class="link-tile-wrapper" @fadeIn>Access Demo Application</h5>
+        <div class="link-wrapper" @fadeIn>
+          <h5 class="desc-wrapper">
+            {{ demoDetails.gemini_enterprise_app_link }}
+          </h5>
+          @if (copyGeminiSuccess() === true) {
+            <mat-icon class="copy-icon">done</mat-icon>
+          } @else {
+            <mat-icon
+              class="copy-icon"
+              (click)="copyText(demoDetails.gemini_enterprise_app_link, true)"
+              >content_copy</mat-icon
+            >
+          }
+        </div>
+      }
+      @if ((demoDetails.drive_folder_link || "") !== "") {
+        <h5 class="link-tile-wrapper" @fadeIn>Access Demo Drive</h5>
+        <div class="link-wrapper" @fadeIn>
+          <h5 class="desc-wrapper">
+            {{ demoDetails.drive_folder_link }}
+          </h5>
+          @if (copyDriveSuccess() === true) {
+            <mat-icon class="copy-icon">done</mat-icon>
+          } @else {
+            <mat-icon
+              class="copy-icon"
+              (click)="copyText(demoDetails.drive_folder_link, false)"
+              >content_copy</mat-icon
+            >
+          }
+        </div>
       }
     </section>
   </div>
