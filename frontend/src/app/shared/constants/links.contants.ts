@@ -8,4 +8,5 @@ export const MANAGE_PROFILE_INSTRUCTIONS_URL =
 export const RELEASE_NOTES_LINK =
   'https://docs.google.com/document/d/1E5SzHiiv2u9yTJClATy-THgycabks0UAXzZ3YAvCKuw/edit?tab=t.0#heading=h.4ok2v1xlp2u5';
 
-  // http://goto.google.com/demos
+export const DEMOSPACEINFO_LINK = 'https://goto.google.com/demospace-info';
+// http://goto.google.com/demos
