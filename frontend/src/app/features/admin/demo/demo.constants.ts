@@ -92,4 +92,5 @@ export const DEMOCONSTANTS = {
   RESERVATION: 'Reservation',
   DEMO_USER_PROFILE: 'Demo User Profile',
   DEMO_META_DATA: 'Demo Metadata',
+  PARENT_BUG_ID:'Parent Bug ID'
 };
