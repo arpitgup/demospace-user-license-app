@@ -5,7 +5,7 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 
 import {
   provideClientHydration,
@@ -26,6 +26,11 @@ import { concatMap, of } from 'rxjs';
 import { UserCreationService } from './core/services/user-creation.service';
 import { UserService } from './core/services/user.service';
 import { GOOGLE_EMAIL_DOMAIN } from './shared/constants/domain.constants';
+import { logInfo } from '../utilities/utils';
+import {
+  QUERY_DEMO_ID,
+  SESSIONS_DEMO_ID,
+} from './shared/constants/session.constants';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -39,13 +44,24 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       const userDetailsService = inject(UserService);
       const userCreationService = inject(UserCreationService);
+      sessionStorage.setItem(SESSIONS_DEMO_ID, '');
+      const activeRoute = inject(ActivatedRoute);
+      activeRoute.queryParams.subscribe((params) => {
+        const demoId = params[QUERY_DEMO_ID] || '';
+        logInfo('appConfigDemoId=', demoId);
+        sessionStorage.setItem(SESSIONS_DEMO_ID, demoId);
+      });
       return of(null).pipe(
         concatMap(() => {
           return userDetailsService.fetchCurrentUser();
         }),
 
         concatMap(() => {
-          if (userDetailsService.currentUser()?.email.includes(GOOGLE_EMAIL_DOMAIN)) {
+          if (
+            userDetailsService
+              .currentUser()
+              ?.email.includes(GOOGLE_EMAIL_DOMAIN)
+          ) {
             return userCreationService.getUserDetails();
           } else {
             return of(null);

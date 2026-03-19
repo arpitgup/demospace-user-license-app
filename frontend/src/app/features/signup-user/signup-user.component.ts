@@ -19,6 +19,7 @@ import { CreateUserRequest } from '../../core/models/create-user-request.model';
 import { LoaderService } from '../../core/services/loading.service';
 import { INVALID_DEMO_ID_MESSAGE } from '../../shared/constants/error.constants';
 import { UserService } from '../../core/services/user.service';
+import { logInfo } from '../../../utilities/utils';
 
 @Component({
   selector: 'app-signup-user',
@@ -37,7 +38,7 @@ import { UserService } from '../../core/services/user.service';
         style({ transform: 'translateY(-100%)', opacity: 0 }),
         animate(
           '1s cubic-bezier(0.68,-0.55,0.27,1.55)',
-          style({ transform: 'translateY(0)', opacity: 1 })
+          style({ transform: 'translateY(0)', opacity: 1 }),
         ),
       ]),
     ]),
@@ -46,7 +47,7 @@ import { UserService } from '../../core/services/user.service';
         style({ transform: 'translateY(100%)', opacity: 0 }),
         animate(
           '1s cubic-bezier(0.68,-0.55,0.27,1.55)',
-          style({ transform: 'translateY(0)', opacity: 1 })
+          style({ transform: 'translateY(0)', opacity: 1 }),
         ),
       ]),
     ]),
@@ -72,6 +73,7 @@ export class SignupUserComponent implements OnInit {
   ngOnInit() {
     this.activeRoute.queryParams.subscribe((params) => {
       this.demoId = params['demoID'] || '';
+      logInfo('signUpDemoId=', this.demoId);
     });
   }
   createUserForm: FormGroup = this.fb.group({
@@ -125,12 +127,13 @@ export class SignupUserComponent implements OnInit {
         this.router.navigateByUrl(`?demoID=${this.demoId}`, {
           replaceUrl: true,
         });
+        logInfo('signUpRedirectionDemoId=', this.demoId);
         this.loaderService.hide();
       },
       error: (err) => {
         this.loaderService.hide();
         this.showErrorDialog(
-          err?.error?.detail || 'Something went wrong. Please try again'
+          err?.error?.detail || 'Something went wrong. Please try again',
         );
       },
     });

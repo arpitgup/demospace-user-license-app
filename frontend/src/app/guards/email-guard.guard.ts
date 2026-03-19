@@ -10,6 +10,7 @@ import { UserCreationService } from '../core/services/user-creation.service';
 import { Observable, of, tap } from 'rxjs';
 import { UserService } from '../core/services/user.service';
 import { GOOGLE_EMAIL_DOMAIN } from '../shared/constants/domain.constants';
+import { logInfo } from '../../utilities/utils';
 
 @Injectable({
   providedIn: 'root',
@@ -18,10 +19,10 @@ export class EmailGuard implements CanActivate {
   private userCreationService = inject(UserCreationService);
   private router = inject(Router);
   private userService = inject(UserService);
-  private activeRoute = inject(ActivatedRoute);
   canActivate(route: ActivatedRouteSnapshot): Observable<boolean | UrlTree> {
-      const userEmail = this.userService.currentUser()?.email || '';
+    const userEmail = this.userService.currentUser()?.email || '';
     const demoId = route.queryParamMap.get('demoID') || '';
+    logInfo('emailGuardDemoId=', demoId);
     if (userEmail?.includes(GOOGLE_EMAIL_DOMAIN)) {
       if (
         this.userCreationService.userInfo() !== null &&

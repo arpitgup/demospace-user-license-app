@@ -19,6 +19,7 @@ import { BUGANIZER_URL } from '../../shared/constants/links.contants';
 import { HowToLoginComponent } from '../how-to-login/how-to-login.component';
 import { DemoOnBoardingEnum } from '../../enums/admin-demo-onboarding.enums';
 import { UserService } from '../../core/services/user.service';
+import { logInfo } from '../../../utilities/utils';
 
 export interface HomeMenuItems {
   id: number;
@@ -111,6 +112,7 @@ export class HomeComponent implements OnInit {
       sessionStorage.setItem('userEmail', this.userService.userEmailInfo());
       this.activeRoute.queryParams.subscribe((params) => {
         this.demoId = params['demoID'] || '';
+        logInfo('homePageDemoId=', this.demoId);
         if (this.demoId === '') {
           this.isLoading.update(() => false);
           this.errorMessage.update(() => INVALID_DEMO_ID_MESSAGE);
@@ -160,10 +162,11 @@ export class HomeComponent implements OnInit {
         catchError((error) => {
           this.errorMessage.update(
             () =>
-              error?.error?.detail || 'Something went wrongs. Please try again.'
+              error?.error?.detail ||
+              'Something went wrongs. Please try again.',
           );
           return of(null);
-        })
+        }),
       )
       .subscribe({
         next: (finalResponse) => {
@@ -178,7 +181,7 @@ export class HomeComponent implements OnInit {
         error: (err) => {
           this.errorMessage.update(
             () =>
-              err?.error?.detail || 'Something went wrong. Please try again.'
+              err?.error?.detail || 'Something went wrong. Please try again.',
           );
           this.isLoading.update(() => false);
         },
@@ -187,7 +190,7 @@ export class HomeComponent implements OnInit {
   updateHomeMenuList(feature_license_app: boolean | undefined) {
     if ((feature_license_app || false) === false) {
       this.homeMenuItems = this.homeMenuItems.filter(
-        (item) => item.type !== HomeItems.LICENSE_RESERVATION
+        (item) => item.type !== HomeItems.LICENSE_RESERVATION,
       );
     }
   }
@@ -215,6 +218,7 @@ export class HomeComponent implements OnInit {
   onRetryCall() {
     this.errorMessage.update(() => '');
     const demoId = this.activeRoute.snapshot.queryParams['demoID'] || '';
+    logInfo('homePageRetryDemoId=', this.demoId);
     if (demoId === '') {
       this.errorMessage.update(() => INVALID_DEMO_ID_MESSAGE);
       return;

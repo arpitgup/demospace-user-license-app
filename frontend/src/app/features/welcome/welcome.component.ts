@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DEMO_PAGE_URL } from '../../shared/constants/links.contants';
+import { logInfo } from '../../../utilities/utils';
 
 @Component({
   standalone: true,
@@ -18,7 +19,7 @@ import { DEMO_PAGE_URL } from '../../shared/constants/links.contants';
         style({ transform: 'translateY(-100%)', opacity: 0 }),
         animate(
           '1s cubic-bezier(0.68,-0.55,0.27,1.55)',
-          style({ transform: 'translateY(0)', opacity: 1 })
+          style({ transform: 'translateY(0)', opacity: 1 }),
         ),
       ]),
     ]),
@@ -27,7 +28,7 @@ import { DEMO_PAGE_URL } from '../../shared/constants/links.contants';
         style({ transform: 'translateY(100%)', opacity: 0 }),
         animate(
           '1s cubic-bezier(0.68,-0.55,0.27,1.55)',
-          style({ transform: 'translateY(0)', opacity: 1 })
+          style({ transform: 'translateY(0)', opacity: 1 }),
         ),
       ]),
     ]),
@@ -45,10 +46,12 @@ export class WelcomeComponent {
   goDemoUrl = DEMO_PAGE_URL;
   onStartSignUp() {
     const demoId = this.activeRoute.snapshot.queryParams['demoID'] || '';
+    logInfo('welcomeSignUpDemoId=', demoId);
     this.router.navigateByUrl(`/signup?demoID=${demoId}`, { replaceUrl: true });
   }
   getDemoGuideLink() {
     const demoId = this.activeRoute.snapshot.queryParams['demoID'] || '';
+    logInfo('welcomeDemoGuideLinkDemoId=', demoId);
     return `${this.goDemoUrl}/demo/${demoId}`;
   }
 }
