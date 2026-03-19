@@ -1,3 +1,5 @@
-DEMOSPACE_DOMAIN = "@demospace.altostrat.com"
+# TODO: Admin Email changes later to "@demospace.altostrat.com"
+DEMOSPACE_ADMIN_DOMAIN = "@1987984870407.altostrat.com"
+DEMOSPACE_USER_DOMAIN = "@demospace.altostrat.com"
 LEGACY_DOMAIN = "@1987984870407.altostrat.com"
 LEGACY_DEMOUSER_EMAIL_SUFFIX = f"-agentspace-demo-user{LEGACY_DOMAIN}"

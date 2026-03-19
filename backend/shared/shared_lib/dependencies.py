@@ -2,7 +2,7 @@ from fastapi import Header, HTTPException, Depends
 from .admin_service import get_user, rebrand_user_email
 from .db.models import AppConfig
 from .db.session import SessionLocal
-from .constants import DEMOSPACE_DOMAIN, LEGACY_DEMOUSER_EMAIL_SUFFIX
+from .constants import DEMOSPACE_ADMIN_DOMAIN, DEMOSPACE_USER_DOMAIN, LEGACY_DEMOUSER_EMAIL_SUFFIX
 import requests
 import time
 import sys
@@ -26,7 +26,7 @@ async def get_user_email(X_Goog_Authenticated_User_Email: str = Header(...)):
     
     # If User with 'ldap-dev@demospace.altostrat.com' are accessing the App will redirect to Admin Panel.
     # If they are member of 'agentspace-license-app-admin@1987984870407.altostrat.com' then they will have Admin Access.
-    if DEMOSPACE_DOMAIN in X_Goog_Authenticated_User_Email:
+    if DEMOSPACE_ADMIN_DOMAIN in X_Goog_Authenticated_User_Email:
         admin_user_email = construct_admin_user_email(X_Goog_Authenticated_User_Email)
         return admin_user_email
     
@@ -38,7 +38,7 @@ async def get_user_email(X_Goog_Authenticated_User_Email: str = Header(...)):
         raise HTTPException(status_code=400, detail="Invalid X-Goog-Authenticated-User-Email format")
 
     legacy_demouser_email = f"{ldap}{LEGACY_DEMOUSER_EMAIL_SUFFIX}"
-    new_demouser_email = f"{ldap}{DEMOSPACE_DOMAIN}"
+    new_demouser_email = f"{ldap}{DEMOSPACE_USER_DOMAIN}"
     
     # Check if user exists with old format.
     # If yes and it's the primary email, then Rename the primary email with new domain.

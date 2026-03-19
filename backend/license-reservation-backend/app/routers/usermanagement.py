@@ -120,8 +120,11 @@ async def create_user_in_workspace(
     """Create User API."""
     
     password = generate_random_password()
-    employee_id = generate_employee_id()
-    
+
+    # Get LDAP from email to create Unique EMP ID
+    ldap = req.primary_email.split('@')[0]
+    employee_id = f"{ldap}-{generate_employee_id()}"
+
     user_info = {
         "name": {
             "givenName": req.first_name,
