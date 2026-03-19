@@ -4,6 +4,7 @@ import { catchError, Observable, of, retry, tap, timer } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { User } from '../models/user.model';
+import { EMAIL_DOMAIN } from '../../shared/constants/domain.constants';
 
 @Injectable({
   providedIn: 'root',
@@ -30,7 +31,7 @@ export class UserService {
         if (data.email && data.email.includes('google.com')) {
           const email = data.email.replace(
             /@.*/,
-            '-godemos@1987984870407.altostrat.com',
+            EMAIL_DOMAIN,
           );
           sessionStorage.setItem('userEmail', email);
           this.userEmailInfoState.update(() => email);

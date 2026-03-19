@@ -3,6 +3,7 @@ import { CanActivate, Router } from '@angular/router';
 import { UserCreationService } from '../core/services/user-creation.service';
 import { map, Observable, of } from 'rxjs';
 import { UserService } from '../core/services/user.service';
+import { GOOGLE_EMAIL_DOMAIN } from '../shared/constants/domain.constants';
 
 @Injectable({
   providedIn: 'root',
@@ -12,8 +13,8 @@ export class AdminGuard implements CanActivate {
   private router = inject(Router);
   private userService = inject(UserService);
   canActivate(): Observable<boolean> {
-    const userEmail = this.userService.userEmailInfo();
-    if (userEmail?.includes('agentspace-demo') || userEmail?.includes('godemos')) {
+    const userEmail = this.userService.currentUser()?.email || '';
+    if (userEmail?.includes(GOOGLE_EMAIL_DOMAIN)) {
       return this.userCreationService.getUserDetails().pipe(
         map(() => {
           if (

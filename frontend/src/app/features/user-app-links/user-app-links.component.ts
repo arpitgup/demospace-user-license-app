@@ -15,6 +15,7 @@ import { Clipboard } from '@angular/cdk/clipboard';
 import {
   CHAT_SPACE_URL,
   DEMO_PAGE_URL,
+  DEMOSPACEINFO_LINK,
 } from '../../shared/constants/links.contants';
 import { MatDialog } from '@angular/material/dialog';
 import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
@@ -83,6 +84,7 @@ export class UserAppLinksComponent {
   );
   goDemoUrl = DEMO_PAGE_URL;
   chatSpaceUrl = CHAT_SPACE_URL;
+  demospaceInfoUrl = DEMOSPACEINFO_LINK;
   private dialog = inject(MatDialog);
   copyText(link: string, isGemini: boolean) {
     const successful = this.clipboard.copy(link);
