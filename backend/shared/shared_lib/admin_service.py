@@ -307,3 +307,18 @@ def create_organization_unit(org_unit_info):
     except Exception as e:
         logger.error(f"Error creating organization unit: {e}")
         raise
+
+def rebrand_user_email(user_email, new_email):
+    """
+    Update the user's email branding.
+    """
+    try:
+        updated_user_info = {
+            "primaryEmail": new_email
+        }
+        updated_profile = admin_service.users().patch(userKey=user_email, body= updated_user_info).execute()
+        logger.info(f"Successfully updated user email {user_email} with new branding")
+        return updated_profile
+    except Exception as e:
+        logger.error(f"Error updating user email {user_email} with new branding: {e}")
+        raise
