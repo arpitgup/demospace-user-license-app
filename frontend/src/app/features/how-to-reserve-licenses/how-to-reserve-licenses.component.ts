@@ -8,6 +8,7 @@ import { AppInstructions } from '../../core/models/app-instructions.model';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { DemoDetails } from '../../core/models/demo-details.model';
+import { EMAIL_DOMAIN } from '../../shared/constants/domain.constants';
 
 @Component({
   selector: 'app-how-to-reserve-licenses',
@@ -107,7 +108,7 @@ export class HowToReserveLicensesComponent {
       image: ['assets/images/email_confirmation.png'],
       headerText: [],
       footerText: [
-        ' Sample Email sent to <ldap>-agentspace-demo-user@1987984870407.altostrat.com',
+        `Sample Email sent to <ldap>${EMAIL_DOMAIN}`,
       ],
       isOpen: false,
     },

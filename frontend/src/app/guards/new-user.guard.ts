@@ -1,12 +1,9 @@
 import { inject, Injectable } from '@angular/core';
-import {
-  ActivatedRouteSnapshot,
-  CanActivate,
-  Router,
-} from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router } from '@angular/router';
 import { UserCreationService } from '../core/services/user-creation.service';
 import { map, Observable, of } from 'rxjs';
 import { UserService } from '../core/services/user.service';
+import { GOOGLE_EMAIL_DOMAIN } from '../shared/constants/domain.constants';
 
 @Injectable({
   providedIn: 'root',
@@ -17,9 +14,9 @@ export class NewUserGuard implements CanActivate {
   private userService = inject(UserService);
 
   canActivate(route: ActivatedRouteSnapshot): Observable<boolean> {
-    const userEmail = this.userService.userEmailInfo();
+    const userEmail = this.userService.currentUser()?.email || '';
     const demoId = route.queryParamMap.get('demoID') || '';
-    if (userEmail?.includes('agentspace-demo')) {
+    if (userEmail?.includes(GOOGLE_EMAIL_DOMAIN)) {
       if (
         this.userCreationService.userInfo() !== null &&
         userEmail === this.userCreationService.userInfo()?.primary_email &&
@@ -44,14 +41,14 @@ export class NewUserGuard implements CanActivate {
               return false;
             }
             return true;
-          })
+          }),
         );
       }
     } else if (userEmail !== '') {
       this.router.navigateByUrl('/admin', { replaceUrl: true });
       return of(false);
     } else {
-       this.router.navigateByUrl('/home', { replaceUrl: true });
+      this.router.navigateByUrl('/home', { replaceUrl: true });
       return of(false);
     }
   }
