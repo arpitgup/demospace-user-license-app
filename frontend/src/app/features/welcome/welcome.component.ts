@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DEMO_PAGE_URL } from '../../shared/constants/links.contants';
 import { logInfo } from '../../../utilities/utils';
+import { QUERY_DEMO_ID, SESSIONS_DEMO_ID } from '../../shared/constants/session.constants';
 
 @Component({
   standalone: true,
@@ -50,7 +51,10 @@ export class WelcomeComponent {
     this.router.navigateByUrl(`/signup?demoID=${demoId}`, { replaceUrl: true });
   }
   getDemoGuideLink() {
-    const demoId = this.activeRoute.snapshot.queryParams['demoID'] || '';
+    const demoId =
+      this.activeRoute.snapshot.queryParams[QUERY_DEMO_ID] ||
+      sessionStorage.getItem(SESSIONS_DEMO_ID) ||
+      '';
     logInfo('welcomeDemoGuideLinkDemoId=', demoId);
     return `${this.goDemoUrl}/demo/${demoId}`;
   }

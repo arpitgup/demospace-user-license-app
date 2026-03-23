@@ -20,6 +20,10 @@ import { LoaderService } from '../../core/services/loading.service';
 import { INVALID_DEMO_ID_MESSAGE } from '../../shared/constants/error.constants';
 import { UserService } from '../../core/services/user.service';
 import { logInfo } from '../../../utilities/utils';
+import {
+  QUERY_DEMO_ID,
+  SESSIONS_DEMO_ID,
+} from '../../shared/constants/session.constants';
 
 @Component({
   selector: 'app-signup-user',
@@ -72,7 +76,8 @@ export class SignupUserComponent implements OnInit {
   demoId: string = '';
   ngOnInit() {
     this.activeRoute.queryParams.subscribe((params) => {
-      this.demoId = params['demoID'] || '';
+      this.demoId =
+        params[QUERY_DEMO_ID] || sessionStorage.getItem(SESSIONS_DEMO_ID) || '';
       logInfo('signUpDemoId=', this.demoId);
     });
   }

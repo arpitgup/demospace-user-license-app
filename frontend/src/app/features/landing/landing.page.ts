@@ -39,6 +39,10 @@ import { MIN_LEAD_COOLDOWN_HOURS } from '../search-by-date/search-by-date.consta
 import { ActivatedRoute } from '@angular/router';
 import { UserCreationService } from '../../core/services/user-creation.service';
 import { logInfo } from '../../../utilities/utils';
+import {
+  QUERY_DEMO_ID,
+  SESSIONS_DEMO_ID,
+} from '../../shared/constants/session.constants';
 
 @Component({
   selector: 'app-landing-page',
@@ -138,7 +142,10 @@ export class LandingPage implements OnInit {
     this.callDemoDetailsApi();
   }
   callDemoDetailsApi() {
-    const demoId = this.activeRoute.snapshot.queryParams['demoID'] || '';
+    const demoId =
+      this.activeRoute.snapshot.queryParams[QUERY_DEMO_ID] ||
+      sessionStorage.getItem(SESSIONS_DEMO_ID) ||
+      '';
     logInfo('landingPageDemoId=', demoId);
     if (
       this.userCreationService.demoDetailsInfo() === null ||

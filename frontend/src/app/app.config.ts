@@ -44,13 +44,6 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       const userDetailsService = inject(UserService);
       const userCreationService = inject(UserCreationService);
-      sessionStorage.setItem(SESSIONS_DEMO_ID, '');
-      const activeRoute = inject(ActivatedRoute);
-      activeRoute.queryParams.subscribe((params) => {
-        const demoId = params[QUERY_DEMO_ID] || '';
-        logInfo('appConfigDemoId=', demoId);
-        sessionStorage.setItem(SESSIONS_DEMO_ID, demoId);
-      });
       return of(null).pipe(
         concatMap(() => {
           return userDetailsService.fetchCurrentUser();
