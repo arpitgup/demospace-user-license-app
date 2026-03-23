@@ -69,6 +69,7 @@ async def get_demo_details(
         saas_applications = demo_record.saas_applications,
         organization_unit = demo_record.organization_unit,
         representative_profile=representative_profile_out,
+        ParentBugID=demo_record.ParentBugID
     )
 
 @router.get('/user-details', response_model=CheckUserInWorkspaceResponse)
