@@ -19,6 +19,7 @@ import { BUGANIZER_URL } from '../../shared/constants/links.contants';
 import { HowToLoginComponent } from '../how-to-login/how-to-login.component';
 import { DemoOnBoardingEnum } from '../../enums/admin-demo-onboarding.enums';
 import { UserService } from '../../core/services/user.service';
+import { GOOGLE_EMAIL_DOMAIN } from '../../shared/constants/domain.constants';
 
 export interface HomeMenuItems {
   id: number;
@@ -132,7 +133,7 @@ export class HomeComponent implements OnInit {
         concatMap((demoDetailsResponse) => {
           this.demoDetails.update(() => demoDetailsResponse);
           const primaryEmail = sessionStorage.getItem('userEmail') ?? '';
-          const secondaryEmail = primaryEmail.replace(/-.*/, '@google.com');
+          const secondaryEmail = primaryEmail.replace(/@.*/, GOOGLE_EMAIL_DOMAIN);
           const request: UpdateUserRequest = {
             primary_email: primaryEmail,
             secondary_email: secondaryEmail,

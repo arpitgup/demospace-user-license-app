@@ -10,7 +10,7 @@ import { LoginService } from '../../core/services/login.service';
 import { LoginRequest } from '../../core/models/login-request.model';
 import { MatDialog } from '@angular/material/dialog';
 import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
-import { EMAIL_DOMAIN } from '../../shared/constants/domain.constants';
+import {LOGIN_ADMIN_PANEL_DOMAIN, } from '../../shared/constants/domain.constants';
 
 declare const google: any;
 
@@ -45,7 +45,7 @@ export class LoginComponent implements OnInit{
     google.accounts.id.initialize({
       client_id:
         '385039775654-deso4nja1vond0f98j0p4vic6uvt91su.apps.googleusercontent.com',
-      hosted_domain: EMAIL_DOMAIN,
+      hosted_domain: LOGIN_ADMIN_PANEL_DOMAIN,
       callback: (response: any) => this.handleCredentialResponse(response),
     });
     google.accounts.id.renderButton(
