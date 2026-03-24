@@ -191,7 +191,7 @@ class DemoDetail(Base):
     manager_title = Column(String(100), nullable=True)
     rep_role = Column(String(100), nullable=True)
     rep_department = Column(String(50), nullable=True)
-    ParentBugID = Column(String(255), nullable=True)
+    parent_bug_id = Column(String(255), nullable=True)
 
 class OrganizationUnits(Base):
     __tablename__ = "organization_units"

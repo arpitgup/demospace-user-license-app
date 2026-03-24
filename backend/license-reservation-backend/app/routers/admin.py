@@ -1214,7 +1214,7 @@ def get_onboarded_demo_details(db: Session = Depends(get_db)):
             saas_applications=demo_record.saas_applications,
             organization_unit=demo_record.organization_unit,
             representative_profile=representative_profile_out,
-            ParentBugID=demo_record.ParentBugID,
+            parent_bug_id=demo_record.parent_bug_id,
         )
         output_list.append(demo_details_out)
     return output_list
