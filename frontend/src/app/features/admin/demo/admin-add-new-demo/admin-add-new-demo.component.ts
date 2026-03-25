@@ -35,6 +35,7 @@ import { DEMOCONSTANTS } from '../demo.constants';
 import {
   MANAGER_EMAIL_VALIDATION,
   NAME_VALIDATION,
+  PARENT_BUG_VALIDATION,
 } from '../../../../../utilities/utils';
 
 @Component({
@@ -103,7 +104,11 @@ export class AdminAddNewDemoComponent implements OnInit {
     ],
     [this.MANAGER_TITLE_FORM]: [''],
     [this.REP_ROLE_FORM]: [''],
-    [this.PARENT_BUG_ID_FORM]: ['', Validators.required],
+    [this.PARENT_BUG_ID_FORM]: [
+      '',
+      Validators.required,
+      // Validators.pattern(PARENT_BUG_VALIDATION),
+    ],
     [this.REP_DEPARTMENT_FORM]: [''],
   });
   @Output() demoOnBoardSuccess = new EventEmitter();
@@ -227,6 +232,8 @@ export class AdminAddNewDemoComponent implements OnInit {
 
       rep_department:
         this.addDemoForm.get(this.REP_DEPARTMENT_FORM)?.value?.trim() || '',
+      parent_bug_id:
+        this.addDemoForm.get(this.PARENT_BUG_ID_FORM)?.value?.trim() || '',
     };
     this.demoService.createNewDemo(payload).subscribe({
       next: () => {

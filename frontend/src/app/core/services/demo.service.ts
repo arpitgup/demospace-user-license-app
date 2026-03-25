@@ -87,6 +87,7 @@ export class DemoService {
               rep_role: res.rep_role,
               rep_department: res.rep_department,
               org_unit: res.organization_unit,
+              parent_bug_id:res.parent_bug_id
             },
           };
 
