@@ -24,8 +24,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { ErrorMessage } from '../../../../shared/components/error-message/error-message';
 import {
-  ADMIN_USER_RESERVATION_EMAIL_VALIDATION,
-  NAME_VALIDATION,
   ORG_UNIT_VALIDATION,
 } from '../../../../../utilities/utils';
 

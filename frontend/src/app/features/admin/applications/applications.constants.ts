@@ -1,3 +1,5 @@
+import { VALIDATION_DEV_EMAIL_DOMAIN } from "../../../shared/constants/domain.constants";
+
 export const ApplicationsConstants = {
   SEARCH_BY_APPLICATION: 'Search by application',
   SEARCH_BY_LICENSE_TYPE: 'Search by license type',
@@ -27,7 +29,7 @@ export const ApplicationsConstants = {
   PLATFORM_GROUP_EMAIL: 'Platform Group Email',
   PLATFORM_GROUP_EMAIL_REQUIRED: 'Platform group email required',
   APPLICATION_EMAIL_NOT_VALID:
-    'Email not valid. 1987984870407.altostrat.com email',
+    `Email not valid. ${VALIDATION_DEV_EMAIL_DOMAIN} email`,
   CUSTOM_SAML_REQUIRED: 'Custom saml attribute required',
   CUSTOM_VALIDATION_ERROR:
     'Application name not valid. Only characters allowed',

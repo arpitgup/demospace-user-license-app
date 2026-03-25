@@ -35,10 +35,3 @@ class UserValidationMiddleware(BaseHTTPMiddleware):
             response.headers["Access-Control-Allow-Origin"]="*"
             return response
 
-# This is not required as now we are directly getting useremail from IAP & constructing user email for there only.
-# def is_agentspace_demo_user(email: str, request: Request) -> bool:
-#     if request.url.path.startswith("/admin") or request.url.path.startswith("/applications"):
-#         return "@1987984870407.altostrat.com" in email
-#     else:
-#         return "-agentspace-demo-user@1987984870407.altostrat.com" in email
-
