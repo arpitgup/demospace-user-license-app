@@ -127,7 +127,7 @@ export class UpdateDemoDialog implements OnInit {
       this.data.demoDetails.representative_profile.manager_title || '',
     ],
     [this.PARENT_BUG_ID_FORM]: [
-      this.data.demoDetails.representative_profile.parent_bug_id,
+      this.data.demoDetails.parent_bug_id || '',
       Validators.required,
       // Validators.pattern(PARENT_BUG_VALIDATION),
     ],
@@ -234,7 +234,10 @@ export class UpdateDemoDialog implements OnInit {
       rep_department:
         this.updateDemoForm.get(this.REP_DEPARTMENT_FORM)?.value?.trim() || '',
       parent_bug_id:
-        this.updateDemoForm.get(this.PARENT_BUG_ID_FORM)?.value?.trim() || '',
+        this.updateDemoForm
+          .get(this.PARENT_BUG_ID_FORM)
+          ?.value?.toString()
+          ?.trim() || '',
     };
     this.demoService
       .updateOnBoardDemo(payload, this.data.demoDetails.demo_id)

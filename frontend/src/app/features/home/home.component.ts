@@ -203,7 +203,7 @@ export class HomeComponent implements OnInit {
         this.demoDetails()?.demo_title?.replaceAll(' ', '%20') || ''
       }&assignee=cloud-demo-platform-support@google.com&cc=${
         this.userDetails()?.secondary_email
-      }&customFields=1232889%3A${this.demoDetails()?.demo_id || ''}&parentIssueId=${this.demoDetails()?.representative_profile?.parent_bug_id || ''}`;
+      }&customFields=1232889%3A${this.demoDetails()?.demo_id || ''}&parentIssueId=${this.demoDetails()?.parent_bug_id || ''}`;
       window.open(feedbackUrl, '_blank', 'noopener noreferrer');
       return;
     }

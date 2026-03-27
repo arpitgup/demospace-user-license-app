@@ -39,30 +39,30 @@ export class DemoService {
               applications: [],
             };
           });
-        })
+        }),
       );
   }
 
   fetchAllOrganizations(): Observable<OrganizationUnit[]> {
     return this.http.get<OrganizationUnit[]>(
-      `${this.apiUrl}/admin/organization/list_organization_units`
+      `${this.apiUrl}/admin/organization/list_organization_units`,
     );
   }
 
   createNewDemo(payload: OnBoardNewDemoRequest): Observable<DemoDetails> {
     return this.http.post<DemoDetails>(
       `${this.apiUrl}/admin/onboard_new_demo`,
-      payload
+      payload,
     );
   }
   updateOnBoardDemo(
     payload: UpdateDemoRequest,
-    demoId: string
+    demoId: string,
   ): Observable<DemoDetails> {
     return this.http
       .patch<UpdateDemoDetails>(
         `${this.apiUrl}/admin/update-onboarded-demos/${demoId}`,
-        payload
+        payload,
       )
       .pipe(
         map((res) => {
@@ -79,6 +79,7 @@ export class DemoService {
             applicationIds: [],
             applications: [],
             isEdit: false,
+            parent_bug_id: res.parent_bug_id,
             representative_profile: {
               cost_centre: res.cost_centre,
               manager_name: res.manager_name,
@@ -87,7 +88,6 @@ export class DemoService {
               rep_role: res.rep_role,
               rep_department: res.rep_department,
               org_unit: res.organization_unit,
-              parent_bug_id:res.parent_bug_id
             },
           };
 
@@ -101,16 +101,16 @@ export class DemoService {
                 : [],
             applications: [],
           };
-        })
+        }),
       );
   }
 
   createNewOrganization(
-    payload: AddOrgUnitRequest
+    payload: AddOrgUnitRequest,
   ): Observable<AddOrgUnitResponse> {
     return this.http.post<AddOrgUnitResponse>(
       `${this.apiUrl}/admin/organization-units`,
-      payload
+      payload,
     );
   }
 }

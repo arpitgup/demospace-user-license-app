@@ -233,7 +233,7 @@ export class AdminAddNewDemoComponent implements OnInit {
       rep_department:
         this.addDemoForm.get(this.REP_DEPARTMENT_FORM)?.value?.trim() || '',
       parent_bug_id:
-        this.addDemoForm.get(this.PARENT_BUG_ID_FORM)?.value?.trim() || '',
+        this.addDemoForm.get(this.PARENT_BUG_ID_FORM)?.value?.toString()?.trim() || '',
     };
     this.demoService.createNewDemo(payload).subscribe({
       next: () => {

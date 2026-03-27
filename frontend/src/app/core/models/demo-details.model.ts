@@ -13,6 +13,7 @@ export interface DemoDetails {
   applicationIds: number[];
   organization_unit: string;
   isEdit: boolean;
+  parent_bug_id: string;
   representative_profile: RepresentativeProfile;
 }
 
@@ -24,5 +25,4 @@ interface RepresentativeProfile {
   rep_role: string;
   rep_department: string;
   org_unit: string;
-  parent_bug_id: string;
 }
