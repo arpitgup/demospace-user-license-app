@@ -154,12 +154,8 @@ async def create_user_in_workspace(
         "relations": [{
             "type": "manager",
             "value": req.managerEmail
-        }],
-        "customSchemas": {
-            "Third_Party_App_Identifier": {
-                "ThirdPartyAppIdentifier": employee_id
-            }
-        }
+        }            
+        ],
     }
     
     if req.managerEmail is None:
@@ -362,7 +358,6 @@ async def update_user_profile(
 
     try:
         existing_user = admin_service.get_user_details(primary_email)
-        employeeID = existing_user.get("externalIds", [{}])[0].get("value", None)
         
         updated_user_info = {
             "name": {
@@ -385,13 +380,6 @@ async def update_user_profile(
             }],
         }
         
-        if employeeID:
-            updated_user_info["customSchemas"] = {
-                "Third_Party_App_Identifier": {
-                    "ThirdPartyAppIdentifier": employeeID
-                }
-            }
-        
         payload = {k: v for k, v in updated_user_info.items() if v is not None}
         
         if req.managerEmail is None:
@@ -400,6 +388,7 @@ async def update_user_profile(
         # Update user profile
         updated_profile = admin_service.update_user_profile_with_new_info(primary_email, payload)
 
+        employeeID = existing_user.get("externalIds", [{}])[0].get("value", None)
         first_name = updated_profile.get("name", {}).get("givenName")
         last_name = updated_profile.get("name", {}).get("familyName")
         user_name = updated_profile.get("name", {}).get("fullName")
