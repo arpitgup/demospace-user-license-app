@@ -365,7 +365,7 @@ class UpdateUserProfileRequestResponse(BaseModel):
     jobTitle: Optional[str] = None
     costCenter: Optional[str] = None
     demoName: Optional[str] = None
-    managerEmail: Optional[EmailStr] = None
+    managerEmail: Optional[str] = None
     employeeID: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
