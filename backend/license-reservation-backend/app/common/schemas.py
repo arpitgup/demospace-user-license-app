@@ -309,7 +309,7 @@ class CheckUserInWorkspaceResponse(BaseModel):
     department: Optional[str] = None
     orgUnitPath: Optional[str]
     demoName: Optional[str] = None
-    managerEmail: str = None
+    managerEmail: Optional[str] = None
     employeeID: Optional[str] = None
 
 class CreateUserRequest(BaseModel):
@@ -323,7 +323,7 @@ class CreateUserRequest(BaseModel):
     department: str
     orgUnitPath: str
     demoName: str
-    managerEmail: str = None
+    managerEmail: Optional[str] = None
 
 class CreateUserResponse(BaseModel):
     """Schema for /create_user endpoint."""
@@ -337,7 +337,7 @@ class CreateUserResponse(BaseModel):
     department: Optional[str] = None
     orgUnitPath: Optional[str]
     demoName: Optional[str] = None
-    managerEmail: str = None
+    managerEmail: Optional[str] = None
     employeeID: Optional[str] = None
     password: str
 
@@ -352,7 +352,7 @@ class ResetPasswordResponse(BaseModel):
     department: Optional[str] = None
     orgUnitPath: Optional[str]
     demoName: Optional[str] = None
-    managerEmail: str = None
+    managerEmail: Optional[str] = None
     employeeID: Optional[str] = None
     password: str
 
