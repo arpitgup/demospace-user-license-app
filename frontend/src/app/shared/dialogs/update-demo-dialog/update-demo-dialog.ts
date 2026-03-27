@@ -25,7 +25,7 @@ import { OrganizationUnit } from '../../../core/models/organization-unit.model';
 import {
   MANAGER_EMAIL_VALIDATION,
   NAME_VALIDATION,
-  PARENT_BUG_VALIDATION,
+  OLD_MANAGER_EMAIL_VALIDATION,
 } from '../../../../utilities/utils';
 import { ErrorDialog } from '../error-dialog/error-dialog';
 import { DemoOnBoardingEnum } from '../../../enums/admin-demo-onboarding.enums';
@@ -121,7 +121,11 @@ export class UpdateDemoDialog implements OnInit {
     [this.MANAGER_EMAIL_FORM]: [
       this.data.demoDetails.representative_profile.manager_email || '',
 
-      [Validators.email, Validators.pattern(MANAGER_EMAIL_VALIDATION)],
+      [
+        Validators.email,
+        Validators.pattern(MANAGER_EMAIL_VALIDATION),
+        Validators.pattern(OLD_MANAGER_EMAIL_VALIDATION),
+      ],
     ],
     [this.MANAGER_TITLE_FORM]: [
       this.data.demoDetails.representative_profile.manager_title || '',

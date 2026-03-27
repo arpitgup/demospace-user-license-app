@@ -282,6 +282,9 @@ export const ORG_UNIT_VALIDATION = /^\/.*/;
 export const MANAGER_EMAIL_VALIDATION = new RegExp(
   `^[a-zA-Z0-9.-]+${EMAIL_DOMAIN}\\s*$`,
 );
+export const OLD_MANAGER_EMAIL_VALIDATION = new RegExp(
+  `^[a-zA-Z0-9.-]+${DEV_EMAIL_DOMAIN}\\s*$`,
+);
 export const PARENT_BUG_VALIDATION = new RegExp(
   '^b\\/\\d+$',
 );
