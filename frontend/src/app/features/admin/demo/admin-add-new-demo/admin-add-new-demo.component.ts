@@ -35,8 +35,6 @@ import { DEMOCONSTANTS } from '../demo.constants';
 import {
   MANAGER_EMAIL_VALIDATION,
   NAME_VALIDATION,
-  OLD_MANAGER_EMAIL_VALIDATION,
-  PARENT_BUG_VALIDATION,
 } from '../../../../../utilities/utils';
 
 @Component({
@@ -104,7 +102,6 @@ export class AdminAddNewDemoComponent implements OnInit {
       [
         Validators.email,
         Validators.pattern(MANAGER_EMAIL_VALIDATION),
-        Validators.pattern(OLD_MANAGER_EMAIL_VALIDATION),
       ],
     ],
     [this.MANAGER_TITLE_FORM]: [''],

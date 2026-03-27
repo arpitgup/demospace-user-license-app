@@ -100,5 +100,5 @@ export const DEMOCONSTANTS = {
   PARENT_BUG_ID: 'Parent Submission Bug ID',
   PARENT_BUG_ID_REQUIRED: 'Parent Bug ID required',
   INVALID_PARENT_BUG_ID: 'Invalid Parent Bug ID, bug id should start with b/',
-  MANAGER_EMAIL_NOT_VALID: `Email not valid. ${VALIDATION_EMAIL_DOMAIN} or ${VALIDATION_DEV_EMAIL_DOMAIN} email required`,
+  MANAGER_EMAIL_NOT_VALID: 'Email not valid',
 };

@@ -42,8 +42,7 @@ export const UpdateDemoConstants = {
     '3p Apps should not be empty if license reservation is enabled',
   INVALID_ORG_UNIT: 'Organization unit should starts with /',
   EMAIL_NOT_VALID: 'Email not valid. Agentspace-demo-user email required',
-  MANAGER_EMAIL_NOT_VALID: `Email not valid. ${VALIDATION_EMAIL_DOMAIN} or ${VALIDATION_DEV_EMAIL_DOMAIN} email required`,
-
+  MANAGER_EMAIL_NOT_VALID: 'Email not valid',
   SOMETHING_WENT_WRONG: 'Something went wrong',
   ADD: 'Add',
   CANCEL: 'Cancel',
