@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import {
+  CHAT_SPACE_URL,
   DEMO_PAGE_URL,
   MANAGE_PROFILE_INSTRUCTIONS_URL,
 } from '../../shared/constants/links.contants';
@@ -16,6 +17,7 @@ import { AppInstructions } from '../../core/models/app-instructions.model';
 export class NewUserComponent {
   manageProfileLink = MANAGE_PROFILE_INSTRUCTIONS_URL;
   demoPageUrl = DEMO_PAGE_URL;
+  chatSpaceUrl = CHAT_SPACE_URL;
   loginSteps: AppInstructions[] = [
     {
       id: 1,

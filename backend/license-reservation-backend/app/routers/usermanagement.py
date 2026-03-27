@@ -83,7 +83,8 @@ async def get_user_details(
     primary_email = user_email
     
     try:
-        user_details = admin_service.get_user(primary_email)        
+        # primary_email is always 'ldap@demospace.altostrat.com'
+        user_details = admin_service.get_user(primary_email)
         if not user_details:
             return JSONResponse(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -120,8 +121,11 @@ async def create_user_in_workspace(
     """Create User API."""
     
     password = generate_random_password()
-    employee_id = generate_employee_id()
-    
+
+    # Get LDAP from email to create Unique EMP ID
+    ldap = req.primary_email.split('@')[0]
+    employee_id = f"{ldap}-{generate_employee_id()}"
+
     user_info = {
         "name": {
             "givenName": req.first_name,

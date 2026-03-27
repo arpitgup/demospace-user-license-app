@@ -14,4 +14,5 @@ export interface OnBoardNewDemoRequest {
   manager_title: string;
   rep_role: string;
   rep_department: string;
+  parent_bug_id:string;
 }

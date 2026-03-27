@@ -71,19 +71,30 @@
             </div>
           }
         </div>
-        <h5 class="desc-note-wrapper">
-          Important Note : User ID/email has changed but their user profile, reservations, and
-          application activities remain the same,<br />
-          confirming they are not a new user'.Please see
-          <a
-            [href]="goDemoUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="link-wrapper"
-            >link</a
-          >
-          for more information.
-        </h5>
+
+        <div class="note-container">
+          <div class="note-wrapper">
+            <div class="info-wrapper">
+              <mat-icon class="info-icon">info</mat-icon>
+              <h2>Important:</h2>
+            </div>
+            <p>
+              <b>Note : </b>
+              <a [href]="goDemoUrl" target="_blank" rel="noopener noreferrer"
+                >go/demos</a
+              >
+              hosting service is now called <b>DemoSpace!</b> Your user has a
+              new email address. Please see
+              <a
+                [href]="demospaceInfoUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                >go/demospace-info
+              </a>
+              for important changes.
+            </p>
+          </div>
+        </div>
         <h5 class="desc-wrapper">
           Forgot password? Click the Reset Password button below to reset your
           demo user credentials.

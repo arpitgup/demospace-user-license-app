@@ -92,4 +92,7 @@ export const DEMOCONSTANTS = {
   RESERVATION: 'Reservation',
   DEMO_USER_PROFILE: 'Demo User Profile',
   DEMO_META_DATA: 'Demo Metadata',
+  PARENT_BUG_ID:'Parent Submission Bug ID',
+  PARENT_BUG_ID_REQUIRED:'Parent Bug ID required',
+  INVALID_PARENT_BUG_ID:'Invalid Parent Bug ID, bug id should start with b/',
 };

@@ -256,31 +256,76 @@
           letter-spacing: 0.03rem;
           line-height: 1.8rem;
         }
-        .desc-note-wrapper {
-          color: rgba(0, 0, 0, 0.9);
-          font-family: Roboto;
-          font-size: 1rem;
-          font-style: normal;
-          font-weight: 500;
+        .note-container {
+          display: flex;
+          flex: 1;
+          width: 100%;
+          align-items: start;
+          justify-content: start;
           margin-top: 1.2rem;
-          letter-spacing: 0.03rem;
-          line-height: 1.8rem;
-          a {
-            white-space: normal;
-            overflow: hidden;
-            display: inline-block;
-            vertical-align: middle;
-            color: rgba(0, 0, 255, 0.5);
-          }
-          .link-wrapper {
-            word-break: normal;
-            overflow-wrap: normal;
-            hyphens: none;
-            font-size: 1.2rem;
-            font-family: Roboto;
-            font-style: normal;
-            font-weight: 400;
-            letter-spacing: 0.02rem;
+          .note-wrapper {
+            display: flex;
+            flex-direction: column;
+            padding: 1rem 1.2rem;
+            border-radius: 0.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(190, 191, 192, 0.5);
+            background: #fff;
+            align-items: start;
+            width: fit-content;
+            gap: 0;
+            .info-wrapper {
+              display: flex;
+              align-items: start;
+              justify-content: start;
+              flex-direction: row;
+              .info-icon {
+                color: rgba(0, 0, 255, 0.5);
+                font-size: 1.8rem;
+                width: 2.2rem;
+                height: 1.7rem;
+                padding: 0;
+                margin: 0;
+              }
+              h2 {
+                margin: 0;
+                padding: 0;
+                font-size: 1.4rem;
+                color: rgba(0, 0, 255, 0.5);
+                font-family: Roboto;
+                font-style: normal;
+                font-weight: 500;
+                letter-spacing: 0.02rem;
+                text-align: center;
+                font-style: italic;
+              }
+            }
+            p {
+              margin: 0;
+              padding: 0;
+              padding-top: 0.5rem;
+              font-size: 1.1rem;
+              color: #000000;
+              font-family: Roboto;
+              font-style: italic;
+              font-weight: 400;
+              letter-spacing: 0.02rem;
+              text-align: start;
+              .link-wrapper {
+                margin: 0;
+                padding: 0;
+                padding-top: 0.5rem;
+                font-size: 1.1rem;
+                color: rgb(0, 0, 255, 0.5);
+                font-family: Roboto;
+                font-style: italic;
+                font-weight: 400;
+                letter-spacing: 0.02rem;
+                text-align: start;
+                cursor: pointer;
+                text-decoration: underline;
+              }
+            }
           }
         }
         .sized-box-password {

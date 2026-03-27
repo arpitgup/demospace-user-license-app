@@ -35,6 +35,7 @@ import { DEMOCONSTANTS } from '../demo.constants';
 import {
   MANAGER_EMAIL_VALIDATION,
   NAME_VALIDATION,
+  PARENT_BUG_VALIDATION,
 } from '../../../../../utilities/utils';
 
 @Component({
@@ -71,6 +72,7 @@ export class AdminAddNewDemoComponent implements OnInit {
   readonly MANAGER_EMAIL_FORM = 'manage_email_form';
   readonly MANAGER_TITLE_FORM = 'manager_title';
   readonly REP_ROLE_FORM = 'rep_role_form';
+  readonly PARENT_BUG_ID_FORM = 'parent_bug_id_form';
   readonly REP_DEPARTMENT_FORM = 'rep_department_form';
   readonly featureLicenseApp = signal<boolean>(false);
   readonly adminApplications = signal<Application[]>([]);
@@ -93,23 +95,21 @@ export class AdminAddNewDemoComponent implements OnInit {
     ],
     [this.DEMO_APPLICATION_FORM]: [''],
     [this.ORGANIZARION_UNIT_FORM]: ['', Validators.required],
-    [this.COST_CENTRE_FORM]: ['', Validators.required],
-    [this.MANAGER_NAME_FORM]: [
-      '',
-      [Validators.required, Validators.pattern(NAME_VALIDATION)],
-    ],
+    [this.COST_CENTRE_FORM]: [''],
+    [this.MANAGER_NAME_FORM]: ['', [Validators.pattern(NAME_VALIDATION)]],
     [this.MANAGER_EMAIL_FORM]: [
       '',
 
-      [
-        Validators.required,
-        Validators.email,
-        Validators.pattern(MANAGER_EMAIL_VALIDATION),
-      ],
+      [Validators.email, Validators.pattern(MANAGER_EMAIL_VALIDATION)],
     ],
-    [this.MANAGER_TITLE_FORM]: ['', Validators.required],
-    [this.REP_ROLE_FORM]: ['', Validators.required],
-    [this.REP_DEPARTMENT_FORM]: ['', Validators.required],
+    [this.MANAGER_TITLE_FORM]: [''],
+    [this.REP_ROLE_FORM]: [''],
+    [this.PARENT_BUG_ID_FORM]: [
+      '',
+      Validators.required,
+      // Validators.pattern(PARENT_BUG_VALIDATION),
+    ],
+    [this.REP_DEPARTMENT_FORM]: [''],
   });
   @Output() demoOnBoardSuccess = new EventEmitter();
 
@@ -133,10 +133,10 @@ export class AdminAddNewDemoComponent implements OnInit {
       error: (error) => {
         this.loaderService.hide();
         this.applicationErrorMessage.set(
-          error?.error?.detail || 'Something went wrong'
+          error?.error?.detail || 'Something went wrong',
         );
         this.errorMessage.update(
-          () => error?.error?.detail || 'Something went wrong'
+          () => error?.error?.detail || 'Something went wrong',
         );
       },
     });
@@ -153,13 +153,13 @@ export class AdminAddNewDemoComponent implements OnInit {
           ...item,
           isSelected: app.id === item.id ? true : item.isSelected,
         };
-      })
+      }),
     );
   }
 
   removeApp(app: Application) {
     this.selectedApplications.set(
-      this.selectedApplications().filter((item) => item.id != app.id)
+      this.selectedApplications().filter((item) => item.id != app.id),
     );
     this.addDemoForm
       .get(this.DEMO_APPLICATION_FORM)
@@ -170,7 +170,7 @@ export class AdminAddNewDemoComponent implements OnInit {
           ...item,
           isSelected: app.id === item.id ? false : item.isSelected,
         };
-      })
+      }),
     );
   }
 
@@ -190,14 +190,14 @@ export class AdminAddNewDemoComponent implements OnInit {
       return;
     }
     const selectedApplicationIds = this.selectedApplications().map(
-      (item) => item.id
+      (item) => item.id,
     );
     if (
       this.selectedApplications().length <= 0 &&
       this.featureLicenseApp() === true
     ) {
       this.showErrorDialog(
-        this.demoConstants.SAAS_APPLICATION_SHOULD_NOT_BE_EMPTY
+        this.demoConstants.SAAS_APPLICATION_SHOULD_NOT_BE_EMPTY,
       );
       return;
     }
@@ -232,6 +232,8 @@ export class AdminAddNewDemoComponent implements OnInit {
 
       rep_department:
         this.addDemoForm.get(this.REP_DEPARTMENT_FORM)?.value?.trim() || '',
+      parent_bug_id:
+        this.addDemoForm.get(this.PARENT_BUG_ID_FORM)?.value?.trim() || '',
     };
     this.demoService.createNewDemo(payload).subscribe({
       next: () => {
@@ -239,7 +241,7 @@ export class AdminAddNewDemoComponent implements OnInit {
       },
       error: (error) => {
         this.showErrorDialog(
-          error.error.detail || this.demoConstants.SOMETHING_WENT_WRONG
+          error.error.detail || this.demoConstants.SOMETHING_WENT_WRONG,
         );
       },
     });

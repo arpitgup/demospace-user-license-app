@@ -25,8 +25,6 @@ import { forkJoin } from 'rxjs';
 import { ErrorDialog } from '../../../../shared/dialogs/error-dialog/error-dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { OnBoardNewDemoRequest } from '../../../../core/models/onboard-new-demo-request.model';
-import { UpdateDemoRequest } from '../../../../core/models/update-demo-request.model';
 import { OrganizationUnit } from '../../../../core/models/organization-unit.model';
 import { DemoOnBoardingEnum } from '../../../../enums/admin-demo-onboarding.enums';
 import { SuccessDialog } from '../../../../shared/dialogs/success-dialog/success-dialog';

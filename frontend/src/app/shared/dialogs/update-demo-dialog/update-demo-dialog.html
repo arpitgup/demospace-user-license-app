@@ -14,9 +14,11 @@
             [formControlName]="DEMO_TITLE_FORM"
             maxlength="200"
           />
-          @if(updateDemoForm.get(DEMO_TITLE_FORM)?.hasError('required')&&
-          updateDemoForm.get(DEMO_TITLE_FORM)?.touched){
-          <mat-error>{{ demoConstants.DEMO_TITLE_REQUIRED }}</mat-error>
+          @if (
+            updateDemoForm.get(DEMO_TITLE_FORM)?.hasError("required") &&
+            updateDemoForm.get(DEMO_TITLE_FORM)?.touched
+          ) {
+            <mat-error>{{ demoConstants.DEMO_TITLE_REQUIRED }}</mat-error>
           }
         </mat-form-field>
         <mat-form-field appearance="outline" class="custom-form-field">
@@ -27,9 +29,11 @@
             [formControlName]="DEMO_GROUP_EMAIL_FORM"
             maxlength="200"
           />
-          @if(updateDemoForm.get(DEMO_GROUP_EMAIL_FORM)?.hasError('required')&&
-          updateDemoForm.get(DEMO_GROUP_EMAIL_FORM)?.touched){
-          <mat-error>{{ demoConstants.DEMO_GROUP_EMAIL_REQUIRED }}</mat-error>
+          @if (
+            updateDemoForm.get(DEMO_GROUP_EMAIL_FORM)?.hasError("required") &&
+            updateDemoForm.get(DEMO_GROUP_EMAIL_FORM)?.touched
+          ) {
+            <mat-error>{{ demoConstants.DEMO_GROUP_EMAIL_REQUIRED }}</mat-error>
           }
         </mat-form-field>
       </div>
@@ -43,16 +47,24 @@
             [formControlName]="GEMINI_ENTERPRISE_APP_LINK_FORM"
             maxlength="400"
           />
-          @if(updateDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.hasError('required')&&
-          updateDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.touched){
-          <mat-error>{{
-            demoConstants.GEMINI_ENTERPRISE_APP_LINK_REQUIRED
-          }}</mat-error>
-          }@else if(updateDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.hasError('pattern')&&
-          updateDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.touched){
-          <mat-error>{{
-            demoConstants.INVALID_GEMINI_ENTERPRISE_APP_LINK
-          }}</mat-error>
+          @if (
+            updateDemoForm
+              .get(GEMINI_ENTERPRISE_APP_LINK_FORM)
+              ?.hasError("required") &&
+            updateDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.touched
+          ) {
+            <mat-error>{{
+              demoConstants.GEMINI_ENTERPRISE_APP_LINK_REQUIRED
+            }}</mat-error>
+          } @else if (
+            updateDemoForm
+              .get(GEMINI_ENTERPRISE_APP_LINK_FORM)
+              ?.hasError("pattern") &&
+            updateDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.touched
+          ) {
+            <mat-error>{{
+              demoConstants.INVALID_GEMINI_ENTERPRISE_APP_LINK
+            }}</mat-error>
           }
         </mat-form-field>
         <mat-form-field appearance="outline" class="custom-form-field">
@@ -63,9 +75,11 @@
             [formControlName]="DRIVE_FOLDER_LINK_FORM"
             maxlength="400"
           />
-          @if(updateDemoForm.get(DRIVE_FOLDER_LINK_FORM)?.hasError('pattern')&&
-          updateDemoForm.get(DRIVE_FOLDER_LINK_FORM)?.touched){
-          <mat-error>{{ demoConstants.INVALID_DRIVE_FOLDER_LINK }}</mat-error>
+          @if (
+            updateDemoForm.get(DRIVE_FOLDER_LINK_FORM)?.hasError("pattern") &&
+            updateDemoForm.get(DRIVE_FOLDER_LINK_FORM)?.touched
+          ) {
+            <mat-error>{{ demoConstants.INVALID_DRIVE_FOLDER_LINK }}</mat-error>
           }
         </mat-form-field>
       </div>
@@ -74,25 +88,29 @@
         <mat-form-field appearance="outline" class="custom-form-field">
           <mat-label>{{ demoConstants.ORGABNIZATION_UNIT }}</mat-label>
           <mat-select [formControlName]="ORGANIZARION_UNIT_FORM">
-            @for(orgUnit of organizationUnit(); track orgUnit.id){
-            <mat-option [value]="orgUnit.orgunitpath">
-              {{ orgUnit.orgunitpath }}
-            </mat-option>
+            @for (orgUnit of organizationUnit(); track orgUnit.id) {
+              <mat-option [value]="orgUnit.orgunitpath">
+                {{ orgUnit.orgunitpath }}
+              </mat-option>
             }
           </mat-select>
-          @if(updateDemoForm.get(ORGANIZARION_UNIT_FORM)?.hasError('required')&&
-          updateDemoForm.get(ORGANIZARION_UNIT_FORM)?.touched){
-          <mat-error>{{ demoConstants.ORGANIZATION_UNIT_REQUIRED }}</mat-error>
+          @if (
+            updateDemoForm.get(ORGANIZARION_UNIT_FORM)?.hasError("required") &&
+            updateDemoForm.get(ORGANIZARION_UNIT_FORM)?.touched
+          ) {
+            <mat-error>{{
+              demoConstants.ORGANIZATION_UNIT_REQUIRED
+            }}</mat-error>
           }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="custom-form-field">
           <mat-label>{{ demoConstants.STATUS }}</mat-label>
           <mat-select [formControlName]="ONBOARDING_STATUS">
-            @for(status of demoOnBoardingStatus; track $index){
-            <mat-option [value]="status">
-              {{ status }}
-            </mat-option>
+            @for (status of demoOnBoardingStatus; track $index) {
+              <mat-option [value]="status">
+                {{ status }}
+              </mat-option>
             }
           </mat-select>
         </mat-form-field>
@@ -106,29 +124,35 @@
           <input
             matInput
             type="number"
-            [placeholder]="demoConstants.COST_CENTRE + '*'"
+            [placeholder]="demoConstants.COST_CENTRE"
             [formControlName]="COST_CENTRE_FORM"
             maxlength="200"
           />
-          @if(updateDemoForm.get(COST_CENTRE_FORM)?.hasError('required')&&
-          updateDemoForm.get(COST_CENTRE_FORM)?.touched){
-          <mat-error>{{ demoConstants.COST_CENTRE_REQUIRED }}</mat-error>
+          @if (
+            updateDemoForm.get(COST_CENTRE_FORM)?.hasError("required") &&
+            updateDemoForm.get(COST_CENTRE_FORM)?.touched
+          ) {
+            <mat-error>{{ demoConstants.COST_CENTRE_REQUIRED }}</mat-error>
           }
         </mat-form-field>
         <mat-form-field appearance="outline" class="custom-form-field">
           <mat-label>{{ demoConstants.MANAGER_NAME }}</mat-label>
           <input
             matInput
-            [placeholder]="demoConstants.MANAGER_NAME + '*'"
+            [placeholder]="demoConstants.MANAGER_NAME"
             [formControlName]="MANAGER_NAME_FORM"
             maxlength="400"
           />
-          @if(updateDemoForm.get(MANAGER_NAME_FORM)?.hasError('required')&&
-          updateDemoForm.get(MANAGER_NAME_FORM)?.touched){
-          <mat-error>{{ demoConstants.MANAGER_NAME_REQUIRED }}</mat-error>
-          }@else if(updateDemoForm.get(MANAGER_NAME_FORM)?.hasError('pattern')&&
-          updateDemoForm.get(MANAGER_NAME_FORM)?.touched){
-          <mat-error>{{ demoConstants.INVALID_MANAGER_NAME }}</mat-error>
+          @if (
+            updateDemoForm.get(MANAGER_NAME_FORM)?.hasError("required") &&
+            updateDemoForm.get(MANAGER_NAME_FORM)?.touched
+          ) {
+            <mat-error>{{ demoConstants.MANAGER_NAME_REQUIRED }}</mat-error>
+          } @else if (
+            updateDemoForm.get(MANAGER_NAME_FORM)?.hasError("pattern") &&
+            updateDemoForm.get(MANAGER_NAME_FORM)?.touched
+          ) {
+            <mat-error>{{ demoConstants.INVALID_MANAGER_NAME }}</mat-error>
           }
         </mat-form-field>
       </div>
@@ -137,19 +161,25 @@
           <mat-label>{{ demoConstants.MANAGER_EMAIL }}</mat-label>
           <input
             matInput
-            [placeholder]="demoConstants.MANAGER_EMAIL + '*'"
+            [placeholder]="demoConstants.MANAGER_EMAIL"
             [formControlName]="MANAGER_EMAIL_FORM"
             maxlength="400"
           />
-          @if(updateDemoForm.get(MANAGER_EMAIL_FORM)?.hasError('required')&&
-          updateDemoForm.get(MANAGER_EMAIL_FORM)?.touched){
-          <mat-error>{{ demoConstants.MANAGER_EMAIL_REQUIRED }}</mat-error>
-          }@else if(updateDemoForm.get(MANAGER_EMAIL_FORM)?.hasError('email')&&
-          updateDemoForm.get(MANAGER_EMAIL_FORM)?.touched){
-          <mat-error>{{ demoConstants.INVALID_MANAGER_EMAIL }}</mat-error>
-          }@else if(updateDemoForm.get(MANAGER_EMAIL_FORM)?.hasError('pattern')&&
-          updateDemoForm.get(MANAGER_EMAIL_FORM)?.touched){
-          <mat-error>{{ demoConstants.EMAIL_NOT_VALID }}</mat-error>
+          @if (
+            updateDemoForm.get(MANAGER_EMAIL_FORM)?.hasError("required") &&
+            updateDemoForm.get(MANAGER_EMAIL_FORM)?.touched
+          ) {
+            <mat-error>{{ demoConstants.MANAGER_EMAIL_REQUIRED }}</mat-error>
+          } @else if (
+            updateDemoForm.get(MANAGER_EMAIL_FORM)?.hasError("email") &&
+            updateDemoForm.get(MANAGER_EMAIL_FORM)?.touched
+          ) {
+            <mat-error>{{ demoConstants.INVALID_MANAGER_EMAIL }}</mat-error>
+          } @else if (
+            updateDemoForm.get(MANAGER_EMAIL_FORM)?.hasError("pattern") &&
+            updateDemoForm.get(MANAGER_EMAIL_FORM)?.touched
+          ) {
+            <mat-error>{{ demoConstants.EMAIL_NOT_VALID }}</mat-error>
           }
         </mat-form-field>
 
@@ -157,13 +187,15 @@
           <mat-label>{{ demoConstants.MANAGER_TITLE }}</mat-label>
           <input
             matInput
-            [placeholder]="demoConstants.MANAGER_TITLE + '*'"
+            [placeholder]="demoConstants.MANAGER_TITLE"
             [formControlName]="MANAGER_TITLE_FORM"
             maxlength="400"
           />
-          @if(updateDemoForm.get(MANAGER_TITLE_FORM)?.hasError('required')&&
-          updateDemoForm.get(MANAGER_TITLE_FORM)?.touched){
-          <mat-error>{{ demoConstants.MANAGER_TITLE_REQUIRED }}</mat-error>
+          @if (
+            updateDemoForm.get(MANAGER_TITLE_FORM)?.hasError("required") &&
+            updateDemoForm.get(MANAGER_TITLE_FORM)?.touched
+          ) {
+            <mat-error>{{ demoConstants.MANAGER_TITLE_REQUIRED }}</mat-error>
           }
         </mat-form-field>
       </div>
@@ -174,13 +206,15 @@
 
           <input
             matInput
-            [placeholder]="demoConstants.REP_ROLE + '*'"
+            [placeholder]="demoConstants.REP_ROLE"
             [formControlName]="REP_ROLE_FORM"
             maxlength="400"
           />
-          @if(updateDemoForm.get(REP_ROLE_FORM)?.hasError('required')&&
-          updateDemoForm.get(REP_ROLE_FORM)?.touched){
-          <mat-error>{{ demoConstants.REP_ROLE_REQUIRED }}</mat-error>
+          @if (
+            updateDemoForm.get(REP_ROLE_FORM)?.hasError("required") &&
+            updateDemoForm.get(REP_ROLE_FORM)?.touched
+          ) {
+            <mat-error>{{ demoConstants.REP_ROLE_REQUIRED }}</mat-error>
           }
         </mat-form-field>
 
@@ -188,13 +222,40 @@
           <mat-label>{{ demoConstants.REP_DEPARTMENT }}</mat-label>
           <input
             matInput
-            [placeholder]="demoConstants.REP_DEPARTMENT + '*'"
+            [placeholder]="demoConstants.REP_DEPARTMENT"
             [formControlName]="REP_DEPARTMENT_FORM"
             maxlength="400"
           />
-          @if(updateDemoForm.get(REP_DEPARTMENT_FORM)?.hasError('required')&&
-          updateDemoForm.get(REP_DEPARTMENT_FORM)?.touched){
-          <mat-error>{{ demoConstants.REP_DEPARTMENT_REQUIRED }}</mat-error>
+          @if (
+            updateDemoForm.get(REP_DEPARTMENT_FORM)?.hasError("required") &&
+            updateDemoForm.get(REP_DEPARTMENT_FORM)?.touched
+          ) {
+            <mat-error>{{ demoConstants.REP_DEPARTMENT_REQUIRED }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="demo-details-wrapper">
+        <mat-form-field appearance="outline" class="custom-form-field">
+          <mat-label>{{ demoConstants.PARENT_BUG_ID }}</mat-label>
+
+          <input
+            matInput
+            type="number"
+            [placeholder]="demoConstants.PARENT_BUG_ID + '*'"
+            [formControlName]="PARENT_BUG_ID_FORM"
+            maxlength="400"
+          />
+          @if (
+            updateDemoForm.get(PARENT_BUG_ID_FORM)?.hasError("required") &&
+            updateDemoForm.get(PARENT_BUG_ID_FORM)?.touched
+          ) {
+            <mat-error>{{ demoConstants.PARENT_BUG_ID_REQUIRED }}</mat-error>
+          } @else if (
+            updateDemoForm.get(PARENT_BUG_ID_FORM)?.hasError("pattern") &&
+            updateDemoForm.get(PARENT_BUG_ID_FORM)?.touched
+          ) {
+            <mat-error>{{ demoConstants.INVALID_PARENT_BUG_ID }}</mat-error>
           }
         </mat-form-field>
       </div>
@@ -211,16 +272,16 @@
         <div class="selected-chipbox">
           <mat-chip-set>
             @for (application of selectedApplications(); track application.id) {
-            <mat-chip
-              appearance="outlined"
-              removable
-              (removed)="removeApp(application)"
-            >
-              {{ application.name }}
-              <button matChipRemove type="button" aria-label="Remove">
-                <mat-icon>close</mat-icon>
-              </button>
-            </mat-chip>
+              <mat-chip
+                appearance="outlined"
+                removable
+                (removed)="removeApp(application)"
+              >
+                {{ application.name }}
+                <button matChipRemove type="button" aria-label="Remove">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </mat-chip>
             }
           </mat-chip-set>
         </div>
@@ -233,25 +294,25 @@
           class="application-input"
           [formControlName]="DEMO_APPLICATION_FORM"
         />
-        @if (selectedApplications().length===0) {
-        <mat-error>{{
-          demoConstants.AT_LEAST_ONE_APPLICATION_REQUIRED
-        }}</mat-error>
+        @if (selectedApplications().length === 0) {
+          <mat-error>{{
+            demoConstants.AT_LEAST_ONE_APPLICATION_REQUIRED
+          }}</mat-error>
         }
         <mat-hint>{{ demoConstants.PICK_ONE_MORE_APPS }}</mat-hint>
       </mat-form-field>
 
       <div class="pill-bank" role="list" aria-label="Available applications">
         @for (application of adminApplications(); track application.id) {
-        <button
-          type="button"
-          class="pill"
-          role="listitem"
-          [disabled]="application.isSelected === true ? true : false"
-          (click)="addApp(application)"
-        >
-          {{ application.name }}
-        </button>
+          <button
+            type="button"
+            class="pill"
+            role="listitem"
+            [disabled]="application.isSelected === true ? true : false"
+            (click)="addApp(application)"
+          >
+            {{ application.name }}
+          </button>
         }
       </div>
       <div class="show-license-checkbox-wrapper">

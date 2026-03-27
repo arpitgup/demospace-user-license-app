@@ -38,7 +38,10 @@ export const UpdateDemoConstants = {
   INVALID_ORG_UNIT: 'Organization unit should starts with /',
   EMAIL_NOT_VALID: 'Email not valid. Agentspace-demo-user email required',
   SOMETHING_WENT_WRONG: 'Something went wrong',
-  ADD:'Add',
-  CANCEL:'Cancel',
-  STATUS:'Status'
+  ADD: 'Add',
+  CANCEL: 'Cancel',
+  STATUS: 'Status',
+  PARENT_BUG_ID: 'Parent Submission Bug ID',
+  PARENT_BUG_ID_REQUIRED: 'Parent Bug ID required',
+  INVALID_PARENT_BUG_ID: 'Invalid Parent Bug ID, bug id should start with b/',
 };

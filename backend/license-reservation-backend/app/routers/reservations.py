@@ -2,7 +2,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status
 from loguru import logger
 from shared_lib.dependencies import get_user_email, get_user_current_time, get_db, get_app_config
 from typing import List
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from shared_lib.db.models import (
@@ -32,19 +32,31 @@ from ..utils.crud import is_user_in_cool_off, is_valid_reservation_lead_time, fo
 
 router = APIRouter()
 
-
 @router.get("/reservations", response_model=List[ReservationOut])
 def get_user_reservations(
     db: Session = Depends(get_db), user_email: str = Depends(get_user_email)
 ):
     """
-    Retrieves all reservations made by a specific user.
+    Retrieves all reservations for:
+    1. <ldap>@...
+    2. <ldap>-...
     """
-    reservations = (
-        db.query(Reservation).filter(Reservation.user_email == user_email).all()
-    )
-    return reservations
+    ldap = user_email.split("@")[0]
+    
+    # We have two valid patterns:
+    standard_prefix = f"{ldap}@"
+    legacy_prefix = f"{ldap}-"
 
+    reservations = (
+        db.query(Reservation).filter(
+            or_(
+                Reservation.user_email.startswith(standard_prefix),
+                Reservation.user_email.startswith(legacy_prefix)
+            )
+        ).all()
+    )
+    
+    return reservations
 
 @router.post(
     "/reservations",

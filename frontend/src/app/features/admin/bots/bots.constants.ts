@@ -1,3 +1,5 @@
+import { VALIDATION_DEV_EMAIL_DOMAIN } from "../../../shared/constants/domain.constants";
+
 export const BotsConstants = {
   CURRENT_BOT_TAB_LABEL: 'Current Bot Details',
   ADD_NEW_BOT_TAB_LABEL: 'Add New Bot',
@@ -19,7 +21,7 @@ export const BotsConstants = {
   BOT_NAME_REQUIRED: 'Bot name required',
   BOT_EMAIL_REQUIRED: 'Bot email required',
   BOT_EMAIL_NOT_VALID:
-    'Email not valid. 1987984870407.altostrat.com email required',
+    `Email not valid. ${VALIDATION_DEV_EMAIL_DOMAIN} email required`,
   ATLEAST_ONE_APPLICATION_REQUIRED: 'At least one application is required',
   PICK_ONE_MORE_APPS: 'Pick one or more apps',
   ADD: 'Add',

@@ -25,6 +25,7 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { concatMap, of } from 'rxjs';
 import { UserCreationService } from './core/services/user-creation.service';
 import { UserService } from './core/services/user.service';
+import { GOOGLE_EMAIL_DOMAIN } from './shared/constants/domain.constants';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -44,7 +45,7 @@ export const appConfig: ApplicationConfig = {
         }),
 
         concatMap(() => {
-          if (userDetailsService.userEmailInfo()?.includes('agentspace-demo')) {
+          if (userDetailsService.currentUser()?.email.includes(GOOGLE_EMAIL_DOMAIN)) {
             return userCreationService.getUserDetails();
           } else {
             return of(null);
