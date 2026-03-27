@@ -159,7 +159,7 @@ async def create_user_in_workspace(
         ],
     }
     
-    if req.managerEmail is None:
+    if not req.managerEmail:
         user_info["relations"] = []
 
     try:
@@ -383,7 +383,7 @@ async def update_user_profile(
         
         payload = {k: v for k, v in updated_user_info.items() if v is not None}
         
-        if req.managerEmail is None:
+        if not req.managerEmail:
             payload["relations"] = []
 
         # Update user profile
