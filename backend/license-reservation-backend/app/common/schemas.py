@@ -393,6 +393,7 @@ class DemoDetailOut(BaseModel):
     saas_applications: Optional[str]
     organization_unit: Optional[str]
     representative_profile: Optional[RepresentativeProfileOut]
+    parent_bug_id: Optional[str] = None
 
 class OnboardedDemoDetailsOut(BaseModel):
     demo_id: str
@@ -405,6 +406,7 @@ class OnboardedDemoDetailsOut(BaseModel):
     saas_applications: Optional[str]
     organization_unit: Optional[str]
     representative_profile: Optional[RepresentativeProfileOut]
+    parent_bug_id: Optional[str] = None
 
 class UpdateOnboardedDemoDetailsRequest(BaseModel):
     demo_title: str
@@ -421,6 +423,7 @@ class UpdateOnboardedDemoDetailsRequest(BaseModel):
     manager_title: Optional[str] = None
     rep_role: Optional[str] = None
     rep_department: Optional[str] = None
+    parent_bug_id: Optional[str] = None
 
 class UpdateOnboardedDemoDetailsResponse(BaseModel):
     demo_id: str
@@ -438,6 +441,7 @@ class UpdateOnboardedDemoDetailsResponse(BaseModel):
     manager_title: Optional[str] = None
     rep_role: Optional[str] = None
     rep_department: Optional[str] = None
+    parent_bug_id: Optional[str] = None
 
 class OnboardNewDemoRequestResponse(BaseModel):
     demo_id: str
@@ -455,6 +459,7 @@ class OnboardNewDemoRequestResponse(BaseModel):
     manager_title: Optional[str] = None
     rep_role: Optional[str] = None
     rep_department: Optional[str] = None
+    parent_bug_id: Optional[str] = None
 
 class OrganizationUnitCreateRequest(BaseModel):
     orgunitpath: str

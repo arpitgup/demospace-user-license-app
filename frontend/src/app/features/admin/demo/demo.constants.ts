@@ -1,3 +1,8 @@
+import {
+  VALIDATION_DEV_EMAIL_DOMAIN,
+  VALIDATION_EMAIL_DOMAIN,
+} from '../../../shared/constants/domain.constants';
+
 export const DEMOCONSTANTS = {
   ADD_NEW_DEMO: 'Add New Demo',
   DEMO_ID: 'Demo ID',
@@ -92,4 +97,8 @@ export const DEMOCONSTANTS = {
   RESERVATION: 'Reservation',
   DEMO_USER_PROFILE: 'Demo User Profile',
   DEMO_META_DATA: 'Demo Metadata',
+  PARENT_BUG_ID: 'Parent Submission Bug ID',
+  PARENT_BUG_ID_REQUIRED: 'Parent Bug ID required',
+  INVALID_PARENT_BUG_ID: 'Invalid Parent Bug ID, bug id should start with b/',
+  MANAGER_EMAIL_NOT_VALID: 'Email not valid',
 };
