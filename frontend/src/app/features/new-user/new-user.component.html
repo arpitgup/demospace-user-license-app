@@ -4,34 +4,41 @@
     go/demos.
   </h2>
   <h4>1. Follow the steps below to log in to the demo.</h4>
-  @for(loginData of loginSteps; track loginData.id){
-  <mat-accordion class="panel-wrapper">
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>
-        @if(loginData.id===1){
-        <mat-panel-title class="title">
-          Click on “Launch Live Application” from the demo page on&nbsp;
-          <a [href]="demoPageUrl" target="_blank" rel="noopener noreferrer">
-            go/demos.</a
-          >
-        </mat-panel-title>
-        }@else{
-        <mat-panel-title class="title"> {{ loginData.title }} </mat-panel-title>
+  @for (loginData of loginSteps; track loginData.id) {
+    <mat-accordion class="panel-wrapper">
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          @if (loginData.id === 1) {
+            <mat-panel-title class="title">
+              Click on “Launch Live Application” from the demo page on&nbsp;
+              <a [href]="demoPageUrl" target="_blank" rel="noopener noreferrer">
+                go/demos.</a
+              >
+            </mat-panel-title>
+          } @else {
+            <mat-panel-title class="title">
+              {{ loginData.title }}
+            </mat-panel-title>
+          }
+        </mat-expansion-panel-header>
+        @for (imageData of loginData.image; track $index) {
+          <img
+            [src]="imageData"
+            [alt]="loginData.title"
+            class="image-wrapper"
+          />
         }
-      </mat-expansion-panel-header>
-      @for(imageData of loginData.image; track $index){
-      <img [src]="imageData" [alt]="loginData.title" class="image-wrapper" />
-      } @if(loginData.footerText.length>0){
-      <div class="note-container">
-        <div class="note-wrapper">
-          <p>
-            {{ loginData.footerText[0] }}
-          </p>
-        </div>
-      </div>
-      }
-    </mat-expansion-panel>
-  </mat-accordion>
+        @if (loginData.footerText.length > 0) {
+          <div class="note-container">
+            <div class="note-wrapper">
+              <p>
+                {{ loginData.footerText[0] }}
+              </p>
+            </div>
+          </div>
+        }
+      </mat-expansion-panel>
+    </mat-accordion>
   }
 
   <h4>2. Existing/Returning Users</h4>
@@ -130,7 +137,12 @@
     </mat-expansion-panel>
   </mat-accordion>
 
-  <h4>6. Optional: Join demo chat space to stay connected.</h4>
+  <h4>
+    6. Optional: Join
+    <a [href]="chatSpaceUrl" target="_blank" rel="noopener noreferrer"
+      >demo chat space</a>
+    to stay connected.
+  </h4>
 
   <mat-accordion class="panel-wrapper">
     <mat-expansion-panel>
