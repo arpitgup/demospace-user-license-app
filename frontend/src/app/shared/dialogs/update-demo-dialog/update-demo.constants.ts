@@ -1,3 +1,8 @@
+import {
+  VALIDATION_DEV_EMAIL_DOMAIN,
+  VALIDATION_EMAIL_DOMAIN,
+} from '../../constants/domain.constants';
+
 export const UpdateDemoConstants = {
   UPDATE_DEMO: 'Update Demo',
   UPDATE_APPLICATIONS: 'Update Applications',
@@ -37,8 +42,12 @@ export const UpdateDemoConstants = {
     '3p Apps should not be empty if license reservation is enabled',
   INVALID_ORG_UNIT: 'Organization unit should starts with /',
   EMAIL_NOT_VALID: 'Email not valid. Agentspace-demo-user email required',
+  MANAGER_EMAIL_NOT_VALID: 'Email not valid',
   SOMETHING_WENT_WRONG: 'Something went wrong',
-  ADD:'Add',
-  CANCEL:'Cancel',
-  STATUS:'Status'
+  ADD: 'Add',
+  CANCEL: 'Cancel',
+  STATUS: 'Status',
+  PARENT_BUG_ID: 'Parent Submission Bug ID',
+  PARENT_BUG_ID_REQUIRED: 'Parent Bug ID required',
+  INVALID_PARENT_BUG_ID: 'Invalid Parent Bug ID, bug id should start with b/',
 };

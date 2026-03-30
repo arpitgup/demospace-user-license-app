@@ -19,6 +19,7 @@ import { BUGANIZER_URL } from '../../shared/constants/links.contants';
 import { HowToLoginComponent } from '../how-to-login/how-to-login.component';
 import { DemoOnBoardingEnum } from '../../enums/admin-demo-onboarding.enums';
 import { UserService } from '../../core/services/user.service';
+import { GOOGLE_EMAIL_DOMAIN } from '../../shared/constants/domain.constants';
 import { logInfo } from '../../../utilities/utils';
 import {
   QUERY_DEMO_ID,
@@ -141,7 +142,10 @@ export class HomeComponent implements OnInit {
         concatMap((demoDetailsResponse) => {
           this.demoDetails.update(() => demoDetailsResponse);
           const primaryEmail = sessionStorage.getItem('userEmail') ?? '';
-          const secondaryEmail = primaryEmail.replace(/-.*/, '@google.com');
+          const secondaryEmail = primaryEmail.replace(
+            /@.*/,
+            GOOGLE_EMAIL_DOMAIN,
+          );
           const request: UpdateUserRequest = {
             primary_email: primaryEmail,
             secondary_email: secondaryEmail,
@@ -208,7 +212,7 @@ export class HomeComponent implements OnInit {
         this.demoDetails()?.demo_title?.replaceAll(' ', '%20') || ''
       }&assignee=cloud-demo-platform-support@google.com&cc=${
         this.userDetails()?.secondary_email
-      }&customFields=1232889%3A${this.demoDetails()?.demo_id || ''}`;
+      }&customFields=1232889%3A${this.demoDetails()?.demo_id || ''}&parentIssueId=${this.demoDetails()?.parent_bug_id || ''}`;
       window.open(feedbackUrl, '_blank', 'noopener noreferrer');
       return;
     }

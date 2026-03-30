@@ -16,6 +16,7 @@ import { LoaderService } from '../../core/services/loading.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
 import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
+import { GOOGLE_EMAIL_DOMAIN } from '../../shared/constants/domain.constants';
 
 @Component({
   selector: 'app-user-details',
@@ -59,7 +60,7 @@ export class UserDetailsComponent {
     }
     this.loaderService.show();
     const primaryEmail = sessionStorage.getItem('userEmail') ?? '';
-    const secondaryEmail = primaryEmail.replace(/-.*/, '@google.com');
+    const secondaryEmail = primaryEmail.replace(/@.*/, GOOGLE_EMAIL_DOMAIN);
     const request: UpdateUserRequest = {
       primary_email: primaryEmail,
       secondary_email: secondaryEmail,

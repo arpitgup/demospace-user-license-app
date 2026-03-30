@@ -19,6 +19,7 @@ import { CreateUserRequest } from '../../core/models/create-user-request.model';
 import { LoaderService } from '../../core/services/loading.service';
 import { INVALID_DEMO_ID_MESSAGE } from '../../shared/constants/error.constants';
 import { UserService } from '../../core/services/user.service';
+import { GOOGLE_EMAIL_DOMAIN } from '../../shared/constants/domain.constants';
 import { logInfo } from '../../../utilities/utils';
 import {
   QUERY_DEMO_ID,
@@ -114,7 +115,7 @@ export class SignupUserComponent implements OnInit {
   }
   callCreateUserApi(res: DemoDetails) {
     const pimaryEmail = sessionStorage.getItem('userEmail') ?? '';
-    const secondaryEmail = pimaryEmail.replace(/-.*/, '@google.com');
+    const secondaryEmail = pimaryEmail.replace(/@.*/, GOOGLE_EMAIL_DOMAIN);
     const createUserRequest: CreateUserRequest = {
       primary_email: sessionStorage.getItem('userEmail') ?? '',
       secondary_email: secondaryEmail,
