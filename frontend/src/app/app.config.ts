@@ -1,11 +1,12 @@
 import {
   ApplicationConfig,
   inject,
+  PLATFORM_ID,
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
-import { ActivatedRoute, provideRouter, Router } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import {
   provideClientHydration,
@@ -31,6 +32,7 @@ import {
   QUERY_DEMO_ID,
   SESSIONS_DEMO_ID,
 } from './shared/constants/session.constants';
+import { isPlatformBrowser } from '@angular/common';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -42,6 +44,16 @@ export const appConfig: ApplicationConfig = {
     }),
     UserService,
     provideAppInitializer(() => {
+      const platformId = inject(PLATFORM_ID);
+      if (isPlatformBrowser(platformId)) {
+        const params = new URLSearchParams(window.location.search);
+        const demoId = params.get(QUERY_DEMO_ID) || '';
+        if (demoId !== '') {
+          sessionStorage.setItem(SESSIONS_DEMO_ID, demoId);
+        }
+        logInfo('appConfigdemoID=', demoId);
+      }
+
       const userDetailsService = inject(UserService);
       const userCreationService = inject(UserCreationService);
       return of(null).pipe(

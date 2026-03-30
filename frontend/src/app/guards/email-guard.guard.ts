@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import {
   ActivatedRoute,
   ActivatedRouteSnapshot,
@@ -15,6 +15,7 @@ import {
   QUERY_DEMO_ID,
   SESSIONS_DEMO_ID,
 } from '../shared/constants/session.constants';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root',
@@ -23,12 +24,13 @@ export class EmailGuard implements CanActivate {
   private userCreationService = inject(UserCreationService);
   private router = inject(Router);
   private userService = inject(UserService);
+  private platformId = inject(PLATFORM_ID);
   canActivate(route: ActivatedRouteSnapshot): Observable<boolean | UrlTree> {
     const userEmail = this.userService.currentUser()?.email || '';
-    const demoId =
-      route.queryParamMap.get(QUERY_DEMO_ID) ||
-      sessionStorage.getItem(SESSIONS_DEMO_ID) ||
-      '';
+    let demoId = route.queryParamMap.get(QUERY_DEMO_ID) ?? '';
+    if (isPlatformBrowser(this.platformId) && demoId === '') {
+      demoId = sessionStorage.getItem(SESSIONS_DEMO_ID) ?? '';
+    }
     logInfo('emailGuardDemoId=', demoId);
     if (userEmail?.includes(GOOGLE_EMAIL_DOMAIN)) {
       if (
