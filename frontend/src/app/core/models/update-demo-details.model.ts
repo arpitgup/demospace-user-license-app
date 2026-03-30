@@ -18,4 +18,5 @@ export interface UpdateDemoDetails {
   rep_role: string;
   rep_department: string;
   org_unit: string;
+  parent_bug_id:string;
 }

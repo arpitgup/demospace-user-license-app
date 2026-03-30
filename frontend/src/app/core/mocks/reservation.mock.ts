@@ -5,6 +5,7 @@ import { signal } from '@angular/core';
 import { Application } from '../models/application.model';
 import { AvalaibilityByApplication } from '../models/availability-by-application.model';
 import { MakeReservationResponse } from '../models/make-reservation-response.model';
+import { DEV_EMAIL_DOMAIN } from '../../shared/constants/domain.constants';
 
 export const MOCK_RESERVATIONS: Reservation[] = [
   {
@@ -472,7 +473,7 @@ export const mockCheckAvailaibilityByApplication: AvalaibilityByApplication = {
         {
           id: '1',
           name: 'demo.user1',
-          email: 'demo.user1@1987984870407.altostrat.com',
+          email: `demo.user1${DEV_EMAIL_DOMAIN}`,
           applications: [
             {
               id: 4,
@@ -500,7 +501,7 @@ export const mockCheckAvailaibilityByApplication: AvalaibilityByApplication = {
         {
           id: '5',
           name: 'demo.user5',
-          email: 'demo.user5@1987984870407.altostrat.com',
+          email: `demo.user5${DEV_EMAIL_DOMAIN}`,
           applications: [
             {
               id: 4,
@@ -539,11 +540,11 @@ export const mockCheckAvailaibilityByApplication: AvalaibilityByApplication = {
 
 export const makeReservationMock: MakeReservationResponse = {
   id: 176,
-  userEmail: 'jagtars@1987984870407.altostrat.com',
+  userEmail: `jagtars@${DEV_EMAIL_DOMAIN}`,
   bot: {
     id: 1,
     name: 'demo.user1',
-    email: 'demo.user1@1987984870407.altostrat.com',
+    email: `demo.user1@${DEV_EMAIL_DOMAIN}`,
   },
   applications: [
     {

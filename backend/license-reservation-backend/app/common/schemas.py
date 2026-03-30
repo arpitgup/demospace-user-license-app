@@ -309,7 +309,7 @@ class CheckUserInWorkspaceResponse(BaseModel):
     department: Optional[str] = None
     orgUnitPath: Optional[str]
     demoName: Optional[str] = None
-    managerEmail: str = None
+    managerEmail: Optional[str] = None
     employeeID: Optional[str] = None
 
 class CreateUserRequest(BaseModel):
@@ -323,7 +323,7 @@ class CreateUserRequest(BaseModel):
     department: str
     orgUnitPath: str
     demoName: str
-    managerEmail: str = None
+    managerEmail: Optional[str] = None
 
 class CreateUserResponse(BaseModel):
     """Schema for /create_user endpoint."""
@@ -337,7 +337,7 @@ class CreateUserResponse(BaseModel):
     department: Optional[str] = None
     orgUnitPath: Optional[str]
     demoName: Optional[str] = None
-    managerEmail: str = None
+    managerEmail: Optional[str] = None
     employeeID: Optional[str] = None
     password: str
 
@@ -352,7 +352,7 @@ class ResetPasswordResponse(BaseModel):
     department: Optional[str] = None
     orgUnitPath: Optional[str]
     demoName: Optional[str] = None
-    managerEmail: str = None
+    managerEmail: Optional[str] = None
     employeeID: Optional[str] = None
     password: str
 
@@ -365,7 +365,7 @@ class UpdateUserProfileRequestResponse(BaseModel):
     jobTitle: Optional[str] = None
     costCenter: Optional[str] = None
     demoName: Optional[str] = None
-    managerEmail: Optional[EmailStr] = None
+    managerEmail: Optional[str] = None
     employeeID: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
@@ -393,6 +393,7 @@ class DemoDetailOut(BaseModel):
     saas_applications: Optional[str]
     organization_unit: Optional[str]
     representative_profile: Optional[RepresentativeProfileOut]
+    parent_bug_id: Optional[str] = None
 
 class OnboardedDemoDetailsOut(BaseModel):
     demo_id: str
@@ -405,6 +406,7 @@ class OnboardedDemoDetailsOut(BaseModel):
     saas_applications: Optional[str]
     organization_unit: Optional[str]
     representative_profile: Optional[RepresentativeProfileOut]
+    parent_bug_id: Optional[str] = None
 
 class UpdateOnboardedDemoDetailsRequest(BaseModel):
     demo_title: str
@@ -421,6 +423,7 @@ class UpdateOnboardedDemoDetailsRequest(BaseModel):
     manager_title: Optional[str] = None
     rep_role: Optional[str] = None
     rep_department: Optional[str] = None
+    parent_bug_id: Optional[str] = None
 
 class UpdateOnboardedDemoDetailsResponse(BaseModel):
     demo_id: str
@@ -438,6 +441,7 @@ class UpdateOnboardedDemoDetailsResponse(BaseModel):
     manager_title: Optional[str] = None
     rep_role: Optional[str] = None
     rep_department: Optional[str] = None
+    parent_bug_id: Optional[str] = None
 
 class OnboardNewDemoRequestResponse(BaseModel):
     demo_id: str
@@ -455,6 +459,7 @@ class OnboardNewDemoRequestResponse(BaseModel):
     manager_title: Optional[str] = None
     rep_role: Optional[str] = None
     rep_department: Optional[str] = None
+    parent_bug_id: Optional[str] = None
 
 class OrganizationUnitCreateRequest(BaseModel):
     orgunitpath: str
