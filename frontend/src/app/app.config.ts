@@ -52,6 +52,10 @@ export const appConfig: ApplicationConfig = {
           sessionStorage.setItem(SESSIONS_DEMO_ID, demoId);
         }
         logInfo('appConfigdemoID=', demoId);
+        logInfo(
+          'appConfigdemoID=session',
+          sessionStorage.getItem(SESSIONS_DEMO_ID) ?? '',
+        );
       }
 
       const userDetailsService = inject(UserService);
