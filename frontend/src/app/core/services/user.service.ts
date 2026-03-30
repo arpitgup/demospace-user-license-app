@@ -33,7 +33,6 @@ export class UserService {
   fetchCurrentUser(): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/me`).pipe(
       tap((data) => {
-        sessionStorage.setItem(SESSIONS_DEMO_ID, '');
         this.userState.set(data);
         if (data.email && data.email.includes('google.com')) {
           const email = data.email.replace(/@.*/, EMAIL_DOMAIN);
@@ -52,7 +51,6 @@ export class UserService {
       }),
       catchError((err) => {
         console.log('error occurred', err);
-        // sessionStorage.setItem(SESSIONS_DEMO_ID, '');
         this.userEmailInfoState.update(() => '');
         const user: User = {
           email: '',
