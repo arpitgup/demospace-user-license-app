@@ -20,6 +20,11 @@ import { LoaderService } from '../../core/services/loading.service';
 import { INVALID_DEMO_ID_MESSAGE } from '../../shared/constants/error.constants';
 import { UserService } from '../../core/services/user.service';
 import { GOOGLE_EMAIL_DOMAIN } from '../../shared/constants/domain.constants';
+import { logInfo } from '../../../utilities/utils';
+import {
+  QUERY_DEMO_ID,
+  SESSIONS_DEMO_ID,
+} from '../../shared/constants/session.constants';
 
 @Component({
   selector: 'app-signup-user',
@@ -38,7 +43,7 @@ import { GOOGLE_EMAIL_DOMAIN } from '../../shared/constants/domain.constants';
         style({ transform: 'translateY(-100%)', opacity: 0 }),
         animate(
           '1s cubic-bezier(0.68,-0.55,0.27,1.55)',
-          style({ transform: 'translateY(0)', opacity: 1 })
+          style({ transform: 'translateY(0)', opacity: 1 }),
         ),
       ]),
     ]),
@@ -47,7 +52,7 @@ import { GOOGLE_EMAIL_DOMAIN } from '../../shared/constants/domain.constants';
         style({ transform: 'translateY(100%)', opacity: 0 }),
         animate(
           '1s cubic-bezier(0.68,-0.55,0.27,1.55)',
-          style({ transform: 'translateY(0)', opacity: 1 })
+          style({ transform: 'translateY(0)', opacity: 1 }),
         ),
       ]),
     ]),
@@ -72,7 +77,9 @@ export class SignupUserComponent implements OnInit {
   demoId: string = '';
   ngOnInit() {
     this.activeRoute.queryParams.subscribe((params) => {
-      this.demoId = params['demoID'] || '';
+      this.demoId =
+        params[QUERY_DEMO_ID] || sessionStorage.getItem(SESSIONS_DEMO_ID) || '';
+      logInfo('signUpDemoId=', this.demoId);
     });
   }
   createUserForm: FormGroup = this.fb.group({
@@ -126,12 +133,13 @@ export class SignupUserComponent implements OnInit {
         this.router.navigateByUrl(`?demoID=${this.demoId}`, {
           replaceUrl: true,
         });
+        logInfo('signUpRedirectionDemoId=', this.demoId);
         this.loaderService.hide();
       },
       error: (err) => {
         this.loaderService.hide();
         this.showErrorDialog(
-          err?.error?.detail || 'Something went wrong. Please try again'
+          err?.error?.detail || 'Something went wrong. Please try again',
         );
       },
     });

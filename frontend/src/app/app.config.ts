@@ -1,6 +1,7 @@
 import {
   ApplicationConfig,
   inject,
+  PLATFORM_ID,
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
@@ -26,6 +27,12 @@ import { concatMap, of } from 'rxjs';
 import { UserCreationService } from './core/services/user-creation.service';
 import { UserService } from './core/services/user.service';
 import { GOOGLE_EMAIL_DOMAIN } from './shared/constants/domain.constants';
+import { logInfo } from '../utilities/utils';
+import {
+  QUERY_DEMO_ID,
+  SESSIONS_DEMO_ID,
+} from './shared/constants/session.constants';
+import { isPlatformBrowser } from '@angular/common';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -37,6 +44,16 @@ export const appConfig: ApplicationConfig = {
     }),
     UserService,
     provideAppInitializer(() => {
+      const platformId = inject(PLATFORM_ID);
+      if (isPlatformBrowser(platformId)) {
+        const params = new URLSearchParams(window.location.search);
+        const demoId = params.get(QUERY_DEMO_ID) || '';
+        if (demoId !== '') {
+          sessionStorage.setItem(SESSIONS_DEMO_ID, demoId);
+        }
+        logInfo('appConfigdemoID=', demoId);
+      }
+
       const userDetailsService = inject(UserService);
       const userCreationService = inject(UserCreationService);
       return of(null).pipe(
@@ -45,7 +62,11 @@ export const appConfig: ApplicationConfig = {
         }),
 
         concatMap(() => {
-          if (userDetailsService.currentUser()?.email.includes(GOOGLE_EMAIL_DOMAIN)) {
+          if (
+            userDetailsService
+              .currentUser()
+              ?.email.includes(GOOGLE_EMAIL_DOMAIN)
+          ) {
             return userCreationService.getUserDetails();
           } else {
             return of(null);

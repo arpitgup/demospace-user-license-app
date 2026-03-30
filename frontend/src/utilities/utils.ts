@@ -268,6 +268,10 @@ export function isSameDay(selectedDate: Date, endDate: Date): boolean {
   );
 }
 
+export function logInfo(title: string, message: string) {
+  console.log(title, message);
+}
+
 export const ADMIN_USER_RESERVATION_EMAIL_VALIDATION: RegExp = new RegExp(
   `^[a-zA-Z0-9.-]+${EMAIL_DOMAIN}\\s*$`,
 );
