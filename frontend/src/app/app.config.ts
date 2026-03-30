@@ -49,16 +49,7 @@ export const appConfig: ApplicationConfig = {
         const params = new URLSearchParams(window.location.search);
         const demoId = params.get(QUERY_DEMO_ID);
         if (demoId) {
-          logInfo(
-          'appConfigdemoID=session=init',
-          sessionStorage.getItem(SESSIONS_DEMO_ID) ?? ''
-        );
-        logInfo('appConfigdemoID=demoID=', demoId ?? '');
           sessionStorage.setItem(SESSIONS_DEMO_ID, demoId);
-          logInfo(
-          'appConfigdemoID=session=afterwards',
-          sessionStorage.getItem(SESSIONS_DEMO_ID) ?? '',
-        );
         }
         logInfo('appConfigdemoID=', demoId ?? '');
         logInfo(
