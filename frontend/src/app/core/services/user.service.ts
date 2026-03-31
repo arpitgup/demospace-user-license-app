@@ -5,6 +5,12 @@ import { catchError, Observable, of, retry, tap, timer } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { User } from '../models/user.model';
 import { EMAIL_DOMAIN } from '../../shared/constants/domain.constants';
+import {
+  QUERY_DEMO_ID,
+  SESSIONS_DEMO_ID,
+} from '../../shared/constants/session.constants';
+import { ActivatedRoute } from '@angular/router';
+import { logInfo } from '../../../utilities/utils';
 
 @Injectable({
   providedIn: 'root',
@@ -29,10 +35,7 @@ export class UserService {
       tap((data) => {
         this.userState.set(data);
         if (data.email && data.email.includes('google.com')) {
-          const email = data.email.replace(
-            /@.*/,
-            EMAIL_DOMAIN,
-          );
+          const email = data.email.replace(/@.*/, EMAIL_DOMAIN);
           sessionStorage.setItem('userEmail', email);
           this.userEmailInfoState.update(() => email);
         } else {

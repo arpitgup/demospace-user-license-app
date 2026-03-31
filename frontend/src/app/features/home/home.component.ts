@@ -20,6 +20,11 @@ import { HowToLoginComponent } from '../how-to-login/how-to-login.component';
 import { DemoOnBoardingEnum } from '../../enums/admin-demo-onboarding.enums';
 import { UserService } from '../../core/services/user.service';
 import { GOOGLE_EMAIL_DOMAIN } from '../../shared/constants/domain.constants';
+import { logInfo } from '../../../utilities/utils';
+import {
+  QUERY_DEMO_ID,
+  SESSIONS_DEMO_ID,
+} from '../../shared/constants/session.constants';
 
 export interface HomeMenuItems {
   id: number;
@@ -111,7 +116,11 @@ export class HomeComponent implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       sessionStorage.setItem('userEmail', this.userService.userEmailInfo());
       this.activeRoute.queryParams.subscribe((params) => {
-        this.demoId = params['demoID'] || '';
+        this.demoId =
+          params[QUERY_DEMO_ID] ||
+          sessionStorage.getItem(SESSIONS_DEMO_ID) ||
+          '';
+        logInfo('homePageDemoId=', this.demoId);
         if (this.demoId === '') {
           this.isLoading.update(() => false);
           this.errorMessage.update(() => INVALID_DEMO_ID_MESSAGE);
@@ -220,6 +229,7 @@ export class HomeComponent implements OnInit {
   onRetryCall() {
     this.errorMessage.update(() => '');
     const demoId = this.activeRoute.snapshot.queryParams['demoID'] || '';
+    logInfo('homePageRetryDemoId=', this.demoId);
     if (demoId === '') {
       this.errorMessage.update(() => INVALID_DEMO_ID_MESSAGE);
       return;
