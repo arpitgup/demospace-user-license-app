@@ -71,7 +71,7 @@ triggers:
   configFilePath: .cloudbuild/apimanagement-cloudbuild.yaml
   eventType: push
   ignoredGitRefs: 
-  includedGitRefs: ^AddParentBugIDBackend$
+  includedGitRefs: ^CanaryDeployment$
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
   includedFiles: backend/license-management-api/*
   ignoredFiles:
@@ -93,7 +93,7 @@ triggers:
   configFilePath: .cloudbuild/backend-cloudbuild.yaml
   eventType: push
   ignoredGitRefs: 
-  includedGitRefs: ^AddParentBugIDBackend$
+  includedGitRefs: ^CanaryDeployment$
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
   includedFiles: backend/license-reservation-backend/*
   ignoredFiles:
@@ -123,7 +123,7 @@ triggers:
   configFilePath: .cloudbuild/frontend-cloudbuild.yaml
   eventType: push
   ignoredGitRefs:
-  includedGitRefs: ^AddParentBugIDBackend$
+  includedGitRefs: ^CanaryDeployment$
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
   includedFiles: frontend/*
   ignoredFiles:
