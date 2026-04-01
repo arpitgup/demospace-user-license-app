@@ -8,7 +8,7 @@ RUN npm install -g @angular/cli
 
 RUN npm install
 
-# RUN npm CICD test environment basis.
+# RUN npm CICD test environment Basis.
 COPY . .
 
 ARG APP_ENV=production
