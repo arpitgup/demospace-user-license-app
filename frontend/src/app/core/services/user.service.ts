@@ -31,7 +31,7 @@ export class UserService {
    * @returns An Observable of the fetched User object.
    */
   fetchCurrentUser(): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/me`).pipe(
+    return this.http.get<User>(`${this.apiUrl}/me`,{withCredentials:true}).pipe(
       tap((data) => {
         this.userState.set(data);
         if (data.email && data.email.includes('google.com')) {
