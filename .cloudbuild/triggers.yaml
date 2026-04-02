@@ -8,7 +8,7 @@ triggers:
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
   includedFiles: backend/*
   ignoredFiles:
-  disabled: 
+  disabled: true
   substitutions:
     _SERVICE_NAME: "godemos-license-management-api-dev"
     _PROJECT_ID: "sys-36807655692543323281329778"
@@ -30,7 +30,7 @@ triggers:
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
   includedFiles: backend/*
   ignoredFiles:
-  disabled: 
+  disabled: true
   substitutions:
     _SERVICE_NAME: "godemos-license-reservation-backend-dev"
     _PROJECT_ID: "sys-36807655692543323281329778"
@@ -60,13 +60,13 @@ triggers:
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
   includedFiles: frontend/*
   ignoredFiles:
-  disabled: 
+  disabled: true
   substitutions:
     _SERVICE_NAME: "godemos-license-app-develop"
     _PROJECT_ID: "sys-36807655692543323281329778"
     _REGION: "us-central1"
     _APP_ENV: "development"
-- name: godemos-licenseapp-apimanagement-features
+- name: godemos-licenseapp-apimanagement-test
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/apimanagement-cloudbuild.yaml
   eventType: push
@@ -75,7 +75,7 @@ triggers:
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
   includedFiles: backend/license-management-api/*
   ignoredFiles:
-  disabled:
+  disabled: true
   substitutions:
     _SERVICE_NAME: "godemos-license-management-api-dev"
     _PROJECT_ID: "sys-36807655692543323281329778"
@@ -88,7 +88,7 @@ triggers:
     _DB_PASSWORD_SECRET_NAME: "license-reservation-db-password"
     _DELEGATED_ADMIN: "arpitgup@1987984870407.altostrat.com"
     _ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME: "license-reservation-auth-sa-key"
-- name: godemos-licenseapp-backend-features
+- name: godemos-licenseapp-backend-test
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/backend-cloudbuild.yaml
   eventType: push
@@ -97,7 +97,7 @@ triggers:
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
   includedFiles: backend/license-reservation-backend/*
   ignoredFiles:
-  disabled:
+  disabled: true
   substitutions:
     _SERVICE_NAME: "godemos-license-reservation-backend-dev"
     _PROJECT_ID: "sys-36807655692543323281329778"
@@ -118,7 +118,7 @@ triggers:
     _ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME: "license-reservation-auth-sa-key"
     _PORTAL_ADMIN_GROUP_EMAIL: ""
     _ADMIN_VALIDATION_KEYS_SECRET_NAME: "admin_validation_secret_private_key"
-- name: godemos-reservationApp-frontend-features
+- name: godemos-reservationApp-frontend-test
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/frontend-cloudbuild.yaml
   eventType: push
@@ -127,7 +127,7 @@ triggers:
   serviceAccount: projects/sys-36807655692543323281329778/serviceAccounts/secure-source-manager@sys-36807655692543323281329778.iam.gserviceaccount.com
   includedFiles: frontend/*
   ignoredFiles:
-  disabled:
+  disabled: true
   substitutions:
     _SERVICE_NAME: "godemos-license-app-develop"
     _PROJECT_ID: "sys-36807655692543323281329778"
