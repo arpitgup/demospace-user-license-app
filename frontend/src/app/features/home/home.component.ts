@@ -19,6 +19,12 @@ import { BUGANIZER_URL } from '../../shared/constants/links.contants';
 import { HowToLoginComponent } from '../how-to-login/how-to-login.component';
 import { DemoOnBoardingEnum } from '../../enums/admin-demo-onboarding.enums';
 import { UserService } from '../../core/services/user.service';
+import { GOOGLE_EMAIL_DOMAIN } from '../../shared/constants/domain.constants';
+import { logInfo } from '../../../utilities/utils';
+import {
+  QUERY_DEMO_ID,
+  SESSIONS_DEMO_ID,
+} from '../../shared/constants/session.constants';
 
 export interface HomeMenuItems {
   id: number;
@@ -110,7 +116,11 @@ export class HomeComponent implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       sessionStorage.setItem('userEmail', this.userService.userEmailInfo());
       this.activeRoute.queryParams.subscribe((params) => {
-        this.demoId = params['demoID'] || '';
+        this.demoId =
+          params[QUERY_DEMO_ID] ||
+          sessionStorage.getItem(SESSIONS_DEMO_ID) ||
+          '';
+        logInfo('homePageDemoId=', this.demoId);
         if (this.demoId === '') {
           this.isLoading.update(() => false);
           this.errorMessage.update(() => INVALID_DEMO_ID_MESSAGE);
@@ -132,7 +142,10 @@ export class HomeComponent implements OnInit {
         concatMap((demoDetailsResponse) => {
           this.demoDetails.update(() => demoDetailsResponse);
           const primaryEmail = sessionStorage.getItem('userEmail') ?? '';
-          const secondaryEmail = primaryEmail.replace(/-.*/, '@google.com');
+          const secondaryEmail = primaryEmail.replace(
+            /@.*/,
+            GOOGLE_EMAIL_DOMAIN,
+          );
           const request: UpdateUserRequest = {
             primary_email: primaryEmail,
             secondary_email: secondaryEmail,
@@ -160,10 +173,11 @@ export class HomeComponent implements OnInit {
         catchError((error) => {
           this.errorMessage.update(
             () =>
-              error?.error?.detail || 'Something went wrongs. Please try again.'
+              error?.error?.detail ||
+              'Something went wrongs. Please try again.',
           );
           return of(null);
-        })
+        }),
       )
       .subscribe({
         next: (finalResponse) => {
@@ -178,7 +192,7 @@ export class HomeComponent implements OnInit {
         error: (err) => {
           this.errorMessage.update(
             () =>
-              err?.error?.detail || 'Something went wrong. Please try again.'
+              err?.error?.detail || 'Something went wrong. Please try again.',
           );
           this.isLoading.update(() => false);
         },
@@ -187,7 +201,7 @@ export class HomeComponent implements OnInit {
   updateHomeMenuList(feature_license_app: boolean | undefined) {
     if ((feature_license_app || false) === false) {
       this.homeMenuItems = this.homeMenuItems.filter(
-        (item) => item.type !== HomeItems.LICENSE_RESERVATION
+        (item) => item.type !== HomeItems.LICENSE_RESERVATION,
       );
     }
   }
@@ -198,7 +212,7 @@ export class HomeComponent implements OnInit {
         this.demoDetails()?.demo_title?.replaceAll(' ', '%20') || ''
       }&assignee=cloud-demo-platform-support@google.com&cc=${
         this.userDetails()?.secondary_email
-      }&customFields=1232889%3A${this.demoDetails()?.demo_id || ''}`;
+      }&customFields=1232889%3A${this.demoDetails()?.demo_id || ''}&parentIssueId=${this.demoDetails()?.parent_bug_id || ''}`;
       window.open(feedbackUrl, '_blank', 'noopener noreferrer');
       return;
     }
@@ -215,6 +229,7 @@ export class HomeComponent implements OnInit {
   onRetryCall() {
     this.errorMessage.update(() => '');
     const demoId = this.activeRoute.snapshot.queryParams['demoID'] || '';
+    logInfo('homePageRetryDemoId=', this.demoId);
     if (demoId === '') {
       this.errorMessage.update(() => INVALID_DEMO_ID_MESSAGE);
       return;

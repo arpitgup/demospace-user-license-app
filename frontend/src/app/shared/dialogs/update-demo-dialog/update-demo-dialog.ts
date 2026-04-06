@@ -78,6 +78,7 @@ export class UpdateDemoDialog implements OnInit {
   readonly MANAGER_TITLE_FORM = 'manager_title';
   readonly REP_ROLE_FORM = 'rep_role_form';
   readonly REP_DEPARTMENT_FORM = 'rep_department_form';
+  readonly PARENT_BUG_ID_FORM = 'parent_bug_id_form';
   readonly ONBOARDING_STATUS = 'onboarding_status';
   readonly featureLicenseApp = signal<boolean>(false);
   readonly adminApplications = signal<Application[]>([]);
@@ -110,40 +111,40 @@ export class UpdateDemoDialog implements OnInit {
       Validators.required,
     ],
     [this.COST_CENTRE_FORM]: [
-      this.data.demoDetails.representative_profile.cost_centre,
-      Validators.required,
+      this.data.demoDetails.representative_profile.cost_centre || '',
     ],
     [this.MANAGER_NAME_FORM]: [
-      this.data.demoDetails.representative_profile.manager_name,
-      [Validators.required, Validators.pattern(NAME_VALIDATION)],
+      this.data.demoDetails.representative_profile.manager_name || '',
+      [Validators.pattern(NAME_VALIDATION)],
     ],
     [this.MANAGER_EMAIL_FORM]: [
-      this.data.demoDetails.representative_profile.manager_email,
+      this.data.demoDetails.representative_profile.manager_email || '',
 
       [
-        Validators.required,
         Validators.email,
         Validators.pattern(MANAGER_EMAIL_VALIDATION),
       ],
     ],
     [this.MANAGER_TITLE_FORM]: [
-      this.data.demoDetails.representative_profile.manager_title,
+      this.data.demoDetails.representative_profile.manager_title || '',
+    ],
+    [this.PARENT_BUG_ID_FORM]: [
+      this.data.demoDetails.parent_bug_id || '',
       Validators.required,
+      // Validators.pattern(PARENT_BUG_VALIDATION),
     ],
     [this.REP_ROLE_FORM]: [
-      this.data.demoDetails.representative_profile.rep_role,
-      Validators.required,
+      this.data.demoDetails.representative_profile.rep_role || '',
     ],
     [this.REP_DEPARTMENT_FORM]: [
-      this.data.demoDetails.representative_profile.rep_department,
-      Validators.required,
+      this.data.demoDetails.representative_profile.rep_department || '',
     ],
   });
 
   ngOnInit(): void {
     this.adminApplications.update(() => this.data.application);
     this.featureLicenseApp.update(
-      () => this.data.demoDetails.feature_license_app
+      () => this.data.demoDetails.feature_license_app,
     );
     this.organizationUnit.update(() => this.data.organizationUnit);
     this.getDemoApplications(this.data.demoDetails.applicationIds);
@@ -160,13 +161,13 @@ export class UpdateDemoDialog implements OnInit {
           ...item,
           isSelected: app.id === item.id ? true : item.isSelected,
         };
-      })
+      }),
     );
   }
 
   removeApp(app: Application) {
     this.selectedApplications.set(
-      this.selectedApplications().filter((item) => item.id != app.id)
+      this.selectedApplications().filter((item) => item.id != app.id),
     );
     this.updateDemoForm
       .get(this.DEMO_APPLICATION_FORM)
@@ -177,7 +178,7 @@ export class UpdateDemoDialog implements OnInit {
           ...item,
           isSelected: app.id === item.id ? false : item.isSelected,
         };
-      })
+      }),
     );
   }
 
@@ -191,14 +192,14 @@ export class UpdateDemoDialog implements OnInit {
       return;
     }
     const selectedApplicationIds = this.selectedApplications().map(
-      (item) => item.id
+      (item) => item.id,
     );
     if (
       this.selectedApplications().length <= 0 &&
       this.featureLicenseApp() === true
     ) {
       this.showErrorDialog(
-        this.demoConstants.SAAS_APPLICATION_SHOULD_NOT_BE_EMPTY
+        this.demoConstants.SAAS_APPLICATION_SHOULD_NOT_BE_EMPTY,
       );
       return;
     }
@@ -212,7 +213,8 @@ export class UpdateDemoDialog implements OnInit {
         '',
       drive_folder_link:
         this.updateDemoForm.get(this.DRIVE_FOLDER_LINK_FORM)?.value || '',
-      demo_onboarding_status:  this.updateDemoForm.get(this.ONBOARDING_STATUS)?.value || '',
+      demo_onboarding_status:
+        this.updateDemoForm.get(this.ONBOARDING_STATUS)?.value || '',
       feature_license_app: this.featureLicenseApp(),
       saas_applications: applicationIds,
       organization_unit:
@@ -233,6 +235,11 @@ export class UpdateDemoDialog implements OnInit {
 
       rep_department:
         this.updateDemoForm.get(this.REP_DEPARTMENT_FORM)?.value?.trim() || '',
+      parent_bug_id:
+        this.updateDemoForm
+          .get(this.PARENT_BUG_ID_FORM)
+          ?.value?.toString()
+          ?.trim() || '',
     };
     this.demoService
       .updateOnBoardDemo(payload, this.data.demoDetails.demo_id)
@@ -242,7 +249,7 @@ export class UpdateDemoDialog implements OnInit {
         },
         error: (error) => {
           this.showErrorDialog(
-            error.error.detail || this.demoConstants.SOMETHING_WENT_WRONG
+            error.error.detail || this.demoConstants.SOMETHING_WENT_WRONG,
           );
         },
       });
@@ -250,7 +257,7 @@ export class UpdateDemoDialog implements OnInit {
 
   getDemoApplications(applicationIds: number[]) {
     this.selectedApplications.update(() =>
-      this.data.application.filter((item) => applicationIds.includes(item.id))
+      this.data.application.filter((item) => applicationIds.includes(item.id)),
     );
     this.adminApplications.update(() =>
       this.adminApplications().map((item) => {
@@ -258,7 +265,7 @@ export class UpdateDemoDialog implements OnInit {
           ...item,
           isSelected: applicationIds.includes(item.id),
         };
-      })
+      }),
     );
     this.updateDemoForm
       .get(this.DEMO_APPLICATION_FORM)

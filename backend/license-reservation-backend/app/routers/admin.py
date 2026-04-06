@@ -1214,6 +1214,7 @@ def get_onboarded_demo_details(db: Session = Depends(get_db)):
             saas_applications=demo_record.saas_applications,
             organization_unit=demo_record.organization_unit,
             representative_profile=representative_profile_out,
+            parent_bug_id=demo_record.parent_bug_id,
         )
         output_list.append(demo_details_out)
     return output_list
@@ -1306,17 +1307,13 @@ def onboard_new_demo(req: OnboardNewDemoRequestResponse, db: Session = Depends(g
 
         # Manager Email validations
         manager_email = req.manager_email
-        if not manager_email:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Manager Email is required."
+        if manager_email:
+            manager_details = get_user(manager_email)
+            if not manager_details:
+                return JSONResponse(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    content={"detail": f"Manager Email {manager_email} is not a valid email."}
             )
-        manager_details = get_user(manager_email)
-        if not manager_details:
-            return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                content={"detail": f"Manager Email {manager_email} is not a valid email."}
-        )
 
         demo_data = req.model_dump(exclude_unset=True)
         new_demo = DemoDetail(**demo_data)

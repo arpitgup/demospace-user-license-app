@@ -4,12 +4,16 @@ import {
   TIME_SLOT_END_HOUR,
   TIME_SLOT_START_HOUR,
 } from '../app/features/search-by-date/search-by-date.constants';
+import {
+  DEV_EMAIL_DOMAIN,
+  EMAIL_DOMAIN,
+} from '../app/shared/constants/domain.constants';
 import { NormalizedReservation } from './interfaces/normalized_reservation';
 import { TimeSlot } from './interfaces/time_slot';
 
 export function getUniqueSecondaryApplications(
   nextAvailableSlots: NextAvailableSlots,
-  primaryApplicationId: number
+  primaryApplicationId: number,
 ): Application[] {
   const uniqueApplications = new Map<number, Application>();
   nextAvailableSlots.availableBots?.forEach((availableBots) => {
@@ -32,7 +36,7 @@ export function onApplicationSelected(
   application: Application,
   secondaryApplications: Application[],
   selectedTimeSlot: NextAvailableSlots,
-  maxApplicationSelection: number
+  maxApplicationSelection: number,
 ): Application[] {
   if (
     ((application.isSelected ?? false) === false &&
@@ -43,7 +47,7 @@ export function onApplicationSelected(
     return secondaryApplications;
   }
   const selectedSecondaryApplications = secondaryApplications.find(
-    (item) => item.id === application.id
+    (item) => item.id === application.id,
   );
   if (selectedSecondaryApplications) {
     selectedSecondaryApplications.isSelected = !(
@@ -68,7 +72,7 @@ export function onApplicationSelected(
 
     if (
       selectedIds.every((id) =>
-        availableBots.applications?.some((item) => item.id == id)
+        availableBots.applications?.some((item) => item.id == id),
       )
     ) {
       availableBots.applications?.forEach((application) => {
@@ -152,7 +156,7 @@ export const TIMEZONE_ABBREVIATIONS: Record<string, string> = {
 
 export function getLocalTimeZoneAbbreviation(
   date: Date,
-  timeZone: string
+  timeZone: string,
 ): string {
   try {
     const formatter = new Intl.DateTimeFormat('en-US', {
@@ -165,7 +169,7 @@ export function getLocalTimeZoneAbbreviation(
       ? `${TIMEZONE_ABBREVIATIONS[timeZone]} (${getGMTOffset(date, timeZone)})`
       : `${tz ?? TIMEZONE_ABBREVIATIONS[timeZone]} (${getGMTOffset(
           date,
-          timeZone
+          timeZone,
         )})`;
   } catch {
     return getGMTOffset(date, timeZone);
@@ -209,7 +213,7 @@ export function generateHoursList(
   disabledRanges: NormalizedReservation[],
   blockTimePeriod: number,
   initialDuration: number,
-  nextDayDateTime: Date
+  nextDayDateTime: Date,
 ): TimeSlot[] {
   const hours: TimeSlot[] = [];
   const expandRanges = disabledRanges.map((r) => ({
@@ -227,7 +231,7 @@ export function generateHoursList(
       i,
       0,
       0,
-      0
+      0,
     );
 
     const display = d.toLocaleTimeString([], {
@@ -237,12 +241,12 @@ export function generateHoursList(
     });
     if (isSameDay(d, nextDayDateTime) && d.getHours() === 0) {
       const isDisabled = expandRanges.some(
-        (range) => d >= range.start && d < range.end
+        (range) => d >= range.start && d < range.end,
       );
       hours.push({ date: d, display, isDisabled });
     } else {
       const isDisabled = expandRanges.some(
-        (range) => d > range.start && d < range.end
+        (range) => d > range.start && d < range.end,
       );
       hours.push({ date: d, display, isDisabled });
     }
@@ -251,7 +255,7 @@ export function generateHoursList(
     (item) =>
       !item.isDisabled &&
       item.date.getHours() >= TIME_SLOT_START_HOUR &&
-      item.date.getHours() <= TIME_SLOT_END_HOUR
+      item.date.getHours() <= TIME_SLOT_END_HOUR,
   );
   return timeSlots;
 }
@@ -264,13 +268,27 @@ export function isSameDay(selectedDate: Date, endDate: Date): boolean {
   );
 }
 
-export const ADMIN_USER_RESERVATION_EMAIL_VALIDATION =
-  /^[a-zA-Z0-9.-]+-agentspace-demo-user@1987984870407.altostrat.com\s*$/;
-export const ADMIN_BOT_EMAIL_VALIDATION =
-  /^[a-zA-Z0-9-.]+@1987984870407.altostrat.com\s*$/;
-export const ADMIN_APPLICATION_EMAIL_VALIDATION =
-  /^[a-zA-Z0-9.-]+@1987984870407.altostrat.com\s*$/;
+export function logInfo(title: string, message: string) {
+  console.log(title, message);
+}
+
+export const ADMIN_USER_RESERVATION_EMAIL_VALIDATION: RegExp = new RegExp(
+  `^[a-zA-Z0-9.-]+${EMAIL_DOMAIN}\\s*$`,
+);
+export const ADMIN_BOT_EMAIL_VALIDATION = new RegExp(
+  `^[a-zA-Z0-9-.]+${DEV_EMAIL_DOMAIN}\\s*$`,
+);
+export const ADMIN_APPLICATION_EMAIL_VALIDATION = new RegExp(
+  `^[a-zA-Z0-9-.]+${DEV_EMAIL_DOMAIN}\\s*$`,
+);
 export const NAME_VALIDATION = /^[A-Za-z ]+$/;
 export const ORG_UNIT_VALIDATION = /^\/.*/;
-export const MANAGER_EMAIL_VALIDATION =
-  /^[a-zA-Z0-9-.]+@1987984870407.altostrat.com\s*$/;
+export const MANAGER_EMAIL_VALIDATION = new RegExp(
+  `^[a-zA-Z0-9.-]+${EMAIL_DOMAIN}|${DEV_EMAIL_DOMAIN}\\s*$`,
+);
+export const OLD_MANAGER_EMAIL_VALIDATION = new RegExp(
+  `^[a-zA-Z0-9.-]+${DEV_EMAIL_DOMAIN}\\s*$`,
+);
+export const PARENT_BUG_VALIDATION = new RegExp(
+  '^b\\/\\d+$',
+);

@@ -69,6 +69,7 @@ async def get_demo_details(
         saas_applications = demo_record.saas_applications,
         organization_unit = demo_record.organization_unit,
         representative_profile=representative_profile_out,
+        parent_bug_id=demo_record.parent_bug_id
     )
 
 @router.get('/user-details', response_model=CheckUserInWorkspaceResponse)
@@ -82,7 +83,8 @@ async def get_user_details(
     primary_email = user_email
     
     try:
-        user_details = admin_service.get_user(primary_email)        
+        # primary_email is always 'ldap@demospace.altostrat.com'
+        user_details = admin_service.get_user(primary_email)
         if not user_details:
             return JSONResponse(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -119,8 +121,11 @@ async def create_user_in_workspace(
     """Create User API."""
     
     password = generate_random_password()
-    employee_id = generate_employee_id()
-    
+
+    # Get LDAP from email to create Unique EMP ID
+    ldap = req.primary_email.split('@')[0]
+    employee_id = f"{ldap}-{generate_employee_id()}"
+
     user_info = {
         "name": {
             "givenName": req.first_name,
@@ -154,7 +159,7 @@ async def create_user_in_workspace(
         ],
     }
     
-    if req.managerEmail is None:
+    if not req.managerEmail:
         user_info["relations"] = []
 
     try:
@@ -378,7 +383,7 @@ async def update_user_profile(
         
         payload = {k: v for k, v in updated_user_info.items() if v is not None}
         
-        if req.managerEmail is None:
+        if not req.managerEmail:
             payload["relations"] = []
 
         # Update user profile
