@@ -31,7 +31,7 @@ import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
         style({ transform: 'translateY(-100%)', opacity: 0 }),
         animate(
           '1s cubic-bezier(0.68,-0.55,0.27,1.55)',
-          style({ transform: 'translateY(0)', opacity: 1 })
+          style({ transform: 'translateY(0)', opacity: 1 }),
         ),
       ]),
     ]),
@@ -40,7 +40,7 @@ import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
         style({ transform: 'translateX(-100%)', opacity: 0 }),
         animate(
           '1s cubic-bezier(0.68,-0.55,0.27,1.55)',
-          style({ transform: 'translateX(0)', opacity: 1 })
+          style({ transform: 'translateX(0)', opacity: 1 }),
         ),
       ]),
     ]),
@@ -49,7 +49,7 @@ import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
         style({ transform: 'translateX(100%)', opacity: 0 }),
         animate(
           '1s cubic-bezier(0.68,-0.55,0.27,1.55)',
-          style({ transform: 'translateX(0)', opacity: 1 })
+          style({ transform: 'translateX(0)', opacity: 1 }),
         ),
       ]),
     ]),
@@ -58,7 +58,7 @@ import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
         style({ transform: 'translateY(100%)', opacity: 0 }),
         animate(
           '1s cubic-bezier(0.68,-0.55,0.27,1.55)',
-          style({ transform: 'translateY(0)', opacity: 1 })
+          style({ transform: 'translateY(0)', opacity: 1 }),
         ),
       ]),
     ]),
@@ -76,11 +76,12 @@ export class UserAppLinksComponent {
   private userService = inject(UserCreationService);
   userDetails = this.userService.userInfo;
   public copyGeminiSuccess = signal(false);
+  public copyPasswordSuccess = signal(false);
   public copyDriveSuccess = signal(false);
   public showPassword = signal(false);
   private clipboard = inject(Clipboard);
   public passwordMasked = signal<string>(
-    '•'.repeat((this.userDetails()?.password || '').length)
+    '•'.repeat((this.userDetails()?.password || '').length),
   );
   goDemoUrl = DEMO_PAGE_URL;
   chatSpaceUrl = CHAT_SPACE_URL;
@@ -99,6 +100,14 @@ export class UserAppLinksComponent {
     }
   }
 
+  copyPassword(password: string | undefined) {
+    const successful = this.clipboard.copy(password ?? "");
+    if (successful) {
+      this.copyPasswordSuccess.set(true);
+      setTimeout(() => this.copyPasswordSuccess.set(false), 2000);
+    }
+  }
+
   // listenUserChanges() {
   //   toObservable(this.userService.userInfo).subscribe((value) => {
   //     if (value) {
@@ -112,13 +121,13 @@ export class UserAppLinksComponent {
       next: () => {
         this.userDetails = this.userService.userInfo;
         this.passwordMasked.update(() =>
-          '•'.repeat((this.userDetails()?.password || '').length)
+          '•'.repeat((this.userDetails()?.password || '').length),
         );
         this.showSuccessDialog();
       },
       error: (error) => {
         this.showErrorDialog(
-          error?.error?.detail || 'Something went wrong. Please try again'
+          error?.error?.detail || 'Something went wrong. Please try again',
         );
       },
     });
