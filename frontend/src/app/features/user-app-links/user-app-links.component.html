@@ -66,9 +66,7 @@
               } @else {
                 <mat-icon
                   class="copy-icon"
-                  (click)="
-                    copyPassword(userDetails()!.password)
-                  "
+                  (click)="copyPassword(userDetails()!.password)"
                   >content_copy</mat-icon
                 >
               }
@@ -176,7 +174,7 @@
           Users are required to open the application and all associated links
           within the dedicated demo user profile. Please refer to the
           <span class="how-to-login-wrapper" (click)="redirectToHowLogin()"
-            >'How to login'</span
+            >&nbsp;'How to login'&nbsp;</span
           >section for detailed instructions.
         </li>
         <li>
