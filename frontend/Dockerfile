@@ -13,7 +13,7 @@ COPY . .
 
 ARG APP_ENV=production
 ENV APP_ENV=$APP_ENV
-RUN npm run build -- --output-path=./dist/frontend --configuration=$APP_ENV --outputHashing=all
+RUN npm run build -- --output-path=./dist/frontend --configuration=$APP_ENV
 
 FROM nginx:alpine
 
