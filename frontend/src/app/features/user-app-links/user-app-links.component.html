@@ -61,6 +61,15 @@
                 </h5>
               }
               <div class="spacer"></div>
+              @if (copyPasswordSuccess() === true) {
+                <mat-icon class="copy-icon">done</mat-icon>
+              } @else {
+                <mat-icon
+                  class="copy-icon"
+                  (click)="copyPassword(userDetails()!.password)"
+                  >content_copy</mat-icon
+                >
+              }
               <mat-icon
                 class="visibility-icon"
                 (click)="updateShowPasswordValue()"
@@ -161,6 +170,10 @@
     <div class="note-wrapper">
       <!-- <mat-icon class="info-wrapper">info</mat-icon> -->
       <ul>
+        <li>
+          Users are required to open the application and all associated links
+          within the dedicated demo user profile.
+        </li>
         <li>
           For comprehensive instructions, please refer to the
           <span class="how-to-login-wrapper" (click)="redirectToHowLogin()"
