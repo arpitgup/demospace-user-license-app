@@ -1,7 +1,7 @@
 FROM python:3.12-slim
 # Set the working directory in the container
 WORKDIR /app
-# Copy the dependencies files to working directory.
+# Copy the dependency files to working directory.
 COPY license-management-api/requirements.txt /app/requirements.txt
 COPY shared /app/shared
 # Installs any needed packages specified in requirements.txt.
