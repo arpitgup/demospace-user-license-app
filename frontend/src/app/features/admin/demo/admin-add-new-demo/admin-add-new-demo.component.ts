@@ -203,17 +203,17 @@ export class AdminAddNewDemoComponent implements OnInit {
     }
     const applicationIds = selectedApplicationIds.join(',');
     const payload: OnBoardNewDemoRequest = {
-      demo_id: `${this.addDemoForm.get(this.DEMO_ID_FORM)?.value?.trim() || ''}`,
+      demo_id: `${this.addDemoForm.get(this.DEMO_ID_FORM)?.value?.toString()?.trim() || ''}`,
       demo_title:
-        this.addDemoForm.get(this.DEMO_TITLE_FORM)?.value?.trim() || '',
+        this.addDemoForm.get(this.DEMO_TITLE_FORM)?.value?.toString()?.trim() || '',
       demo_user_group_email:
-        this.addDemoForm.get(this.DEMO_GROUP_EMAIL_FORM)?.value?.trim() || '',
+        this.addDemoForm.get(this.DEMO_GROUP_EMAIL_FORM)?.value?.toString()?.trim() || '',
       gemini_enterprise_app_link:
         this.addDemoForm
           .get(this.GEMINI_ENTERPRISE_APP_LINK_FORM)
-          ?.value?.trim() || '',
+          ?.value?.toString()?.trim() || '',
       drive_folder_link:
-        this.addDemoForm.get(this.DRIVE_FOLDER_LINK_FORM)?.value?.trim() || '',
+        this.addDemoForm.get(this.DRIVE_FOLDER_LINK_FORM)?.value?.toString()?.trim() || '',
       demo_onboarding_status: DemoOnBoardingEnum.ACTIVE,
       feature_license_app: this.featureLicenseApp(),
       saas_applications: applicationIds,
