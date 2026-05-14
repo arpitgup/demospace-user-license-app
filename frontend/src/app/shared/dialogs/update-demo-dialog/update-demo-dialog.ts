@@ -203,14 +203,14 @@ export class UpdateDemoDialog implements OnInit {
     }
     const applicationIds = selectedApplicationIds.join(',');
     const payload: UpdateDemoRequest = {
-      demo_title: this.updateDemoForm.get(this.DEMO_TITLE_FORM)?.value || '',
+      demo_title: this.updateDemoForm.get(this.DEMO_TITLE_FORM)?.value?.toString()?.trim() || '',
       demo_user_group_email:
-        this.updateDemoForm.get(this.DEMO_GROUP_EMAIL_FORM)?.value || '',
+        this.updateDemoForm.get(this.DEMO_GROUP_EMAIL_FORM)?.value?.toString()?.trim() || '',
       gemini_enterprise_app_link:
-        this.updateDemoForm.get(this.GEMINI_ENTERPRISE_APP_LINK_FORM)?.value ||
+        this.updateDemoForm.get(this.GEMINI_ENTERPRISE_APP_LINK_FORM)?.value?.toString()?.trim() ||
         '',
       drive_folder_link:
-        this.updateDemoForm.get(this.DRIVE_FOLDER_LINK_FORM)?.value || '',
+        this.updateDemoForm.get(this.DRIVE_FOLDER_LINK_FORM)?.value?.toString()?.trim() || '',
       demo_onboarding_status:
         this.updateDemoForm.get(this.ONBOARDING_STATUS)?.value || '',
       feature_license_app: this.featureLicenseApp(),
