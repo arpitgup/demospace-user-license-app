@@ -23,6 +23,7 @@ import { Application } from '../../../core/models/application.model';
 import { OrganizationUnit } from '../../../core/models/organization-unit.model';
 
 import {
+  DEMO_URL_VALIDATION,
   MANAGER_EMAIL_VALIDATION,
   NAME_VALIDATION,
 } from '../../../../utilities/utils';
@@ -98,11 +99,11 @@ export class UpdateDemoDialog implements OnInit {
     ],
     [this.GEMINI_ENTERPRISE_APP_LINK_FORM]: [
       this.data.demoDetails.gemini_enterprise_app_link,
-      [Validators.required, Validators.pattern(/^(https?:\/\/).+/)],
+      [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
     ],
     [this.DRIVE_FOLDER_LINK_FORM]: [
       this.data.demoDetails.drive_folder_link,
-      [Validators.pattern(/^(https?:\/\/).+/)],
+      [Validators.pattern(DEMO_URL_VALIDATION)],
     ],
     [this.DEMO_APPLICATION_FORM]: [''],
     [this.ONBOARDING_STATUS]: [this.data.demoDetails.demo_onboarding_status],
@@ -120,10 +121,7 @@ export class UpdateDemoDialog implements OnInit {
     [this.MANAGER_EMAIL_FORM]: [
       this.data.demoDetails.representative_profile.manager_email || '',
 
-      [
-        Validators.email,
-        Validators.pattern(MANAGER_EMAIL_VALIDATION),
-      ],
+      [Validators.email, Validators.pattern(MANAGER_EMAIL_VALIDATION)],
     ],
     [this.MANAGER_TITLE_FORM]: [
       this.data.demoDetails.representative_profile.manager_title || '',

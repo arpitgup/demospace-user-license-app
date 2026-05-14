@@ -33,6 +33,7 @@ import { DemoOnBoardingEnum } from '../../../../enums/admin-demo-onboarding.enum
 import { ErrorMessage } from '../../../../shared/components/error-message/error-message';
 import { DEMOCONSTANTS } from '../demo.constants';
 import {
+  DEMO_URL_VALIDATION,
   MANAGER_EMAIL_VALIDATION,
   NAME_VALIDATION,
 } from '../../../../../utilities/utils';
@@ -86,11 +87,11 @@ export class AdminAddNewDemoComponent implements OnInit {
     [this.DEMO_GROUP_EMAIL_FORM]: ['', [Validators.required, Validators.email]],
     [this.GEMINI_ENTERPRISE_APP_LINK_FORM]: [
       '',
-      [Validators.required, Validators.pattern(/^(https?:\/\/).+/)],
+      [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
     ],
     [this.DRIVE_FOLDER_LINK_FORM]: [
       '',
-      [Validators.pattern(/^(https?:\/\/).+/)],
+      [Validators.pattern(DEMO_URL_VALIDATION)],
     ],
     [this.DEMO_APPLICATION_FORM]: [''],
     [this.ORGANIZARION_UNIT_FORM]: ['', Validators.required],
@@ -99,10 +100,7 @@ export class AdminAddNewDemoComponent implements OnInit {
     [this.MANAGER_EMAIL_FORM]: [
       '',
 
-      [
-        Validators.email,
-        Validators.pattern(MANAGER_EMAIL_VALIDATION),
-      ],
+      [Validators.email, Validators.pattern(MANAGER_EMAIL_VALIDATION)],
     ],
     [this.MANAGER_TITLE_FORM]: [''],
     [this.REP_ROLE_FORM]: [''],
@@ -205,14 +203,17 @@ export class AdminAddNewDemoComponent implements OnInit {
     }
     const applicationIds = selectedApplicationIds.join(',');
     const payload: OnBoardNewDemoRequest = {
-      demo_id: `${this.addDemoForm.get(this.DEMO_ID_FORM)?.value || ''}`,
-      demo_title: this.addDemoForm.get(this.DEMO_TITLE_FORM)?.value || '',
+      demo_id: `${this.addDemoForm.get(this.DEMO_ID_FORM)?.value?.trim() || ''}`,
+      demo_title:
+        this.addDemoForm.get(this.DEMO_TITLE_FORM)?.value?.trim() || '',
       demo_user_group_email:
-        this.addDemoForm.get(this.DEMO_GROUP_EMAIL_FORM)?.value || '',
+        this.addDemoForm.get(this.DEMO_GROUP_EMAIL_FORM)?.value?.trim() || '',
       gemini_enterprise_app_link:
-        this.addDemoForm.get(this.GEMINI_ENTERPRISE_APP_LINK_FORM)?.value || '',
+        this.addDemoForm
+          .get(this.GEMINI_ENTERPRISE_APP_LINK_FORM)
+          ?.value?.trim() || '',
       drive_folder_link:
-        this.addDemoForm.get(this.DRIVE_FOLDER_LINK_FORM)?.value || '',
+        this.addDemoForm.get(this.DRIVE_FOLDER_LINK_FORM)?.value?.trim() || '',
       demo_onboarding_status: DemoOnBoardingEnum.ACTIVE,
       feature_license_app: this.featureLicenseApp(),
       saas_applications: applicationIds,
