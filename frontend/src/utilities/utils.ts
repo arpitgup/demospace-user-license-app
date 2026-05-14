@@ -292,3 +292,6 @@ export const OLD_MANAGER_EMAIL_VALIDATION = new RegExp(
 export const PARENT_BUG_VALIDATION = new RegExp(
   '^b\\/\\d+$',
 );
+export const DEMO_URL_VALIDATION = new RegExp(
+  "^\\s*(https?://).+?\\s*$",
+);
