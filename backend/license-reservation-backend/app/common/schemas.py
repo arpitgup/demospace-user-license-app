@@ -382,6 +382,10 @@ class RepresentativeProfileOut(BaseModel):
     class Config:
         from_attributes = True
 
+class ArtifactLink(BaseModel):
+    title: str
+    url: str
+
 class DemoDetailOut(BaseModel):
     demo_id: str
     demo_title: str
@@ -394,6 +398,7 @@ class DemoDetailOut(BaseModel):
     organization_unit: Optional[str]
     representative_profile: Optional[RepresentativeProfileOut]
     parent_bug_id: Optional[str] = None
+    artifact_links: Optional[List[ArtifactLink]] = []
 
 class OnboardedDemoDetailsOut(BaseModel):
     demo_id: str
@@ -407,6 +412,7 @@ class OnboardedDemoDetailsOut(BaseModel):
     organization_unit: Optional[str]
     representative_profile: Optional[RepresentativeProfileOut]
     parent_bug_id: Optional[str] = None
+    artifact_links: Optional[List[ArtifactLink]] = []
 
 class UpdateOnboardedDemoDetailsRequest(BaseModel):
     demo_title: str
@@ -424,6 +430,7 @@ class UpdateOnboardedDemoDetailsRequest(BaseModel):
     rep_role: Optional[str] = None
     rep_department: Optional[str] = None
     parent_bug_id: Optional[str] = None
+    artifact_links: Optional[List[ArtifactLink]] = []
 
 class UpdateOnboardedDemoDetailsResponse(BaseModel):
     demo_id: str
@@ -442,6 +449,7 @@ class UpdateOnboardedDemoDetailsResponse(BaseModel):
     rep_role: Optional[str] = None
     rep_department: Optional[str] = None
     parent_bug_id: Optional[str] = None
+    artifact_links: Optional[List[ArtifactLink]] = []
 
 class OnboardNewDemoRequestResponse(BaseModel):
     demo_id: str
@@ -460,6 +468,7 @@ class OnboardNewDemoRequestResponse(BaseModel):
     rep_role: Optional[str] = None
     rep_department: Optional[str] = None
     parent_bug_id: Optional[str] = None
+    artifact_links: Optional[List[ArtifactLink]] = []
 
 class OrganizationUnitCreateRequest(BaseModel):
     orgunitpath: str

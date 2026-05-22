@@ -10,7 +10,7 @@ from sqlalchemy import (
     Table,
 )
 from sqlalchemy.orm import relationship, declarative_base
-from sqlalchemy.dialects.postgresql import ENUM as PGEnum
+from sqlalchemy.dialects.postgresql import ENUM as PGEnum, JSONB
 from ..enums import ReservationStatus, ApplicationLicenseType, DowntimeStatus, DemoOnboardingStatus
 
 Base = declarative_base()
@@ -192,6 +192,7 @@ class DemoDetail(Base):
     rep_role = Column(String(100), nullable=True)
     rep_department = Column(String(50), nullable=True)
     parent_bug_id = Column(String(255), nullable=True)
+    artifact_links = Column(JSONB)
 
 class OrganizationUnits(Base):
     __tablename__ = "organization_units"
