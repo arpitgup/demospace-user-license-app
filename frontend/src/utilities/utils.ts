@@ -295,3 +295,6 @@ export const PARENT_BUG_VALIDATION = new RegExp(
 export const DEMO_URL_VALIDATION = new RegExp(
   "^\\s*(https?://).+?\\s*$",
 );
+
+export const MAX_DEMO_LINK_ADDITION_VALUE=5;
+export const MIN_DEMO_LINK_ADDITION_VALUE=1;
