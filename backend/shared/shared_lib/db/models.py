@@ -177,8 +177,6 @@ class DemoDetail(Base):
     demo_id = Column(String(10), primary_key=True)
     demo_title = Column(String(255), unique=True, nullable=False)
     demo_user_group_email = Column(String(255))
-    gemini_enterprise_app_link = Column(String) 
-    drive_folder_link = Column(String)    
     demo_onboarding_status = Column(
         PGEnum(DemoOnboardingStatus), default=DemoOnboardingStatus.ACTIVE, index=True
     )
