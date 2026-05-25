@@ -35,6 +35,7 @@ import { DemoOnBoardingEnum } from '../../../enums/admin-demo-onboarding.enums';
 import { UpdateDemoRequest } from '../../../core/models/update-demo-request.model';
 import { DemoDetails } from '../../../core/models/demo-details.model';
 import { UpdateDemoConstants } from './update-demo.constants';
+import { ArtifactsLinks } from '../../../core/models/artifacts_link.model';
 
 @Component({
   selector: 'app-update-demo-dialog',
@@ -146,10 +147,23 @@ export class UpdateDemoDialog implements OnInit {
       this.data.demoDetails.representative_profile.rep_department || '',
     ],
     [this.APP_LINKS_ARRAY_FORM]: this.fb.array([
-      this.createAppLinksPairGroup(),
+      this.existingAppLinksPairGroup(),
     ]),
   });
 
+  existingAppLinksPairGroup(): FormGroup {
+    let formGroup: FormGroup;
+    this.data.demoDetails.artifact_links.forEach((item) => {
+      formGroup = this.fb.group({
+        [this.APP_LINK_TITLE_FORM]: [item.title, Validators.required],
+        [this.APP_LINK_VALUE_FORM]: [
+          item.value,
+          [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
+        ],
+      });
+    });
+    return formGroup!;
+  }
   createAppLinksPairGroup(): FormGroup {
     return this.fb.group({
       [this.APP_LINK_TITLE_FORM]: ['', Validators.required],
@@ -239,6 +253,20 @@ export class UpdateDemoDialog implements OnInit {
       return;
     }
     const applicationIds = selectedApplicationIds.join(',');
+
+    const artifactsLinks: ArtifactsLinks[] = [];
+    this.appLinksFieldsPairs.controls.forEach((control) => {
+      if (control.valid) {
+        artifactsLinks.push({
+          title:
+            control.get(this.APP_LINK_TITLE_FORM)?.value?.toString()?.trim() ||
+            '',
+          value:
+            control.get(this.APP_LINK_VALUE_FORM)?.value?.toString()?.trim() ||
+            '',
+        });
+      }
+    });
     const payload: UpdateDemoRequest = {
       demo_title:
         this.updateDemoForm
@@ -279,6 +307,7 @@ export class UpdateDemoDialog implements OnInit {
           .get(this.PARENT_BUG_ID_FORM)
           ?.value?.toString()
           ?.trim() || '',
+      artifact_links: artifactsLinks,
     };
     this.demoService
       .updateOnBoardDemo(payload, this.data.demoDetails.demo_id)

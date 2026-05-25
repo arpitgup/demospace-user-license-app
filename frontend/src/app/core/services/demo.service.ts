@@ -80,6 +80,7 @@ export class DemoService {
             applications: [],
             isEdit: false,
             parent_bug_id: res.parent_bug_id,
+            artifact_links: res.artifact_links,
             representative_profile: {
               cost_centre: res.cost_centre,
               manager_name: res.manager_name,

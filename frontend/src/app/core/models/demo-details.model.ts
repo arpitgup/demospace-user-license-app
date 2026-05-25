@@ -1,4 +1,5 @@
 import { Application } from './application.model';
+import { ArtifactsLinks } from './artifacts_link.model';
 
 export interface DemoDetails {
   demo_id: string;
@@ -15,6 +16,7 @@ export interface DemoDetails {
   isEdit: boolean;
   parent_bug_id: string;
   representative_profile: RepresentativeProfile;
+  artifact_links: ArtifactsLinks[];
 }
 
 interface RepresentativeProfile {
