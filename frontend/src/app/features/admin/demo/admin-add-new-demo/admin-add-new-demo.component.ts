@@ -40,6 +40,7 @@ import {
   MIN_DEMO_LINK_ADDITION_VALUE,
   NAME_VALIDATION,
 } from '../../../../../utilities/utils';
+import { ArtifactsLinks } from '../../../../core/models/artifacts_link.model';
 
 @Component({
   selector: 'app-admin-add-new-demo',
@@ -242,6 +243,20 @@ export class AdminAddNewDemoComponent implements OnInit {
       return;
     }
     const applicationIds = selectedApplicationIds.join(',');
+    const artifactsLinks: ArtifactsLinks[] = [];
+    this.appLinksFieldsPairs.controls.forEach((control) => {
+      if (control.valid) {
+        artifactsLinks.push({
+          title:
+            control.get(this.APP_LINK_TITLE_FORM)?.value?.toString()?.trim() ||
+            '',
+          value:
+            control.get(this.APP_LINK_VALUE_FORM)?.value?.toString()?.trim() ||
+            '',
+        });
+      }
+    });
+
     const payload: OnBoardNewDemoRequest = {
       demo_id: `${this.addDemoForm.get(this.DEMO_ID_FORM)?.value?.toString()?.trim() || ''}`,
       demo_title:
@@ -280,6 +295,7 @@ export class AdminAddNewDemoComponent implements OnInit {
           .get(this.PARENT_BUG_ID_FORM)
           ?.value?.toString()
           ?.trim() || '',
+      artifact_links: artifactsLinks,
     };
     this.demoService.createNewDemo(payload).subscribe({
       next: () => {
