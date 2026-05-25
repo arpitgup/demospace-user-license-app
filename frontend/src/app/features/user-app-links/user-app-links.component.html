@@ -130,39 +130,25 @@
           >
         </div>
       </div>
-      @if ((demoDetails.gemini_enterprise_app_link || "") !== "") {
-        <h5 class="link-tile-wrapper" @fadeIn>Access Demo Application</h5>
-        <div class="link-wrapper" @fadeIn>
-          <h5 class="desc-wrapper">
-            {{ demoDetails.gemini_enterprise_app_link }}
-          </h5>
-          @if (copyGeminiSuccess() === true) {
-            <mat-icon class="copy-icon">done</mat-icon>
-          } @else {
-            <mat-icon
-              class="copy-icon"
-              (click)="copyText(demoDetails.gemini_enterprise_app_link, true)"
-              >content_copy</mat-icon
-            >
-          }
-        </div>
-      }
-      @if ((demoDetails.drive_folder_link || "") !== "") {
-        <h5 class="link-tile-wrapper" @fadeIn>Access Demo Drive</h5>
-        <div class="link-wrapper" @fadeIn>
-          <h5 class="desc-wrapper">
-            {{ demoDetails.drive_folder_link }}
-          </h5>
-          @if (copyDriveSuccess() === true) {
-            <mat-icon class="copy-icon">done</mat-icon>
-          } @else {
-            <mat-icon
-              class="copy-icon"
-              (click)="copyText(demoDetails.drive_folder_link, false)"
-              >content_copy</mat-icon
-            >
-          }
-        </div>
+      @if (
+        demoDetails.artifact_link !== null &&
+        demoDetails.artifact_link.length > 0
+      ) {
+        @for (appLink in demoDetails.artifact_links; track: $index) {
+          <h5 class="link-tile-wrapper" @fadeIn>{{ appLink.title || "" }}</h5>
+          <div class="link-wrapper" @fadeIn>
+            <h5 class="desc-wrapper">
+              {{ appLink.url || "" }}
+            </h5>
+            @if (appLink.copyUrl === true) {
+              <mat-icon class="copy-icon">done</mat-icon>
+            } @else {
+              <mat-icon class="copy-icon" (click)="copyText(appLink)"
+                >content_copy</mat-icon
+              >
+            }
+          </div>
+        }
       }
     </section>
   </div>
