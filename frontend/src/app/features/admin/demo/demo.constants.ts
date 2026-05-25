@@ -110,5 +110,6 @@ export const DEMOCONSTANTS = {
   APP_LINK_VALUE: 'Demo Application Link',
   APP_LINK_VALUE_REQUIRED: 'Demo application link required',
   INVALID_APP_LINK_VALUE: 'Invalid demo application link',
-  ADD_MORE_APP_LINKS:'Add more app links'
+  ADD_MORE_APP_LINKS:'Add more app links',
+  NEW_APP_LINK:'App Link'
 };

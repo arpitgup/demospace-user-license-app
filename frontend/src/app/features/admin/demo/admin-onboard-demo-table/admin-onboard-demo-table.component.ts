@@ -147,13 +147,13 @@ export class AdminOnboardDemoTableComponent {
     let filteredDemos: DemoDetails[] = [];
     if (this.showDeprecatedDemos() === true) {
       filteredDemos = this.adminDemoList.filter(
-        (item) => item.demo_onboarding_status === DemoOnBoardingEnum.DEPRECATED
+        (item) => item.demo_onboarding_status === DemoOnBoardingEnum.DEPRECATED,
       );
     } else {
       filteredDemos = this.adminDemoList.filter(
         (item) =>
           item.demo_onboarding_status === DemoOnBoardingEnum.ACTIVE ||
-          item.demo_onboarding_status === DemoOnBoardingEnum.INACTIVE
+          item.demo_onboarding_status === DemoOnBoardingEnum.INACTIVE,
       );
     }
     this.dataSource.data = filteredDemos
@@ -164,44 +164,44 @@ export class AdminOnboardDemoTableComponent {
               .includes(
                 this.searchForm
                   .get(this.SEARCH_DEMO_ID_FORM)
-                  ?.value?.toLowerCase()
+                  ?.value?.toLowerCase(),
               )
-          : true
+          : true,
       )
       .filter((item) =>
         this.searchForm.get(this.SEARCH_DEMO_TITLE_FORM)?.value !== ''
-          ? item.demo_title
+          ? (item.demo_title
               ?.toLowerCase()
               ?.includes(
                 this.searchForm
                   .get(this.SEARCH_DEMO_TITLE_FORM)
-                  ?.value?.toLowerCase()
-              ) ?? true
-          : true
+                  ?.value?.toLowerCase(),
+              ) ?? true)
+          : true,
       )
       .filter((item) =>
         this.searchForm.get(this.SEARCH_APPLICATIONS_FORM)?.value !== ''
-          ? item.applications.some((application) =>
+          ? (item.applications.some((application) =>
               application.name
                 .toLowerCase()
                 .includes(
                   this.searchForm
                     .get(this.SEARCH_APPLICATIONS_FORM)
-                    ?.value?.toLowerCase()
-                )
-            ) ?? true
-          : true
+                    ?.value?.toLowerCase(),
+                ),
+            ) ?? true)
+          : true,
       )
       .filter((item) =>
         this.searchForm.get(this.SEARCH_ORG_UNIT_FORM)?.value !== ''
-          ? item.organization_unit
+          ? (item.organization_unit
               ?.toLowerCase()
               ?.includes(
                 this.searchForm
                   .get(this.SEARCH_ORG_UNIT_FORM)
-                  ?.value?.toLowerCase()
-              ) ?? true
-          : true
+                  ?.value?.toLowerCase(),
+              ) ?? true)
+          : true,
       );
     if (this.dataSource.paginator && isRedirectToFirstPage === true) {
       this.dataSource.paginator.firstPage();
@@ -239,13 +239,13 @@ export class AdminOnboardDemoTableComponent {
   updateDemosDataSource() {
     if (this.showDeprecatedDemos() === true) {
       this.dataSource.data = this.adminDemoList.filter(
-        (item) => item.demo_onboarding_status === DemoOnBoardingEnum.DEPRECATED
+        (item) => item.demo_onboarding_status === DemoOnBoardingEnum.DEPRECATED,
       );
     } else {
       this.dataSource.data = this.adminDemoList.filter(
         (item) =>
           item.demo_onboarding_status === DemoOnBoardingEnum.ACTIVE ||
-          item.demo_onboarding_status === DemoOnBoardingEnum.INACTIVE
+          item.demo_onboarding_status === DemoOnBoardingEnum.INACTIVE,
       );
     }
   }
@@ -272,7 +272,7 @@ export class AdminOnboardDemoTableComponent {
         this.adminDemoList = data.adminDemos.map((item) => {
           item.applications = this.getDemoApplications(
             item.saas_applications,
-            data.applications
+            data.applications,
           );
           return item;
         });
@@ -290,9 +290,20 @@ export class AdminOnboardDemoTableComponent {
     });
   }
 
+ 
+  getDemoAppLinkUrl(demo: DemoDetails, index: number) {
+    if (
+      demo.artifact_links !== null &&
+      demo.artifact_links.length >= index + 1
+    ) {
+      return demo.artifact_links[index].url;
+    } else {
+      return '';
+    }
+  }
   getDemoApplications(
     saas_applications: string,
-    applications: Application[]
+    applications: Application[],
   ): Application[] {
     const applicationIds = saas_applications.split(',').map(Number);
     return applications.filter((item) => applicationIds.includes(item.id));
@@ -326,7 +337,7 @@ export class AdminOnboardDemoTableComponent {
         application: this.applicationList,
         organizationUnit: this.organizationUnit,
         demoDetails: this.initialAdminDemoResponse.find(
-          (item) => item.demo_id === demoId
+          (item) => item.demo_id === demoId,
         ),
       },
     });
@@ -335,7 +346,7 @@ export class AdminOnboardDemoTableComponent {
       if (result && typeof result.demo_id === 'string') {
         this.showSuccessDialog();
         const index = this.adminDemoList.findIndex(
-          (item) => item.demo_id == result.demo_id
+          (item) => item.demo_id == result.demo_id,
         );
         this.adminDemoList.splice(index, 1, result);
 
@@ -383,7 +394,7 @@ export class AdminOnboardDemoTableComponent {
     const demo = this.adminDemoList.filter((item) => item.demo_id === demoId);
     if (demo[0].applicationIds.length <= 0 && demo[0].feature_license_app) {
       this.showErrorDialog(
-        this.demoConstants.SAAS_APPLICATION_SHOULD_NOT_BE_EMPTY
+        this.demoConstants.SAAS_APPLICATION_SHOULD_NOT_BE_EMPTY,
       );
       return;
     }
@@ -395,7 +406,7 @@ export class AdminOnboardDemoTableComponent {
       if (item.demo_id === demoId) {
         item.isEdit = false;
         const demo = this.initialAdminDemoResponse.find(
-          (item) => item.demo_id === demoId
+          (item) => item.demo_id === demoId,
         );
         this.setPreviousDemoValues(demo, item);
         this.clearFormValues();
@@ -433,7 +444,7 @@ export class AdminOnboardDemoTableComponent {
     this.orgUnitController.setValue(item?.organization_unit || '');
     this.demoStatusController.setValue(item?.demo_onboarding_status || '');
     this.geminiEnterpriseLinkController.setValue(
-      item?.gemini_enterprise_app_link || ''
+      item?.gemini_enterprise_app_link || '',
     );
     this.driveLinkController.setValue(item?.drive_folder_link || '');
     this.demoTitleController.setValidators([Validators.required]);
