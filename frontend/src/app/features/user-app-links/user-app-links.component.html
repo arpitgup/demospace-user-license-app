@@ -131,10 +131,10 @@
         </div>
       </div>
       @if (
-        demoDetails.artifact_link !== null &&
-        demoDetails.artifact_link.length > 0
+        demoDetails.artifact_links !== null &&
+        demoDetails.artifact_links.length > 0
       ) {
-        @for (appLink in demoDetails.artifact_links; track: $index) {
+        @for (appLink of demoDetails.artifact_links;track $index) {
           <h5 class="link-tile-wrapper" @fadeIn>{{ appLink.title || "" }}</h5>
           <div class="link-wrapper" @fadeIn>
             <h5 class="desc-wrapper">
