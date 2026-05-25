@@ -146,21 +146,23 @@ export class UpdateDemoDialog implements OnInit {
     [this.REP_DEPARTMENT_FORM]: [
       this.data.demoDetails.representative_profile.rep_department || '',
     ],
-    [this.APP_LINKS_ARRAY_FORM]: this.fb.array([
+    [this.APP_LINKS_ARRAY_FORM]: this.fb.array(
       this.existingAppLinksPairGroup(),
-    ]),
+    ),
   });
 
-  existingAppLinksPairGroup(): FormGroup {
-    let formGroup: FormGroup;
+  existingAppLinksPairGroup(): FormGroup[] {
+    const formGroup: FormGroup[] = [];
     this.data.demoDetails.artifact_links.forEach((item) => {
-      formGroup = this.fb.group({
-        [this.APP_LINK_TITLE_FORM]: [item.title, Validators.required],
-        [this.APP_LINK_VALUE_FORM]: [
-          item.value,
-          [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
-        ],
-      });
+      formGroup.push(
+        this.fb.group({
+          [this.APP_LINK_TITLE_FORM]: [item.title, Validators.required],
+          [this.APP_LINK_VALUE_FORM]: [
+            item.url,
+            [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
+          ],
+        }),
+      );
     });
     return formGroup!;
   }
@@ -261,7 +263,7 @@ export class UpdateDemoDialog implements OnInit {
           title:
             control.get(this.APP_LINK_TITLE_FORM)?.value?.toString()?.trim() ||
             '',
-          value:
+          url:
             control.get(this.APP_LINK_VALUE_FORM)?.value?.toString()?.trim() ||
             '',
         });
