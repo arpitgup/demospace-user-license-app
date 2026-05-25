@@ -151,33 +151,37 @@
 
         <ng-container matColumnDef="geminiEnterpriseAppLink">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>
-            {{ demoConstants.APP_LINK_TITLE }}
+            {{ demoConstants.APP_LINK }}
           </th>
           <td mat-cell *matCellDef="let element">
-            <a
-              [href]="getDemoAppLinkUrl(element, 0)"
-              [attr.data-url]="getDemoAppLinkUrl(element, 0)"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="link-wrapper"
-              >Link</a
-            >
+            @if (getDemoAppLinkUrl(element, 0) !== "") {
+              <a
+                [href]="getDemoAppLinkUrl(element, 0)"
+                [attr.data-url]="getDemoAppLinkUrl(element, 0)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="link-wrapper"
+                >Link</a
+              >
+            }
           </td>
         </ng-container>
 
         <ng-container matColumnDef="driveFolderLink">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>
-            {{ demoConstants.APP_LINK_TITLE }}
+            {{ demoConstants.APP_LINK }}
           </th>
           <td mat-cell *matCellDef="let element">
-            <a
-              [href]="getDemoAppLinkUrl(element, 1)"
-              [attr.data-url]="getDemoAppLinkUrl(element, 1)"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="link-wrapper"
-              >Link</a
-            >
+            @if (getDemoAppLinkUrl(element, 1) !== "") {
+              <a
+                [href]="getDemoAppLinkUrl(element, 1)"
+                [attr.data-url]="getDemoAppLinkUrl(element, 1)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="link-wrapper"
+                >Link</a
+              >
+            }
           </td>
         </ng-container>
 
