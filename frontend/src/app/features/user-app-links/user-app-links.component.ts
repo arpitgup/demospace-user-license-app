@@ -20,6 +20,7 @@ import {
 import { MatDialog } from '@angular/material/dialog';
 import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
 import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
+import { ArtifactsLinks } from '../../core/models/artifacts_link.model';
 @Component({
   selector: 'app-user-app-links',
   imports: [MatIconModule, MatCardModule],
@@ -75,9 +76,7 @@ export class UserAppLinksComponent {
   @Output() redirectHowToLogin = new EventEmitter();
   private userService = inject(UserCreationService);
   userDetails = this.userService.userInfo;
-  public copyGeminiSuccess = signal(false);
   public copyPasswordSuccess = signal(false);
-  public copyDriveSuccess = signal(false);
   public showPassword = signal(false);
   private clipboard = inject(Clipboard);
   public passwordMasked = signal<string>(
@@ -87,21 +86,16 @@ export class UserAppLinksComponent {
   chatSpaceUrl = CHAT_SPACE_URL;
   demospaceInfoUrl = DEMOSPACEINFO_LINK;
   private dialog = inject(MatDialog);
-  copyText(link: string, isGemini: boolean) {
-    const successful = this.clipboard.copy(link);
+  copyText(artifactLink: ArtifactsLinks) {
+    const successful = this.clipboard.copy(artifactLink.url);
     if (successful) {
-      if (isGemini) {
-        this.copyGeminiSuccess.set(true);
-        setTimeout(() => this.copyGeminiSuccess.set(false), 2000);
-      } else {
-        this.copyDriveSuccess.set(true);
-        setTimeout(() => this.copyDriveSuccess.set(false), 2000);
-      }
+      artifactLink.copyUrl = true;
+      setTimeout(() => (artifactLink.copyUrl = false), 2000);
     }
   }
 
   copyPassword(password: string | undefined) {
-    const successful = this.clipboard.copy(password ?? "");
+    const successful = this.clipboard.copy(password ?? '');
     if (successful) {
       this.copyPasswordSuccess.set(true);
       setTimeout(() => this.copyPasswordSuccess.set(false), 2000);

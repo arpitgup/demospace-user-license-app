@@ -153,17 +153,20 @@ export class UpdateDemoDialog implements OnInit {
 
   existingAppLinksPairGroup(): FormGroup[] {
     const formGroup: FormGroup[] = [];
-    this.data.demoDetails.artifact_links.forEach((item) => {
-      formGroup.push(
-        this.fb.group({
-          [this.APP_LINK_TITLE_FORM]: [item.title, Validators.required],
-          [this.APP_LINK_VALUE_FORM]: [
-            item.url,
-            [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
-          ],
-        }),
-      );
-    });
+    if (this.data.demoDetails?.artifact_links !== null) {
+      this.data.demoDetails.artifact_links.forEach((item) => {
+        formGroup.push(
+          this.fb.group({
+            [this.APP_LINK_TITLE_FORM]: [item.title, Validators.required],
+            [this.APP_LINK_VALUE_FORM]: [
+              item.url,
+              [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
+            ],
+          }),
+        );
+      });
+    }
+
     return formGroup!;
   }
   createAppLinksPairGroup(): FormGroup {
@@ -280,7 +283,8 @@ export class UpdateDemoDialog implements OnInit {
           .get(this.DEMO_GROUP_EMAIL_FORM)
           ?.value?.toString()
           ?.trim() || '',
-      gemini_enterprise_app_link: '',
+      gemini_enterprise_app_link:
+        this.data.demoDetails.gemini_enterprise_app_link,
       drive_folder_link: '',
       demo_onboarding_status:
         this.updateDemoForm.get(this.ONBOARDING_STATUS)?.value || '',
