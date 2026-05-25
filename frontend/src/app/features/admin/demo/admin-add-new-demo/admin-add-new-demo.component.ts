@@ -250,7 +250,7 @@ export class AdminAddNewDemoComponent implements OnInit {
           title:
             control.get(this.APP_LINK_TITLE_FORM)?.value?.toString()?.trim() ||
             '',
-          value:
+          url:
             control.get(this.APP_LINK_VALUE_FORM)?.value?.toString()?.trim() ||
             '',
         });
@@ -267,7 +267,7 @@ export class AdminAddNewDemoComponent implements OnInit {
           .get(this.DEMO_GROUP_EMAIL_FORM)
           ?.value?.toString()
           ?.trim() || '',
-      gemini_enterprise_app_link: '',
+      gemini_enterprise_app_link: 'https://',
       drive_folder_link: '',
       demo_onboarding_status: DemoOnBoardingEnum.ACTIVE,
       feature_license_app: this.featureLicenseApp(),
