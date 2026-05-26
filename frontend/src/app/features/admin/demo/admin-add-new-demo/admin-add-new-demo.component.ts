@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import {
+  FormArray,
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
@@ -35,8 +36,11 @@ import { DEMOCONSTANTS } from '../demo.constants';
 import {
   DEMO_URL_VALIDATION,
   MANAGER_EMAIL_VALIDATION,
+  MAX_DEMO_LINK_ADDITION_VALUE,
+  MIN_DEMO_LINK_ADDITION_VALUE,
   NAME_VALIDATION,
 } from '../../../../../utilities/utils';
+import { ArtifactsLinks } from '../../../../core/models/artifacts_link.model';
 
 @Component({
   selector: 'app-admin-add-new-demo',
@@ -64,8 +68,6 @@ export class AdminAddNewDemoComponent implements OnInit {
   readonly DEMO_TITLE_FORM = 'demo_title_form';
   readonly DEMO_GROUP_EMAIL_FORM = 'demo_group_email_form';
   readonly ORGANIZARION_UNIT_FORM = 'organization_unit_form';
-  readonly GEMINI_ENTERPRISE_APP_LINK_FORM = 'gemini_enterprise_app_link_form';
-  readonly DRIVE_FOLDER_LINK_FORM = 'drive_folder_link_form';
   readonly DEMO_APPLICATION_FORM = 'demo_application_form';
   readonly COST_CENTRE_FORM = 'cost_centre_form';
   readonly MANAGER_NAME_FORM = 'manager_name_form';
@@ -74,6 +76,9 @@ export class AdminAddNewDemoComponent implements OnInit {
   readonly REP_ROLE_FORM = 'rep_role_form';
   readonly PARENT_BUG_ID_FORM = 'parent_bug_id_form';
   readonly REP_DEPARTMENT_FORM = 'rep_department_form';
+  readonly APP_LINKS_ARRAY_FORM = 'app_links_array_form';
+  readonly APP_LINK_TITLE_FORM = 'app_link_title_form';
+  readonly APP_LINK_VALUE_FORM = 'app_link_value_form';
   readonly featureLicenseApp = signal<boolean>(false);
   readonly adminApplications = signal<Application[]>([]);
   readonly organizationUnit = signal<OrganizationUnit[]>([]);
@@ -81,18 +86,12 @@ export class AdminAddNewDemoComponent implements OnInit {
   readonly applicationErrorMessage = signal<string>('');
   public readonly errorMessage = signal<string>('');
   readonly demoConstants = DEMOCONSTANTS;
+  readonly maxDemoLinks = MAX_DEMO_LINK_ADDITION_VALUE;
+  readonly minDemoLinks = MIN_DEMO_LINK_ADDITION_VALUE;
   addDemoForm: FormGroup = this.fb.group({
     [this.DEMO_ID_FORM]: ['', Validators.required],
     [this.DEMO_TITLE_FORM]: ['', [Validators.required]],
     [this.DEMO_GROUP_EMAIL_FORM]: ['', [Validators.required, Validators.email]],
-    [this.GEMINI_ENTERPRISE_APP_LINK_FORM]: [
-      '',
-      [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
-    ],
-    [this.DRIVE_FOLDER_LINK_FORM]: [
-      '',
-      [Validators.pattern(DEMO_URL_VALIDATION)],
-    ],
     [this.DEMO_APPLICATION_FORM]: [''],
     [this.ORGANIZARION_UNIT_FORM]: ['', Validators.required],
     [this.COST_CENTRE_FORM]: [''],
@@ -110,7 +109,20 @@ export class AdminAddNewDemoComponent implements OnInit {
       // Validators.pattern(PARENT_BUG_VALIDATION),
     ],
     [this.REP_DEPARTMENT_FORM]: [''],
+    [this.APP_LINKS_ARRAY_FORM]: this.fb.array([
+      this.createAppLinksPairGroup(),
+    ]),
   });
+
+  createAppLinksPairGroup(): FormGroup {
+    return this.fb.group({
+      [this.APP_LINK_TITLE_FORM]: ['', Validators.required],
+      [this.APP_LINK_VALUE_FORM]: [
+        '',
+        [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
+      ],
+    });
+  }
   @Output() demoOnBoardSuccess = new EventEmitter();
 
   ngOnInit(): void {
@@ -181,6 +193,23 @@ export class AdminAddNewDemoComponent implements OnInit {
   onSelecteLicenseReservation(isChecked: boolean) {
     this.featureLicenseApp.update(() => isChecked);
   }
+
+  get appLinksFieldsPairs(): FormArray {
+    return this.addDemoForm.get(this.APP_LINKS_ARRAY_FORM) as FormArray;
+  }
+
+  addAppLinkPairField(): void {
+    if (this.appLinksFieldsPairs.length < this.maxDemoLinks) {
+      this.appLinksFieldsPairs.push(this.createAppLinksPairGroup());
+    }
+  }
+
+  removeAppLinkPairField(index: number): void {
+    if (this.appLinksFieldsPairs.length > this.minDemoLinks) {
+      this.appLinksFieldsPairs.removeAt(index);
+    }
+  }
+
   onCancel() {
     this.demoOnBoardSuccess.emit();
   }
@@ -202,18 +231,30 @@ export class AdminAddNewDemoComponent implements OnInit {
       return;
     }
     const applicationIds = selectedApplicationIds.join(',');
+    const artifactsLinks: ArtifactsLinks[] = [];
+    this.appLinksFieldsPairs.controls.forEach((control) => {
+      if (control.valid) {
+        artifactsLinks.push({
+          title:
+            control.get(this.APP_LINK_TITLE_FORM)?.value?.toString()?.trim() ||
+            '',
+          url:
+            control.get(this.APP_LINK_VALUE_FORM)?.value?.toString()?.trim() ||
+            '',
+        });
+      }
+    });
+
     const payload: OnBoardNewDemoRequest = {
       demo_id: `${this.addDemoForm.get(this.DEMO_ID_FORM)?.value?.toString()?.trim() || ''}`,
       demo_title:
-        this.addDemoForm.get(this.DEMO_TITLE_FORM)?.value?.toString()?.trim() || '',
+        this.addDemoForm.get(this.DEMO_TITLE_FORM)?.value?.toString()?.trim() ||
+        '',
       demo_user_group_email:
-        this.addDemoForm.get(this.DEMO_GROUP_EMAIL_FORM)?.value?.toString()?.trim() || '',
-      gemini_enterprise_app_link:
         this.addDemoForm
-          .get(this.GEMINI_ENTERPRISE_APP_LINK_FORM)
-          ?.value?.toString()?.trim() || '',
-      drive_folder_link:
-        this.addDemoForm.get(this.DRIVE_FOLDER_LINK_FORM)?.value?.toString()?.trim() || '',
+          .get(this.DEMO_GROUP_EMAIL_FORM)
+          ?.value?.toString()
+          ?.trim() || '',
       demo_onboarding_status: DemoOnBoardingEnum.ACTIVE,
       feature_license_app: this.featureLicenseApp(),
       saas_applications: applicationIds,
@@ -240,6 +281,7 @@ export class AdminAddNewDemoComponent implements OnInit {
           .get(this.PARENT_BUG_ID_FORM)
           ?.value?.toString()
           ?.trim() || '',
+      artifact_links: artifactsLinks,
     };
     this.demoService.createNewDemo(payload).subscribe({
       next: () => {

@@ -1,9 +1,9 @@
+import { ArtifactsLinks } from "./artifacts_link.model";
+
 export interface OnBoardNewDemoRequest {
   demo_id: string;
   demo_title: string;
   demo_user_group_email: string;
-  gemini_enterprise_app_link: string;
-  drive_folder_link: string;
   demo_onboarding_status: string;
   feature_license_app: boolean;
   saas_applications: string;
@@ -15,4 +15,5 @@ export interface OnBoardNewDemoRequest {
   rep_role: string;
   rep_department: string;
   parent_bug_id:string;
+  artifact_links:ArtifactsLinks[]
 }

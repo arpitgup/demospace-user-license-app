@@ -1,11 +1,10 @@
 import { Application } from './application.model';
+import { ArtifactsLinks } from './artifacts_link.model';
 
 export interface DemoDetails {
   demo_id: string;
   demo_title: string;
   demo_user_group_email: string;
-  gemini_enterprise_app_link: string;
-  drive_folder_link: string;
   demo_onboarding_status: string;
   feature_license_app: boolean;
   saas_applications: string;
@@ -15,6 +14,7 @@ export interface DemoDetails {
   isEdit: boolean;
   parent_bug_id: string;
   representative_profile: RepresentativeProfile;
+  artifact_links: ArtifactsLinks[];
 }
 
 interface RepresentativeProfile {

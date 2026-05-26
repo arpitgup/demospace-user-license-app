@@ -101,4 +101,15 @@ export const DEMOCONSTANTS = {
   PARENT_BUG_ID_REQUIRED: 'Parent Bug ID required',
   INVALID_PARENT_BUG_ID: 'Invalid Parent Bug ID, bug id should start with b/',
   MANAGER_EMAIL_NOT_VALID: 'Email not valid',
+  APP_LINKS: 'App Links',
+  GEMINI_ENTERPRISE_APP_LINK_TITLE: 'Gemini Enterprise App Link Title',
+  GEMINI_ENTERPRISE_APP_LINK_TITLE_REQUIRED:
+    'Gemini Enterprise App Link Title required',
+  APP_LINK_TITLE: 'Demo Application Title',
+  APP_LINK_TITLE_REQUIRED: 'Demo application title required',
+  APP_LINK_VALUE: 'Demo Application Link',
+  APP_LINK_VALUE_REQUIRED: 'Demo application link required',
+  INVALID_APP_LINK_VALUE: 'Invalid demo application link',
+  ADD_MORE_DEMO_LINKS:'Add more demo links',
+  DEMO_LINKS:'Demo Links'
 };
