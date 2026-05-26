@@ -70,7 +70,7 @@
         </mat-form-field>
       </div>
 
-      <h2>{{ demoConstants.UPDATE_APP_LINKS }}</h2>
+      <h2>{{ demoConstants.UPDATE_DEMO_LINKS }}</h2>
 
       <div [formArrayName]="APP_LINKS_ARRAY_FORM">
         @for (pair of appLinksFieldsPairs.controls; track $index) {
@@ -134,7 +134,7 @@
           class="link-wrapper"
           (click)="addAppLinkPairField()"
           [class.disabled]="appLinksFieldsPairs.length >= maxDemoLinks"
-          >{{ demoConstants.ADD_MORE_APP_LINKS }}</a
+          >{{ demoConstants.ADD_MORE_DEMO_LINKS }}</a
         >
       }
       <h2>{{ demoConstants.UPDATE_REPRESENTATIVE_PROFILE }}</h2>

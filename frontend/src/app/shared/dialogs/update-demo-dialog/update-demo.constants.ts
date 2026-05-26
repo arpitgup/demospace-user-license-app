@@ -50,11 +50,11 @@ export const UpdateDemoConstants = {
   PARENT_BUG_ID: 'Parent Submission Bug ID',
   PARENT_BUG_ID_REQUIRED: 'Parent Bug ID required',
   INVALID_PARENT_BUG_ID: 'Invalid Parent Bug ID, bug id should start with b/',
-  UPDATE_APP_LINKS: 'Update App Links',
+  UPDATE_DEMO_LINKS: 'Update Demo Links',
   APP_LINK_TITLE: 'Demo Application Title',
   APP_LINK_TITLE_REQUIRED: 'Demo application title required',
   APP_LINK_VALUE: 'Demo Application Link',
   APP_LINK_VALUE_REQUIRED: 'Demo application link required',
   INVALID_APP_LINK_VALUE: 'Invalid demo application link',
-  ADD_MORE_APP_LINKS:'Add more app links'
+  ADD_MORE_DEMO_LINKS:'Add more demo links'
 };
