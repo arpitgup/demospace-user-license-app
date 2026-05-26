@@ -74,8 +74,6 @@ export class UpdateDemoDialog implements OnInit {
   readonly DEMO_TITLE_FORM = 'demo_title_form';
   readonly DEMO_GROUP_EMAIL_FORM = 'demo_group_email_form';
   readonly ORGANIZARION_UNIT_FORM = 'organization_unit_form';
-  // readonly GEMINI_ENTERPRISE_APP_LINK_FORM = 'gemini_enterprise_app_link_form';
-  // readonly DRIVE_FOLDER_LINK_FORM = 'drive_folder_link_form';
   readonly DEMO_APPLICATION_FORM = 'demo_application_form';
   readonly COST_CENTRE_FORM = 'cost_centre_form';
   readonly MANAGER_NAME_FORM = 'manager_name_form';
@@ -106,14 +104,6 @@ export class UpdateDemoDialog implements OnInit {
       this.data.demoDetails.demo_user_group_email,
       [Validators.required, Validators.email],
     ],
-    // [this.GEMINI_ENTERPRISE_APP_LINK_FORM]: [
-    //   this.data.demoDetails.gemini_enterprise_app_link,
-    //   [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
-    // ],
-    // [this.DRIVE_FOLDER_LINK_FORM]: [
-    //   this.data.demoDetails.drive_folder_link,
-    //   [Validators.pattern(DEMO_URL_VALIDATION)],
-    // ],
     [this.DEMO_APPLICATION_FORM]: [''],
     [this.ONBOARDING_STATUS]: [this.data.demoDetails.demo_onboarding_status],
     [this.ORGANIZARION_UNIT_FORM]: [
@@ -283,9 +273,6 @@ export class UpdateDemoDialog implements OnInit {
           .get(this.DEMO_GROUP_EMAIL_FORM)
           ?.value?.toString()
           ?.trim() || '',
-      gemini_enterprise_app_link:
-        this.data.demoDetails.gemini_enterprise_app_link,
-      drive_folder_link: '',
       demo_onboarding_status:
         this.updateDemoForm.get(this.ONBOARDING_STATUS)?.value || '',
       feature_license_app: this.featureLicenseApp(),

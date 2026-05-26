@@ -68,8 +68,6 @@ export class AdminAddNewDemoComponent implements OnInit {
   readonly DEMO_TITLE_FORM = 'demo_title_form';
   readonly DEMO_GROUP_EMAIL_FORM = 'demo_group_email_form';
   readonly ORGANIZARION_UNIT_FORM = 'organization_unit_form';
-  // readonly GEMINI_ENTERPRISE_APP_LINK_FORM = 'gemini_enterprise_app_link_form';
-  // readonly DRIVE_FOLDER_LINK_FORM = 'drive_folder_link_form';
   readonly DEMO_APPLICATION_FORM = 'demo_application_form';
   readonly COST_CENTRE_FORM = 'cost_centre_form';
   readonly MANAGER_NAME_FORM = 'manager_name_form';
@@ -79,7 +77,6 @@ export class AdminAddNewDemoComponent implements OnInit {
   readonly PARENT_BUG_ID_FORM = 'parent_bug_id_form';
   readonly REP_DEPARTMENT_FORM = 'rep_department_form';
   readonly APP_LINKS_ARRAY_FORM = 'app_links_array_form';
-  // readonly GEMINI_ENTERPRISE_TITLE_FORM = 'gemini_enterprise_title_form';
   readonly APP_LINK_TITLE_FORM = 'app_link_title_form';
   readonly APP_LINK_VALUE_FORM = 'app_link_value_form';
   readonly featureLicenseApp = signal<boolean>(false);
@@ -95,15 +92,6 @@ export class AdminAddNewDemoComponent implements OnInit {
     [this.DEMO_ID_FORM]: ['', Validators.required],
     [this.DEMO_TITLE_FORM]: ['', [Validators.required]],
     [this.DEMO_GROUP_EMAIL_FORM]: ['', [Validators.required, Validators.email]],
-    // [this.GEMINI_ENTERPRISE_TITLE_FORM]: ['', Validators.required],
-    // [this.GEMINI_ENTERPRISE_APP_LINK_FORM]: [
-    //   '',
-    //   [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
-    // ],
-    // [this.DRIVE_FOLDER_LINK_FORM]: [
-    //   '',
-    //   [Validators.pattern(DEMO_URL_VALIDATION)],
-    // ],
     [this.DEMO_APPLICATION_FORM]: [''],
     [this.ORGANIZARION_UNIT_FORM]: ['', Validators.required],
     [this.COST_CENTRE_FORM]: [''],
@@ -267,8 +255,6 @@ export class AdminAddNewDemoComponent implements OnInit {
           .get(this.DEMO_GROUP_EMAIL_FORM)
           ?.value?.toString()
           ?.trim() || '',
-      gemini_enterprise_app_link: 'https://',
-      drive_folder_link: '',
       demo_onboarding_status: DemoOnBoardingEnum.ACTIVE,
       feature_license_app: this.featureLicenseApp(),
       saas_applications: applicationIds,

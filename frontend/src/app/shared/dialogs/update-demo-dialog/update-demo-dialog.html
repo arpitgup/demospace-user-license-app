@@ -38,52 +38,6 @@
         </mat-form-field>
       </div>
 
-      <!-- <div class="demo-details-wrapper">
-        <mat-form-field appearance="outline" class="custom-form-field">
-          <mat-label>{{ demoConstants.GEMINI_ENTERPRISE_APP_LINK }}</mat-label>
-          <input
-            matInput
-            [placeholder]="demoConstants.GEMINI_ENTERPRISE_APP_LINK + '*'"
-            [formControlName]="GEMINI_ENTERPRISE_APP_LINK_FORM"
-            maxlength="400"
-          />
-          @if (
-            updateDemoForm
-              .get(GEMINI_ENTERPRISE_APP_LINK_FORM)
-              ?.hasError("required") &&
-            updateDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.touched
-          ) {
-            <mat-error>{{
-              demoConstants.GEMINI_ENTERPRISE_APP_LINK_REQUIRED
-            }}</mat-error>
-          } @else if (
-            updateDemoForm
-              .get(GEMINI_ENTERPRISE_APP_LINK_FORM)
-              ?.hasError("pattern") &&
-            updateDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.touched
-          ) {
-            <mat-error>{{
-              demoConstants.INVALID_GEMINI_ENTERPRISE_APP_LINK
-            }}</mat-error>
-          }
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="custom-form-field">
-          <mat-label>{{ demoConstants.DRIVE_FOLDER_LINK }}</mat-label>
-          <input
-            matInput
-            [placeholder]="demoConstants.DRIVE_FOLDER_LINK"
-            [formControlName]="DRIVE_FOLDER_LINK_FORM"
-            maxlength="400"
-          />
-          @if (
-            updateDemoForm.get(DRIVE_FOLDER_LINK_FORM)?.hasError("pattern") &&
-            updateDemoForm.get(DRIVE_FOLDER_LINK_FORM)?.touched
-          ) {
-            <mat-error>{{ demoConstants.INVALID_DRIVE_FOLDER_LINK }}</mat-error>
-          }
-        </mat-form-field>
-      </div> -->
-
       <div class="demo-details-wrapper">
         <mat-form-field appearance="outline" class="custom-form-field">
           <mat-label>{{ demoConstants.ORGABNIZATION_UNIT }}</mat-label>
@@ -193,6 +147,7 @@
             type="number"
             [placeholder]="demoConstants.COST_CENTRE"
             [formControlName]="COST_CENTRE_FORM"
+            class="no-spinners"
             maxlength="200"
           />
           @if (
@@ -311,6 +266,7 @@
             type="number"
             [placeholder]="demoConstants.PARENT_BUG_ID + '*'"
             [formControlName]="PARENT_BUG_ID_FORM"
+            class="no-spinners"
             maxlength="400"
           />
           @if (
