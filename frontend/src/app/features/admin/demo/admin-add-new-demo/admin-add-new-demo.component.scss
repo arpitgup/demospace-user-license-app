@@ -288,6 +288,15 @@ $spacing-xs: 0.75rem;
   }
 }
 
+.no-spinners {
+  appearance: textfield;
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
 :host ::ng-deep {
   .mat-mdc-floating-label {
     padding-bottom: 0.6rem;

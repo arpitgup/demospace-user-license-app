@@ -70,8 +70,6 @@ export class DemoService {
             demo_id: res.demo_id,
             demo_title: res.demo_title,
             demo_user_group_email: res.demo_user_group_email,
-            gemini_enterprise_app_link: res.gemini_enterprise_app_link,
-            drive_folder_link: res.drive_folder_link,
             demo_onboarding_status: res.demo_onboarding_status,
             feature_license_app: res.feature_license_app,
             saas_applications: res.saas_applications,

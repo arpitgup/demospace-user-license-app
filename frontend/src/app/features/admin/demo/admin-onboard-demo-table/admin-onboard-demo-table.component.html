@@ -94,25 +94,7 @@
             {{ demoConstants.TITLE }}
           </th>
           <td mat-cell *matCellDef="let element">
-            @if (element.isEdit === true) {
-              <mat-form-field appearance="fill">
-                <input
-                  matInput
-                  [placeholder]="demoConstants.TITLE + '*'"
-                  [formControl]="demoTitleController"
-                  maxlength="200"
-                />
-                @if (
-                  demoTitleController !== null &&
-                  demoTitleController.hasError("required") &&
-                  demoTitleController.touched
-                ) {
-                  <mat-error>{{ demoConstants.TITLE_REQUIRED }}</mat-error>
-                }
-              </mat-form-field>
-            } @else {
-              {{ element.demo_title }}
-            }
+            {{ element.demo_title }}
           </td>
         </ng-container>
 
@@ -121,31 +103,7 @@
             {{ demoConstants.USER_GROUP_EMAIL }}
           </th>
           <td mat-cell *matCellDef="let element">
-            @if (element.isEdit === true) {
-              <mat-form-field appearance="fill">
-                <input
-                  matInput
-                  [placeholder]="demoConstants.USER_GROUP_EMAIL + '*'"
-                  [formControl]="groupEmailController"
-                  maxlength="200"
-                />
-                @if (
-                  groupEmailController !== null &&
-                  groupEmailController.hasError("required") &&
-                  groupEmailController.touched
-                ) {
-                  <mat-error>{{ demoConstants.USER_EMAIL_REQUIRED }}</mat-error>
-                } @else if (
-                  groupEmailController !== null &&
-                  groupEmailController.hasError("email") &&
-                  groupEmailController.touched
-                ) {
-                  <mat-error>{{ demoConstants.INVALID_USER_EMAIL }}</mat-error>
-                }
-              </mat-form-field>
-            } @else {
-              {{ element.demo_user_group_email }}
-            }
+            {{ element.demo_user_group_email }}
           </td>
         </ng-container>
 
@@ -190,24 +148,11 @@
             {{ demoConstants.STATUS }}
           </th>
           <td mat-cell *matCellDef="let element">
-            @if (element.isEdit === true) {
-              <mat-form-field appearance="fill">
-                <mat-label>{{ demoConstants.STATUS }}</mat-label>
-                <mat-select [formControl]="demoStatusController">
-                  @for (status of demoOnBoardingStatus; track $index) {
-                    <mat-option [value]="status">
-                      {{ status }}
-                    </mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-            } @else {
-              <div class="status-wrapper">
-                <span class="status-text">{{
-                  element.demo_onboarding_status
-                }}</span>
-              </div>
-            }
+            <div class="status-wrapper">
+              <span class="status-text">{{
+                element.demo_onboarding_status
+              }}</span>
+            </div>
           </td>
         </ng-container>
 
@@ -216,27 +161,13 @@
             {{ demoConstants.RESERVATION }}
           </th>
           <td mat-cell *matCellDef="let element">
-            @if (element.isEdit === true) {
-              <div class="show-demo-checkbox-wrapper">
-                <mat-checkbox
-                  class="show-demo-checkbox"
-                  (change)="
-                    onSelectFeatureLicense($event.checked, element.demo_id)
-                  "
-                  [checked]="element.feature_license_app || false"
-                >
-                  {{ demoConstants.ENABLE }}
-                </mat-checkbox>
-              </div>
-            } @else {
-              <div class="status-wrapper">
-                @if (element.feature_license_app === true) {
-                  <span class="status-text">{{ demoConstants.ENABLED }}</span>
-                } @else {
-                  <span class="status-text">{{ demoConstants.DISABLED }}</span>
-                }
-              </div>
-            }
+            <div class="status-wrapper">
+              @if (element.feature_license_app === true) {
+                <span class="status-text">{{ demoConstants.ENABLED }}</span>
+              } @else {
+                <span class="status-text">{{ demoConstants.DISABLED }}</span>
+              }
+            </div>
           </td>
         </ng-container>
 
@@ -258,33 +189,6 @@
                   }
                 }
               </div>
-              @if (element.isEdit === true) {
-                <mat-form-field class="custom-form-field">
-                  <mat-label>{{
-                    demoConstants.ADD_REMOVE_APPLICATIONS
-                  }}</mat-label>
-                  <mat-select
-                    [value]="element.applicationIds"
-                    (selectionChange)="onSelectionChange($event, element)"
-                    multiple
-                  >
-                    @for (
-                      application of applicationList;
-                      track application.id
-                    ) {
-                      <mat-option
-                        [value]="application.id"
-                        [disabled]="
-                          application.isEnabled === false &&
-                          !element.applicationIds.includes(application.id)
-                        "
-                      >
-                        {{ application.name }}
-                      </mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
-              }
             </div>
           </td>
         </ng-container>
@@ -294,56 +198,21 @@
             {{ demoConstants.ORG_UNIT }}
           </th>
           <td mat-cell *matCellDef="let element">
-            @if (element.isEdit === true) {
-              <mat-form-field appearance="fill">
-                <mat-label>{{ demoConstants.ORGANIZATION_UNIT }}</mat-label>
-                <mat-select [formControl]="orgUnitController">
-                  @for (orgUnit of organizationUnit; track orgUnit.id) {
-                    <mat-option [value]="orgUnit.orgunitpath">
-                      {{ orgUnit.orgunitpath }}
-                    </mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-            } @else {
-              {{ element.organization_unit || "" }}
-            }
+            {{ element.organization_unit || "" }}
           </td>
         </ng-container>
 
         <ng-container matColumnDef="action">
           <th mat-header-cell *matHeaderCellDef>{{ demoConstants.ACTION }}</th>
           <td mat-cell *matCellDef="let element">
-            @if (element.isEdit === true) {
-              <div class="action-wrapper">
-                <div
-                  class="edit-wrapper"
-                  (click)="onCancelUpdateDemo(element.demo_id)"
-                >
-                  <span class="edit-text">{{ demoConstants.CANCEL }}</span>
-                </div>
-                <div
-                  class="save-wrapper"
-                  (click)="onSaveDemoDetails(element.demo_id)"
-                >
-                  <img
-                    src="assets/svgs/ic_save.svg"
-                    alt="edit"
-                    class="edit-icon"
-                  />
-                  <span class="save-text">{{ demoConstants.SAVE }}</span>
-                </div>
-              </div>
-            } @else {
-              <div class="edit-wrapper" (click)="onEditDemo(element.demo_id)">
-                <img
-                  src="assets/svgs/edit_square.svg"
-                  alt="edit"
-                  class="edit-icon"
-                />
-                <span class="edit-text">{{ demoConstants.EDIT }}</span>
-              </div>
-            }
+            <div class="edit-wrapper" (click)="onEditDemo(element.demo_id)">
+              <img
+                src="assets/svgs/edit_square.svg"
+                alt="edit"
+                class="edit-icon"
+              />
+              <span class="edit-text">{{ demoConstants.EDIT }}</span>
+            </div>
           </td>
         </ng-container>
 

@@ -290,7 +290,6 @@ export class AdminOnboardDemoTableComponent {
     });
   }
 
- 
   getDemoAppLinkUrl(demo: DemoDetails, index: number) {
     if (
       demo.artifact_links !== null &&
@@ -310,23 +309,6 @@ export class AdminOnboardDemoTableComponent {
   }
 
   onEditDemo(demoId: string) {
-    // this.adminDemoList = this.adminDemoList.map((item) => {
-    //   if (item.demo_id === demoId) {
-    //     this.setValidatorsAndFormValues(item);
-    //   } else {
-    //     if (item.isEdit === true) {
-    //       const demo = this.initialAdminDemoResponse.find(
-    //         (item) => item.demo_id === demoId
-    //       );
-    //       this.setPreviousDemoValues(demo, item);
-    //     }
-    //     item.isEdit = false;
-    //   }
-    //   return item;
-    // });
-
-    // this.updateDemosTable();
-
     const dialogRef = this.dialog.open(UpdateDemoDialog, {
       width: 'auto',
       minWidth: 'none',
@@ -356,156 +338,6 @@ export class AdminOnboardDemoTableComponent {
         this.updateDemosTable();
       }
     });
-  }
-
-  onSelectionChange(event: MatSelectChange, demo: DemoDetails) {
-    if (event.value) {
-      this.adminDemoList = this.adminDemoList.map((item) => {
-        if (item.demo_id === demo.demo_id) {
-          item.applicationIds = event.value;
-        }
-        return item;
-      });
-      this.updateDemosTable();
-    }
-  }
-
-  onSelectFeatureLicense(status: boolean, demoId: string) {
-    this.adminDemoList = this.adminDemoList.map((item) => {
-      if (item.demo_id === demoId) {
-        item.feature_license_app = status;
-      }
-      return item;
-    });
-  }
-
-  onSaveDemoDetails(demoId: string) {
-    if (
-      this.demoTitleController.invalid ||
-      this.geminiEnterpriseLinkController.invalid ||
-      this.driveLinkController.invalid ||
-      this.groupEmailController.invalid ||
-      this.orgUnitController.invalid ||
-      this.demoStatusController.invalid
-    ) {
-      return;
-    }
-
-    const demo = this.adminDemoList.filter((item) => item.demo_id === demoId);
-    if (demo[0].applicationIds.length <= 0 && demo[0].feature_license_app) {
-      this.showErrorDialog(
-        this.demoConstants.SAAS_APPLICATION_SHOULD_NOT_BE_EMPTY,
-      );
-      return;
-    }
-    this.callUpdateDemoApi(demo[0]);
-  }
-
-  onCancelUpdateDemo(demoId: string) {
-    this.adminDemoList = this.adminDemoList.map((item) => {
-      if (item.demo_id === demoId) {
-        item.isEdit = false;
-        const demo = this.initialAdminDemoResponse.find(
-          (item) => item.demo_id === demoId,
-        );
-        this.setPreviousDemoValues(demo, item);
-        this.clearFormValues();
-      }
-      return item;
-    });
-    this.updateDemosTable();
-  }
-
-  clearFormValues() {
-    this.demoTitleController.setValue('');
-    this.geminiEnterpriseLinkController.setValue('');
-    this.driveLinkController.setValue('');
-    this.groupEmailController.setValue('');
-    this.orgUnitController.setValue('');
-    this.demoStatusController.setValue('');
-  }
-
-  setPreviousDemoValues(demo: DemoDetails | undefined, item: DemoDetails) {
-    if (demo) {
-      item.demo_onboarding_status = demo.demo_onboarding_status;
-      item.feature_license_app = demo.feature_license_app;
-      item.demo_title = demo.demo_title;
-      item.gemini_enterprise_app_link = demo.gemini_enterprise_app_link;
-      item.drive_folder_link = demo.drive_folder_link;
-      item.applicationIds = demo.applicationIds;
-      item.saas_applications = demo.saas_applications;
-      item.applications = demo.applications;
-    }
-  }
-
-  setValidatorsAndFormValues(item: DemoDetails) {
-    this.demoTitleController.setValue(item?.demo_title || '');
-    this.groupEmailController.setValue(item?.demo_user_group_email || '');
-    this.orgUnitController.setValue(item?.organization_unit || '');
-    this.demoStatusController.setValue(item?.demo_onboarding_status || '');
-    this.geminiEnterpriseLinkController.setValue(
-      item?.gemini_enterprise_app_link || '',
-    );
-    this.driveLinkController.setValue(item?.drive_folder_link || '');
-    this.demoTitleController.setValidators([Validators.required]);
-    this.groupEmailController.setValidators([
-      Validators.required,
-      Validators.email,
-    ]);
-    this.orgUnitController.setValidators([Validators.required]);
-    this.demoStatusController.setValidators([Validators.required]);
-    this.geminiEnterpriseLinkController.setValidators([
-      Validators.required,
-      Validators.pattern(/^(https?:\/\/).+/),
-    ]);
-    this.driveLinkController.setValidators([
-      Validators.pattern(/^(https?:\/\/).+/),
-    ]);
-    item.isEdit = true;
-  }
-
-  callUpdateDemoApi(demoDetails: DemoDetails) {
-    // const payload: UpdateDemoRequest = {
-    //   demo_title: this.demoTitleController?.value || '',
-    //   demo_user_group_email: this.groupEmailController?.value || '',
-    //   gemini_enterprise_app_link:
-    //     this.geminiEnterpriseLinkController.value || '',
-    //   drive_folder_link: this.driveLinkController.value || '',
-    //   demo_onboarding_status: this.demoStatusController.value || '',
-    //   feature_license_app: demoDetails.feature_license_app,
-    //   saas_applications: demoDetails.applicationIds.join(','),
-    //   organization_unit: this.orgUnitController.value || '',
-    // };
-    // this.demoService.updateOnBoardDemo(payload, demoDetails.demo_id).subscribe({
-    //   next: (res) => {
-    //     this.adminDemoList = this.adminDemoList.map((item) => {
-    //       if (item.demo_id === demoDetails.demo_id) {
-    //         item = res;
-    //         item.applications = this.getDemoApplications(
-    //           item.saas_applications,
-    //           this.applicationList
-    //         );
-    //         return item;
-    //       } else {
-    //         return item;
-    //       }
-    //     });
-    //     this.initialAdminDemoResponse = this.adminDemoList.map((item) => ({
-    //       ...item,
-    //     }));
-    //     this.adminDemoList = this.adminDemoList.map((item) => {
-    //       if (item.demo_id === demoDetails.demo_id) {
-    //         item.isEdit = false;
-    //       }
-    //       return item;
-    //     });
-    //     this.updateDemosTable();
-    //     this.showSuccessDialog();
-    //   },
-    //   error: (error) => {
-    //     this.showErrorDialog(error?.error?.detail || 'Something went wrong');
-    //   },
-    // });
   }
 
   updateDemosTable() {
