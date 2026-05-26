@@ -16,6 +16,7 @@
               type="number"
               [placeholder]="demoConstants.DEMO_ID + '*'"
               [formControlName]="DEMO_ID_FORM"
+              class="no-spinners"
               maxlength="50"
             />
             @if (
@@ -61,56 +62,6 @@
               }}</mat-error>
             }
           </mat-form-field>
-          <mat-form-field appearance="outline" class="custom-form-field">
-            <mat-label>{{
-              demoConstants.GEMINI_ENTERPRISE_APP_LINK
-            }}</mat-label>
-            <input
-              matInput
-              [placeholder]="demoConstants.GEMINI_ENTERPRISE_APP_LINK + '*'"
-              [formControlName]="GEMINI_ENTERPRISE_APP_LINK_FORM"
-              maxlength="400"
-            />
-            @if (
-              addDemoForm
-                .get(GEMINI_ENTERPRISE_APP_LINK_FORM)
-                ?.hasError("required") &&
-              addDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.touched
-            ) {
-              <mat-error>{{
-                demoConstants.GEMINI_ENTERPRISE_APP_LINK_REQUIRED
-              }}</mat-error>
-            } @else if (
-              addDemoForm
-                .get(GEMINI_ENTERPRISE_APP_LINK_FORM)
-                ?.hasError("pattern") &&
-              addDemoForm.get(GEMINI_ENTERPRISE_APP_LINK_FORM)?.touched
-            ) {
-              <mat-error>{{
-                demoConstants.INVALID_GEMINI_ENTERPRISE_APP_LINK
-              }}</mat-error>
-            }
-          </mat-form-field>
-        </div>
-
-        <div class="demo-details-wrapper">
-          <mat-form-field appearance="outline" class="custom-form-field">
-            <mat-label>{{ demoConstants.DRIVE_FOLDER_LINK }}</mat-label>
-            <input
-              matInput
-              [placeholder]="demoConstants.DRIVE_FOLDER_LINK"
-              [formControlName]="DRIVE_FOLDER_LINK_FORM"
-              maxlength="400"
-            />
-            @if (
-              addDemoForm.get(DRIVE_FOLDER_LINK_FORM)?.hasError("pattern") &&
-              addDemoForm.get(DRIVE_FOLDER_LINK_FORM)?.touched
-            ) {
-              <mat-error>{{
-                demoConstants.INVALID_DRIVE_FOLDER_LINK
-              }}</mat-error>
-            }
-          </mat-form-field>
 
           <mat-form-field appearance="outline" class="custom-form-field">
             <mat-label>{{ demoConstants.ORGABNIZATION_UNIT }}</mat-label>
@@ -132,6 +83,73 @@
           </mat-form-field>
         </div>
 
+        <h2>{{ demoConstants.DEMO_LINKS }}</h2>
+        <div [formArrayName]="APP_LINKS_ARRAY_FORM">
+          @for (pair of appLinksFieldsPairs.controls; track $index) {
+            <div [formGroupName]="$index" class="demo-details-wrapper">
+              <mat-form-field appearance="outline" class="custom-form-field">
+                <mat-label>{{ demoConstants.APP_LINK_TITLE }}</mat-label>
+                <input
+                  matInput
+                  [placeholder]="demoConstants.APP_LINK_TITLE + '*'"
+                  [formControlName]="APP_LINK_TITLE_FORM"
+                  maxlength="400"
+                />
+                @if (
+                  pair.get(APP_LINK_TITLE_FORM)?.hasError("required") &&
+                  pair.get(APP_LINK_TITLE_FORM)?.touched
+                ) {
+                  <mat-error>{{
+                    demoConstants.APP_LINK_TITLE_REQUIRED
+                  }}</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="custom-form-field">
+                <mat-label>{{ demoConstants.APP_LINK_VALUE }}</mat-label>
+                <input
+                  matInput
+                  [placeholder]="demoConstants.APP_LINK_VALUE + '*'"
+                  [formControlName]="APP_LINK_VALUE_FORM"
+                  maxlength="400"
+                />
+                @if (
+                  pair.get(APP_LINK_VALUE_FORM)?.hasError("required") &&
+                  pair.get(APP_LINK_VALUE_FORM)?.touched
+                ) {
+                  <mat-error>{{
+                    demoConstants.APP_LINK_VALUE_REQUIRED
+                  }}</mat-error>
+                } @else if (
+                  pair.get(APP_LINK_VALUE_FORM)?.hasError("pattern") &&
+                  pair.get(APP_LINK_VALUE_FORM)?.touched
+                ) {
+                  <mat-error>{{
+                    demoConstants.INVALID_APP_LINK_VALUE
+                  }}</mat-error>
+                }
+              </mat-form-field>
+              <div class="icon-container">
+                @if ($index > 0) {
+                  <mat-icon
+                    class="cancel-icon"
+                    (click)="removeAppLinkPairField($index)"
+                    >cancel</mat-icon
+                  >
+                }
+              </div>
+            </div>
+          }
+        </div>
+        @if (appLinksFieldsPairs.length <= maxDemoLinks) {
+          <a
+            class="link-wrapper"
+            (click)="addAppLinkPairField()"
+            [class.disabled]="appLinksFieldsPairs.length >= maxDemoLinks"
+            >{{ demoConstants.ADD_MORE_DEMO_LINKS }}</a
+          >
+        }
+
         <h2>{{ demoConstants.DEMO_META_DATA }}</h2>
 
         <div class="demo-details-wrapper">
@@ -142,6 +160,7 @@
               type="number"
               [placeholder]="demoConstants.COST_CENTRE"
               [formControlName]="COST_CENTRE_FORM"
+              class="no-spinners"
               maxlength="200"
             />
             @if (
@@ -260,6 +279,7 @@
               type="number"
               [placeholder]="demoConstants.PARENT_BUG_ID + '*'"
               [formControlName]="PARENT_BUG_ID_FORM"
+              class="no-spinners"
               maxlength="200"
             />
             @if (

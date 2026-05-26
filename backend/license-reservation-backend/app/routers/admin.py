@@ -1207,14 +1207,13 @@ def get_onboarded_demo_details(db: Session = Depends(get_db)):
             demo_id=demo_record.demo_id,
             demo_title=demo_record.demo_title,
             demo_user_group_email=demo_record.demo_user_group_email,
-            gemini_enterprise_app_link=demo_record.gemini_enterprise_app_link,
-            drive_folder_link=demo_record.drive_folder_link,
             demo_onboarding_status=demo_record.demo_onboarding_status,
             feature_license_app=demo_record.feature_license_app,
             saas_applications=demo_record.saas_applications,
             organization_unit=demo_record.organization_unit,
             representative_profile=representative_profile_out,
             parent_bug_id=demo_record.parent_bug_id,
+            artifact_links=demo_record.artifact_links,
         )
         output_list.append(demo_details_out)
     return output_list
@@ -1255,12 +1254,6 @@ def onboard_new_demo(req: OnboardNewDemoRequestResponse, db: Session = Depends(g
                 detail=f"{demo_user_group_email} is not a valid group.",
             )
         
-        if not req.gemini_enterprise_app_link:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Gemini Enterprise App Link is required."
-            )
-            
         # Demo Onboarding Status check
         if not req.demo_onboarding_status:
             raise HTTPException(
@@ -1361,13 +1354,6 @@ def update_onboarded_demos(demo_id: str, req: UpdateOnboardedDemoDetailsRequest,
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"{demo_user_group_email} is not a valid group.",
-        )
-    
-    gemini_enterprise_app_link = req.gemini_enterprise_app_link
-    if not gemini_enterprise_app_link:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Gemini Enterprise App Link is required."
         )
     
     demo_onboarding_status = req.demo_onboarding_status
