@@ -109,18 +109,30 @@
 
         <ng-container matColumnDef="geminiEnterpriseAppLink">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>
-            {{ demoConstants.NEW_APP_LINK }}
+            {{ demoConstants.ARTIFACT_LINKS }}
           </th>
           <td mat-cell *matCellDef="let element">
-            @if (getDemoAppLinkUrl(element, 0) !== "") {
-              <a
-                [href]="getDemoAppLinkUrl(element, 0)"
-                [attr.data-url]="getDemoAppLinkUrl(element, 0)"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="link-wrapper"
-                >Link</a
-              >
+            @if (
+              element.artifact_links !== null &&
+              element.artifact_links.length > 0
+            ) {
+              @for (
+                link of element.artifact_links;
+                track $index;
+                let isLast = $last
+              ) {
+                <a
+                  [href]="link.url"
+                  [attr.data-url]="link.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="link-wrapper"
+                  >link.title</a
+                >
+                @if (!isLast) {
+                  <span>, </span>
+                }
+              }
             }
           </td>
         </ng-container>
