@@ -382,37 +382,37 @@ class RepresentativeProfileOut(BaseModel):
     class Config:
         from_attributes = True
 
+class ArtifactLink(BaseModel):
+    title: str
+    url: str
+
 class DemoDetailOut(BaseModel):
     demo_id: str
     demo_title: str
     demo_user_group_email: Optional[str]
-    gemini_enterprise_app_link: Optional[str]
-    drive_folder_link: Optional[str]
     demo_onboarding_status: DemoOnboardingStatus
     feature_license_app: bool
     saas_applications: Optional[str]
     organization_unit: Optional[str]
     representative_profile: Optional[RepresentativeProfileOut]
     parent_bug_id: Optional[str] = None
+    artifact_links: Optional[List[ArtifactLink]] = []
 
 class OnboardedDemoDetailsOut(BaseModel):
     demo_id: str
     demo_title: str
     demo_user_group_email: Optional[str]
-    gemini_enterprise_app_link: Optional[str]
-    drive_folder_link: Optional[str]
     demo_onboarding_status: DemoOnboardingStatus
     feature_license_app: bool
     saas_applications: Optional[str]
     organization_unit: Optional[str]
     representative_profile: Optional[RepresentativeProfileOut]
     parent_bug_id: Optional[str] = None
+    artifact_links: Optional[List[ArtifactLink]] = []
 
 class UpdateOnboardedDemoDetailsRequest(BaseModel):
     demo_title: str
     demo_user_group_email: str
-    gemini_enterprise_app_link: str
-    drive_folder_link: Optional[str] = None
     demo_onboarding_status: DemoOnboardingStatus
     feature_license_app: bool
     saas_applications: Optional[str] = None
@@ -424,13 +424,12 @@ class UpdateOnboardedDemoDetailsRequest(BaseModel):
     rep_role: Optional[str] = None
     rep_department: Optional[str] = None
     parent_bug_id: Optional[str] = None
+    artifact_links: Optional[List[ArtifactLink]] = []
 
 class UpdateOnboardedDemoDetailsResponse(BaseModel):
     demo_id: str
     demo_title: Optional[str] = None
     demo_user_group_email: Optional[str] = None
-    gemini_enterprise_app_link: Optional[str] = None
-    drive_folder_link: Optional[str] = None
     demo_onboarding_status: DemoOnboardingStatus
     feature_license_app: bool
     saas_applications: Optional[str] = None
@@ -442,13 +441,12 @@ class UpdateOnboardedDemoDetailsResponse(BaseModel):
     rep_role: Optional[str] = None
     rep_department: Optional[str] = None
     parent_bug_id: Optional[str] = None
+    artifact_links: Optional[List[ArtifactLink]] = []
 
 class OnboardNewDemoRequestResponse(BaseModel):
     demo_id: str
     demo_title: str
     demo_user_group_email: str
-    gemini_enterprise_app_link: str
-    drive_folder_link: Optional[str] = None
     demo_onboarding_status: DemoOnboardingStatus
     feature_license_app: bool
     saas_applications: Optional[str] = None
@@ -460,6 +458,7 @@ class OnboardNewDemoRequestResponse(BaseModel):
     rep_role: Optional[str] = None
     rep_department: Optional[str] = None
     parent_bug_id: Optional[str] = None
+    artifact_links: Optional[List[ArtifactLink]] = []
 
 class OrganizationUnitCreateRequest(BaseModel):
     orgunitpath: str

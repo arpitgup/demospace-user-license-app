@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import {
+  FormArray,
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
@@ -23,7 +24,10 @@ import { Application } from '../../../core/models/application.model';
 import { OrganizationUnit } from '../../../core/models/organization-unit.model';
 
 import {
+  DEMO_URL_VALIDATION,
   MANAGER_EMAIL_VALIDATION,
+  MAX_DEMO_LINK_ADDITION_VALUE,
+  MIN_DEMO_LINK_ADDITION_VALUE,
   NAME_VALIDATION,
 } from '../../../../utilities/utils';
 import { ErrorDialog } from '../error-dialog/error-dialog';
@@ -31,6 +35,7 @@ import { DemoOnBoardingEnum } from '../../../enums/admin-demo-onboarding.enums';
 import { UpdateDemoRequest } from '../../../core/models/update-demo-request.model';
 import { DemoDetails } from '../../../core/models/demo-details.model';
 import { UpdateDemoConstants } from './update-demo.constants';
+import { ArtifactsLinks } from '../../../core/models/artifacts_link.model';
 
 @Component({
   selector: 'app-update-demo-dialog',
@@ -69,8 +74,6 @@ export class UpdateDemoDialog implements OnInit {
   readonly DEMO_TITLE_FORM = 'demo_title_form';
   readonly DEMO_GROUP_EMAIL_FORM = 'demo_group_email_form';
   readonly ORGANIZARION_UNIT_FORM = 'organization_unit_form';
-  readonly GEMINI_ENTERPRISE_APP_LINK_FORM = 'gemini_enterprise_app_link_form';
-  readonly DRIVE_FOLDER_LINK_FORM = 'drive_folder_link_form';
   readonly DEMO_APPLICATION_FORM = 'demo_application_form';
   readonly COST_CENTRE_FORM = 'cost_centre_form';
   readonly MANAGER_NAME_FORM = 'manager_name_form';
@@ -80,6 +83,9 @@ export class UpdateDemoDialog implements OnInit {
   readonly REP_DEPARTMENT_FORM = 'rep_department_form';
   readonly PARENT_BUG_ID_FORM = 'parent_bug_id_form';
   readonly ONBOARDING_STATUS = 'onboarding_status';
+  readonly APP_LINKS_ARRAY_FORM = 'app_links_array_form';
+  readonly APP_LINK_TITLE_FORM = 'app_link_title_form';
+  readonly APP_LINK_VALUE_FORM = 'app_link_value_form';
   readonly featureLicenseApp = signal<boolean>(false);
   readonly adminApplications = signal<Application[]>([]);
   readonly organizationUnit = signal<OrganizationUnit[]>([]);
@@ -87,6 +93,8 @@ export class UpdateDemoDialog implements OnInit {
   readonly applicationErrorMessage = signal<string>('');
   public readonly errorMessage = signal<string>('');
   readonly demoConstants = UpdateDemoConstants;
+  readonly maxDemoLinks = MAX_DEMO_LINK_ADDITION_VALUE;
+  readonly minDemoLinks = MIN_DEMO_LINK_ADDITION_VALUE;
   updateDemoForm: FormGroup = this.fb.group({
     [this.DEMO_TITLE_FORM]: [
       this.data.demoDetails.demo_title,
@@ -95,14 +103,6 @@ export class UpdateDemoDialog implements OnInit {
     [this.DEMO_GROUP_EMAIL_FORM]: [
       this.data.demoDetails.demo_user_group_email,
       [Validators.required, Validators.email],
-    ],
-    [this.GEMINI_ENTERPRISE_APP_LINK_FORM]: [
-      this.data.demoDetails.gemini_enterprise_app_link,
-      [Validators.required, Validators.pattern(/^(https?:\/\/).+/)],
-    ],
-    [this.DRIVE_FOLDER_LINK_FORM]: [
-      this.data.demoDetails.drive_folder_link,
-      [Validators.pattern(/^(https?:\/\/).+/)],
     ],
     [this.DEMO_APPLICATION_FORM]: [''],
     [this.ONBOARDING_STATUS]: [this.data.demoDetails.demo_onboarding_status],
@@ -120,10 +120,7 @@ export class UpdateDemoDialog implements OnInit {
     [this.MANAGER_EMAIL_FORM]: [
       this.data.demoDetails.representative_profile.manager_email || '',
 
-      [
-        Validators.email,
-        Validators.pattern(MANAGER_EMAIL_VALIDATION),
-      ],
+      [Validators.email, Validators.pattern(MANAGER_EMAIL_VALIDATION)],
     ],
     [this.MANAGER_TITLE_FORM]: [
       this.data.demoDetails.representative_profile.manager_title || '',
@@ -139,7 +136,38 @@ export class UpdateDemoDialog implements OnInit {
     [this.REP_DEPARTMENT_FORM]: [
       this.data.demoDetails.representative_profile.rep_department || '',
     ],
+    [this.APP_LINKS_ARRAY_FORM]: this.fb.array(
+      this.existingAppLinksPairGroup(),
+    ),
   });
+
+  existingAppLinksPairGroup(): FormGroup[] {
+    const formGroup: FormGroup[] = [];
+    if (this.data.demoDetails?.artifact_links !== null) {
+      this.data.demoDetails.artifact_links.forEach((item) => {
+        formGroup.push(
+          this.fb.group({
+            [this.APP_LINK_TITLE_FORM]: [item.title, Validators.required],
+            [this.APP_LINK_VALUE_FORM]: [
+              item.url,
+              [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
+            ],
+          }),
+        );
+      });
+    }
+
+    return formGroup!;
+  }
+  createAppLinksPairGroup(): FormGroup {
+    return this.fb.group({
+      [this.APP_LINK_TITLE_FORM]: ['', Validators.required],
+      [this.APP_LINK_VALUE_FORM]: [
+        '',
+        [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
+      ],
+    });
+  }
 
   ngOnInit(): void {
     this.adminApplications.update(() => this.data.application);
@@ -186,6 +214,22 @@ export class UpdateDemoDialog implements OnInit {
     this.featureLicenseApp.update(() => isChecked);
   }
 
+  get appLinksFieldsPairs(): FormArray {
+    return this.updateDemoForm.get(this.APP_LINKS_ARRAY_FORM) as FormArray;
+  }
+
+  addAppLinkPairField(): void {
+    if (this.appLinksFieldsPairs.length < this.maxDemoLinks) {
+      this.appLinksFieldsPairs.push(this.createAppLinksPairGroup());
+    }
+  }
+
+  removeAppLinkPairField(index: number): void {
+    if (this.appLinksFieldsPairs.length > this.minDemoLinks) {
+      this.appLinksFieldsPairs.removeAt(index);
+    }
+  }
+
   onConfirm() {
     if (this.updateDemoForm.invalid) {
       this.updateDemoForm.markAllAsTouched();
@@ -204,15 +248,31 @@ export class UpdateDemoDialog implements OnInit {
       return;
     }
     const applicationIds = selectedApplicationIds.join(',');
+
+    const artifactsLinks: ArtifactsLinks[] = [];
+    this.appLinksFieldsPairs.controls.forEach((control) => {
+      if (control.valid) {
+        artifactsLinks.push({
+          title:
+            control.get(this.APP_LINK_TITLE_FORM)?.value?.toString()?.trim() ||
+            '',
+          url:
+            control.get(this.APP_LINK_VALUE_FORM)?.value?.toString()?.trim() ||
+            '',
+        });
+      }
+    });
     const payload: UpdateDemoRequest = {
-      demo_title: this.updateDemoForm.get(this.DEMO_TITLE_FORM)?.value || '',
+      demo_title:
+        this.updateDemoForm
+          .get(this.DEMO_TITLE_FORM)
+          ?.value?.toString()
+          ?.trim() || '',
       demo_user_group_email:
-        this.updateDemoForm.get(this.DEMO_GROUP_EMAIL_FORM)?.value || '',
-      gemini_enterprise_app_link:
-        this.updateDemoForm.get(this.GEMINI_ENTERPRISE_APP_LINK_FORM)?.value ||
-        '',
-      drive_folder_link:
-        this.updateDemoForm.get(this.DRIVE_FOLDER_LINK_FORM)?.value || '',
+        this.updateDemoForm
+          .get(this.DEMO_GROUP_EMAIL_FORM)
+          ?.value?.toString()
+          ?.trim() || '',
       demo_onboarding_status:
         this.updateDemoForm.get(this.ONBOARDING_STATUS)?.value || '',
       feature_license_app: this.featureLicenseApp(),
@@ -240,6 +300,7 @@ export class UpdateDemoDialog implements OnInit {
           .get(this.PARENT_BUG_ID_FORM)
           ?.value?.toString()
           ?.trim() || '',
+      artifact_links: artifactsLinks,
     };
     this.demoService
       .updateOnBoardDemo(payload, this.data.demoDetails.demo_id)

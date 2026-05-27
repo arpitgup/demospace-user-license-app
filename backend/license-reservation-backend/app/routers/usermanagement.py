@@ -62,14 +62,13 @@ async def get_demo_details(
         demo_id = demo_record.demo_id,
         demo_title = demo_record.demo_title,
         demo_user_group_email = demo_record.demo_user_group_email,
-        gemini_enterprise_app_link = demo_record.gemini_enterprise_app_link,
-        drive_folder_link = demo_record.drive_folder_link,
         demo_onboarding_status = demo_record.demo_onboarding_status,
         feature_license_app = demo_record.feature_license_app,
         saas_applications = demo_record.saas_applications,
         organization_unit = demo_record.organization_unit,
         representative_profile=representative_profile_out,
-        parent_bug_id=demo_record.parent_bug_id
+        parent_bug_id=demo_record.parent_bug_id,
+        artifact_links = demo_record.artifact_links
     )
 
 @router.get('/user-details', response_model=CheckUserInWorkspaceResponse)

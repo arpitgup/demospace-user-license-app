@@ -1,3 +1,4 @@
+import { ArtifactsLinks } from "./artifacts_link.model";
 
 export interface UpdateDemoDetails {
   demo_id: string;
@@ -19,4 +20,5 @@ export interface UpdateDemoDetails {
   rep_department: string;
   org_unit: string;
   parent_bug_id:string;
+  artifact_links:ArtifactsLinks[]
 }
