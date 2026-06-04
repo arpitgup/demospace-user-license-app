@@ -75,6 +75,7 @@ import {
   normalizeServerTime,
 } from './search-by-date.utils';
 import { getLocalTimeZoneAbbreviation } from '../../../utilities/utils';
+import { firstValueFrom, Observable } from 'rxjs';
 
 type DailyAvailabilityMap = { [date: string]: number };
 type BlockedInterval = { start: Date; end: Date };
@@ -111,7 +112,7 @@ export class SearchByDateComponent implements OnInit {
   private readonly confirmationDialog = inject(MatDialog);
   readonly localTimeAbbrevation = getLocalTimeZoneAbbreviation(
     new Date(),
-    Intl.DateTimeFormat().resolvedOptions().timeZone
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
   );
   bookingSuccess = output<void>();
   @ViewChild(FormGroupDirective) private formDir?: FormGroupDirective;
@@ -133,7 +134,7 @@ export class SearchByDateComponent implements OnInit {
         Validators.required,
       ],
     },
-    { validators: this.dateTimeComboValidator() }
+    { validators: this.dateTimeComboValidator() },
   );
 
   startTimeSlots = signal<string[]>([]);
@@ -162,6 +163,7 @@ export class SearchByDateComponent implements OnInit {
 
   isLoading = signal<boolean>(false);
   showResultsCard = signal<boolean>(false);
+  applications$!: Observable<Application[]>;
 
   get startDateCtrl() {
     return this.form.controls.startDate;
@@ -185,7 +187,7 @@ export class SearchByDateComponent implements OnInit {
     const timeZoneAbbr = getLocalTimeZoneAbbreviation(date, userTimeZone);
     const formattedDate = new DatePipe('en-US').transform(
       date,
-      "MMMM dd, yyyy 'at' hh:mm a"
+      "MMMM dd, yyyy 'at' hh:mm a",
     );
     return `${formattedDate}, ${timeZoneAbbr}`;
   });
@@ -197,35 +199,44 @@ export class SearchByDateComponent implements OnInit {
     const timeZoneAbbr = getLocalTimeZoneAbbreviation(date, userTimeZone);
     const formattedDate = new DatePipe('en-US').transform(
       date,
-      "MMMM dd, yyyy 'at' hh:mm a"
+      "MMMM dd, yyyy 'at' hh:mm a",
     );
     return `${formattedDate}, ${timeZoneAbbr}`;
   });
 
   private readonly syncFromReservations = effect(() => {
     const all = this.reservationsSig();
-    const filtered = all.filter(
-      (r) =>
-        r.status === ReservationApiStatus.PENDING ||
-        r.status === ReservationApiStatus.ACTIVE
-    );
-    this.userReservations = filtered as Reservation[];
 
-    const cooldownMs =
-      (this.appConfigSignal()?.reservationCoolOffHours || SELF_COOLDOWN_HOURS) *
-      MILLISECONDS_PER_HOUR;
-    this.blockedIntervals = filtered.map((r) => {
-      const start = normalizeServerTime(r.startTime, SERVER_TIME_MODE);
-      const end = normalizeServerTime(r.endTime, SERVER_TIME_MODE);
-      const endWithCooldown = new Date(end.getTime() + cooldownMs);
-      return { start, end: endWithCooldown };
+    this.applications$?.subscribe((data: Application[]) => {
+      const filtered = all.filter(
+        (r) =>
+          (data.every((application) =>
+            r.applications.some(
+              (reservationApplication) =>
+                reservationApplication.id === application.id,
+            ),
+          ) &&
+            r.status === ReservationApiStatus.PENDING) ||
+          r.status === ReservationApiStatus.ACTIVE,
+      );
+      this.userReservations = filtered as Reservation[];
+
+      const cooldownMs =
+        (this.appConfigSignal()?.reservationCoolOffHours ||
+          SELF_COOLDOWN_HOURS) * MILLISECONDS_PER_HOUR;
+      this.blockedIntervals = filtered.map((r) => {
+        const start = normalizeServerTime(r.startTime, SERVER_TIME_MODE);
+        const end = normalizeServerTime(r.endTime, SERVER_TIME_MODE);
+        const endWithCooldown = new Date(end.getTime() + cooldownMs);
+        return { start, end: endWithCooldown };
+      });
+
+      this.buildStartTimeSlots();
+      this.buildEndTimeSlots();
+      this.calculateEndDate();
+      this.form.updateValueAndValidity({ emitEvent: false });
+      this.cdr.markForCheck();
     });
-
-    this.buildStartTimeSlots();
-    this.buildEndTimeSlots();
-    this.calculateEndDate();
-    this.form.updateValueAndValidity({ emitEvent: false });
-    this.cdr.markForCheck();
   });
 
   ngOnInit(): void {
@@ -247,7 +258,7 @@ export class SearchByDateComponent implements OnInit {
         } else {
           this.startTimeCtrl.reset(
             { value: null, disabled: true },
-            { emitEvent: false }
+            { emitEvent: false },
           );
         }
         this.updateFormState();
@@ -326,7 +337,7 @@ export class SearchByDateComponent implements OnInit {
       const hasEndOption = this.hasAtLeastOneEndOptionFrom(start);
       const isBlocked = this.overlapsAnyBlockedInterval(
         start,
-        new Date(start.getTime() + MIN_DURATION * MILLISECONDS_PER_HOUR)
+        new Date(start.getTime() + MIN_DURATION * MILLISECONDS_PER_HOUR),
       );
       const conflicts = isBlocked || !hasEndOption;
 
@@ -419,11 +430,11 @@ export class SearchByDateComponent implements OnInit {
   private resetTimeControls(): void {
     this.startTimeCtrl.reset(
       { value: null, disabled: true },
-      { emitEvent: false }
+      { emitEvent: false },
     );
     this.endTimeCtrl.reset(
       { value: null, disabled: true },
-      { emitEvent: false }
+      { emitEvent: false },
     );
     this.startTimeSlots.set([]);
     this.startConflictMap.set({});
@@ -436,7 +447,7 @@ export class SearchByDateComponent implements OnInit {
   private resetEndTimeControls(): void {
     this.endTimeCtrl.reset(
       { value: null, disabled: true },
-      { emitEvent: false }
+      { emitEvent: false },
     );
     this.endTimeSlots.set([]);
     this.endConflictMap.set({});
@@ -478,7 +489,7 @@ export class SearchByDateComponent implements OnInit {
     if (isSameDay(date, minSelectable)) {
       hour = Math.max(
         hour,
-        minSelectable.getHours() + (minSelectable.getMinutes() > 0 ? 1 : 0)
+        minSelectable.getHours() + (minSelectable.getMinutes() > 0 ? 1 : 0),
       );
     }
     return hour;
@@ -598,7 +609,7 @@ export class SearchByDateComponent implements OnInit {
     this.selectedApps.set(
       next.length <= MAX_RESERVATION_APPLICATION
         ? [...next]
-        : [...next].slice(0, 3)
+        : [...next].slice(0, 3),
     );
     this.cdr.markForCheck();
   }
@@ -624,8 +635,8 @@ export class SearchByDateComponent implements OnInit {
 
     const compatibleBots = this.botsWithApps().filter((bot) =>
       selectedAppIds.every((id) =>
-        bot.applications.some((botApp) => botApp.id === id)
-      )
+        bot.applications.some((botApp) => botApp.id === id),
+      ),
     );
 
     if (compatibleBots.length === 0) {
@@ -670,7 +681,7 @@ export class SearchByDateComponent implements OnInit {
     this.reservationService.createReservation(payload).subscribe({
       next: (newReservation: Reservation) => {
         console.log(
-          `Reservation successfully created with ID: ${newReservation.id}`
+          `Reservation successfully created with ID: ${newReservation.id}`,
         );
         this.showSuccessDialog();
         this.resetForm();
@@ -679,7 +690,7 @@ export class SearchByDateComponent implements OnInit {
         console.error('Failed to create reservation:', err);
         this.showErrorDialog(
           (err as { error: { detail: string } })?.error?.detail ||
-            'There was an error creating your reservation. Please try again.'
+            'There was an error creating your reservation. Please try again.',
         );
       },
     });
@@ -721,7 +732,7 @@ export class SearchByDateComponent implements OnInit {
       selStart.setHours(startHour, 0, 0, 0);
 
       const selEnd = new Date(
-        selStart.getTime() + duration * MILLISECONDS_PER_HOUR
+        selStart.getTime() + duration * MILLISECONDS_PER_HOUR,
       );
 
       if (selEnd <= selStart) errors['endBeforeOrEqualStart'] = true;
@@ -783,7 +794,7 @@ export class SearchByDateComponent implements OnInit {
   private overlapsAnyBlockedInterval(selStart: Date, selEnd: Date): boolean {
     if (!this.blockedIntervals.length) return false;
     return this.blockedIntervals.some(({ start, end }) =>
-      intervalsOverlap(selStart, selEnd, start, end)
+      intervalsOverlap(selStart, selEnd, start, end),
     );
   }
 
@@ -799,7 +810,7 @@ export class SearchByDateComponent implements OnInit {
         const base = new Date(startDate);
         base.setHours(startHour, 0, 0, 0);
         this.calculatedEndDate.set(
-          new Date(base.getTime() + duration * MILLISECONDS_PER_HOUR)
+          new Date(base.getTime() + duration * MILLISECONDS_PER_HOUR),
         );
         return;
       }
