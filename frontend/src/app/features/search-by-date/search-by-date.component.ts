@@ -206,7 +206,7 @@ export class SearchByDateComponent implements OnInit {
 
   private readonly syncFromReservations = effect(() => {
     const all = this.reservationsSig();
-
+    this.applications$ = this.reservationService.applications$;
     this.applications$?.subscribe((data: Application[]) => {
       const filtered = all.filter(
         (r) =>
