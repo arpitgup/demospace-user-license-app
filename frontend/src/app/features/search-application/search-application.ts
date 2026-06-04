@@ -94,6 +94,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   isCheckAvailabilityLoading = false;
   isCheckAvailableDisabled = false;
   selectedApplicationList: string[] = [];
+  userAllReservations: Reservation[] = [];
   normalizedReservations: NormalizedReservation[] = [];
 
   BLOC_HOUR_LIMIT: number = 48;
@@ -145,6 +146,9 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   });
 
   constructor() {
+    effect(() => {
+      this.userAllReservations = this.reservationsSig.reservations();
+    });
     this.listenAppConfig();
   }
 
@@ -176,13 +180,13 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   }
 
   listenReservationChanges() {
-    effect(() => {
-      const all = this.reservationsSig.reservations();
-      console.log(
-        'primaryapplication=',
-        this.applicationForm.get(this.PRIMARY_APPLICATION_FORM)?.value,
-      );
-      const filtered = all.filter(
+    console.log(
+      'primaryapplication=',
+      this.applicationForm.get(this.PRIMARY_APPLICATION_FORM)?.value,
+    );
+    if (this.applicationForm.get(this.PRIMARY_APPLICATION_FORM)?.value) {
+      console.log('reservationChange=');
+      const filtered = this.userAllReservations.filter(
         (r) =>
           (r.applications.some(
             (app) =>
@@ -196,7 +200,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
         start: new Date(r.startTime),
         end: new Date(r.endTime),
       }));
-    });
+    }
   }
 
   listenAppConfig() {
@@ -406,18 +410,11 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
       .get(this.PRIMARY_APPLICATION_FORM)
       ?.valueChanges.subscribe((newValue) => {
         if (newValue) {
-          console.log(newValue);
-          if (
-            (newValue ?? '') !== '' &&
-            (this.applicationForm.get(this.PRIMARY_APPLICATION_FORM)?.value ??
-              '') !== newValue
-          ) {
-            this.listenReservationChanges();
-            this.applicationForm
-              ?.get(this.START_DATE_FORM)
-              ?.enable({ emitEvent: false });
-            this.applicationForm.get(this.START_DATE_FORM)?.setValue('');
-          }
+          this.listenReservationChanges();
+          this.applicationForm
+            ?.get(this.START_DATE_FORM)
+            ?.enable({ emitEvent: false });
+          this.applicationForm.get(this.START_DATE_FORM)?.setValue('');
         }
       });
   }
