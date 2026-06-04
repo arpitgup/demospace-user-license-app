@@ -185,16 +185,16 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
       this.applicationForm.get(this.PRIMARY_APPLICATION_FORM)?.value,
     );
     if (this.applicationForm.get(this.PRIMARY_APPLICATION_FORM)?.value) {
-      console.log('reservationChange=');
+      console.log('reservationChange=',this.applicationForm.get(this.PRIMARY_APPLICATION_FORM)?.value);
       const filtered = this.userAllReservations.filter(
         (r) =>
           (r.applications.some(
             (app) =>
               app.id ===
               this.applicationForm.get(this.PRIMARY_APPLICATION_FORM)?.value,
-          ) &&
-            r.status === ReservationApiStatus.PENDING) ||
-          r.status === ReservationApiStatus.ACTIVE,
+          )) &&
+            (r.status === ReservationApiStatus.PENDING ||
+          r.status === ReservationApiStatus.ACTIVE),
       );
       this.normalizedReservations = filtered.map((r) => ({
         start: new Date(r.startTime),
