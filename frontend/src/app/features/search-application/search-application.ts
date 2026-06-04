@@ -111,7 +111,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   readonly SELECTED_DURATION_FORM = 'selectedDuration';
   readonly localTimeAbbrevation = getLocalTimeZoneAbbreviation(
     new Date(),
-    Intl.DateTimeFormat().resolvedOptions().timeZone
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
   );
   hoursList: TimeSlot[] = [];
   readonly today = new Date();
@@ -130,7 +130,10 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
 
   applicationForm: FormGroup = this.fb.group({
     [this.PRIMARY_APPLICATION_FORM]: ['', Validators.required],
-    [this.START_DATE_FORM]: ['', Validators.required],
+    [this.START_DATE_FORM]: [
+      { value: '', disabled: true },
+      Validators.required,
+    ],
     [this.START_TIME_FORM]: [
       { value: '', disabled: true },
       Validators.required,
@@ -142,13 +145,12 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   });
 
   constructor() {
-    this.listenReservationChanges();
     this.listenAppConfig();
   }
 
   ngOnInit(): void {
     this.minDate = new Date(
-      this.today.getTime() + this.MIN_LEAD_COOLDOWN_HOURS * 60 * 60 * 1000
+      this.today.getTime() + this.MIN_LEAD_COOLDOWN_HOURS * 60 * 60 * 1000,
     );
     this.maxDate = new Date(this.today);
     this.maxDate.setDate(this.today.getDate() + this.MAX_CALENDAR_DAYS);
@@ -158,14 +160,14 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
       [],
       this.BLOC_HOUR_LIMIT,
       this.durations[0].value,
-      this.minDate
+      this.minDate,
     );
     this.applications$ = this.reservationService.applications$;
 
     this.applicationForm.valueChanges.subscribe(() => {
       this.isCheckAvailableDisabled = false;
     });
-
+    this.listenApplicationChanges();
     this.listenDateChanges();
     this.listenTimeChanges();
     const minDateTime = new Date(this.minDate);
@@ -176,13 +178,20 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   listenReservationChanges() {
     effect(() => {
       const all = this.reservationsSig.reservations();
-
+      console.log(
+        'primaryapplication=',
+        this.applicationForm.get(this.PRIMARY_APPLICATION_FORM)?.value,
+      );
       const filtered = all.filter(
         (r) =>
-          r.status === ReservationApiStatus.PENDING ||
-          r.status === ReservationApiStatus.ACTIVE
+          (r.applications.some(
+            (app) =>
+              app.id ===
+              this.applicationForm.get(this.PRIMARY_APPLICATION_FORM)?.value,
+          ) &&
+            r.status === ReservationApiStatus.PENDING) ||
+          r.status === ReservationApiStatus.ACTIVE,
       );
-
       this.normalizedReservations = filtered.map((r) => ({
         start: new Date(r.startTime),
         end: new Date(r.endTime),
@@ -203,14 +212,14 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
 
   checkAvailability() {
     this.selectedPrimaryApplication = this.applicationForm.get(
-      this.PRIMARY_APPLICATION_FORM
+      this.PRIMARY_APPLICATION_FORM,
     )?.value;
 
     const selectedDuration = this.applicationForm.get(
-      this.SELECTED_DURATION_FORM
+      this.SELECTED_DURATION_FORM,
     )?.value;
     const startDateTime: Date = this.applicationForm.get(
-      this.START_TIME_FORM
+      this.START_TIME_FORM,
     )?.value;
     const availabilityByApplicationRequest: AvailabilityByApplicationRequest = {
       applicationId: this.applicationForm.get(this.PRIMARY_APPLICATION_FORM)
@@ -226,7 +235,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     this.secondaryApplications = [];
     this.selectedTimeSlot = null;
     const selectedDurationIndex = this.durations.findIndex(
-      (item) => item.value === selectedDuration
+      (item) => item.value === selectedDuration,
     );
     const lessDurationList =
       selectedDurationIndex > 0
@@ -245,20 +254,20 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
             return this.reservationService
               .checkLessDurationSlotsApplication(
                 lessDurationList,
-                availabilityByApplicationRequest
+                availabilityByApplicationRequest,
               )
               .pipe(
                 map((lessDurationSlotsResponse) => ({
                   slotsAvailableData: slotsAvailabilityResponse,
                   lessDurationSlots: lessDurationSlotsResponse,
-                }))
+                })),
               );
           }
           return of({
             slotsAvailableData: slotsAvailabilityResponse,
             lessDurationSlots: null,
           });
-        })
+        }),
       )
       .subscribe({
         next: (res) => {
@@ -279,7 +288,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
             ];
           }
           this.availabilityApplication = this.removeSlotsForBlocDays(
-            res.slotsAvailableData
+            res.slotsAvailableData,
           );
           if (
             (this.availabilityApplication?.nextAvailableSlots?.length ?? 0) <= 0
@@ -299,7 +308,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
           this.isCheckAvailableDisabled = false;
           this.cdr.detectChanges();
           this.showErrorDialog(
-            error?.error?.detail || 'Something went wrong. Please try again.'
+            error?.error?.detail || 'Something went wrong. Please try again.',
           );
         },
       });
@@ -317,7 +326,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     this.selectedTimeSlot = availableSlot;
     this.checkSecondaryApplications(this.selectedTimeSlot!);
     this.availabilityApplication?.nextAvailableSlots?.forEach(
-      (item) => (item.isSelected = false)
+      (item) => (item.isSelected = false),
     );
     availableSlot.isSelected = true;
     this.cdr.detectChanges();
@@ -326,7 +335,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   checkSecondaryApplications(nextAvailableSlots: NextAvailableSlots) {
     this.secondaryApplications = getUniqueSecondaryApplications(
       nextAvailableSlots,
-      this.selectedPrimaryApplication?.id ?? 0
+      this.selectedPrimaryApplication?.id ?? 0,
     );
     this.cdr.detectChanges();
   }
@@ -337,7 +346,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
         application,
         this.secondaryApplications,
         this.selectedTimeSlot!,
-        this.MAX_APPLICATION_SELECTION - 1
+        this.MAX_APPLICATION_SELECTION - 1,
       );
       this.setSelectedApplicationsValue();
       this.cdr.detectChanges();
@@ -347,7 +356,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   setSelectedApplicationsValue() {
     this.selectedApplicationList.length = 0;
     this.selectedApplicationList.push(
-      this.selectedPrimaryApplication?.name ?? ''
+      this.selectedPrimaryApplication?.name ?? '',
     );
     if (this.secondaryApplications?.length >= 0) {
       const selectedApplicationNames = this.secondaryApplications
@@ -380,7 +389,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
         this.showErrorDialog(
           err?.error?.detail ||
-            'There was an error creating your reservation. Please try again.'
+            'There was an error creating your reservation. Please try again.',
         );
       },
     });
@@ -388,10 +397,30 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
 
   get lessDurationSlotsList() {
     return this.availabilityApplication?.nextAvailableSlots?.filter(
-      (item) => item.isLessDurationSlots === true
+      (item) => item.isLessDurationSlots === true,
     );
   }
 
+  listenApplicationChanges() {
+    this.applicationForm
+      .get(this.PRIMARY_APPLICATION_FORM)
+      ?.valueChanges.subscribe((newValue) => {
+        if (newValue) {
+          console.log(newValue);
+          if (
+            (newValue ?? '') !== '' &&
+            (this.applicationForm.get(this.PRIMARY_APPLICATION_FORM)?.value ??
+              '') !== newValue
+          ) {
+            this.listenReservationChanges();
+            this.applicationForm
+              ?.get(this.START_DATE_FORM)
+              ?.enable({ emitEvent: false });
+            this.applicationForm.get(this.START_DATE_FORM)?.setValue('');
+          }
+        }
+      });
+  }
   listenDateChanges() {
     this.applicationForm
       .get(this.START_DATE_FORM)
@@ -413,17 +442,17 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
           this.normalizedReservations,
           this.BLOC_HOUR_LIMIT,
           this.durations[0].value,
-          minDateTime
+          minDateTime,
         );
         if (this.hoursList.length > 0) {
           const displayTimeSlot = this.hoursList.find(
-            (item) => item.date.getHours() === DEFAULT_START_DATE_TIME
+            (item) => item.date.getHours() === DEFAULT_START_DATE_TIME,
           );
           const beforeDisplayTimeSlot = [...this.hoursList]
             .reverse()
             .find((item) => item.date.getHours() < DEFAULT_START_DATE_TIME);
           const afterTimeSlot = this.hoursList.find(
-            (item) => item.date.getHours() > DEFAULT_START_DATE_TIME
+            (item) => item.date.getHours() > DEFAULT_START_DATE_TIME,
           );
           if (displayTimeSlot) {
             startDateTime = displayTimeSlot.date;
@@ -456,13 +485,13 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
 
         for (let i = 0; i < this.durations.length; i++) {
           const slotEnd = new Date(
-            slotSart.getTime() + this.durations[i].value * 60 * 60 * 1000
+            slotSart.getTime() + this.durations[i].value * 60 * 60 * 1000,
           );
           const isDisabled = this.normalizedReservations.some(
             (range) =>
               (slotSart >= range.start && slotSart < range.end) ||
               (slotEnd > range.start && slotEnd <= range.end) ||
-              (slotSart <= range.start && slotEnd >= range.end)
+              (slotSart <= range.start && slotEnd >= range.end),
           );
           this.durations[i].isDisabled = isDisabled;
         }
@@ -492,7 +521,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
         const startDate = new Date(item.startTime!);
         const endDate = new Date(item.endTime!);
         return !expandRanges.some(
-          (range) => startDate < range.end && endDate > range.start
+          (range) => startDate < range.end && endDate > range.start,
         );
       });
     return slotsAvailableData;
@@ -615,7 +644,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   setDurationEndTime(minDateTime: Date) {
     this.durations = this.durations.map((item) => {
       const newDate = new Date(
-        minDateTime.getTime() + item.value * 60 * 60 * 1000
+        minDateTime.getTime() + item.value * 60 * 60 * 1000,
       );
       newDate.setMinutes(0);
       const endDateTime = newDate.toLocaleTimeString([], {
