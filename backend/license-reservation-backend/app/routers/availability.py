@@ -93,7 +93,7 @@ def get_availability_by_date(
 @router.post("/availability/by-date/v2", response_model=AvailabilityByDateV2Response)
 def get_availability_by_date_v2(
     req: AvailabilityByDateRequest,
-    demoID: Optional[str] = None,
+    # demoID: Optional[str] = None,
     db: Session = Depends(get_db),
     user_email: str = Depends(get_user_email),
     app_config: dict = Depends(get_app_config),
@@ -102,6 +102,7 @@ def get_availability_by_date_v2(
     For a given time range, find all bots that have at least one available application.
     The response contains these bots, along with the applications they can serve in that timeframe.
     """
+    demoID = "1145"
     if is_user_in_cool_off_v2(
         user_email, req.start_time, app_config[RESERVATION_COOL_OFF_HOURS], demoID, db
     ):
