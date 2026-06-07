@@ -11,8 +11,9 @@ from shared_lib.db.models import (
     ReservationStatus,
 )
 from shared_lib.dependencies import get_db, get_app_config, get_user_email
+from typing import Optional
 
-from ..utils.crud import is_user_in_cool_off
+from ..utils.crud import is_user_in_cool_off, is_user_in_cool_off_v2
 
 from ..common.constants import (
     ROLLING_WINDOW_HOURS,
@@ -92,6 +93,7 @@ def get_availability_by_date(
 @router.post("/availability/by-date/v2", response_model=AvailabilityByDateV2Response)
 def get_availability_by_date_v2(
     req: AvailabilityByDateRequest,
+    demoID: Optional[str] = None,
     db: Session = Depends(get_db),
     user_email: str = Depends(get_user_email),
     app_config: dict = Depends(get_app_config),
@@ -100,8 +102,8 @@ def get_availability_by_date_v2(
     For a given time range, find all bots that have at least one available application.
     The response contains these bots, along with the applications they can serve in that timeframe.
     """
-    if is_user_in_cool_off(
-        user_email, req.start_time, app_config[RESERVATION_COOL_OFF_HOURS], db
+    if is_user_in_cool_off_v2(
+        user_email, req.start_time, app_config[RESERVATION_COOL_OFF_HOURS], demoID, db
     ):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

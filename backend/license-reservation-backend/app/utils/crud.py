@@ -8,6 +8,8 @@ from shared_lib.db.models import (
     BotApplication,
     Reservation,
     ReservationStatus,
+    DemoDetail,
+    reservation_applications_table,
 )
 from typing import List
 import random
@@ -158,6 +160,103 @@ def is_user_in_cool_off(
         .first()
     )
     return bool(conflicting_reservation or future_conflict)
+
+
+def is_user_in_cool_off_v2(
+    user_email: str,
+    req_start_time: datetime,
+    cool_off_period_hours: int,
+    demo_id: Optional[str],
+    db: Session,
+) -> bool:
+    if demo_id:
+        demo_record = db.query(DemoDetail).filter(DemoDetail.demo_id == demo_id).first()
+        if not demo_record:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Demo with ID '{demo_id}' not found."
+            )
+        
+        # Parse applications from the demo record
+        demo_app_ids = []
+        if demo_record.saas_applications:
+            demo_app_ids = [
+                int(x.strip())
+                for x in demo_record.saas_applications.split(",")
+                if x.strip().isdigit()
+            ]
+        
+        cool_off_window_start = req_start_time - timedelta(hours=cool_off_period_hours)
+        
+        conflicting_reservations = (
+            db.query(Reservation)
+            .filter(
+                Reservation.user_email == user_email,
+                Reservation.status.in_(
+                    [
+                        ReservationStatus.PENDING,
+                        ReservationStatus.ACTIVE,
+                        ReservationStatus.COMPLETED,
+                    ]
+                ),
+                Reservation.end_time > cool_off_window_start,
+                Reservation.end_time <= req_start_time,
+            )
+            .all()
+        )
+        
+        future_conflicts = (
+            db.query(Reservation)
+            .filter(
+                Reservation.user_email == user_email,
+                Reservation.status.in_(
+                    [
+                        ReservationStatus.PENDING,
+                        ReservationStatus.ACTIVE,
+                    ]
+                ),
+                Reservation.start_time
+                < req_start_time + timedelta(hours=cool_off_period_hours),
+                Reservation.end_time
+                > req_start_time - timedelta(hours=cool_off_period_hours),
+            )
+            .all()
+        )
+        
+        seen_res_ids = set()
+        cool_off_reservations = []
+        for r in conflicting_reservations + future_conflicts:
+            if r.id not in seen_res_ids:
+                seen_res_ids.add(r.id)
+                cool_off_reservations.append(r)
+                
+        # Check if all demo apps are present in any of the cool-off reservations
+        if cool_off_reservations and demo_app_ids:
+            for res in cool_off_reservations:
+                # Primary application ID
+                primary_app_id = res.primary_application_id
+                
+                # Secondary application IDs
+                secondary_app_ids = [
+                    row[0]
+                    for row in db.query(reservation_applications_table.c.application_id)
+                    .filter(reservation_applications_table.c.reservation_id == res.id)
+                    .all()
+                ]
+                
+                reserved_app_ids = set(secondary_app_ids)
+                if primary_app_id is not None:
+                    reserved_app_ids.add(primary_app_id)
+                
+                if all(app_id in reserved_app_ids for app_id in demo_app_ids):
+                    return True
+            return False
+        return False
+    else:
+        return is_user_in_cool_off(
+            user_email, req_start_time, cool_off_period_hours, db
+        )
+
 
 def is_valid_reservation_lead_time(
     req_start_time: datetime, min_lead_hours: int, max_reservation_lead_days: int
