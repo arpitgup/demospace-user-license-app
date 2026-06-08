@@ -25,6 +25,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTimepickerModule } from '@angular/material/timepicker';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { ReservationService } from '../../core/services/reservation.service';
 import { Application } from '../../core/models/application.model';
@@ -72,6 +73,7 @@ import { DEFAULT_START_DATE_TIME } from '../search-by-date/search-by-date.consta
     AsyncPipe,
     DatePipe,
     SearchByApplicationLoader,
+    MatTooltipModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './search-application.html',
@@ -336,6 +338,38 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
       nextAvailableSlots,
       this.selectedPrimaryApplication?.id ?? 0,
     );
+
+    // Disable secondary applications that are already reserved (PENDING/ACTIVE)
+    // in a time range overlapping with the selected slot.
+    const slotStart = new Date(nextAvailableSlots.startTime ?? '');
+    const slotEnd = new Date(nextAvailableSlots.endTime ?? '');
+
+    const conflictingReservations = this.userAllReservations.filter(
+      (r) =>
+        (r.status === ReservationApiStatus.PENDING ||
+          r.status === ReservationApiStatus.ACTIVE) &&
+        new Date(r.startTime) <= slotEnd &&
+        new Date(r.endTime) >= slotStart,
+    );
+
+    const conflictingAppIds = new Set<number>();
+    for (const reservation of conflictingReservations) {
+      for (const app of reservation.applications) {
+        conflictingAppIds.add(app.id);
+      }
+    }
+
+    this.secondaryApplications = this.secondaryApplications.map((app) => {
+      const isConflicting = conflictingAppIds.has(app.id);
+      return {
+        ...app,
+        isEnabled: !isConflicting,
+        disabledReason: isConflicting
+          ? 'This license is already reserved for the selected time slot.'
+          : undefined,
+      };
+    });
+
     this.cdr.detectChanges();
   }
 

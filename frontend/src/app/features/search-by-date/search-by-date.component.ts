@@ -35,6 +35,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ReservationService } from '../../core/services/reservation.service';
@@ -97,6 +98,7 @@ type BlockedInterval = { start: Date; end: Date };
     MatButtonToggleModule,
     MatProgressSpinnerModule,
     SearchByApplicationLoader,
+    MatTooltipModule,
   ],
   templateUrl: './search-by-date.component.html',
   styleUrls: ['./search-by-date.component.scss'],
@@ -528,7 +530,34 @@ export class SearchByDateComponent implements OnInit {
           });
         });
 
-        this.availableApplications.set(Array.from(appMap.values()));
+        // Disable applications that overlap with existing PENDING/ACTIVE reservations
+        const slotStart = startDateTime;
+        const slotEnd = this.calculatedEndDate()!;
+        const conflictingReservations = this.userReservations.filter(
+          (r) =>
+            (r.status === ReservationApiStatus.PENDING ||
+              r.status === ReservationApiStatus.ACTIVE) &&
+            new Date(r.startTime) <= slotEnd &&
+            new Date(r.endTime) >= slotStart,
+        );
+        const conflictingAppIds = new Set<number>();
+        for (const reservation of conflictingReservations) {
+          for (const app of reservation.applications) {
+            conflictingAppIds.add(app.id);
+          }
+        }
+        const appsWithDisabledState = Array.from(appMap.values()).map((app) => {
+          const isConflicting = conflictingAppIds.has(app.id);
+          return {
+            ...app,
+            isEnabled: !isConflicting,
+            disabledReason: isConflicting
+              ? 'This license is already reserved for the selected time slot.'
+              : undefined,
+          };
+        });
+
+        this.availableApplications.set(appsWithDisabledState);
         this.selectedApps.set([]);
         this.availableDate.set(startDateTime);
         this.revokeDate.set(this.calculatedEndDate());
@@ -615,6 +644,11 @@ export class SearchByDateComponent implements OnInit {
   }
 
   isAppToggleDisabled(app: Application): boolean {
+    // Disabled due to overlapping reservation
+    if (app.isEnabled === false) {
+      return true;
+    }
+
     if (this.isSelected(app)) {
       return false;
     }

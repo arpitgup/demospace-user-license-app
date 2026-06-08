@@ -208,6 +208,11 @@
         >
           @for (app of availableApplications(); track app.id) {
 
+          <span
+            [matTooltip]="app.disabledReason ?? ''"
+            [matTooltipDisabled]="app.isEnabled !== false"
+            matTooltipPosition="above"
+          >
           <mat-button-toggle
             [value]="app"
             class="app-toggle"
@@ -217,6 +222,7 @@
           >
             {{ app.name }}
           </mat-button-toggle>
+          </span>
           }
         </mat-button-toggle-group>
         } @else {

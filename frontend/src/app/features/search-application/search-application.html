@@ -238,6 +238,9 @@
           [class.selected]="secondaryApplication.isSelected"
           (click)="onApplicationClicked(secondaryApplication)"
           [class.disabled]="secondaryApplication.isEnabled === false"
+          [matTooltip]="secondaryApplication.disabledReason ?? ''"
+          [matTooltipDisabled]="secondaryApplication.isEnabled !== false"
+          matTooltipPosition="above"
         >
           <span class="tick-icon">&#10003;</span>
           <span
