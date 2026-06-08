@@ -207,7 +207,7 @@
           aria-label="Select up to three applications"
         >
           @for (app of availableApplications(); track app.id) {
-
+            
           <span
             [matTooltip]="app.disabledReason ?? ''"
             [matTooltipDisabled]="app.isEnabled !== false"
