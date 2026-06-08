@@ -218,12 +218,12 @@ export class SearchByDateComponent implements OnInit {
     return `${formattedDate}, ${timeZoneAbbr}`;
   });
 
- private readonly syncFromReservations = effect(() => {
+  private readonly syncFromReservations = effect(() => {
     const all = this.reservationsSig();
     const filtered = all.filter(
       (r) =>
         r.status === ReservationApiStatus.PENDING ||
-        r.status === ReservationApiStatus.ACTIVE
+        r.status === ReservationApiStatus.ACTIVE,
     );
     this.userReservations = filtered as Reservation[];
 
@@ -232,16 +232,15 @@ export class SearchByDateComponent implements OnInit {
     // isSlotFullyBooked() which only blocks a slot when ALL available
     // apps are reserved, allowing users to book different apps in the same slot.
     this.applications$ = this.reservationService.applications$;
-    this.applications$.pipe(take(1)).subscribe((apps: Application[]) => {
+    this.applications$.subscribe((apps: Application[]) => {
       this.allAvailableAppIds = apps.map((a) => a.id);
+      this.blockedIntervals = [];
+      this.buildStartTimeSlots();
+      this.buildEndTimeSlots();
+      this.calculateEndDate();
+      this.form.updateValueAndValidity({ emitEvent: false });
+      this.cdr.markForCheck();
     });
-    this.blockedIntervals = [];
-
-    this.buildStartTimeSlots();
-    this.buildEndTimeSlots();
-    this.calculateEndDate();
-    this.form.updateValueAndValidity({ emitEvent: false });
-    this.cdr.markForCheck();
   });
 
   ngOnInit(): void {
@@ -529,63 +528,74 @@ export class SearchByDateComponent implements OnInit {
       endTime: this.calculatedEndDate()!.toISOString(),
     };
 
-    this.reservationService.checkBotsAvailabilityByDate(payload,this.demoId).subscribe({
-      next: (response: { availableBots: BotWithApps[] }) => {
-        this.botsWithApps.set(response.availableBots ?? []);
-        const appMap = new Map<number, Application>();
-        this.botsWithApps().forEach((bot) => {
-          bot.applications.forEach((app) => {
-            if (!appMap.has(app.id)) {
-              appMap.set(app.id, app);
-            }
+    this.reservationService
+      .checkBotsAvailabilityByDate(payload, this.demoId)
+      .subscribe({
+        next: (response: { availableBots: BotWithApps[] }) => {
+          this.botsWithApps.set(response.availableBots ?? []);
+          const appMap = new Map<number, Application>();
+          this.botsWithApps().forEach((bot) => {
+            bot.applications.forEach((app) => {
+              if (!appMap.has(app.id)) {
+                appMap.set(app.id, app);
+              }
+            });
           });
-        });
 
-        // Disable applications that overlap with existing PENDING/ACTIVE reservations
-        // Use UTC epoch ms (.getTime()) for timezone-safe comparison
-        const slotStartUtc = startDateTime.getTime();
-        const slotEndUtc = this.calculatedEndDate()!.getTime();
-        const conflictingReservations = this.userReservations.filter(
-          (r) =>
-            (r.status === ReservationApiStatus.PENDING ||
-              r.status === ReservationApiStatus.ACTIVE) &&
-            normalizeServerTime(r.startTime, SERVER_TIME_MODE).getTime() <= slotEndUtc &&
-            normalizeServerTime(r.endTime, SERVER_TIME_MODE).getTime() >= slotStartUtc,
-        );
-        const conflictingAppIds = new Set<number>();
-        for (const reservation of conflictingReservations) {
-          for (const app of reservation.applications) {
-            conflictingAppIds.add(app.id);
+          // Disable applications that overlap with existing PENDING/ACTIVE reservations
+          // Use UTC epoch ms (.getTime()) for timezone-safe comparison
+          // Include cooldown period so apps within their cooldown window are disabled
+          const cooldownMs =
+            (this.appConfigSignal()?.reservationCoolOffHours ||
+              SELF_COOLDOWN_HOURS) * MILLISECONDS_PER_HOUR;
+          const slotStartUtc = startDateTime.getTime();
+          const slotEndUtc = this.calculatedEndDate()!.getTime();
+          const conflictingReservations = this.userReservations.filter(
+            (r) =>
+              (r.status === ReservationApiStatus.PENDING ||
+                r.status === ReservationApiStatus.ACTIVE) &&
+              normalizeServerTime(r.startTime, SERVER_TIME_MODE).getTime() <=
+                slotEndUtc &&
+              normalizeServerTime(r.endTime, SERVER_TIME_MODE).getTime() +
+                cooldownMs >=
+                slotStartUtc,
+          );
+          const conflictingAppIds = new Set<number>();
+          for (const reservation of conflictingReservations) {
+            for (const app of reservation.applications) {
+              conflictingAppIds.add(app.id);
+            }
           }
-        }
-        const appsWithDisabledState = Array.from(appMap.values()).map((app) => {
-          const isConflicting = conflictingAppIds.has(app.id);
-          return {
-            ...app,
-            isEnabled: !isConflicting,
-            disabledReason: isConflicting
-              ? 'This license is already reserved for the selected time slot.'
-              : undefined,
-          };
-        });
+          const appsWithDisabledState = Array.from(appMap.values()).map(
+            (app) => {
+              const isConflicting = conflictingAppIds.has(app.id);
+              return {
+                ...app,
+                isEnabled: !isConflicting,
+                disabledReason: isConflicting
+                  ? `This license is already reserved for the selected time slot. You can book the license again ${this.appConfigSignal()?.reservationCoolOffHours || SELF_COOLDOWN_HOURS} hours after your reservation ends.`
+                  : undefined,
+              };
+            },
+          );
 
-        this.availableApplications.set(appsWithDisabledState);
-        this.selectedApps.set([]);
-        this.availableDate.set(startDateTime);
-        this.revokeDate.set(this.calculatedEndDate());
-        this.isLoading.set(false);
-        this.showResultsCard.set(true);
-        this.cdr.markForCheck();
-      },
-      error: (error) => {
-        this.availableApplications.set([]);
-        this.botsWithApps.set([]);
-        this.isLoading.set(false);
-        this.showResultsCard.set(true);
-        this.cdr.markForCheck();
-        this.showErrorDialog(error?.error?.detail || 'Something went wrong');
-      },
-    });
+          this.availableApplications.set(appsWithDisabledState);
+          this.selectedApps.set([]);
+          this.availableDate.set(startDateTime);
+          this.revokeDate.set(this.calculatedEndDate());
+          this.isLoading.set(false);
+          this.showResultsCard.set(true);
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          this.availableApplications.set([]);
+          this.botsWithApps.set([]);
+          this.isLoading.set(false);
+          this.showResultsCard.set(true);
+          this.cdr.markForCheck();
+          this.showErrorDialog(error?.error?.detail || 'Something went wrong');
+        },
+      });
   }
 
   showErrorDialog(message: string): void {
@@ -724,7 +734,7 @@ export class SearchByDateComponent implements OnInit {
       endTime: this.calculatedEndDate()!.toISOString(),
     };
 
-    this.reservationService.createReservation(payload,this.demoId).subscribe({
+    this.reservationService.createReservation(payload, this.demoId).subscribe({
       next: (newReservation: Reservation) => {
         console.log(
           `Reservation successfully created with ID: ${newReservation.id}`,
@@ -864,17 +874,17 @@ export class SearchByDateComponent implements OnInit {
 
     // Check if EVERY available app has a reservation (+ cooldown) covering this slot
     return this.allAvailableAppIds.every((appId) =>
-      this.userReservations.some(
-        (r) => {
-          const resEndWithCooldown =
-            normalizeServerTime(r.endTime, SERVER_TIME_MODE).getTime() + cooldownMs;
-          return (
-            r.applications.some((a) => a.id === appId) &&
-            normalizeServerTime(r.startTime, SERVER_TIME_MODE).getTime() <= slotEndMs &&
-            resEndWithCooldown >= slotStartMs
-          );
-        },
-      ),
+      this.userReservations.some((r) => {
+        const resEndWithCooldown =
+          normalizeServerTime(r.endTime, SERVER_TIME_MODE).getTime() +
+          cooldownMs;
+        return (
+          r.applications.some((a) => a.id === appId) &&
+          normalizeServerTime(r.startTime, SERVER_TIME_MODE).getTime() <=
+            slotEndMs &&
+          resEndWithCooldown >= slotStartMs
+        );
+      }),
     );
   }
 

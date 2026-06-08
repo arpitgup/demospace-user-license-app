@@ -358,6 +358,8 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     // Disable secondary applications that are already reserved (PENDING/ACTIVE)
     // in a time range overlapping with the selected slot.
     // Use UTC epoch ms (.getTime()) for timezone-safe comparison
+    // Include cooldown period so apps within their cooldown window are disabled
+    const cooldownMs = this.BLOC_HOUR_LIMIT * 60 * 60 * 1000;
     const slotStartUtc = new Date(nextAvailableSlots.startTime ?? '').getTime();
     const slotEndUtc = new Date(nextAvailableSlots.endTime ?? '').getTime();
 
@@ -366,7 +368,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
         (r.status === ReservationApiStatus.PENDING ||
           r.status === ReservationApiStatus.ACTIVE) &&
         new Date(r.startTime).getTime() <= slotEndUtc &&
-        new Date(r.endTime).getTime() >= slotStartUtc,
+        (new Date(r.endTime).getTime() + cooldownMs) >= slotStartUtc,
     );
 
     const conflictingAppIds = new Set<number>();
