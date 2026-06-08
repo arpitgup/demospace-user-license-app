@@ -237,7 +237,7 @@ export class ReservationService {
   createReservation(payload: NewReservation, demoId: string): Observable<Reservation> {
     this.loadingService.show();
     return this.http
-      .post<Reservation>(`${this.apiUrl}/reservations/demoId=${demoId}`, payload)
+      .post<Reservation>(`${this.apiUrl}/reservations?demoId=${demoId}`, payload)
       .pipe(
         tap((newReservation) => {
           this.reservationsState.update((currentReservations) => [
