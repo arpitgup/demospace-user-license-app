@@ -67,15 +67,17 @@ export class ReservationService {
   //   );
   // }
 
-  checkBotsAvailabilityByDate(payload: {
-  startTime: string;
-  endTime: string;
-}, demoId: string): Observable<{ availableBots: BotWithApps[] }> {
+  checkBotsAvailabilityByDate(
+    payload: {
+      startTime: string;
+      endTime: string;
+    },
+    demoId: string,
+  ): Observable<{ availableBots: BotWithApps[] }> {
     return this.http
-      .post<{ availableBots: BotWithApps[] }>(
-        `${this.apiUrl}/availability/by-date/v2?demoID=${demoId}`,
-        payload
-      )
+      .post<{
+        availableBots: BotWithApps[];
+      }>(`${this.apiUrl}/availability/by-date/v2?demoID=${demoId}`, payload)
       .pipe(
         map((res) => {
           const saasApplications = this.getSaasApplications();
@@ -85,14 +87,14 @@ export class ReservationService {
                 return {
                   ...item,
                   applications: item.applications.filter((element) =>
-                    saasApplications.includes(element.id)
+                    saasApplications.includes(element.id),
                   ),
                 };
               })
               .filter((element) => element.applications.length > 0);
           }
           return res;
-        })
+        }),
       );
   }
 
@@ -104,11 +106,11 @@ export class ReservationService {
       map((applications) => {
         const saasApplications = this.getSaasApplications();
         applications = applications.filter((item) =>
-          saasApplications.includes(item.id)
+          saasApplications.includes(item.id),
         );
         this.applicationSubject.next(applications);
         return applications;
-      })
+      }),
     );
   }
 
@@ -116,12 +118,13 @@ export class ReservationService {
    * API call to check availaibility of bots with specific to applications
    */
   checkAvailabilityByApplication(
-    data: AvailabilityByApplicationRequest
+    data: AvailabilityByApplicationRequest,
+    demoId: string,
   ): Observable<AvalaibilityByApplication> {
     return this.http
       .post<AvalaibilityByApplication>(
-        `${this.apiUrl}/availability/by-application`,
-        data
+        `${this.apiUrl}/availability/by-application?demoID=${demoId}`,
+        data,
       )
       .pipe(
         map((res) => {
@@ -129,11 +132,11 @@ export class ReservationService {
           if (saasApplications.length > 0) {
             res.nextAvailableSlots = this.filterSlotsApplications(
               res,
-              saasApplications
+              saasApplications,
             );
           }
           return res;
-        })
+        }),
       );
   }
 
@@ -142,7 +145,8 @@ export class ReservationService {
    */
   checkLessDurationSlotsApplication(
     duration: number[],
-    data: AvailabilityByApplicationRequest
+    data: AvailabilityByApplicationRequest,
+    demoId: string,
   ): Observable<AvalaibilityByApplication | null> {
     const saasApplications = this.getSaasApplications();
     return from([...duration].reverse()).pipe(
@@ -152,17 +156,17 @@ export class ReservationService {
           getNextSlots: false,
           durationHours: durationValue,
         };
-        return this.checkAvailabilityByApplication(request);
+        return this.checkAvailabilityByApplication(request, demoId);
       }),
       filter((res: AvalaibilityByApplication) =>
-        (res.nextAvailableSlots?.length ?? 0) >= 1 ? true : false
+        (res.nextAvailableSlots?.length ?? 0) >= 1 ? true : false,
       ),
       take(1),
       map((res) => ({
         ...res,
         nextAvailableSlots: this.filterSlotsApplications(res, saasApplications),
       })),
-      defaultIfEmpty(null)
+      defaultIfEmpty(null),
     );
   }
 
@@ -174,7 +178,7 @@ export class ReservationService {
     return this.http.get<AppConfig>(`${this.apiUrl}/config`).pipe(
       tap((appConfigData) => {
         this.configState.set(appConfigData);
-      })
+      }),
     );
   }
 
@@ -194,10 +198,10 @@ export class ReservationService {
       catchError((error) => {
         this.isReservationLoadingState.set(false);
         this.reservationErrorMessageState.set(
-          error?.error?.detail || 'Something went wrong'
+          error?.error?.detail || 'Something went wrong',
         );
         return throwError(() => error);
-      })
+      }),
     );
   }
 
@@ -212,19 +216,19 @@ export class ReservationService {
     return this.http
       .post<Reservation>(
         `${this.apiUrl}/reservations/${reservationId}/cancel`,
-        {}
+        {},
       )
       .pipe(
         tap((canceledReservation) => {
           this.reservationsState.update((currentReservations) =>
             currentReservations.map((res) =>
-              res.id === reservationId ? canceledReservation : res
-            )
+              res.id === reservationId ? canceledReservation : res,
+            ),
           );
         }),
         finalize(() => {
           this.loadingService.hide();
-        })
+        }),
       );
   }
 
@@ -234,10 +238,16 @@ export class ReservationService {
    * @param payload The new reservation details.
    * @returns An Observable of the newly created Reservation object.
    */
-  createReservation(payload: NewReservation, demoId: string): Observable<Reservation> {
+  createReservation(
+    payload: NewReservation,
+    demoId: string,
+  ): Observable<Reservation> {
     this.loadingService.show();
     return this.http
-      .post<Reservation>(`${this.apiUrl}/reservations?demoID=${demoId}`, payload)
+      .post<Reservation>(
+        `${this.apiUrl}/reservations?demoID=${demoId}`,
+        payload,
+      )
       .pipe(
         tap((newReservation) => {
           this.reservationsState.update((currentReservations) => [
@@ -247,13 +257,13 @@ export class ReservationService {
         }),
         finalize(() => {
           this.loadingService.hide();
-        })
+        }),
       );
   }
 
   filterSlotsApplications(
     res: AvalaibilityByApplication,
-    saasApplications: number[]
+    saasApplications: number[],
   ) {
     return res.nextAvailableSlots
       ?.map((item) => {
@@ -264,7 +274,7 @@ export class ReservationService {
               return {
                 ...item,
                 applications: item.applications?.filter((item) =>
-                  saasApplications.includes(item.id)
+                  saasApplications.includes(item.id),
                 ),
               };
             })

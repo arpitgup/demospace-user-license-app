@@ -261,7 +261,10 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
             .map((item) => item.value)
         : [];
     this.reservationService
-      ?.checkAvailabilityByApplication(availabilityByApplicationRequest)
+      ?.checkAvailabilityByApplication(
+        availabilityByApplicationRequest,
+        this.demoId,
+      )
       .pipe(
         switchMap((slotsAvailabilityResponse) => {
           if (
@@ -272,6 +275,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
               .checkLessDurationSlotsApplication(
                 lessDurationList,
                 availabilityByApplicationRequest,
+                this.demoId,
               )
               .pipe(
                 map((lessDurationSlotsResponse) => ({
@@ -368,7 +372,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
         (r.status === ReservationApiStatus.PENDING ||
           r.status === ReservationApiStatus.ACTIVE) &&
         new Date(r.startTime).getTime() <= slotEndUtc &&
-        (new Date(r.endTime).getTime() + cooldownMs) >= slotStartUtc,
+        new Date(r.endTime).getTime() + cooldownMs >= slotStartUtc,
     );
 
     const conflictingAppIds = new Set<number>();
