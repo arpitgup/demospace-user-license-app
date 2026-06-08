@@ -388,7 +388,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
         ...app,
         isEnabled: !isConflicting,
         disabledReason: isConflicting
-          ? 'This license is already reserved for the selected time slot.'
+          ? `This license is already reserved for the selected time slot. You can book the license again after ${this.BLOC_HOUR_LIMIT} hour after your reservation ends.`
           : undefined,
       };
     });

@@ -573,7 +573,7 @@ export class SearchByDateComponent implements OnInit {
                 ...app,
                 isEnabled: !isConflicting,
                 disabledReason: isConflicting
-                  ? `This license is already reserved for the selected time slot. You can book the license again ${this.appConfigSignal()?.reservationCoolOffHours || SELF_COOLDOWN_HOURS} hours after your reservation ends.`
+                  ? `This license is already reserved for the selected time slot. You can book the license again after ${this.appConfigSignal()?.reservationCoolOffHours || SELF_COOLDOWN_HOURS} hour after your reservation ends.`
                   : undefined,
               };
             },
