@@ -75,6 +75,11 @@ def make_reservation(
     Creates a single reservation if a single bot can serve all requested applications
     for the specified time range.
     """
+    if not demoID:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="demoID is required",
+        )
     if is_user_in_cool_off_v2(
         user_email, req.start_time, app_config[RESERVATION_COOL_OFF_HOURS], demoID, db
     ):
