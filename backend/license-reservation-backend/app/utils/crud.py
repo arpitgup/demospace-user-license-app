@@ -231,11 +231,14 @@ def is_user_in_cool_off_v2(
             seen_res_ids.add(r.id)
             cool_off_reservations.append(r)
             
-    # Check if all demo apps are present in any of the cool-off reservations
+    # Check if all demo apps are present across the user's cool-off reservations (union of all reserved apps)
     if cool_off_reservations and demo_app_ids:
+        all_reserved_app_ids = set()
         for res in cool_off_reservations:
             # Primary application ID
             primary_app_id = res.primary_application_id
+            if primary_app_id is not None:
+                all_reserved_app_ids.add(primary_app_id)
             
             # Secondary application IDs
             secondary_app_ids = [
@@ -244,13 +247,10 @@ def is_user_in_cool_off_v2(
                 .filter(reservation_applications_table.c.reservation_id == res.id)
                 .all()
             ]
+            all_reserved_app_ids.update(secondary_app_ids)
             
-            reserved_app_ids = set(secondary_app_ids)
-            if primary_app_id is not None:
-                reserved_app_ids.add(primary_app_id)
-            
-            if all(app_id in reserved_app_ids for app_id in demo_app_ids):
-                return True
+        if all(app_id in all_reserved_app_ids for app_id in demo_app_ids):
+            return True
         return False
     return False
 

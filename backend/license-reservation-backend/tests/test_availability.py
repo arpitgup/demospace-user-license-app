@@ -537,3 +537,63 @@ def test_get_availability_by_date_v2_invalid_demo_id(test_client):
 
     assert response.status_code == 404
     assert "Demo with ID 'invalid' not found" in response.json()["detail"]
+
+
+def test_get_availability_by_date_v2_cool_off_with_demo_id_apps_split_across_reservations(
+    test_client, seed_data, db_session
+):
+    """Test that if demoID is provided, and demo apps are split across separate reservations during the cool-off, the user is blocked (409)."""
+    # Create a demo detail
+    demo = DemoDetail(
+        demo_id="demo123",
+        demo_title="Demo 123",
+        saas_applications="1,2",  # Jira and Slack
+        feature_license_app=False,
+    )
+    db_session.add(demo)
+    
+    # Create reservation 1 with app 1 (Jira)
+    previous_end_time = datetime.now(UTC) - timedelta(hours=1)
+    previous_start_time = previous_end_time - timedelta(hours=2)
+    res1 = Reservation(
+        user_email=TEST_USER,
+        bot_id=101,
+        start_time=previous_start_time,
+        end_time=previous_end_time,
+        status=ReservationStatus.COMPLETED,
+        primary_application_id=1,
+    )
+    res1.applications.append(
+        db_session.query(Application).filter(Application.id == 1).one()
+    )
+    db_session.add(res1)
+
+    # Create reservation 2 with app 2 (Slack)
+    res2 = Reservation(
+        user_email=TEST_USER,
+        bot_id=101,
+        start_time=previous_start_time,
+        end_time=previous_end_time,
+        status=ReservationStatus.COMPLETED,
+        primary_application_id=2,
+    )
+    res2.applications.append(
+        db_session.query(Application).filter(Application.id == 2).one()
+    )
+    db_session.add(res2)
+    db_session.commit()
+
+    # Request availability with demoID
+    start_time = datetime.now(UTC) + timedelta(hours=1)
+    end_time = start_time + timedelta(hours=2)
+    request_data = {
+        "startTime": start_time.isoformat(),
+        "endTime": end_time.isoformat(),
+    }
+    response = test_client.post(
+        "/availability/by-date/v2?demoID=demo123", json=request_data
+    )
+
+    # Should be blocked (409) because both applications (1 and 2) are reserved cumulatively
+    assert response.status_code == 409
+    assert "hours after your previous reservation ends" in response.json()["detail"]
