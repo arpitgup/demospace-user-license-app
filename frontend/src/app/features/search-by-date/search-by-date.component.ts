@@ -557,7 +557,7 @@ export class SearchByDateComponent implements OnInit {
               normalizeServerTime(r.startTime, SERVER_TIME_MODE).getTime() <=
                 slotEndUtc &&
               normalizeServerTime(r.endTime, SERVER_TIME_MODE).getTime() +
-                cooldownMs >=
+                cooldownMs >
                 slotStartUtc,
           );
           const conflictingAppIds = new Set<number>();
@@ -905,7 +905,7 @@ export class SearchByDateComponent implements OnInit {
           r.applications.some((a) => a.id === appId) &&
           normalizeServerTime(r.startTime, SERVER_TIME_MODE).getTime() <=
             slotEndMs &&
-          resEndWithCooldown >= slotStartMs
+          resEndWithCooldown > slotStartMs
         );
       }),
     );

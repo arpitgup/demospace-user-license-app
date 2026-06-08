@@ -372,7 +372,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
         (r.status === ReservationApiStatus.PENDING ||
           r.status === ReservationApiStatus.ACTIVE) &&
         new Date(r.startTime).getTime() <= slotEndUtc &&
-        new Date(r.endTime).getTime() + cooldownMs >= slotStartUtc,
+        new Date(r.endTime).getTime() + cooldownMs > slotStartUtc,
     );
 
     const conflictingAppIds = new Set<number>();
