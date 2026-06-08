@@ -166,6 +166,7 @@ def get_availability_by_date_v2(
 )
 def get_availability_by_application(
     req: AvailabilityByApplicationRequest,
+    demoID: Optional[str] = None,
     db: Session = Depends(get_db),
     app_config=Depends(get_app_config),
     user_email: str = Depends(get_user_email),
@@ -187,16 +188,29 @@ def get_availability_by_application(
     req_end_time = req.start_time + timedelta(hours=req.duration_hours)
 
     # Cool-off check for requested slot
-    if is_user_in_cool_off(
-        user_email,
-        req.start_time,
-        app_config[RESERVATION_COOL_OFF_HOURS],
-        db,
+    # if is_user_in_cool_off(
+    #     user_email,
+    #     req.start_time,
+    #     app_config[RESERVATION_COOL_OFF_HOURS],
+    #     db,
+    # ):
+    #     return AvailabilityByApplicationResponse(
+    #         requested_slot_available=False,
+    #         is_downtime_conflict=False,
+    #         next_available_slots=[],
+    #     )
+
+    if not demoID:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="demoID is required",
+        )
+    if is_user_in_cool_off_v2(
+        user_email, req.start_time, app_config[RESERVATION_COOL_OFF_HOURS], demoID, db
     ):
-        return AvailabilityByApplicationResponse(
-            requested_slot_available=False,
-            is_downtime_conflict=False,
-            next_available_slots=[],
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"You can only make a new reservation {app_config[RESERVATION_COOL_OFF_HOURS]} hours after your previous reservation ends.",
         )
 
     # Check for scheduled downtime for the requested application
