@@ -1,7 +1,7 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends, status
 from loguru import logger
 from shared_lib.dependencies import get_user_email, get_user_current_time, get_db, get_app_config
-from typing import List
+from typing import List, Optional
 from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -27,7 +27,7 @@ from ..utils.background_tasks import (
     force_reservation_tasks,
     sendReservationEmail    
 )
-from ..utils.crud import is_user_in_cool_off, is_valid_reservation_lead_time, format_email_for_reservation
+from ..utils.crud import is_user_in_cool_off_v2, is_valid_reservation_lead_time, format_email_for_reservation
 
 
 router = APIRouter()
@@ -66,6 +66,7 @@ def get_user_reservations(
 def make_reservation(
     req: CreateReservationRequest,
     background_tasks: BackgroundTasks,
+    demoID: Optional[str] = None,
     db: Session = Depends(get_db),
     user_email: str = Depends(get_user_email),
     app_config: dict = Depends(get_app_config),
@@ -74,8 +75,8 @@ def make_reservation(
     Creates a single reservation if a single bot can serve all requested applications
     for the specified time range.
     """
-    if is_user_in_cool_off(
-        user_email, req.start_time, app_config[RESERVATION_COOL_OFF_HOURS], db
+    if is_user_in_cool_off_v2(
+        user_email, req.start_time, app_config[RESERVATION_COOL_OFF_HOURS], demoID, db
     ):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
