@@ -655,6 +655,29 @@ export class SearchByDateComponent implements OnInit {
     });
   }
 
+  onAppClicked(app: Application): void {
+    if (this.isAppToggleDisabled(app)) return;
+
+    const current = this.selectedApps();
+    const index = current.findIndex((a) => a.id === app.id);
+
+    if (index >= 0) {
+      // Deselect
+      const next = [...current];
+      next.splice(index, 1);
+      this.selectedApps.set(next);
+    } else {
+      // Select (respect max limit)
+      const next = [...current, app];
+      this.selectedApps.set(
+        next.length <= MAX_RESERVATION_APPLICATION
+          ? next
+          : next.slice(0, MAX_RESERVATION_APPLICATION),
+      );
+    }
+    this.cdr.markForCheck();
+  }
+
   onToggleGroupChange(event: { value: Application[] }): void {
     const next = event?.value ?? [];
     this.selectedApps.set(

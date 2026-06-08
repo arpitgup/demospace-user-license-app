@@ -199,33 +199,25 @@
 
       <div class="pill-container">
         @if (availableApplications().length > 0) {
-        <mat-button-toggle-group
-          class="pill-group"
-          multiple
-          [value]="selectedApps()"
-          (change)="onToggleGroupChange($event)"
-          aria-label="Select up to three applications"
-        >
+        <div class="application-container">
           @for (app of availableApplications(); track app.id) {
-            
-          <span
+          <div
+            class="application-item"
+            [class.selected]="isSelected(app)"
+            [class.disabled]="isAppToggleDisabled(app)"
+            (click)="onAppClicked(app)"
             [matTooltip]="app.disabledReason ?? ''"
             [matTooltipDisabled]="app.isEnabled !== false"
             matTooltipPosition="above"
-            class="app-toggle-wrapper"
           >
-          <mat-button-toggle
-            [value]="app"
-            class="app-toggle"
-            [disabled]="isAppToggleDisabled(app)"
-            [checked]="isSelected(app)"
-            [disableRipple]="true"
-          >
-            {{ app.name }}
-          </mat-button-toggle>
-          </span>
+            <span class="tick-icon">&#10003;</span>
+            <span
+              class="secondary-text"
+              [class.disabled]="app.isEnabled === false"
+            >{{ app.name }}</span>
+          </div>
           }
-        </mat-button-toggle-group>
+        </div>
         } @else {
         <p class="no-apps-message">
           No applications available for the selected date range.
