@@ -79,7 +79,7 @@ import {
   getLocalTimeZoneAbbreviation,
   logInfo,
 } from '../../../utilities/utils';
-import { firstValueFrom, Observable } from 'rxjs';
+import { firstValueFrom, Observable, take } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import {
   QUERY_DEMO_ID,
@@ -173,6 +173,7 @@ export class SearchByDateComponent implements OnInit {
   private readonly appConfigSignal = this.reservationService.appConfigData;
   userReservations: Reservation[] = [];
   blockedIntervals: BlockedInterval[] = [];
+  private allAvailableAppIds: number[] = [];
 
   isLoading = signal<boolean>(false);
   showResultsCard = signal<boolean>(false);
@@ -217,39 +218,30 @@ export class SearchByDateComponent implements OnInit {
     return `${formattedDate}, ${timeZoneAbbr}`;
   });
 
-  private readonly syncFromReservations = effect(() => {
+ private readonly syncFromReservations = effect(() => {
     const all = this.reservationsSig();
+    const filtered = all.filter(
+      (r) =>
+        r.status === ReservationApiStatus.PENDING ||
+        r.status === ReservationApiStatus.ACTIVE
+    );
+    this.userReservations = filtered as Reservation[];
+
+    // Populate available app IDs from the applications observable.
+    // blockedIntervals is kept empty — time slot blocking is handled by
+    // isSlotFullyBooked() which only blocks a slot when ALL available
+    // apps are reserved, allowing users to book different apps in the same slot.
     this.applications$ = this.reservationService.applications$;
-    this.applications$?.subscribe((data: Application[]) => {
-      const filtered = all.filter(
-        (r) =>
-          (data.every((application) =>
-            r.applications.some(
-              (reservationApplication) =>
-                reservationApplication.id === application.id,
-            ),
-          ) &&
-            r.status === ReservationApiStatus.PENDING) ||
-          r.status === ReservationApiStatus.ACTIVE,
-      );
-      this.userReservations = filtered as Reservation[];
-
-      const cooldownMs =
-        (this.appConfigSignal()?.reservationCoolOffHours ||
-          SELF_COOLDOWN_HOURS) * MILLISECONDS_PER_HOUR;
-      this.blockedIntervals = filtered.map((r) => {
-        const start = normalizeServerTime(r.startTime, SERVER_TIME_MODE);
-        const end = normalizeServerTime(r.endTime, SERVER_TIME_MODE);
-        const endWithCooldown = new Date(end.getTime() + cooldownMs);
-        return { start, end: endWithCooldown };
-      });
-
-      this.buildStartTimeSlots();
-      this.buildEndTimeSlots();
-      this.calculateEndDate();
-      this.form.updateValueAndValidity({ emitEvent: false });
-      this.cdr.markForCheck();
+    this.applications$.pipe(take(1)).subscribe((apps: Application[]) => {
+      this.allAvailableAppIds = apps.map((a) => a.id);
     });
+    this.blockedIntervals = [];
+
+    this.buildStartTimeSlots();
+    this.buildEndTimeSlots();
+    this.calculateEndDate();
+    this.form.updateValueAndValidity({ emitEvent: false });
+    this.cdr.markForCheck();
   });
 
   ngOnInit(): void {
@@ -356,7 +348,7 @@ export class SearchByDateComponent implements OnInit {
       const label = formatTime12h(h);
 
       const hasEndOption = this.hasAtLeastOneEndOptionFrom(start);
-      const isBlocked = this.overlapsAnyBlockedInterval(
+      const isBlocked = this.isSlotFullyBooked(
         start,
         new Date(start.getTime() + MIN_DURATION * MILLISECONDS_PER_HOUR),
       );
@@ -418,7 +410,7 @@ export class SearchByDateComponent implements OnInit {
       const endHourFormatted = formatTime12h(endHour);
       const label = `${endHourFormatted} (${d} hrs)`;
 
-      const conflicts = this.overlapsAnyBlockedInterval(start, end);
+      const conflicts = this.isSlotFullyBooked(start, end);
       newEndTimeSlots.push(label);
       newEndConflictMap[label] = conflicts;
 
@@ -519,7 +511,7 @@ export class SearchByDateComponent implements OnInit {
   private hasAtLeastOneEndOptionFrom(start: Date): boolean {
     for (const d of this.FIXED_END_DURATIONS) {
       const end = new Date(start.getTime() + d * MILLISECONDS_PER_HOUR);
-      if (!this.overlapsAnyBlockedInterval(start, end)) return true;
+      if (!this.isSlotFullyBooked(start, end)) return true;
     }
     return false;
   }
@@ -790,7 +782,7 @@ export class SearchByDateComponent implements OnInit {
       );
 
       if (selEnd <= selStart) errors['endBeforeOrEqualStart'] = true;
-      if (this.overlapsAnyBlockedInterval(selStart, selEnd))
+      if (this.isSlotFullyBooked(selStart, selEnd))
         errors['overlapsExisting'] = true;
       if (this.noValidStartOptions) errors['noValidStartTimeOptions'] = true;
       if (this.noValidEndOptions) errors['noValidEndTimeOptions'] = true;
@@ -849,6 +841,40 @@ export class SearchByDateComponent implements OnInit {
     if (!this.blockedIntervals.length) return false;
     return this.blockedIntervals.some(({ start, end }) =>
       intervalsOverlap(selStart, selEnd, start, end),
+    );
+  }
+
+  /**
+   * Returns true only if ALL available applications have at least one
+   * PENDING/ACTIVE reservation that overlaps with the given time range.
+   * If even one app has no overlapping reservation, the slot is considered
+   * open and returns false — allowing the user to book that free app.
+   * Includes reservationCoolOffHours in the overlap check.
+   */
+  private isSlotFullyBooked(slotStart: Date, slotEnd: Date): boolean {
+    // If we don't know the available apps yet, don't block anything
+    if (this.allAvailableAppIds.length === 0) return false;
+    if (this.userReservations.length === 0) return false;
+
+    const cooldownMs =
+      (this.appConfigSignal()?.reservationCoolOffHours || SELF_COOLDOWN_HOURS) *
+      MILLISECONDS_PER_HOUR;
+    const slotStartMs = slotStart.getTime();
+    const slotEndMs = slotEnd.getTime();
+
+    // Check if EVERY available app has a reservation (+ cooldown) covering this slot
+    return this.allAvailableAppIds.every((appId) =>
+      this.userReservations.some(
+        (r) => {
+          const resEndWithCooldown =
+            normalizeServerTime(r.endTime, SERVER_TIME_MODE).getTime() + cooldownMs;
+          return (
+            r.applications.some((a) => a.id === appId) &&
+            normalizeServerTime(r.startTime, SERVER_TIME_MODE).getTime() <= slotEndMs &&
+            resEndWithCooldown >= slotStartMs
+          );
+        },
+      ),
     );
   }
 
