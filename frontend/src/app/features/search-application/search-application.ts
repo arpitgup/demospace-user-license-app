@@ -50,11 +50,17 @@ import {
   generateHoursList,
   getLocalTimeZoneAbbreviation,
   getUniqueSecondaryApplications,
+  logInfo,
   onApplicationSelected,
 } from '../../../utilities/utils';
 import { TimeSlot } from '../../../utilities/interfaces/time_slot';
 import { NormalizedReservation } from '../../../utilities/interfaces/normalized_reservation';
 import { DEFAULT_START_DATE_TIME } from '../search-by-date/search-by-date.constants';
+import { ActivatedRoute } from '@angular/router';
+import {
+  QUERY_DEMO_ID,
+  SESSIONS_DEMO_ID,
+} from '../../shared/constants/session.constants';
 
 @Component({
   selector: 'app-search-application',
@@ -98,7 +104,8 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   selectedApplicationList: string[] = [];
   userAllReservations: Reservation[] = [];
   normalizedReservations: NormalizedReservation[] = [];
-
+  private activeRoute = inject(ActivatedRoute);
+  demoId: string = '';
   BLOC_HOUR_LIMIT: number = 48;
   MAX_CALENDAR_DAYS: number = 30;
   MAX_APPLICATION_SELECTION = 3;
@@ -155,6 +162,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.getDemoId();
     this.minDate = new Date(
       this.today.getTime() + this.MIN_LEAD_COOLDOWN_HOURS * 60 * 60 * 1000,
     );
@@ -180,18 +188,26 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
     minDateTime.setHours(this.nextHour, 0, 0, 0);
     this.setDurationEndTime(minDateTime);
   }
+  private getDemoId() {
+    this.demoId =
+      this.activeRoute.snapshot.queryParams[QUERY_DEMO_ID] ||
+      sessionStorage.getItem(SESSIONS_DEMO_ID) ||
+      '';
+    logInfo('landingPageDemoId=', this.demoId);
+  }
 
   listenReservationChanges() {
     if (this.applicationForm.get(this.PRIMARY_APPLICATION_FORM)?.value) {
       const filtered = this.userAllReservations.filter(
         (r) =>
-          (r.applications.some(
+          r.applications.some(
             (app) =>
               app.id ===
-              (this.applicationForm.get(this.PRIMARY_APPLICATION_FORM)?.value?.id ?? 0),
-          )) &&
-            (r.status === ReservationApiStatus.PENDING ||
-          r.status === ReservationApiStatus.ACTIVE),
+              (this.applicationForm.get(this.PRIMARY_APPLICATION_FORM)?.value
+                ?.id ?? 0),
+          ) &&
+          (r.status === ReservationApiStatus.PENDING ||
+            r.status === ReservationApiStatus.ACTIVE),
       );
       this.normalizedReservations = filtered.map((r) => ({
         start: new Date(r.startTime),
@@ -410,7 +426,7 @@ export class SearchApplicationComponent implements OnInit, OnDestroy {
       endTime: this.selectedTimeSlot?.endTime ?? '',
     };
 
-    this.reservationService.createReservation(payload).subscribe({
+    this.reservationService.createReservation(payload, this.demoId).subscribe({
       next: () => {
         this.showSuccessDialog();
       },

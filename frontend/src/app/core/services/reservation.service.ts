@@ -68,12 +68,12 @@ export class ReservationService {
   // }
 
   checkBotsAvailabilityByDate(payload: {
-    startTime: string;
-    endTime: string;
-  }): Observable<{ availableBots: BotWithApps[] }> {
+  startTime: string;
+  endTime: string;
+}, demoId: string): Observable<{ availableBots: BotWithApps[] }> {
     return this.http
       .post<{ availableBots: BotWithApps[] }>(
-        `${this.apiUrl}/availability/by-date/v2`,
+        `${this.apiUrl}/availability/by-date/v2/${demoId}`,
         payload
       )
       .pipe(
@@ -234,10 +234,10 @@ export class ReservationService {
    * @param payload The new reservation details.
    * @returns An Observable of the newly created Reservation object.
    */
-  createReservation(payload: NewReservation): Observable<Reservation> {
+  createReservation(payload: NewReservation, demoId: string): Observable<Reservation> {
     this.loadingService.show();
     return this.http
-      .post<Reservation>(`${this.apiUrl}/reservations`, payload)
+      .post<Reservation>(`${this.apiUrl}/reservations/${demoId}`, payload)
       .pipe(
         tap((newReservation) => {
           this.reservationsState.update((currentReservations) => [

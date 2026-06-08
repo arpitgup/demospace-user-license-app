@@ -75,8 +75,16 @@ import {
   intervalsOverlap,
   normalizeServerTime,
 } from './search-by-date.utils';
-import { getLocalTimeZoneAbbreviation } from '../../../utilities/utils';
+import {
+  getLocalTimeZoneAbbreviation,
+  logInfo,
+} from '../../../utilities/utils';
 import { firstValueFrom, Observable } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import {
+  QUERY_DEMO_ID,
+  SESSIONS_DEMO_ID,
+} from '../../shared/constants/session.constants';
 
 type DailyAvailabilityMap = { [date: string]: number };
 type BlockedInterval = { start: Date; end: Date };
@@ -112,6 +120,7 @@ export class SearchByDateComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly confirmationDialog = inject(MatDialog);
+  private activeRoute = inject(ActivatedRoute);
   readonly localTimeAbbrevation = getLocalTimeZoneAbbreviation(
     new Date(),
     Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -123,6 +132,8 @@ export class SearchByDateComponent implements OnInit {
   private readonly FIXED_END_DURATIONS: number[] = [2, 4, 8, 12, 24, 48, 72];
 
   dailyAvailability = signal<DailyAvailabilityMap>({});
+
+  demoId: string = '';
 
   form = this.fb.group(
     {
@@ -243,9 +254,17 @@ export class SearchByDateComponent implements OnInit {
 
   ngOnInit(): void {
     this.resetForm();
+    this.getDemoId();
     this.computeDateBounds();
     this.cdr.markForCheck();
     this.setupFormSubscriptions();
+  }
+  private getDemoId() {
+    this.demoId =
+      this.activeRoute.snapshot.queryParams[QUERY_DEMO_ID] ||
+      sessionStorage.getItem(SESSIONS_DEMO_ID) ||
+      '';
+    logInfo('landingPageDemoId=', this.demoId);
   }
 
   private setupFormSubscriptions(): void {
@@ -518,7 +537,7 @@ export class SearchByDateComponent implements OnInit {
       endTime: this.calculatedEndDate()!.toISOString(),
     };
 
-    this.reservationService.checkBotsAvailabilityByDate(payload).subscribe({
+    this.reservationService.checkBotsAvailabilityByDate(payload,this.demoId).subscribe({
       next: (response: { availableBots: BotWithApps[] }) => {
         this.botsWithApps.set(response.availableBots ?? []);
         const appMap = new Map<number, Application>();
@@ -712,7 +731,7 @@ export class SearchByDateComponent implements OnInit {
       endTime: this.calculatedEndDate()!.toISOString(),
     };
 
-    this.reservationService.createReservation(payload).subscribe({
+    this.reservationService.createReservation(payload,this.demoId).subscribe({
       next: (newReservation: Reservation) => {
         console.log(
           `Reservation successfully created with ID: ${newReservation.id}`,
