@@ -175,7 +175,7 @@ def is_user_in_cool_off_v2(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Demo with ID '{demo_id}' not found."
         )
-    
+    print("demo_record", demo_record)
     # Parse applications from the demo record
     demo_app_ids = []
     if demo_record.saas_applications:
@@ -184,6 +184,8 @@ def is_user_in_cool_off_v2(
             for x in demo_record.saas_applications.split(",")
             if x.strip().isdigit()
         ]
+    
+    print("demo_app_ids", demo_app_ids)
     
     cool_off_window_start = req_start_time - timedelta(hours=cool_off_period_hours)
     
