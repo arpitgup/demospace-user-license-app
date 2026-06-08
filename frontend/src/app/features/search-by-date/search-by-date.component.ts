@@ -550,14 +550,15 @@ export class SearchByDateComponent implements OnInit {
         });
 
         // Disable applications that overlap with existing PENDING/ACTIVE reservations
-        const slotStart = startDateTime;
-        const slotEnd = this.calculatedEndDate()!;
+        // Use UTC epoch ms (.getTime()) for timezone-safe comparison
+        const slotStartUtc = startDateTime.getTime();
+        const slotEndUtc = this.calculatedEndDate()!.getTime();
         const conflictingReservations = this.userReservations.filter(
           (r) =>
             (r.status === ReservationApiStatus.PENDING ||
               r.status === ReservationApiStatus.ACTIVE) &&
-            new Date(r.startTime) <= slotEnd &&
-            new Date(r.endTime) >= slotStart,
+            normalizeServerTime(r.startTime, SERVER_TIME_MODE).getTime() <= slotEndUtc &&
+            normalizeServerTime(r.endTime, SERVER_TIME_MODE).getTime() >= slotStartUtc,
         );
         const conflictingAppIds = new Set<number>();
         for (const reservation of conflictingReservations) {
