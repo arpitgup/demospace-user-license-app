@@ -385,6 +385,7 @@ class RepresentativeProfileOut(BaseModel):
 class ArtifactLink(BaseModel):
     title: str
     url: str
+    is_clickable: Optional[bool] = False
 
 class DemoDetailOut(BaseModel):
     demo_id: str
