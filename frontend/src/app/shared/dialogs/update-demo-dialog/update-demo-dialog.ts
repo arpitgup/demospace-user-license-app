@@ -86,6 +86,7 @@ export class UpdateDemoDialog implements OnInit {
   readonly APP_LINKS_ARRAY_FORM = 'app_links_array_form';
   readonly APP_LINK_TITLE_FORM = 'app_link_title_form';
   readonly APP_LINK_VALUE_FORM = 'app_link_value_form';
+  readonly IS_CLICKABLE_FORM = 'is_clickable_form';
   readonly featureLicenseApp = signal<boolean>(false);
   readonly adminApplications = signal<Application[]>([]);
   readonly organizationUnit = signal<OrganizationUnit[]>([]);
@@ -152,6 +153,7 @@ export class UpdateDemoDialog implements OnInit {
               item.url,
               [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
             ],
+            [this.IS_CLICKABLE_FORM]: [item.is_clickable || false],
           }),
         );
       });
@@ -166,6 +168,7 @@ export class UpdateDemoDialog implements OnInit {
         '',
         [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
       ],
+      [this.IS_CLICKABLE_FORM]: [false],
     });
   }
 
@@ -259,6 +262,8 @@ export class UpdateDemoDialog implements OnInit {
           url:
             control.get(this.APP_LINK_VALUE_FORM)?.value?.toString()?.trim() ||
             '',
+          is_clickable:
+            control.get(this.IS_CLICKABLE_FORM)?.value || false,
         });
       }
     });

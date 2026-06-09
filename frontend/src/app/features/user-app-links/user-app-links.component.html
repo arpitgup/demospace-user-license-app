@@ -137,9 +137,15 @@
         @for (appLink of demoDetails.artifact_links;track $index) {
           <h5 class="link-tile-wrapper" @fadeIn>{{ appLink.title || "" }}</h5>
           <div class="link-wrapper" @fadeIn>
-            <h5 class="desc-wrapper">
-              {{ appLink.url || "" }}
-            </h5>
+            @if (appLink.is_clickable === true) {
+              <a [href]="appLink.url" target="_blank" rel="noopener noreferrer" class="desc-wrapper clickable-link">
+                {{ appLink.url || "" }}
+              </a>
+            } @else {
+              <h5 class="desc-wrapper">
+                {{ appLink.url || "" }}
+              </h5>
+            }
             @if (appLink.copyUrl === true) {
               <mat-icon class="copy-icon">done</mat-icon>
             } @else {

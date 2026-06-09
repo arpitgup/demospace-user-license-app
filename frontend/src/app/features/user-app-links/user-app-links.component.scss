@@ -426,6 +426,14 @@
           line-height: 1.8rem; /* 133.333% */
           flex: 1;
         }
+        .clickable-link {
+          color: #1a73e8;
+          text-decoration: underline;
+          cursor: pointer;
+          &:hover {
+            color: #1558b0;
+          }
+        }
         .copy-icon {
           font-size: 1.2rem;
           color: rgb(0, 0, 0, 0.8);
