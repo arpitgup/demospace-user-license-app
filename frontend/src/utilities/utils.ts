@@ -289,12 +289,12 @@ export const MANAGER_EMAIL_VALIDATION = new RegExp(
 export const OLD_MANAGER_EMAIL_VALIDATION = new RegExp(
   `^[a-zA-Z0-9.-]+${DEV_EMAIL_DOMAIN}\\s*$`,
 );
-export const PARENT_BUG_VALIDATION = new RegExp(
-  '^b\\/\\d+$',
-);
-export const DEMO_URL_VALIDATION = new RegExp(
-  "^\\s*(https?://).+?\\s*$",
-);
+export const PARENT_BUG_VALIDATION = new RegExp('^b\\/\\d+$');
+export const DEMO_URL_VALIDATION = new RegExp('^\\s*(https?://).+?\\s*$');
 
-export const MAX_DEMO_LINK_ADDITION_VALUE=5;
-export const MIN_DEMO_LINK_ADDITION_VALUE=1;
+export const MAX_DEMO_LINK_ADDITION_VALUE = 5;
+export const MIN_DEMO_LINK_ADDITION_VALUE = 1;
+
+export function getDisabledReason(time: number) {
+  return `This license is already reserved for the selected time slot. You may book the license again ${time} hour after your current reservation end.`;
+}
