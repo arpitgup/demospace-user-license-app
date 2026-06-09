@@ -68,7 +68,7 @@ $spacing-xs: 0.75rem;
       display: flex;
       flex-direction: row;
       flex-wrap: wrap;
-      align-items: center; // Aligns everything vertically to the center
+      align-items: flex-start;
       gap: 2rem;
       position: relative;
       width: 100%;
