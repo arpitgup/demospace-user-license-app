@@ -76,6 +76,7 @@ import {
   normalizeServerTime,
 } from './search-by-date.utils';
 import {
+  getDisabledReason,
   getLocalTimeZoneAbbreviation,
   logInfo,
 } from '../../../utilities/utils';
@@ -573,7 +574,10 @@ export class SearchByDateComponent implements OnInit {
                 ...app,
                 isEnabled: !isConflicting,
                 disabledReason: isConflicting
-                  ? `This license is already reserved for the selected time slot. You can book the license again after ${this.appConfigSignal()?.reservationCoolOffHours || SELF_COOLDOWN_HOURS} hour after your reservation ends.`
+                  ? getDisabledReason(
+                      this.appConfigSignal()?.reservationCoolOffHours ||
+                        SELF_COOLDOWN_HOURS,
+                    )
                   : undefined,
               };
             },
