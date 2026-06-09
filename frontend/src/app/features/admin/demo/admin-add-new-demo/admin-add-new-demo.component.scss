@@ -79,6 +79,10 @@ $spacing-xs: 0.75rem;
         margin-bottom: 0;
         display: flex;
       }
+      .app-link-title-wrapper .custom-form-field {
+        width: 100%;
+        max-width: 100%;
+      }
       .icon-container {
         width: 2rem;
         display: flex;
