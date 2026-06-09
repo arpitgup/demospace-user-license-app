@@ -92,7 +92,10 @@ export class UserAppLinksComponent {
     const successful = this.clipboard.copy(artifactLink.url);
     if (successful) {
       artifactLink.copyUrl = true;
-      setTimeout(() => (artifactLink.copyUrl = false), 2000);
+      setTimeout(() => {
+        artifactLink.copyUrl = false;
+        this.cdr.detectChanges();
+      }, 2000);
     }
   }
 
@@ -101,7 +104,6 @@ export class UserAppLinksComponent {
     if (successful) {
       this.copyPasswordSuccess.set(true);
       setTimeout(() => this.copyPasswordSuccess.set(false), 2000);
-      this.cdr.detectChanges();
     }
   }
 
