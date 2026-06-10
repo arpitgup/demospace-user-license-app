@@ -288,6 +288,17 @@
         </mat-form-field>
       </div>
 
+      <h2>{{ demoConstants.DEMO_SUMMARY }}</h2>
+      <div class="demo-summary-editor-wrapper">
+        <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
+        <ngx-editor
+          [editor]="editor"
+          [formControlName]="DEMO_SUMMARY_FORM"
+          [placeholder]="'Demo Summary'"
+          outputFormat="html"
+        ></ngx-editor>
+      </div>
+
       <h2>{{ demoConstants.UPDATE_APPLICATIONS }}</h2>
 
       <mat-form-field
@@ -342,34 +353,6 @@
             {{ application.name }}
           </button>
         }
-      </div>
-
-      <h2>{{ demoConstants.DEMO_SUMMARY }}</h2>
-      <div class="demo-summary-editor-wrapper">
-        <div class="summary-toolbar">
-          <button type="button" class="toolbar-btn" title="Bold" (click)="formatText('bold')">
-            <mat-icon>format_bold</mat-icon>
-          </button>
-          <button type="button" class="toolbar-btn" title="Italic" (click)="formatText('italic')">
-            <mat-icon>format_italic</mat-icon>
-          </button>
-          <button type="button" class="toolbar-btn" title="Underline" (click)="formatText('underline')">
-            <mat-icon>format_underlined</mat-icon>
-          </button>
-          <button type="button" class="toolbar-btn" title="Bullet List" (click)="formatText('insertUnorderedList')">
-            <mat-icon>format_list_bulleted</mat-icon>
-          </button>
-          <button type="button" class="toolbar-btn" title="Insert Link" (click)="formatText('link')">
-            <mat-icon>link</mat-icon>
-          </button>
-        </div>
-        <div
-          class="summary-editable"
-          contenteditable="true"
-          #summaryEditor
-          (input)="onSummaryInput()"
-          data-placeholder="Demo Summary"
-        ></div>
       </div>
 
       <div class="show-license-checkbox-wrapper">
