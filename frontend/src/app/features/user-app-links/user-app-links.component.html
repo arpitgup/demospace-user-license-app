@@ -200,48 +200,52 @@
     <div class="demo-content-wrapper">
       <h2>Demo Summary</h2>
 
-      <p class="desc-wrapper">
-        <a
-          [href]="goDemoUrl + '/demo/' + demoDetails.demo_id"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="link-wrapper"
-          >{{ demoDetails.demo_title }}</a
-        >
-        showcases 1st Party (Google Workspace) and 3rd Party search and
-        summarization results.
-      </p>
-      <ul>
-        <li class="desc-wrapper">
-          Google Licenses: This application allows Googlers to create demo
-          profiles within a dedicated environment for showcasing Gemini
-          Enterprise. Demo users are issued Google Workspace Enterprise Plus and
-          Gemini Enterprise Plus licenses. See
-          <span class="how-to-login-wrapper" (click)="redirectToHowLogin()"
-            >How to login</span
-          >
-          section for more.
-        </li>
-        <li class="desc-wrapper">
-          For 3rd party resources: The License reservation feature (see left
-          menu) allows users to reserve Third Party licenses for this demo.
-          Reservations are only needed to SSO into the third party platform(s)
-          i.e. reservations are not needed to use this demo. We are actively
-          working on adding more platform access. See
+      @if (demoDetails.demo_summary) {
+        <div class="dynamic-summary" [innerHTML]="demoDetails.demo_summary"></div>
+      } @else {
+        <p class="desc-wrapper">
           <a
             [href]="goDemoUrl + '/demo/' + demoDetails.demo_id"
             target="_blank"
             rel="noopener noreferrer"
-            >demo guide</a
+            class="link-wrapper"
+            >{{ demoDetails.demo_title }}</a
           >
-          for more.
-        </li>
-        <li class="desc-wrapper">
-          Chrome Profile: Once you are in the demo environment, create a Chrome
-          profile for your demo user for easy access. Please see the latest Demo
-          Guide for more.
-        </li>
-      </ul>
+          showcases 1st Party (Google Workspace) and 3rd Party search and
+          summarization results.
+        </p>
+        <ul>
+          <li class="desc-wrapper">
+            Google Licenses: This application allows Googlers to create demo
+            profiles within a dedicated environment for showcasing Gemini
+            Enterprise. Demo users are issued Google Workspace Enterprise Plus and
+            Gemini Enterprise Plus licenses. See
+            <span class="how-to-login-wrapper" (click)="redirectToHowLogin()"
+              >How to login</span
+            >
+            section for more.
+          </li>
+          <li class="desc-wrapper">
+            For 3rd party resources: The License reservation feature (see left
+            menu) allows users to reserve Third Party licenses for this demo.
+            Reservations are only needed to SSO into the third party platform(s)
+            i.e. reservations are not needed to use this demo. We are actively
+            working on adding more platform access. See
+            <a
+              [href]="goDemoUrl + '/demo/' + demoDetails.demo_id"
+              target="_blank"
+              rel="noopener noreferrer"
+              >demo guide</a
+            >
+            for more.
+          </li>
+          <li class="desc-wrapper">
+            Chrome Profile: Once you are in the demo environment, create a Chrome
+            profile for your demo user for easy access. Please see the latest Demo
+            Guide for more.
+          </li>
+        </ul>
+      }
     </div>
     <img
       src="assets/images/demo_summary.png"

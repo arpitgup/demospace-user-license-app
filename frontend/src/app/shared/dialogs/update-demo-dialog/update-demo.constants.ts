@@ -57,5 +57,6 @@ export const UpdateDemoConstants = {
   APP_LINK_VALUE_REQUIRED: 'Demo application link required',
   INVALID_APP_LINK_VALUE: 'Invalid demo application link',
   ADD_MORE_DEMO_LINKS:'Add more demo links',
-  MAKE_LINK_CLICKABLE:'Make link clickable'
+  MAKE_LINK_CLICKABLE:'Make link clickable',
+  DEMO_SUMMARY:'Demo Summary'
 };

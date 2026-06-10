@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -87,6 +87,7 @@ export class UpdateDemoDialog implements OnInit {
   readonly APP_LINK_TITLE_FORM = 'app_link_title_form';
   readonly APP_LINK_VALUE_FORM = 'app_link_value_form';
   readonly IS_CLICKABLE_FORM = 'is_clickable_form';
+  readonly DEMO_SUMMARY_FORM = 'demo_summary_form';
   readonly featureLicenseApp = signal<boolean>(false);
   readonly adminApplications = signal<Application[]>([]);
   readonly organizationUnit = signal<OrganizationUnit[]>([]);
@@ -140,6 +141,7 @@ export class UpdateDemoDialog implements OnInit {
     [this.APP_LINKS_ARRAY_FORM]: this.fb.array(
       this.existingAppLinksPairGroup(),
     ),
+    [this.DEMO_SUMMARY_FORM]: [this.data.demoDetails.demo_summary || ''],
   });
 
   existingAppLinksPairGroup(): FormGroup[] {
@@ -215,6 +217,98 @@ export class UpdateDemoDialog implements OnInit {
 
   onSelecteLicenseReservation(isChecked: boolean) {
     this.featureLicenseApp.update(() => isChecked);
+  }
+
+  readonly summaryEditor = viewChild<ElementRef<HTMLDivElement>>('summaryEditor');
+
+  formatText(command: string): void {
+    const editor = this.summaryEditor()?.nativeElement;
+    if (!editor) return;
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    const range = selection.getRangeAt(0);
+    if (!editor.contains(range.commonAncestorContainer)) {
+      editor.focus();
+      return;
+    }
+
+    switch (command) {
+      case 'bold':
+        this.wrapSelection(range, selection, 'b');
+        break;
+      case 'italic':
+        this.wrapSelection(range, selection, 'i');
+        break;
+      case 'underline':
+        this.wrapSelection(range, selection, 'u');
+        break;
+      case 'insertUnorderedList':
+        this.insertList(range, selection);
+        break;
+      case 'link':
+        this.insertLink(range, selection);
+        break;
+    }
+    this.syncSummaryToForm();
+  }
+
+  private wrapSelection(range: Range, selection: Selection, tag: string): void {
+    const selectedContent = range.extractContents();
+    const wrapper = document.createElement(tag);
+    wrapper.appendChild(selectedContent);
+    range.insertNode(wrapper);
+    range.selectNodeContents(wrapper);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  private insertList(range: Range, selection: Selection): void {
+    const selectedContent = range.extractContents();
+    const ul = document.createElement('ul');
+    const li = document.createElement('li');
+    if (selectedContent.textContent?.trim()) {
+      li.appendChild(selectedContent);
+    } else {
+      li.appendChild(document.createTextNode('\u200B'));
+    }
+    ul.appendChild(li);
+    range.insertNode(ul);
+    const newRange = document.createRange();
+    newRange.selectNodeContents(li);
+    newRange.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
+  }
+
+  private insertLink(range: Range, selection: Selection): void {
+    const selectedText = range.toString();
+    const url = prompt('Enter URL:', 'https://');
+    if (!url) return;
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.target = '_blank';
+    anchor.rel = 'noopener noreferrer';
+    const content = range.extractContents();
+    if (selectedText.trim()) {
+      anchor.appendChild(content);
+    } else {
+      anchor.textContent = url;
+    }
+    range.insertNode(anchor);
+    const newRange = document.createRange();
+    newRange.selectNodeContents(anchor);
+    newRange.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
+  }
+
+  onSummaryInput(): void {
+    this.syncSummaryToForm();
+  }
+
+  private syncSummaryToForm(): void {
+    const html = this.summaryEditor()?.nativeElement?.innerHTML || '';
+    this.updateDemoForm.get(this.DEMO_SUMMARY_FORM)?.setValue(html, { emitEvent: false });
   }
 
   get appLinksFieldsPairs(): FormArray {
@@ -306,6 +400,8 @@ export class UpdateDemoDialog implements OnInit {
           ?.value?.toString()
           ?.trim() || '',
       artifact_links: artifactsLinks,
+      demo_summary:
+        this.updateDemoForm.get(this.DEMO_SUMMARY_FORM)?.value?.trim() || '',
     };
     this.demoService
       .updateOnBoardDemo(payload, this.data.demoDetails.demo_id)
