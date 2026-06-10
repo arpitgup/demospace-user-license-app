@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -36,6 +36,7 @@ import { UpdateDemoRequest } from '../../../core/models/update-demo-request.mode
 import { DemoDetails } from '../../../core/models/demo-details.model';
 import { UpdateDemoConstants } from './update-demo.constants';
 import { ArtifactsLinks } from '../../../core/models/artifacts_link.model';
+import { QuillModule } from 'ngx-quill';
 
 @Component({
   selector: 'app-update-demo-dialog',
@@ -49,11 +50,12 @@ import { ArtifactsLinks } from '../../../core/models/artifacts_link.model';
     MatIconModule,
     MatCheckbox,
     MatDialogModule,
+    QuillModule,
   ],
   templateUrl: './update-demo-dialog.html',
   styleUrl: './update-demo-dialog.scss',
 })
-export class UpdateDemoDialog implements OnInit, AfterViewInit {
+export class UpdateDemoDialog implements OnInit {
   dialogRef = inject(MatDialogRef<UpdateDemoDialog>);
   data = inject(MAT_DIALOG_DATA) as {
     application: Application[];
@@ -183,14 +185,6 @@ export class UpdateDemoDialog implements OnInit, AfterViewInit {
     this.getDemoApplications(this.data.demoDetails.applicationIds);
   }
 
-  ngAfterViewInit(): void {
-    const initialSummary = this.data.demoDetails.demo_summary || '';
-    const editor = this.summaryEditor()?.nativeElement;
-    if (editor && initialSummary) {
-      editor.innerHTML = initialSummary;
-    }
-  }
-
   addApp(app: Application): void {
     this.selectedApplications().push(app);
     this.updateDemoForm
@@ -227,97 +221,13 @@ export class UpdateDemoDialog implements OnInit, AfterViewInit {
     this.featureLicenseApp.update(() => isChecked);
   }
 
-  readonly summaryEditor = viewChild<ElementRef<HTMLDivElement>>('summaryEditor');
-
-  formatText(command: string): void {
-    const editor = this.summaryEditor()?.nativeElement;
-    if (!editor) return;
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
-    const range = selection.getRangeAt(0);
-    if (!editor.contains(range.commonAncestorContainer)) {
-      editor.focus();
-      return;
-    }
-
-    switch (command) {
-      case 'bold':
-        this.wrapSelection(range, selection, 'b');
-        break;
-      case 'italic':
-        this.wrapSelection(range, selection, 'i');
-        break;
-      case 'underline':
-        this.wrapSelection(range, selection, 'u');
-        break;
-      case 'insertUnorderedList':
-        this.insertList(range, selection);
-        break;
-      case 'link':
-        this.insertLink(range, selection);
-        break;
-    }
-    this.syncSummaryToForm();
-  }
-
-  private wrapSelection(range: Range, selection: Selection, tag: string): void {
-    const selectedContent = range.extractContents();
-    const wrapper = document.createElement(tag);
-    wrapper.appendChild(selectedContent);
-    range.insertNode(wrapper);
-    range.selectNodeContents(wrapper);
-    selection.removeAllRanges();
-    selection.addRange(range);
-  }
-
-  private insertList(range: Range, selection: Selection): void {
-    const selectedContent = range.extractContents();
-    const ul = document.createElement('ul');
-    const li = document.createElement('li');
-    if (selectedContent.textContent?.trim()) {
-      li.appendChild(selectedContent);
-    } else {
-      li.appendChild(document.createTextNode('\u200B'));
-    }
-    ul.appendChild(li);
-    range.insertNode(ul);
-    const newRange = document.createRange();
-    newRange.selectNodeContents(li);
-    newRange.collapse(false);
-    selection.removeAllRanges();
-    selection.addRange(newRange);
-  }
-
-  private insertLink(range: Range, selection: Selection): void {
-    const selectedText = range.toString();
-    const url = prompt('Enter URL:', 'https://');
-    if (!url) return;
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.target = '_blank';
-    anchor.rel = 'noopener noreferrer';
-    const content = range.extractContents();
-    if (selectedText.trim()) {
-      anchor.appendChild(content);
-    } else {
-      anchor.textContent = url;
-    }
-    range.insertNode(anchor);
-    const newRange = document.createRange();
-    newRange.selectNodeContents(anchor);
-    newRange.collapse(false);
-    selection.removeAllRanges();
-    selection.addRange(newRange);
-  }
-
-  onSummaryInput(): void {
-    this.syncSummaryToForm();
-  }
-
-  private syncSummaryToForm(): void {
-    const html = this.summaryEditor()?.nativeElement?.innerHTML || '';
-    this.updateDemoForm.get(this.DEMO_SUMMARY_FORM)?.setValue(html, { emitEvent: false });
-  }
+  readonly quillModules = {
+    toolbar: [
+      ['bold', 'italic', 'underline'],
+      [{ list: 'bullet' }],
+      ['link'],
+    ],
+  };
 
   get appLinksFieldsPairs(): FormArray {
     return this.updateDemoForm.get(this.APP_LINKS_ARRAY_FORM) as FormArray;

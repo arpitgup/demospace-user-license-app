@@ -37,7 +37,9 @@
     "@angular/ssr": "^20.1.4",
     "express": "^5.1.0",
     "jwt-decode": "^4.0.0",
+    "ngx-quill": "^31.0.0",
     "ngx-skeleton-loader": "^11.2.1",
+    "quill": "^2.0.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "^0.15.1"
