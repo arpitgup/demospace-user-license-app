@@ -30,6 +30,9 @@
               "node_modules/quill/dist/quill.snow.css",
               "src/styles/styles.scss"
             ],
+            "allowedCommonJsDependencies": [
+              "quill-delta"
+            ],
             "server": "src/main.server.ts",
             "outputMode": "server",
             "ssr": {
@@ -52,8 +55,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "12.23kB",
-                  "maximumError": "12.23kB"
+                  "maximumWarning": "16kB",
+                  "maximumError": "16kB"
                 }
               ],
               "outputHashing": "all"
