@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -53,7 +53,7 @@ import { ArtifactsLinks } from '../../../core/models/artifacts_link.model';
   templateUrl: './update-demo-dialog.html',
   styleUrl: './update-demo-dialog.scss',
 })
-export class UpdateDemoDialog implements OnInit {
+export class UpdateDemoDialog implements OnInit, AfterViewInit {
   dialogRef = inject(MatDialogRef<UpdateDemoDialog>);
   data = inject(MAT_DIALOG_DATA) as {
     application: Application[];
@@ -181,6 +181,14 @@ export class UpdateDemoDialog implements OnInit {
     );
     this.organizationUnit.update(() => this.data.organizationUnit);
     this.getDemoApplications(this.data.demoDetails.applicationIds);
+  }
+
+  ngAfterViewInit(): void {
+    const initialSummary = this.data.demoDetails.demo_summary || '';
+    const editor = this.summaryEditor()?.nativeElement;
+    if (editor && initialSummary) {
+      editor.innerHTML = initialSummary;
+    }
   }
 
   addApp(app: Application): void {

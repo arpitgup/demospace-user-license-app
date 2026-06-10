@@ -315,7 +315,7 @@ $spacing-xs: 0.75rem;
       &:empty::before {
         content: attr(data-placeholder);
         color: #aaa;
-        font-style: italic;
+        pointer-events: none;
       }
 
       ul {

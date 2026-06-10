@@ -331,7 +331,7 @@ mat-dialog-content {
       &:empty::before {
         content: attr(data-placeholder);
         color: #aaa;
-        font-style: italic;
+        pointer-events: none;
       }
 
       ul {
