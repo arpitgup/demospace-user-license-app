@@ -1,5 +1,6 @@
 import { animate, style, transition, trigger } from '@angular/animations';
 import {
+  ChangeDetectorRef,
   Component,
   EventEmitter,
   inject,
@@ -75,6 +76,7 @@ export class UserAppLinksComponent {
   @Input() demoDetails!: DemoDetails;
   @Output() redirectHowToLogin = new EventEmitter();
   private userService = inject(UserCreationService);
+  private cdr = inject(ChangeDetectorRef);
   userDetails = this.userService.userInfo;
   public copyPasswordSuccess = signal(false);
   public showPassword = signal(false);
@@ -90,7 +92,10 @@ export class UserAppLinksComponent {
     const successful = this.clipboard.copy(artifactLink.url);
     if (successful) {
       artifactLink.copyUrl = true;
-      setTimeout(() => (artifactLink.copyUrl = false), 2000);
+      setTimeout(() => {
+        artifactLink.copyUrl = false;
+        this.cdr.detectChanges();
+      }, 2000);
     }
   }
 

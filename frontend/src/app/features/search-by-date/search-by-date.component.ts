@@ -35,6 +35,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ReservationService } from '../../core/services/reservation.service';
@@ -74,7 +75,17 @@ import {
   intervalsOverlap,
   normalizeServerTime,
 } from './search-by-date.utils';
-import { getLocalTimeZoneAbbreviation } from '../../../utilities/utils';
+import {
+  getDisabledReason,
+  getLocalTimeZoneAbbreviation,
+  logInfo,
+} from '../../../utilities/utils';
+import { firstValueFrom, Observable, take } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import {
+  QUERY_DEMO_ID,
+  SESSIONS_DEMO_ID,
+} from '../../shared/constants/session.constants';
 
 type DailyAvailabilityMap = { [date: string]: number };
 type BlockedInterval = { start: Date; end: Date };
@@ -96,6 +107,7 @@ type BlockedInterval = { start: Date; end: Date };
     MatButtonToggleModule,
     MatProgressSpinnerModule,
     SearchByApplicationLoader,
+    MatTooltipModule,
   ],
   templateUrl: './search-by-date.component.html',
   styleUrls: ['./search-by-date.component.scss'],
@@ -109,9 +121,10 @@ export class SearchByDateComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly confirmationDialog = inject(MatDialog);
+  private activeRoute = inject(ActivatedRoute);
   readonly localTimeAbbrevation = getLocalTimeZoneAbbreviation(
     new Date(),
-    Intl.DateTimeFormat().resolvedOptions().timeZone
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
   );
   bookingSuccess = output<void>();
   @ViewChild(FormGroupDirective) private formDir?: FormGroupDirective;
@@ -120,6 +133,8 @@ export class SearchByDateComponent implements OnInit {
   private readonly FIXED_END_DURATIONS: number[] = [2, 4, 8, 12, 24, 48, 72];
 
   dailyAvailability = signal<DailyAvailabilityMap>({});
+
+  demoId: string = '';
 
   form = this.fb.group(
     {
@@ -133,7 +148,7 @@ export class SearchByDateComponent implements OnInit {
         Validators.required,
       ],
     },
-    { validators: this.dateTimeComboValidator() }
+    { validators: this.dateTimeComboValidator() },
   );
 
   startTimeSlots = signal<string[]>([]);
@@ -159,9 +174,11 @@ export class SearchByDateComponent implements OnInit {
   private readonly appConfigSignal = this.reservationService.appConfigData;
   userReservations: Reservation[] = [];
   blockedIntervals: BlockedInterval[] = [];
+  private allAvailableAppIds: number[] = [];
 
   isLoading = signal<boolean>(false);
   showResultsCard = signal<boolean>(false);
+  applications$!: Observable<Application[]>;
 
   get startDateCtrl() {
     return this.form.controls.startDate;
@@ -185,7 +202,7 @@ export class SearchByDateComponent implements OnInit {
     const timeZoneAbbr = getLocalTimeZoneAbbreviation(date, userTimeZone);
     const formattedDate = new DatePipe('en-US').transform(
       date,
-      "MMMM dd, yyyy 'at' hh:mm a"
+      "MMMM dd, yyyy 'at' hh:mm a",
     );
     return `${formattedDate}, ${timeZoneAbbr}`;
   });
@@ -197,7 +214,7 @@ export class SearchByDateComponent implements OnInit {
     const timeZoneAbbr = getLocalTimeZoneAbbreviation(date, userTimeZone);
     const formattedDate = new DatePipe('en-US').transform(
       date,
-      "MMMM dd, yyyy 'at' hh:mm a"
+      "MMMM dd, yyyy 'at' hh:mm a",
     );
     return `${formattedDate}, ${timeZoneAbbr}`;
   });
@@ -207,32 +224,39 @@ export class SearchByDateComponent implements OnInit {
     const filtered = all.filter(
       (r) =>
         r.status === ReservationApiStatus.PENDING ||
-        r.status === ReservationApiStatus.ACTIVE
+        r.status === ReservationApiStatus.ACTIVE,
     );
     this.userReservations = filtered as Reservation[];
 
-    const cooldownMs =
-      (this.appConfigSignal()?.reservationCoolOffHours || SELF_COOLDOWN_HOURS) *
-      MILLISECONDS_PER_HOUR;
-    this.blockedIntervals = filtered.map((r) => {
-      const start = normalizeServerTime(r.startTime, SERVER_TIME_MODE);
-      const end = normalizeServerTime(r.endTime, SERVER_TIME_MODE);
-      const endWithCooldown = new Date(end.getTime() + cooldownMs);
-      return { start, end: endWithCooldown };
+    // Populate available app IDs from the applications observable.
+    // blockedIntervals is kept empty — time slot blocking is handled by
+    // isSlotFullyBooked() which only blocks a slot when ALL available
+    // apps are reserved, allowing users to book different apps in the same slot.
+    this.applications$ = this.reservationService.applications$;
+    this.applications$.subscribe((apps: Application[]) => {
+      this.allAvailableAppIds = apps.map((a) => a.id);
+      this.blockedIntervals = [];
+      this.buildStartTimeSlots();
+      this.buildEndTimeSlots();
+      this.calculateEndDate();
+      this.form.updateValueAndValidity({ emitEvent: false });
+      this.cdr.markForCheck();
     });
-
-    this.buildStartTimeSlots();
-    this.buildEndTimeSlots();
-    this.calculateEndDate();
-    this.form.updateValueAndValidity({ emitEvent: false });
-    this.cdr.markForCheck();
   });
 
   ngOnInit(): void {
     this.resetForm();
+    this.getDemoId();
     this.computeDateBounds();
     this.cdr.markForCheck();
     this.setupFormSubscriptions();
+  }
+  private getDemoId() {
+    this.demoId =
+      this.activeRoute.snapshot.queryParams[QUERY_DEMO_ID] ||
+      sessionStorage.getItem(SESSIONS_DEMO_ID) ||
+      '';
+    logInfo('landingPageDemoId=', this.demoId);
   }
 
   private setupFormSubscriptions(): void {
@@ -247,7 +271,7 @@ export class SearchByDateComponent implements OnInit {
         } else {
           this.startTimeCtrl.reset(
             { value: null, disabled: true },
-            { emitEvent: false }
+            { emitEvent: false },
           );
         }
         this.updateFormState();
@@ -324,9 +348,9 @@ export class SearchByDateComponent implements OnInit {
       const label = formatTime12h(h);
 
       const hasEndOption = this.hasAtLeastOneEndOptionFrom(start);
-      const isBlocked = this.overlapsAnyBlockedInterval(
+      const isBlocked = this.isSlotFullyBooked(
         start,
-        new Date(start.getTime() + MIN_DURATION * MILLISECONDS_PER_HOUR)
+        new Date(start.getTime() + MIN_DURATION * MILLISECONDS_PER_HOUR),
       );
       const conflicts = isBlocked || !hasEndOption;
 
@@ -386,7 +410,7 @@ export class SearchByDateComponent implements OnInit {
       const endHourFormatted = formatTime12h(endHour);
       const label = `${endHourFormatted} (${d} hrs)`;
 
-      const conflicts = this.overlapsAnyBlockedInterval(start, end);
+      const conflicts = this.isSlotFullyBooked(start, end);
       newEndTimeSlots.push(label);
       newEndConflictMap[label] = conflicts;
 
@@ -419,11 +443,11 @@ export class SearchByDateComponent implements OnInit {
   private resetTimeControls(): void {
     this.startTimeCtrl.reset(
       { value: null, disabled: true },
-      { emitEvent: false }
+      { emitEvent: false },
     );
     this.endTimeCtrl.reset(
       { value: null, disabled: true },
-      { emitEvent: false }
+      { emitEvent: false },
     );
     this.startTimeSlots.set([]);
     this.startConflictMap.set({});
@@ -436,7 +460,7 @@ export class SearchByDateComponent implements OnInit {
   private resetEndTimeControls(): void {
     this.endTimeCtrl.reset(
       { value: null, disabled: true },
-      { emitEvent: false }
+      { emitEvent: false },
     );
     this.endTimeSlots.set([]);
     this.endConflictMap.set({});
@@ -478,7 +502,7 @@ export class SearchByDateComponent implements OnInit {
     if (isSameDay(date, minSelectable)) {
       hour = Math.max(
         hour,
-        minSelectable.getHours() + (minSelectable.getMinutes() > 0 ? 1 : 0)
+        minSelectable.getHours() + (minSelectable.getMinutes() > 0 ? 1 : 0),
       );
     }
     return hour;
@@ -487,7 +511,7 @@ export class SearchByDateComponent implements OnInit {
   private hasAtLeastOneEndOptionFrom(start: Date): boolean {
     for (const d of this.FIXED_END_DURATIONS) {
       const end = new Date(start.getTime() + d * MILLISECONDS_PER_HOUR);
-      if (!this.overlapsAnyBlockedInterval(start, end)) return true;
+      if (!this.isSlotFullyBooked(start, end)) return true;
     }
     return false;
   }
@@ -505,35 +529,77 @@ export class SearchByDateComponent implements OnInit {
       endTime: this.calculatedEndDate()!.toISOString(),
     };
 
-    this.reservationService.checkBotsAvailabilityByDate(payload).subscribe({
-      next: (response: { availableBots: BotWithApps[] }) => {
-        this.botsWithApps.set(response.availableBots ?? []);
-        const appMap = new Map<number, Application>();
-        this.botsWithApps().forEach((bot) => {
-          bot.applications.forEach((app) => {
-            if (!appMap.has(app.id)) {
-              appMap.set(app.id, app);
-            }
+    this.reservationService
+      .checkBotsAvailabilityByDate(payload, this.demoId)
+      .subscribe({
+        next: (response: { availableBots: BotWithApps[] }) => {
+          this.botsWithApps.set(response.availableBots ?? []);
+          const appMap = new Map<number, Application>();
+          this.botsWithApps().forEach((bot) => {
+            bot.applications.forEach((app) => {
+              if (!appMap.has(app.id)) {
+                appMap.set(app.id, app);
+              }
+            });
           });
-        });
 
-        this.availableApplications.set(Array.from(appMap.values()));
-        this.selectedApps.set([]);
-        this.availableDate.set(startDateTime);
-        this.revokeDate.set(this.calculatedEndDate());
-        this.isLoading.set(false);
-        this.showResultsCard.set(true);
-        this.cdr.markForCheck();
-      },
-      error: (error) => {
-        this.availableApplications.set([]);
-        this.botsWithApps.set([]);
-        this.isLoading.set(false);
-        this.showResultsCard.set(true);
-        this.cdr.markForCheck();
-        this.showErrorDialog(error?.error?.detail || 'Something went wrong');
-      },
-    });
+          // Disable applications that overlap with existing PENDING/ACTIVE reservations
+          // Use UTC epoch ms (.getTime()) for timezone-safe comparison
+          // Include cooldown period so apps within their cooldown window are disabled
+          const cooldownMs =
+            (this.appConfigSignal()?.reservationCoolOffHours ||
+              SELF_COOLDOWN_HOURS) * MILLISECONDS_PER_HOUR;
+          const slotStartUtc = startDateTime.getTime();
+          const slotEndUtc = this.calculatedEndDate()!.getTime();
+          const conflictingReservations = this.userReservations.filter(
+            (r) =>
+              (r.status === ReservationApiStatus.PENDING ||
+                r.status === ReservationApiStatus.ACTIVE) &&
+              normalizeServerTime(r.startTime, SERVER_TIME_MODE).getTime() <=
+                slotEndUtc &&
+              normalizeServerTime(r.endTime, SERVER_TIME_MODE).getTime() +
+                cooldownMs >
+                slotStartUtc,
+          );
+          const conflictingAppIds = new Set<number>();
+          for (const reservation of conflictingReservations) {
+            for (const app of reservation.applications) {
+              conflictingAppIds.add(app.id);
+            }
+          }
+          const appsWithDisabledState = Array.from(appMap.values()).map(
+            (app) => {
+              const isConflicting = conflictingAppIds.has(app.id);
+              return {
+                ...app,
+                isEnabled: !isConflicting,
+                disabledReason: isConflicting
+                  ? getDisabledReason(
+                      this.appConfigSignal()?.reservationCoolOffHours ||
+                        SELF_COOLDOWN_HOURS,
+                    )
+                  : undefined,
+              };
+            },
+          );
+
+          this.availableApplications.set(appsWithDisabledState);
+          this.selectedApps.set([]);
+          this.availableDate.set(startDateTime);
+          this.revokeDate.set(this.calculatedEndDate());
+          this.isLoading.set(false);
+          this.showResultsCard.set(true);
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          this.availableApplications.set([]);
+          this.botsWithApps.set([]);
+          this.isLoading.set(false);
+          this.showResultsCard.set(true);
+          this.cdr.markForCheck();
+          this.showErrorDialog(error?.error?.detail || 'Something went wrong');
+        },
+      });
   }
 
   showErrorDialog(message: string): void {
@@ -593,17 +659,45 @@ export class SearchByDateComponent implements OnInit {
     });
   }
 
+  onAppClicked(app: Application): void {
+    if (this.isAppToggleDisabled(app)) return;
+
+    const current = this.selectedApps();
+    const index = current.findIndex((a) => a.id === app.id);
+
+    if (index >= 0) {
+      // Deselect
+      const next = [...current];
+      next.splice(index, 1);
+      this.selectedApps.set(next);
+    } else {
+      // Select (respect max limit)
+      const next = [...current, app];
+      this.selectedApps.set(
+        next.length <= MAX_RESERVATION_APPLICATION
+          ? next
+          : next.slice(0, MAX_RESERVATION_APPLICATION),
+      );
+    }
+    this.cdr.markForCheck();
+  }
+
   onToggleGroupChange(event: { value: Application[] }): void {
     const next = event?.value ?? [];
     this.selectedApps.set(
       next.length <= MAX_RESERVATION_APPLICATION
         ? [...next]
-        : [...next].slice(0, 3)
+        : [...next].slice(0, 3),
     );
     this.cdr.markForCheck();
   }
 
   isAppToggleDisabled(app: Application): boolean {
+    // Disabled due to overlapping reservation
+    if (app.isEnabled === false) {
+      return true;
+    }
+
     if (this.isSelected(app)) {
       return false;
     }
@@ -624,8 +718,8 @@ export class SearchByDateComponent implements OnInit {
 
     const compatibleBots = this.botsWithApps().filter((bot) =>
       selectedAppIds.every((id) =>
-        bot.applications.some((botApp) => botApp.id === id)
-      )
+        bot.applications.some((botApp) => botApp.id === id),
+      ),
     );
 
     if (compatibleBots.length === 0) {
@@ -667,10 +761,10 @@ export class SearchByDateComponent implements OnInit {
       endTime: this.calculatedEndDate()!.toISOString(),
     };
 
-    this.reservationService.createReservation(payload).subscribe({
+    this.reservationService.createReservation(payload, this.demoId).subscribe({
       next: (newReservation: Reservation) => {
         console.log(
-          `Reservation successfully created with ID: ${newReservation.id}`
+          `Reservation successfully created with ID: ${newReservation.id}`,
         );
         this.showSuccessDialog();
         this.resetForm();
@@ -679,7 +773,7 @@ export class SearchByDateComponent implements OnInit {
         console.error('Failed to create reservation:', err);
         this.showErrorDialog(
           (err as { error: { detail: string } })?.error?.detail ||
-            'There was an error creating your reservation. Please try again.'
+            'There was an error creating your reservation. Please try again.',
         );
       },
     });
@@ -721,11 +815,11 @@ export class SearchByDateComponent implements OnInit {
       selStart.setHours(startHour, 0, 0, 0);
 
       const selEnd = new Date(
-        selStart.getTime() + duration * MILLISECONDS_PER_HOUR
+        selStart.getTime() + duration * MILLISECONDS_PER_HOUR,
       );
 
       if (selEnd <= selStart) errors['endBeforeOrEqualStart'] = true;
-      if (this.overlapsAnyBlockedInterval(selStart, selEnd))
+      if (this.isSlotFullyBooked(selStart, selEnd))
         errors['overlapsExisting'] = true;
       if (this.noValidStartOptions) errors['noValidStartTimeOptions'] = true;
       if (this.noValidEndOptions) errors['noValidEndTimeOptions'] = true;
@@ -783,7 +877,41 @@ export class SearchByDateComponent implements OnInit {
   private overlapsAnyBlockedInterval(selStart: Date, selEnd: Date): boolean {
     if (!this.blockedIntervals.length) return false;
     return this.blockedIntervals.some(({ start, end }) =>
-      intervalsOverlap(selStart, selEnd, start, end)
+      intervalsOverlap(selStart, selEnd, start, end),
+    );
+  }
+
+  /**
+   * Returns true only if ALL available applications have at least one
+   * PENDING/ACTIVE reservation that overlaps with the given time range.
+   * If even one app has no overlapping reservation, the slot is considered
+   * open and returns false — allowing the user to book that free app.
+   * Includes reservationCoolOffHours in the overlap check.
+   */
+  private isSlotFullyBooked(slotStart: Date, slotEnd: Date): boolean {
+    // If we don't know the available apps yet, don't block anything
+    if (this.allAvailableAppIds.length === 0) return false;
+    if (this.userReservations.length === 0) return false;
+
+    const cooldownMs =
+      (this.appConfigSignal()?.reservationCoolOffHours || SELF_COOLDOWN_HOURS) *
+      MILLISECONDS_PER_HOUR;
+    const slotStartMs = slotStart.getTime();
+    const slotEndMs = slotEnd.getTime();
+
+    // Check if EVERY available app has a reservation (+ cooldown) covering this slot
+    return this.allAvailableAppIds.every((appId) =>
+      this.userReservations.some((r) => {
+        const resEndWithCooldown =
+          normalizeServerTime(r.endTime, SERVER_TIME_MODE).getTime() +
+          cooldownMs;
+        return (
+          r.applications.some((a) => a.id === appId) &&
+          normalizeServerTime(r.startTime, SERVER_TIME_MODE).getTime() <=
+            slotEndMs &&
+          resEndWithCooldown > slotStartMs
+        );
+      }),
     );
   }
 
@@ -799,7 +927,7 @@ export class SearchByDateComponent implements OnInit {
         const base = new Date(startDate);
         base.setHours(startHour, 0, 0, 0);
         this.calculatedEndDate.set(
-          new Date(base.getTime() + duration * MILLISECONDS_PER_HOUR)
+          new Date(base.getTime() + duration * MILLISECONDS_PER_HOUR),
         );
         return;
       }

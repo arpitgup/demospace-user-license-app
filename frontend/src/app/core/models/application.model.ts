@@ -13,6 +13,7 @@ export interface Application {
   customSamlAttribute?: string;
   isSelected: boolean;
   isEnabled: boolean;
+  disabledReason?: string;
   isRemove?: boolean;
   isEditable?: boolean;
   isPaused?: boolean;
