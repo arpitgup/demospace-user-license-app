@@ -20,5 +20,6 @@ export interface UpdateDemoDetails {
   rep_department: string;
   org_unit: string;
   parent_bug_id:string;
+  demo_summary:string;
   artifact_links:ArtifactsLinks[]
 }

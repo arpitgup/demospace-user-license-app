@@ -202,8 +202,6 @@
     </h4>
   </section>
   @if (demoDetails.demo_summary && demoDetails.demo_summary.trim().length > 0) {
-    <div class="dynamic-summary" [innerHTML]="demoDetails.demo_summary"></div>
-
     <section class="demo-summary-wrapper" @fadeIn>
       <div class="demo-content-wrapper">
         <h2>Demo Summary</h2>
@@ -264,5 +262,7 @@
         class="demo-summary-logo"
       />
     </section>
+  }@else{
+    <div class="sized-box-summary"></div>
   }
 </div>
