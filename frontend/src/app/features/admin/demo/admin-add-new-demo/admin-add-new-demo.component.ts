@@ -2,6 +2,7 @@ import {
   Component,
   EventEmitter,
   inject,
+  OnDestroy,
   OnInit,
   Output,
   signal,
@@ -41,6 +42,7 @@ import {
   NAME_VALIDATION,
 } from '../../../../../utilities/utils';
 import { ArtifactsLinks } from '../../../../core/models/artifacts_link.model';
+import { Editor, NgxEditorModule, Toolbar } from 'ngx-editor';
 
 @Component({
   selector: 'app-admin-add-new-demo',
@@ -54,11 +56,12 @@ import { ArtifactsLinks } from '../../../../core/models/artifacts_link.model';
     MatIconModule,
     MatCheckbox,
     ErrorMessage,
+    NgxEditorModule,
   ],
   templateUrl: './admin-add-new-demo.component.html',
   styleUrl: './admin-add-new-demo.component.scss',
 })
-export class AdminAddNewDemoComponent implements OnInit {
+export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   readonly loaderService = inject(LoaderService);
   readonly adminService = inject(AdminService);
@@ -79,6 +82,8 @@ export class AdminAddNewDemoComponent implements OnInit {
   readonly APP_LINKS_ARRAY_FORM = 'app_links_array_form';
   readonly APP_LINK_TITLE_FORM = 'app_link_title_form';
   readonly APP_LINK_VALUE_FORM = 'app_link_value_form';
+  readonly IS_CLICKABLE_FORM = 'is_clickable_form';
+  readonly DEMO_SUMMARY_FORM = 'demo_summary_form';
   readonly featureLicenseApp = signal<boolean>(false);
   readonly adminApplications = signal<Application[]>([]);
   readonly organizationUnit = signal<OrganizationUnit[]>([]);
@@ -112,6 +117,7 @@ export class AdminAddNewDemoComponent implements OnInit {
     [this.APP_LINKS_ARRAY_FORM]: this.fb.array([
       this.createAppLinksPairGroup(),
     ]),
+    [this.DEMO_SUMMARY_FORM]: [''],
   });
 
   createAppLinksPairGroup(): FormGroup {
@@ -121,6 +127,7 @@ export class AdminAddNewDemoComponent implements OnInit {
         '',
         [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
       ],
+      [this.IS_CLICKABLE_FORM]: [false],
     });
   }
   @Output() demoOnBoardSuccess = new EventEmitter();
@@ -194,6 +201,17 @@ export class AdminAddNewDemoComponent implements OnInit {
     this.featureLicenseApp.update(() => isChecked);
   }
 
+  editor = new Editor();
+  toolbar: Toolbar = [
+    ['bold', 'italic', 'underline'],
+    ['bullet_list'],
+    ['link'],
+  ];
+
+  ngOnDestroy(): void {
+    this.editor.destroy();
+  }
+
   get appLinksFieldsPairs(): FormArray {
     return this.addDemoForm.get(this.APP_LINKS_ARRAY_FORM) as FormArray;
   }
@@ -241,6 +259,8 @@ export class AdminAddNewDemoComponent implements OnInit {
           url:
             control.get(this.APP_LINK_VALUE_FORM)?.value?.toString()?.trim() ||
             '',
+          is_clickable:
+            control.get(this.IS_CLICKABLE_FORM)?.value || false,
         });
       }
     });
@@ -282,6 +302,8 @@ export class AdminAddNewDemoComponent implements OnInit {
           ?.value?.toString()
           ?.trim() || '',
       artifact_links: artifactsLinks,
+      demo_summary:
+        this.addDemoForm.get(this.DEMO_SUMMARY_FORM)?.value?.trim() || '',
     };
     this.demoService.createNewDemo(payload).subscribe({
       next: () => {

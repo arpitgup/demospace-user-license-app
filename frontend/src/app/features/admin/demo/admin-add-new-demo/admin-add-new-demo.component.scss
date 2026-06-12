@@ -68,7 +68,7 @@ $spacing-xs: 0.75rem;
       display: flex;
       flex-direction: row;
       flex-wrap: wrap;
-      align-items: center; // Aligns everything vertically to the center
+      align-items: flex-start;
       gap: 2rem;
       position: relative;
       width: 100%;
@@ -78,6 +78,10 @@ $spacing-xs: 0.75rem;
         max-width: 30rem;
         margin-bottom: 0;
         display: flex;
+      }
+      .app-link-title-wrapper .custom-form-field {
+        width: 100%;
+        max-width: 100%;
       }
       .icon-container {
         width: 2rem;
@@ -217,6 +221,56 @@ $spacing-xs: 0.75rem;
       margin-top: 0.5rem;
     }
   }
+
+  .app-link-title-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 40%;
+    max-width: 30rem;
+
+    .custom-form-field {
+      width: 100%;
+      max-width: 100%;
+      margin-bottom: 0;
+      display: flex;
+    }
+
+    .make-link-clickable-checkbox {
+      display: block;
+      margin-top: -0.5rem;
+      margin-bottom: 0.5rem;
+
+      ::ng-deep .mat-mdc-checkbox label {
+        color: var(--Black, #161a1d);
+        font-family: Roboto;
+        font-size: 1.125rem;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 1.5rem;
+      }
+    }
+  }
+
+  .demo-summary-editor-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 1.5rem;
+
+    ::ng-deep .NgxEditor__MenuBar {
+      border-radius: 0.5rem 0.5rem 0 0;
+      border-color: rgba(190, 191, 192, 0.5);
+    }
+
+    ::ng-deep .NgxEditor {
+      border-radius: 0 0 0.5rem 0.5rem;
+      border-color: rgba(190, 191, 192, 0.5);
+      min-height: 10rem;
+      font-family: Roboto, sans-serif;
+      font-size: 1rem;
+    }
+  }
+
   .button-wrapper {
     justify-content: center;
     align-items: center;

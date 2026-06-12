@@ -385,6 +385,7 @@ class RepresentativeProfileOut(BaseModel):
 class ArtifactLink(BaseModel):
     title: str
     url: str
+    is_clickable: Optional[bool] = False
 
 class DemoDetailOut(BaseModel):
     demo_id: str
@@ -397,6 +398,7 @@ class DemoDetailOut(BaseModel):
     representative_profile: Optional[RepresentativeProfileOut]
     parent_bug_id: Optional[str] = None
     artifact_links: Optional[List[ArtifactLink]] = []
+    demo_summary: Optional[str] = None
 
 class OnboardedDemoDetailsOut(BaseModel):
     demo_id: str
@@ -409,6 +411,7 @@ class OnboardedDemoDetailsOut(BaseModel):
     representative_profile: Optional[RepresentativeProfileOut]
     parent_bug_id: Optional[str] = None
     artifact_links: Optional[List[ArtifactLink]] = []
+    demo_summary: Optional[str] = None
 
 class UpdateOnboardedDemoDetailsRequest(BaseModel):
     demo_title: str
@@ -425,6 +428,7 @@ class UpdateOnboardedDemoDetailsRequest(BaseModel):
     rep_department: Optional[str] = None
     parent_bug_id: Optional[str] = None
     artifact_links: Optional[List[ArtifactLink]] = []
+    demo_summary: Optional[str] = None
 
 class UpdateOnboardedDemoDetailsResponse(BaseModel):
     demo_id: str
@@ -442,6 +446,7 @@ class UpdateOnboardedDemoDetailsResponse(BaseModel):
     rep_department: Optional[str] = None
     parent_bug_id: Optional[str] = None
     artifact_links: Optional[List[ArtifactLink]] = []
+    demo_summary: Optional[str] = None
 
 class OnboardNewDemoRequestResponse(BaseModel):
     demo_id: str
@@ -459,6 +464,7 @@ class OnboardNewDemoRequestResponse(BaseModel):
     rep_department: Optional[str] = None
     parent_bug_id: Optional[str] = None
     artifact_links: Optional[List[ArtifactLink]] = []
+    demo_summary: Optional[str] = None
 
 class OrganizationUnitCreateRequest(BaseModel):
     orgunitpath: str

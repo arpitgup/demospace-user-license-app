@@ -16,4 +16,5 @@ export interface OnBoardNewDemoRequest {
   rep_department: string;
   parent_bug_id:string;
   artifact_links:ArtifactsLinks[]
+  demo_summary?: string;
 }

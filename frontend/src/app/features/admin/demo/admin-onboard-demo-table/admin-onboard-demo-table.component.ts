@@ -323,7 +323,6 @@ export class AdminOnboardDemoTableComponent {
       },
     });
     dialogRef.afterClosed().subscribe((result) => {
-      console.log(result);
       if (result && typeof result.demo_id === 'string') {
         this.showSuccessDialog();
         const index = this.adminDemoList.findIndex(
