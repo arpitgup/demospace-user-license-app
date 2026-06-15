@@ -6,7 +6,6 @@ import {
   EventEmitter,
   inject,
   Input,
-  OnInit,
   Output,
   signal,
 } from '@angular/core';
@@ -75,7 +74,7 @@ import { ReservationService } from '../../core/services/reservation.service';
     ]),
   ],
 })
-export class UserAppLinksComponent implements OnInit {
+export class UserAppLinksComponent {
   @Input() demoDetails!: DemoDetails;
   @Output() redirectHowToLogin = new EventEmitter();
   private userService = inject(UserCreationService);
@@ -111,10 +110,6 @@ export class UserAppLinksComponent implements OnInit {
     this.listenAppConfig();
   }
 
-  ngOnInit(): void {
-    this.applyDefaultSummary();
-  }
-
   private applyDefaultSummary(): void {
     if (!this.demoDetails) return;
     this.DEFAULT_DEMO_SUMMARY = this.DEFAULT_DEMO_SUMMARY.replaceAll(
@@ -128,17 +123,15 @@ export class UserAppLinksComponent implements OnInit {
     ) {
       this.demoDetails.demo_summary = this.DEFAULT_DEMO_SUMMARY;
     }
-    console.log("app-config",this.demoDetails.demo_summary);
+    console.log('app-config', this.demoDetails.demo_summary);
   }
 
   listenAppConfig() {
     effect(() => {
       const appConfig = this.reservationsSig.appConfigData();
-
       this.DEFAULT_DEMO_SUMMARY =
         appConfig?.defaultDemoSummary || this.DEFAULT_DEMO_SUMMARY;
       this.applyDefaultSummary();
-      this.cdr.detectChanges();
     });
   }
   copyPassword(password: string | undefined) {

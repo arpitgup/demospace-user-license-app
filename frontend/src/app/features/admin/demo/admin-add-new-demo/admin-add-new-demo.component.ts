@@ -40,6 +40,7 @@ import {
   MAX_DEMO_LINK_ADDITION_VALUE,
   MIN_DEMO_LINK_ADDITION_VALUE,
   NAME_VALIDATION,
+  stripHtml,
 } from '../../../../../utilities/utils';
 import { ArtifactsLinks } from '../../../../core/models/artifacts_link.model';
 import { Editor, NgxEditorModule, Toolbar } from 'ngx-editor';
@@ -259,8 +260,7 @@ export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
           url:
             control.get(this.APP_LINK_VALUE_FORM)?.value?.toString()?.trim() ||
             '',
-          is_clickable:
-            control.get(this.IS_CLICKABLE_FORM)?.value || false,
+          is_clickable: control.get(this.IS_CLICKABLE_FORM)?.value || false,
         });
       }
     });
@@ -303,7 +303,9 @@ export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
           ?.trim() || '',
       artifact_links: artifactsLinks,
       demo_summary:
-        this.addDemoForm.get(this.DEMO_SUMMARY_FORM)?.value?.trim() || '',
+        stripHtml(
+          this.addDemoForm.get(this.DEMO_SUMMARY_FORM)?.value?.toString() || '',
+        )?.trim() || '',
     };
     this.demoService.createNewDemo(payload).subscribe({
       next: () => {
