@@ -29,6 +29,7 @@ import {
   MAX_DEMO_LINK_ADDITION_VALUE,
   MIN_DEMO_LINK_ADDITION_VALUE,
   NAME_VALIDATION,
+  stripHtml,
 } from '../../../../utilities/utils';
 import { ErrorDialog } from '../error-dialog/error-dialog';
 import { DemoOnBoardingEnum } from '../../../enums/admin-demo-onboarding.enums';
@@ -277,8 +278,7 @@ export class UpdateDemoDialog implements OnInit, OnDestroy {
           url:
             control.get(this.APP_LINK_VALUE_FORM)?.value?.toString()?.trim() ||
             '',
-          is_clickable:
-            control.get(this.IS_CLICKABLE_FORM)?.value || false,
+          is_clickable: control.get(this.IS_CLICKABLE_FORM)?.value || false,
         });
       }
     });
@@ -322,7 +322,10 @@ export class UpdateDemoDialog implements OnInit, OnDestroy {
           ?.trim() || '',
       artifact_links: artifactsLinks,
       demo_summary:
-        this.updateDemoForm.get(this.DEMO_SUMMARY_FORM)?.value?.trim() || '',
+        stripHtml(
+          this.updateDemoForm.get(this.DEMO_SUMMARY_FORM)?.value?.toString() ||
+            '',
+        )?.trim() || '',
     };
     this.demoService
       .updateOnBoardDemo(payload, this.data.demoDetails.demo_id)
