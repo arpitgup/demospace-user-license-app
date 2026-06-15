@@ -7,4 +7,5 @@ export interface AppConfig {
   maxSlotsToFind: number;
   reservationCoolOffHours:number;
   minLeadCooldownHours:number;
+  defaultDemoSummary?:string;
 }
