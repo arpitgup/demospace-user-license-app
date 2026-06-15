@@ -128,15 +128,17 @@ export class UserAppLinksComponent implements OnInit {
     ) {
       this.demoDetails.demo_summary = this.DEFAULT_DEMO_SUMMARY;
     }
-    console.log(this.demoDetails.demo_summary);
+    console.log("app-config",this.demoDetails.demo_summary);
   }
 
   listenAppConfig() {
     effect(() => {
       const appConfig = this.reservationsSig.appConfigData();
-      console.log('app-config', appConfig?.defaultDemoSummary);
+
       this.DEFAULT_DEMO_SUMMARY =
         appConfig?.defaultDemoSummary || this.DEFAULT_DEMO_SUMMARY;
+      this.applyDefaultSummary();
+      this.cdr.detectChanges();
     });
   }
   copyPassword(password: string | undefined) {
