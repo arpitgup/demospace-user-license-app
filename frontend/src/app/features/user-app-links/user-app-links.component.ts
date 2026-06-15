@@ -116,18 +116,21 @@ export class UserAppLinksComponent implements OnInit {
   listenAppConfig() {
     effect(() => {
       const appConfig = this.reservationsSig.appConfigData();
+      console.log('app-config', appConfig?.defaultDemoSummary);
       this.DEFAULT_DEMO_SUMMARY =
         appConfig?.defaultDemoSummary || this.DEFAULT_DEMO_SUMMARY;
       this.DEFAULT_DEMO_SUMMARY.replaceAll(
         '{demo_id}',
         this.demoDetails.demo_id || '',
       );
+      console.log('app-config', this.DEFAULT_DEMO_SUMMARY);
       if (
         this.demoDetails.demo_summary == null ||
         (this.demoDetails.demo_summary || '').trim().length <= 0
       ) {
         this.demoDetails.demo_summary = this.DEFAULT_DEMO_SUMMARY;
       }
+      console.log(this.demoDetails.demo_summary);
     });
   }
   copyPassword(password: string | undefined) {
