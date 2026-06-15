@@ -23,6 +23,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { SuccessDialog } from '../../shared/dialogs/success-dialog/success-dialog';
 import { ErrorDialog } from '../../shared/dialogs/error-dialog/error-dialog';
 import { ArtifactsLinks } from '../../core/models/artifacts_link.model';
+import { stripHtml } from '../../../utilities/utils';
 import { ReservationService } from '../../core/services/reservation.service';
 @Component({
   selector: 'app-user-app-links',
@@ -119,7 +120,7 @@ export class UserAppLinksComponent {
 
     if (
       this.demoDetails.demo_summary == null ||
-      (this.demoDetails.demo_summary || '').trim().length <= 0
+      stripHtml(this.demoDetails.demo_summary || '').length <= 0
     ) {
       this.demoDetails.demo_summary = this.DEFAULT_DEMO_SUMMARY;
     }
