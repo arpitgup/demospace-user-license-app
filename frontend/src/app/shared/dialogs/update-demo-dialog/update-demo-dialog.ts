@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -29,6 +29,7 @@ import {
   MAX_DEMO_LINK_ADDITION_VALUE,
   MIN_DEMO_LINK_ADDITION_VALUE,
   NAME_VALIDATION,
+  stripHtml,
 } from '../../../../utilities/utils';
 import { ErrorDialog } from '../error-dialog/error-dialog';
 import { DemoOnBoardingEnum } from '../../../enums/admin-demo-onboarding.enums';
@@ -36,6 +37,7 @@ import { UpdateDemoRequest } from '../../../core/models/update-demo-request.mode
 import { DemoDetails } from '../../../core/models/demo-details.model';
 import { UpdateDemoConstants } from './update-demo.constants';
 import { ArtifactsLinks } from '../../../core/models/artifacts_link.model';
+import { Editor, NgxEditorModule, Toolbar } from 'ngx-editor';
 
 @Component({
   selector: 'app-update-demo-dialog',
@@ -49,11 +51,12 @@ import { ArtifactsLinks } from '../../../core/models/artifacts_link.model';
     MatIconModule,
     MatCheckbox,
     MatDialogModule,
+    NgxEditorModule,
   ],
   templateUrl: './update-demo-dialog.html',
   styleUrl: './update-demo-dialog.scss',
 })
-export class UpdateDemoDialog implements OnInit {
+export class UpdateDemoDialog implements OnInit, OnDestroy {
   dialogRef = inject(MatDialogRef<UpdateDemoDialog>);
   data = inject(MAT_DIALOG_DATA) as {
     application: Application[];
@@ -86,6 +89,8 @@ export class UpdateDemoDialog implements OnInit {
   readonly APP_LINKS_ARRAY_FORM = 'app_links_array_form';
   readonly APP_LINK_TITLE_FORM = 'app_link_title_form';
   readonly APP_LINK_VALUE_FORM = 'app_link_value_form';
+  readonly IS_CLICKABLE_FORM = 'is_clickable_form';
+  readonly DEMO_SUMMARY_FORM = 'demo_summary_form';
   readonly featureLicenseApp = signal<boolean>(false);
   readonly adminApplications = signal<Application[]>([]);
   readonly organizationUnit = signal<OrganizationUnit[]>([]);
@@ -139,6 +144,7 @@ export class UpdateDemoDialog implements OnInit {
     [this.APP_LINKS_ARRAY_FORM]: this.fb.array(
       this.existingAppLinksPairGroup(),
     ),
+    [this.DEMO_SUMMARY_FORM]: [this.data.demoDetails.demo_summary || ''],
   });
 
   existingAppLinksPairGroup(): FormGroup[] {
@@ -152,6 +158,7 @@ export class UpdateDemoDialog implements OnInit {
               item.url,
               [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
             ],
+            [this.IS_CLICKABLE_FORM]: [item.is_clickable || false],
           }),
         );
       });
@@ -166,6 +173,7 @@ export class UpdateDemoDialog implements OnInit {
         '',
         [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
       ],
+      [this.IS_CLICKABLE_FORM]: [false],
     });
   }
 
@@ -214,6 +222,17 @@ export class UpdateDemoDialog implements OnInit {
     this.featureLicenseApp.update(() => isChecked);
   }
 
+  editor = new Editor();
+  toolbar: Toolbar = [
+    ['bold', 'italic', 'underline'],
+    ['bullet_list'],
+    ['link'],
+  ];
+
+  ngOnDestroy(): void {
+    this.editor.destroy();
+  }
+
   get appLinksFieldsPairs(): FormArray {
     return this.updateDemoForm.get(this.APP_LINKS_ARRAY_FORM) as FormArray;
   }
@@ -259,6 +278,7 @@ export class UpdateDemoDialog implements OnInit {
           url:
             control.get(this.APP_LINK_VALUE_FORM)?.value?.toString()?.trim() ||
             '',
+          is_clickable: control.get(this.IS_CLICKABLE_FORM)?.value || false,
         });
       }
     });
@@ -301,6 +321,11 @@ export class UpdateDemoDialog implements OnInit {
           ?.value?.toString()
           ?.trim() || '',
       artifact_links: artifactsLinks,
+      demo_summary:
+        stripHtml(
+          this.updateDemoForm.get(this.DEMO_SUMMARY_FORM)?.value?.toString() ||
+            '',
+        )?.trim() || '',
     };
     this.demoService
       .updateOnBoardDemo(payload, this.data.demoDetails.demo_id)

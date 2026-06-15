@@ -1214,6 +1214,7 @@ def get_onboarded_demo_details(db: Session = Depends(get_db)):
             representative_profile=representative_profile_out,
             parent_bug_id=demo_record.parent_bug_id,
             artifact_links=demo_record.artifact_links,
+            demo_summary=demo_record.demo_summary,
         )
         output_list.append(demo_details_out)
     return output_list

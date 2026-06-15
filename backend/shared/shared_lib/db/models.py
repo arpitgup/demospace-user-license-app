@@ -191,6 +191,8 @@ class DemoDetail(Base):
     rep_department = Column(String(50), nullable=True)
     parent_bug_id = Column(String(255), nullable=True)
     artifact_links = Column(JSONB)
+    demo_summary = Column(String, nullable=True)
+
 
 class OrganizationUnits(Base):
     __tablename__ = "organization_units"

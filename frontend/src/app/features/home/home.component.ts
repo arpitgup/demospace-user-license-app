@@ -25,6 +25,7 @@ import {
   QUERY_DEMO_ID,
   SESSIONS_DEMO_ID,
 } from '../../shared/constants/session.constants';
+import { ReservationService } from '../../core/services/reservation.service';
 
 export interface HomeMenuItems {
   id: number;
@@ -58,6 +59,7 @@ export class HomeComponent implements OnInit {
   errorMessage = signal<string>('');
   demoDetails = signal<DemoDetails | null>(null);
   private userCreationService = inject(UserCreationService);
+  private reservationService = inject(ReservationService);
   private userService = inject(UserService);
   private activeRoute = inject(ActivatedRoute);
   userDetails = this.userCreationService.userInfo;
@@ -169,6 +171,10 @@ export class HomeComponent implements OnInit {
             group_email: this.demoDetails()?.demo_user_group_email ?? '',
           };
           return this.userCreationService.addUserToGroup(request);
+        }),
+        concatMap(() => {
+          const appConfig = this.reservationService.getConfig();
+          return appConfig;
         }),
         catchError((error) => {
           this.errorMessage.update(
