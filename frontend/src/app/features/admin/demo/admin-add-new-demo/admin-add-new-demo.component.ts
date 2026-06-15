@@ -305,7 +305,11 @@ export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
       demo_summary:
         stripHtml(
           this.addDemoForm.get(this.DEMO_SUMMARY_FORM)?.value?.toString() || '',
-        )?.trim() || '',
+        ).length > 0
+          ? this.addDemoForm
+              .get(this.DEMO_SUMMARY_FORM)
+              ?.value?.toString() || ''
+          : '',
     };
     this.demoService.createNewDemo(payload).subscribe({
       next: () => {

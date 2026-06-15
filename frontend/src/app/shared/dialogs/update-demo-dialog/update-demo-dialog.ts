@@ -325,7 +325,11 @@ export class UpdateDemoDialog implements OnInit, OnDestroy {
         stripHtml(
           this.updateDemoForm.get(this.DEMO_SUMMARY_FORM)?.value?.toString() ||
             '',
-        )?.trim() || '',
+        ).length > 0
+          ? this.updateDemoForm
+              .get(this.DEMO_SUMMARY_FORM)
+              ?.value?.toString() || ''
+          : '',
     };
     this.demoService
       .updateOnBoardDemo(payload, this.data.demoDetails.demo_id)
