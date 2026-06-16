@@ -273,6 +273,56 @@ mat-dialog-content {
     width: 100%;
     margin-bottom: 1.5rem;
 
+    .editor-toolbar-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+
+      ::ng-deep ngx-editor-menu {
+        flex: 1;
+      }
+
+      .summary-type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-family: Roboto, sans-serif;
+        font-size: 0.75rem;
+        font-weight: 500;
+        white-space: nowrap;
+        letter-spacing: 0.02rem;
+        line-height: 1.25rem;
+
+        &::before {
+          content: '';
+          display: inline-block;
+          width: 0.5rem;
+          height: 0.5rem;
+          border-radius: 50%;
+        }
+
+        &.is-default {
+          background: rgba(66, 133, 244, 0.12);
+          color: #1a73e8;
+
+          &::before {
+            background: #1a73e8;
+          }
+        }
+
+        &.is-custom {
+          background: rgba(52, 168, 83, 0.12);
+          color: #1e8e3e;
+
+          &::before {
+            background: #1e8e3e;
+          }
+        }
+      }
+    }
+
     ::ng-deep .NgxEditor__MenuBar {
       border-radius: 0.5rem 0.5rem 0 0;
       border-color: rgba(190, 191, 192, 0.5);

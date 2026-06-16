@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -6,6 +6,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
 import {
@@ -62,6 +63,7 @@ export class UpdateDemoDialog implements OnInit, OnDestroy {
     application: Application[];
     organizationUnit: OrganizationUnit[];
     demoDetails: DemoDetails;
+    defaultDemoSummary: string;
   };
 
   demoOnBoardingStatus: DemoOnBoardingEnum[] = [
@@ -97,6 +99,14 @@ export class UpdateDemoDialog implements OnInit, OnDestroy {
   readonly selectedApplications = signal<Application[]>([]);
   readonly applicationErrorMessage = signal<string>('');
   public readonly errorMessage = signal<string>('');
+  readonly editorContent = signal<string>(
+    (this.data.demoDetails.demo_summary?.length ?? 0) > 0
+      ? (this.data.demoDetails.demo_summary ?? '')
+      : (this.data.defaultDemoSummary ?? ''),
+  );
+  readonly isDefaultSummary = computed(() => {
+    return this.editorContent() === (this.data.defaultDemoSummary ?? '');
+  });
   readonly demoConstants = UpdateDemoConstants;
   readonly maxDemoLinks = MAX_DEMO_LINK_ADDITION_VALUE;
   readonly minDemoLinks = MIN_DEMO_LINK_ADDITION_VALUE;
@@ -144,7 +154,11 @@ export class UpdateDemoDialog implements OnInit, OnDestroy {
     [this.APP_LINKS_ARRAY_FORM]: this.fb.array(
       this.existingAppLinksPairGroup(),
     ),
-    [this.DEMO_SUMMARY_FORM]: [this.data.demoDetails.demo_summary || ''],
+    [this.DEMO_SUMMARY_FORM]: [
+      (this.data.demoDetails.demo_summary?.length ?? 0) > 0
+        ? (this.data.demoDetails.demo_summary ?? '')
+        : (this.data.defaultDemoSummary ?? ''),
+    ],
   });
 
   existingAppLinksPairGroup(): FormGroup[] {
@@ -177,6 +191,8 @@ export class UpdateDemoDialog implements OnInit, OnDestroy {
     });
   }
 
+  private summarySubscription?: Subscription;
+
   ngOnInit(): void {
     this.adminApplications.update(() => this.data.application);
     this.featureLicenseApp.update(
@@ -184,6 +200,11 @@ export class UpdateDemoDialog implements OnInit, OnDestroy {
     );
     this.organizationUnit.update(() => this.data.organizationUnit);
     this.getDemoApplications(this.data.demoDetails.applicationIds);
+    this.summarySubscription = this.updateDemoForm
+      .get(this.DEMO_SUMMARY_FORM)
+      ?.valueChanges.subscribe((value: string) => {
+        this.editorContent.set(value || '');
+      });
   }
 
   addApp(app: Application): void {
@@ -231,6 +252,7 @@ export class UpdateDemoDialog implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.editor.destroy();
+    this.summarySubscription?.unsubscribe();
   }
 
   get appLinksFieldsPairs(): FormArray {
@@ -322,14 +344,19 @@ export class UpdateDemoDialog implements OnInit, OnDestroy {
           ?.trim() || '',
       artifact_links: artifactsLinks,
       demo_summary:
-        stripHtml(
+        this.data.defaultDemoSummary ===
           this.updateDemoForm.get(this.DEMO_SUMMARY_FORM)?.value?.toString() ||
-            '',
-        ).length > 0
-          ? this.updateDemoForm
-              .get(this.DEMO_SUMMARY_FORM)
-              ?.value?.toString() || ''
-          : '',
+        ''
+          ? ''
+          : stripHtml(
+                this.updateDemoForm
+                  .get(this.DEMO_SUMMARY_FORM)
+                  ?.value?.toString() || '',
+              ).length > 0
+            ? this.updateDemoForm
+                .get(this.DEMO_SUMMARY_FORM)
+                ?.value?.toString() || ''
+            : '',
     };
     this.demoService
       .updateOnBoardDemo(payload, this.data.demoDetails.demo_id)

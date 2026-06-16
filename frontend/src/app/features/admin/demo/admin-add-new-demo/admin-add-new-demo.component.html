@@ -303,7 +303,12 @@
 
         <h2>{{ demoConstants.DEMO_SUMMARY }}</h2>
         <div class="demo-summary-editor-wrapper">
-          <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
+          <div class="editor-toolbar-header">
+            <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
+            <span class="summary-type-badge" [class.is-default]="isDefaultSummary()" [class.is-custom]="!isDefaultSummary()">
+              {{ isDefaultSummary() ? 'Default Demo Summary' : 'Custom Demo Summary' }}
+            </span>
+          </div>
           <ngx-editor
             [editor]="editor"
             [formControlName]="DEMO_SUMMARY_FORM"
