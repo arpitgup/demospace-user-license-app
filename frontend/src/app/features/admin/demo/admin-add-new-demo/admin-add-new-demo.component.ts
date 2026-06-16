@@ -1,5 +1,6 @@
 import {
   Component,
+  computed,
   EventEmitter,
   inject,
   OnDestroy,
@@ -14,6 +15,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -44,6 +46,7 @@ import {
 } from '../../../../../utilities/utils';
 import { ArtifactsLinks } from '../../../../core/models/artifacts_link.model';
 import { Editor, NgxEditorModule, Toolbar } from 'ngx-editor';
+import { ReservationService } from '../../../../core/services/reservation.service';
 
 @Component({
   selector: 'app-admin-add-new-demo',
@@ -66,6 +69,7 @@ export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   readonly loaderService = inject(LoaderService);
   readonly adminService = inject(AdminService);
+  readonly reservationService = inject(ReservationService);
   readonly demoService = inject(DemoService);
   readonly dialog = inject(MatDialog);
   readonly DEMO_ID_FORM = 'demo_id_form';
@@ -94,6 +98,12 @@ export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
   readonly demoConstants = DEMOCONSTANTS;
   readonly maxDemoLinks = MAX_DEMO_LINK_ADDITION_VALUE;
   readonly minDemoLinks = MIN_DEMO_LINK_ADDITION_VALUE;
+  DEFAULT_DEMO_SUMMARY = '';
+  readonly editorContent = signal<string>('');
+  readonly resolvedDefaultSummary = signal<string>('');
+  readonly isDefaultSummary = computed(() => {
+    return this.editorContent() === this.resolvedDefaultSummary();
+  });
   addDemoForm: FormGroup = this.fb.group({
     [this.DEMO_ID_FORM]: ['', Validators.required],
     [this.DEMO_TITLE_FORM]: ['', [Validators.required]],
@@ -133,8 +143,39 @@ export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
   }
   @Output() demoOnBoardSuccess = new EventEmitter();
 
+  private summarySubscription?: Subscription;
+  private demoIdSubscription?: Subscription;
+
   ngOnInit(): void {
     this.fetchAllAdminApplications();
+    this.summarySubscription = this.addDemoForm
+      .get(this.DEMO_SUMMARY_FORM)
+      ?.valueChanges.subscribe((value: string) => {
+        this.editorContent.set(value || '');
+      });
+    this.demoIdSubscription = this.addDemoForm
+      .get(this.DEMO_ID_FORM)
+      ?.valueChanges.subscribe((demoId: string) => {
+        this.updateResolvedSummary(demoId?.toString() || '');
+      });
+  }
+
+  private updateResolvedSummary(demoId: string): void {
+    const oldResolved = this.resolvedDefaultSummary();
+    const newResolved = this.DEFAULT_DEMO_SUMMARY.replaceAll(
+      '{demo_id}',
+      demoId,
+    );
+    this.resolvedDefaultSummary.set(newResolved);
+    // Only update the editor if it currently shows the old resolved default
+    if (
+      this.editorContent() === oldResolved ||
+      this.editorContent() === this.DEFAULT_DEMO_SUMMARY
+    ) {
+      this.addDemoForm
+        .get(this.DEMO_SUMMARY_FORM)
+        ?.setValue(newResolved, { emitEvent: true });
+    }
   }
   fetchAllAdminApplications() {
     this.errorMessage.update(() => '');
@@ -142,6 +183,7 @@ export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
     forkJoin({
       applications: this.adminService.fetchAllApplications(),
       organizationUnit: this.demoService.fetchAllOrganizations(),
+      appConfig: this.reservationService.getConfig(),
     }).subscribe({
       next: (res) => {
         this.errorMessage.update(() => '');
@@ -149,6 +191,20 @@ export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
         this.loaderService.hide();
         this.adminApplications.set(res.applications);
         this.organizationUnit.set(res.organizationUnit);
+        this.DEFAULT_DEMO_SUMMARY = res.appConfig.defaultDemoSummary || '';
+        const currentDemoId =
+          this.addDemoForm
+            .get(this.DEMO_ID_FORM)
+            ?.value?.toString() || '';
+        const resolved = this.DEFAULT_DEMO_SUMMARY.replaceAll(
+          '{demo_id}',
+          currentDemoId,
+        );
+        this.resolvedDefaultSummary.set(resolved);
+        this.addDemoForm
+          .get(this.DEMO_SUMMARY_FORM)
+          ?.setValue(resolved);
+        this.editorContent.set(resolved);
       },
       error: (error) => {
         this.loaderService.hide();
@@ -211,6 +267,8 @@ export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.editor.destroy();
+    this.summarySubscription?.unsubscribe();
+    this.demoIdSubscription?.unsubscribe();
   }
 
   get appLinksFieldsPairs(): FormArray {
@@ -303,13 +361,17 @@ export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
           ?.trim() || '',
       artifact_links: artifactsLinks,
       demo_summary:
-        stripHtml(
-          this.addDemoForm.get(this.DEMO_SUMMARY_FORM)?.value?.toString() || '',
-        ).length > 0
-          ? this.addDemoForm
-              .get(this.DEMO_SUMMARY_FORM)
-              ?.value?.toString() || ''
-          : '',
+        this.resolvedDefaultSummary() ===
+          this.addDemoForm.get(this.DEMO_SUMMARY_FORM)?.value?.toString() || ''
+          ? ''
+          : stripHtml(
+                this.addDemoForm
+                  .get(this.DEMO_SUMMARY_FORM)
+                  ?.value?.toString() || '',
+              ).length > 0
+            ? this.addDemoForm.get(this.DEMO_SUMMARY_FORM)?.value?.toString() ||
+              ''
+            : '',
     };
     this.demoService.createNewDemo(payload).subscribe({
       next: () => {
