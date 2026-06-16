@@ -349,7 +349,7 @@ export class UpdateDemoDialog implements OnInit, OnDestroy {
           ?.trim() || '',
       artifact_links: artifactsLinks,
       demo_summary:
-        this.data.defaultDemoSummary ===
+        this.resolvedDefaultSummary ===
           this.updateDemoForm.get(this.DEMO_SUMMARY_FORM)?.value?.toString() ||
         ''
           ? ''
