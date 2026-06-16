@@ -100,8 +100,9 @@ export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
   readonly minDemoLinks = MIN_DEMO_LINK_ADDITION_VALUE;
   DEFAULT_DEMO_SUMMARY = '';
   readonly editorContent = signal<string>('');
+  readonly resolvedDefaultSummary = signal<string>('');
   readonly isDefaultSummary = computed(() => {
-    return this.editorContent() === this.DEFAULT_DEMO_SUMMARY;
+    return this.editorContent() === this.resolvedDefaultSummary();
   });
   addDemoForm: FormGroup = this.fb.group({
     [this.DEMO_ID_FORM]: ['', Validators.required],
@@ -143,6 +144,7 @@ export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
   @Output() demoOnBoardSuccess = new EventEmitter();
 
   private summarySubscription?: Subscription;
+  private demoIdSubscription?: Subscription;
 
   ngOnInit(): void {
     this.fetchAllAdminApplications();
@@ -151,6 +153,29 @@ export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
       ?.valueChanges.subscribe((value: string) => {
         this.editorContent.set(value || '');
       });
+    this.demoIdSubscription = this.addDemoForm
+      .get(this.DEMO_ID_FORM)
+      ?.valueChanges.subscribe((demoId: string) => {
+        this.updateResolvedSummary(demoId?.toString() || '');
+      });
+  }
+
+  private updateResolvedSummary(demoId: string): void {
+    const oldResolved = this.resolvedDefaultSummary();
+    const newResolved = this.DEFAULT_DEMO_SUMMARY.replaceAll(
+      '{demo_id}',
+      demoId,
+    );
+    this.resolvedDefaultSummary.set(newResolved);
+    // Only update the editor if it currently shows the old resolved default
+    if (
+      this.editorContent() === oldResolved ||
+      this.editorContent() === this.DEFAULT_DEMO_SUMMARY
+    ) {
+      this.addDemoForm
+        .get(this.DEMO_SUMMARY_FORM)
+        ?.setValue(newResolved, { emitEvent: true });
+    }
   }
   fetchAllAdminApplications() {
     this.errorMessage.update(() => '');
@@ -167,10 +192,19 @@ export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
         this.adminApplications.set(res.applications);
         this.organizationUnit.set(res.organizationUnit);
         this.DEFAULT_DEMO_SUMMARY = res.appConfig.defaultDemoSummary || '';
+        const currentDemoId =
+          this.addDemoForm
+            .get(this.DEMO_ID_FORM)
+            ?.value?.toString() || '';
+        const resolved = this.DEFAULT_DEMO_SUMMARY.replaceAll(
+          '{demo_id}',
+          currentDemoId,
+        );
+        this.resolvedDefaultSummary.set(resolved);
         this.addDemoForm
           .get(this.DEMO_SUMMARY_FORM)
-          ?.setValue(res.appConfig.defaultDemoSummary || '');
-        this.editorContent.set(res.appConfig.defaultDemoSummary || '');
+          ?.setValue(resolved);
+        this.editorContent.set(resolved);
       },
       error: (error) => {
         this.loaderService.hide();
@@ -234,6 +268,7 @@ export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.editor.destroy();
     this.summarySubscription?.unsubscribe();
+    this.demoIdSubscription?.unsubscribe();
   }
 
   get appLinksFieldsPairs(): FormArray {

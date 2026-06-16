@@ -99,13 +99,18 @@ export class UpdateDemoDialog implements OnInit, OnDestroy {
   readonly selectedApplications = signal<Application[]>([]);
   readonly applicationErrorMessage = signal<string>('');
   public readonly errorMessage = signal<string>('');
+  private readonly resolvedDefaultSummary =
+    (this.data.defaultDemoSummary ?? '').replaceAll(
+      '{demo_id}',
+      this.data.demoDetails.demo_id || '',
+    );
   readonly editorContent = signal<string>(
     (this.data.demoDetails.demo_summary?.length ?? 0) > 0
       ? (this.data.demoDetails.demo_summary ?? '')
-      : (this.data.defaultDemoSummary ?? ''),
+      : this.resolvedDefaultSummary,
   );
   readonly isDefaultSummary = computed(() => {
-    return this.editorContent() === (this.data.defaultDemoSummary ?? '');
+    return this.editorContent() === this.resolvedDefaultSummary;
   });
   readonly demoConstants = UpdateDemoConstants;
   readonly maxDemoLinks = MAX_DEMO_LINK_ADDITION_VALUE;
@@ -157,7 +162,7 @@ export class UpdateDemoDialog implements OnInit, OnDestroy {
     [this.DEMO_SUMMARY_FORM]: [
       (this.data.demoDetails.demo_summary?.length ?? 0) > 0
         ? (this.data.demoDetails.demo_summary ?? '')
-        : (this.data.defaultDemoSummary ?? ''),
+        : this.resolvedDefaultSummary,
     ],
   });
 
