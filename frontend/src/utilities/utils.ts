@@ -298,3 +298,8 @@ export const MIN_DEMO_LINK_ADDITION_VALUE = 1;
 export function getDisabledReason(time: number) {
   return `This license is already reserved for the selected time slot. You may book the license again ${time} hour after your current reservation end.`;
 }
+
+
+export function stripHtml(html: string): string {
+  return html?.replace(/<[^>]*>/g, '')?.replace(/&nbsp;/g, '')?.trim() || '';
+}

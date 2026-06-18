@@ -30,6 +30,7 @@ import { DemoOnBoardingEnum } from '../../../../enums/admin-demo-onboarding.enum
 import { SuccessDialog } from '../../../../shared/dialogs/success-dialog/success-dialog';
 import { DEMOCONSTANTS } from '../demo.constants';
 import { UpdateDemoDialog } from '../../../../shared/dialogs/update-demo-dialog/update-demo-dialog';
+import { ReservationService } from '../../../../core/services/reservation.service';
 
 @Component({
   selector: 'app-admin-onboard-demo-table',
@@ -53,6 +54,7 @@ export class AdminOnboardDemoTableComponent {
   readonly adminService = inject(AdminService);
   readonly fb = inject(FormBuilder);
   readonly demoService = inject(DemoService);
+  readonly reservationService = inject(ReservationService);
   public isLoading = signal(true);
   readonly loadingService = inject(LoaderService);
   dataSource = new MatTableDataSource<DemoDetails>([]);
@@ -73,6 +75,7 @@ export class AdminOnboardDemoTableComponent {
   readonly demoConstants = DEMOCONSTANTS;
   public isRefreshCall = signal(false);
   public showDeprecatedDemos = signal(false);
+  DEFAULT_DEMO_SUMMARY = '';
   demoOnBoardingStatus: DemoOnBoardingEnum[] = [
     DemoOnBoardingEnum.ACTIVE,
     DemoOnBoardingEnum.INACTIVE,
@@ -264,8 +267,10 @@ export class AdminOnboardDemoTableComponent {
       adminDemos: this.demoService.fetchAllDemos(),
       applications: this.adminService.fetchAllApplications(),
       organizationUnit: this.demoService.fetchAllOrganizations(),
+      appConfig: this.reservationService.getConfig(),
     }).subscribe({
       next: (data) => {
+        this.DEFAULT_DEMO_SUMMARY = data.appConfig.defaultDemoSummary || '';
         this.applicationList = data.applications;
         this.organizationUnit = data.organizationUnit;
         this.adminDemoList = data.adminDemos.map((item) => {
@@ -317,13 +322,13 @@ export class AdminOnboardDemoTableComponent {
       data: {
         application: this.applicationList,
         organizationUnit: this.organizationUnit,
+        defaultDemoSummary: this.DEFAULT_DEMO_SUMMARY,
         demoDetails: this.initialAdminDemoResponse.find(
           (item) => item.demo_id === demoId,
         ),
       },
     });
     dialogRef.afterClosed().subscribe((result) => {
-      console.log(result);
       if (result && typeof result.demo_id === 'string') {
         this.showSuccessDialog();
         const index = this.adminDemoList.findIndex(

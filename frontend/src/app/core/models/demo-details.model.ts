@@ -15,6 +15,7 @@ export interface DemoDetails {
   parent_bug_id: string;
   representative_profile: RepresentativeProfile;
   artifact_links: ArtifactsLinks[];
+  demo_summary?: string;
 }
 
 interface RepresentativeProfile {

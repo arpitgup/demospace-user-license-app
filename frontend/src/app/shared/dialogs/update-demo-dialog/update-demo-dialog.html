@@ -75,23 +75,28 @@
       <div [formArrayName]="APP_LINKS_ARRAY_FORM">
         @for (pair of appLinksFieldsPairs.controls; track $index) {
           <div [formGroupName]="$index" class="demo-details-wrapper">
-            <mat-form-field appearance="outline" class="custom-form-field">
-              <mat-label>{{ demoConstants.APP_LINK_TITLE }}</mat-label>
-              <input
-                matInput
-                [placeholder]="demoConstants.APP_LINK_TITLE + '*'"
-                [formControlName]="APP_LINK_TITLE_FORM"
-                maxlength="400"
-              />
-              @if (
-                pair.get(APP_LINK_TITLE_FORM)?.hasError("required") &&
-                pair.get(APP_LINK_TITLE_FORM)?.touched
-              ) {
-                <mat-error>{{
-                  demoConstants.APP_LINK_TITLE_REQUIRED
-                }}</mat-error>
-              }
-            </mat-form-field>
+            <div class="app-link-title-wrapper">
+              <mat-form-field appearance="outline" class="custom-form-field">
+                <mat-label>{{ demoConstants.APP_LINK_TITLE }}</mat-label>
+                <input
+                  matInput
+                  [placeholder]="demoConstants.APP_LINK_TITLE + '*'"
+                  [formControlName]="APP_LINK_TITLE_FORM"
+                  maxlength="400"
+                />
+                @if (
+                  pair.get(APP_LINK_TITLE_FORM)?.hasError("required") &&
+                  pair.get(APP_LINK_TITLE_FORM)?.touched
+                ) {
+                  <mat-error>{{
+                    demoConstants.APP_LINK_TITLE_REQUIRED
+                  }}</mat-error>
+                }
+              </mat-form-field>
+              <mat-checkbox [formControlName]="IS_CLICKABLE_FORM" class="make-link-clickable-checkbox">
+                {{ demoConstants.MAKE_LINK_CLICKABLE }}
+              </mat-checkbox>
+            </div>
 
             <mat-form-field appearance="outline" class="custom-form-field">
               <mat-label>{{ demoConstants.APP_LINK_VALUE }}</mat-label>
@@ -283,6 +288,22 @@
         </mat-form-field>
       </div>
 
+      <h2>{{ demoConstants.DEMO_SUMMARY }}</h2>
+      <div class="demo-summary-editor-wrapper">
+        <div class="editor-toolbar-header">
+          <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
+          <span class="summary-type-badge" [class.is-default]="isDefaultSummary()" [class.is-custom]="!isDefaultSummary()">
+            {{ isDefaultSummary() ? 'Default Demo Summary' : 'Custom Demo Summary' }}
+          </span>
+        </div>
+        <ngx-editor
+          [editor]="editor"
+          [formControlName]="DEMO_SUMMARY_FORM"
+          [placeholder]="'Demo Summary'"
+          outputFormat="html"
+        ></ngx-editor>
+      </div>
+
       <h2>{{ demoConstants.UPDATE_APPLICATIONS }}</h2>
 
       <mat-form-field
@@ -338,6 +359,7 @@
           </button>
         }
       </div>
+
       <div class="show-license-checkbox-wrapper">
         <mat-checkbox
           class="show-license-checkbox"

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -6,6 +6,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
 import {
@@ -29,6 +30,7 @@ import {
   MAX_DEMO_LINK_ADDITION_VALUE,
   MIN_DEMO_LINK_ADDITION_VALUE,
   NAME_VALIDATION,
+  stripHtml,
 } from '../../../../utilities/utils';
 import { ErrorDialog } from '../error-dialog/error-dialog';
 import { DemoOnBoardingEnum } from '../../../enums/admin-demo-onboarding.enums';
@@ -36,6 +38,7 @@ import { UpdateDemoRequest } from '../../../core/models/update-demo-request.mode
 import { DemoDetails } from '../../../core/models/demo-details.model';
 import { UpdateDemoConstants } from './update-demo.constants';
 import { ArtifactsLinks } from '../../../core/models/artifacts_link.model';
+import { Editor, NgxEditorModule, Toolbar } from 'ngx-editor';
 
 @Component({
   selector: 'app-update-demo-dialog',
@@ -49,16 +52,18 @@ import { ArtifactsLinks } from '../../../core/models/artifacts_link.model';
     MatIconModule,
     MatCheckbox,
     MatDialogModule,
+    NgxEditorModule,
   ],
   templateUrl: './update-demo-dialog.html',
   styleUrl: './update-demo-dialog.scss',
 })
-export class UpdateDemoDialog implements OnInit {
+export class UpdateDemoDialog implements OnInit, OnDestroy {
   dialogRef = inject(MatDialogRef<UpdateDemoDialog>);
   data = inject(MAT_DIALOG_DATA) as {
     application: Application[];
     organizationUnit: OrganizationUnit[];
     demoDetails: DemoDetails;
+    defaultDemoSummary: string;
   };
 
   demoOnBoardingStatus: DemoOnBoardingEnum[] = [
@@ -86,12 +91,27 @@ export class UpdateDemoDialog implements OnInit {
   readonly APP_LINKS_ARRAY_FORM = 'app_links_array_form';
   readonly APP_LINK_TITLE_FORM = 'app_link_title_form';
   readonly APP_LINK_VALUE_FORM = 'app_link_value_form';
+  readonly IS_CLICKABLE_FORM = 'is_clickable_form';
+  readonly DEMO_SUMMARY_FORM = 'demo_summary_form';
   readonly featureLicenseApp = signal<boolean>(false);
   readonly adminApplications = signal<Application[]>([]);
   readonly organizationUnit = signal<OrganizationUnit[]>([]);
   readonly selectedApplications = signal<Application[]>([]);
   readonly applicationErrorMessage = signal<string>('');
   public readonly errorMessage = signal<string>('');
+  private readonly resolvedDefaultSummary =
+    (this.data.defaultDemoSummary ?? '').replaceAll(
+      '{demo_id}',
+      this.data.demoDetails.demo_id || '',
+    );
+  readonly editorContent = signal<string>(
+    (this.data.demoDetails.demo_summary?.length ?? 0) > 0
+      ? (this.data.demoDetails.demo_summary ?? '')
+      : this.resolvedDefaultSummary,
+  );
+  readonly isDefaultSummary = computed(() => {
+    return this.editorContent() === this.resolvedDefaultSummary;
+  });
   readonly demoConstants = UpdateDemoConstants;
   readonly maxDemoLinks = MAX_DEMO_LINK_ADDITION_VALUE;
   readonly minDemoLinks = MIN_DEMO_LINK_ADDITION_VALUE;
@@ -139,6 +159,11 @@ export class UpdateDemoDialog implements OnInit {
     [this.APP_LINKS_ARRAY_FORM]: this.fb.array(
       this.existingAppLinksPairGroup(),
     ),
+    [this.DEMO_SUMMARY_FORM]: [
+      (this.data.demoDetails.demo_summary?.length ?? 0) > 0
+        ? (this.data.demoDetails.demo_summary ?? '')
+        : this.resolvedDefaultSummary,
+    ],
   });
 
   existingAppLinksPairGroup(): FormGroup[] {
@@ -152,6 +177,7 @@ export class UpdateDemoDialog implements OnInit {
               item.url,
               [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
             ],
+            [this.IS_CLICKABLE_FORM]: [item.is_clickable || false],
           }),
         );
       });
@@ -166,8 +192,11 @@ export class UpdateDemoDialog implements OnInit {
         '',
         [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
       ],
+      [this.IS_CLICKABLE_FORM]: [false],
     });
   }
+
+  private summarySubscription?: Subscription;
 
   ngOnInit(): void {
     this.adminApplications.update(() => this.data.application);
@@ -176,6 +205,11 @@ export class UpdateDemoDialog implements OnInit {
     );
     this.organizationUnit.update(() => this.data.organizationUnit);
     this.getDemoApplications(this.data.demoDetails.applicationIds);
+    this.summarySubscription = this.updateDemoForm
+      .get(this.DEMO_SUMMARY_FORM)
+      ?.valueChanges.subscribe((value: string) => {
+        this.editorContent.set(value || '');
+      });
   }
 
   addApp(app: Application): void {
@@ -212,6 +246,18 @@ export class UpdateDemoDialog implements OnInit {
 
   onSelecteLicenseReservation(isChecked: boolean) {
     this.featureLicenseApp.update(() => isChecked);
+  }
+
+  editor = new Editor();
+  toolbar: Toolbar = [
+    ['bold', 'italic', 'underline'],
+    ['bullet_list'],
+    ['link'],
+  ];
+
+  ngOnDestroy(): void {
+    this.editor.destroy();
+    this.summarySubscription?.unsubscribe();
   }
 
   get appLinksFieldsPairs(): FormArray {
@@ -259,6 +305,7 @@ export class UpdateDemoDialog implements OnInit {
           url:
             control.get(this.APP_LINK_VALUE_FORM)?.value?.toString()?.trim() ||
             '',
+          is_clickable: control.get(this.IS_CLICKABLE_FORM)?.value || false,
         });
       }
     });
@@ -301,6 +348,20 @@ export class UpdateDemoDialog implements OnInit {
           ?.value?.toString()
           ?.trim() || '',
       artifact_links: artifactsLinks,
+      demo_summary:
+        this.resolvedDefaultSummary ===
+          this.updateDemoForm.get(this.DEMO_SUMMARY_FORM)?.value?.toString() ||
+        ''
+          ? ''
+          : stripHtml(
+                this.updateDemoForm
+                  .get(this.DEMO_SUMMARY_FORM)
+                  ?.value?.toString() || '',
+              ).length > 0
+            ? this.updateDemoForm
+                .get(this.DEMO_SUMMARY_FORM)
+                ?.value?.toString() || ''
+            : '',
     };
     this.demoService
       .updateOnBoardDemo(payload, this.data.demoDetails.demo_id)

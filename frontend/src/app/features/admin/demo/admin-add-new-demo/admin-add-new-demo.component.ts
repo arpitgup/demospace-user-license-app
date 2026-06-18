@@ -1,7 +1,9 @@
 import {
   Component,
+  computed,
   EventEmitter,
   inject,
+  OnDestroy,
   OnInit,
   Output,
   signal,
@@ -13,6 +15,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -39,8 +42,11 @@ import {
   MAX_DEMO_LINK_ADDITION_VALUE,
   MIN_DEMO_LINK_ADDITION_VALUE,
   NAME_VALIDATION,
+  stripHtml,
 } from '../../../../../utilities/utils';
 import { ArtifactsLinks } from '../../../../core/models/artifacts_link.model';
+import { Editor, NgxEditorModule, Toolbar } from 'ngx-editor';
+import { ReservationService } from '../../../../core/services/reservation.service';
 
 @Component({
   selector: 'app-admin-add-new-demo',
@@ -54,14 +60,16 @@ import { ArtifactsLinks } from '../../../../core/models/artifacts_link.model';
     MatIconModule,
     MatCheckbox,
     ErrorMessage,
+    NgxEditorModule,
   ],
   templateUrl: './admin-add-new-demo.component.html',
   styleUrl: './admin-add-new-demo.component.scss',
 })
-export class AdminAddNewDemoComponent implements OnInit {
+export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   readonly loaderService = inject(LoaderService);
   readonly adminService = inject(AdminService);
+  readonly reservationService = inject(ReservationService);
   readonly demoService = inject(DemoService);
   readonly dialog = inject(MatDialog);
   readonly DEMO_ID_FORM = 'demo_id_form';
@@ -79,6 +87,8 @@ export class AdminAddNewDemoComponent implements OnInit {
   readonly APP_LINKS_ARRAY_FORM = 'app_links_array_form';
   readonly APP_LINK_TITLE_FORM = 'app_link_title_form';
   readonly APP_LINK_VALUE_FORM = 'app_link_value_form';
+  readonly IS_CLICKABLE_FORM = 'is_clickable_form';
+  readonly DEMO_SUMMARY_FORM = 'demo_summary_form';
   readonly featureLicenseApp = signal<boolean>(false);
   readonly adminApplications = signal<Application[]>([]);
   readonly organizationUnit = signal<OrganizationUnit[]>([]);
@@ -88,6 +98,12 @@ export class AdminAddNewDemoComponent implements OnInit {
   readonly demoConstants = DEMOCONSTANTS;
   readonly maxDemoLinks = MAX_DEMO_LINK_ADDITION_VALUE;
   readonly minDemoLinks = MIN_DEMO_LINK_ADDITION_VALUE;
+  DEFAULT_DEMO_SUMMARY = '';
+  readonly editorContent = signal<string>('');
+  readonly resolvedDefaultSummary = signal<string>('');
+  readonly isDefaultSummary = computed(() => {
+    return this.editorContent() === this.resolvedDefaultSummary();
+  });
   addDemoForm: FormGroup = this.fb.group({
     [this.DEMO_ID_FORM]: ['', Validators.required],
     [this.DEMO_TITLE_FORM]: ['', [Validators.required]],
@@ -112,6 +128,7 @@ export class AdminAddNewDemoComponent implements OnInit {
     [this.APP_LINKS_ARRAY_FORM]: this.fb.array([
       this.createAppLinksPairGroup(),
     ]),
+    [this.DEMO_SUMMARY_FORM]: [''],
   });
 
   createAppLinksPairGroup(): FormGroup {
@@ -121,12 +138,44 @@ export class AdminAddNewDemoComponent implements OnInit {
         '',
         [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
       ],
+      [this.IS_CLICKABLE_FORM]: [false],
     });
   }
   @Output() demoOnBoardSuccess = new EventEmitter();
 
+  private summarySubscription?: Subscription;
+  private demoIdSubscription?: Subscription;
+
   ngOnInit(): void {
     this.fetchAllAdminApplications();
+    this.summarySubscription = this.addDemoForm
+      .get(this.DEMO_SUMMARY_FORM)
+      ?.valueChanges.subscribe((value: string) => {
+        this.editorContent.set(value || '');
+      });
+    this.demoIdSubscription = this.addDemoForm
+      .get(this.DEMO_ID_FORM)
+      ?.valueChanges.subscribe((demoId: string) => {
+        this.updateResolvedSummary(demoId?.toString() || '');
+      });
+  }
+
+  private updateResolvedSummary(demoId: string): void {
+    const oldResolved = this.resolvedDefaultSummary();
+    const newResolved = this.DEFAULT_DEMO_SUMMARY.replaceAll(
+      '{demo_id}',
+      demoId,
+    );
+    this.resolvedDefaultSummary.set(newResolved);
+    // Only update the editor if it currently shows the old resolved default
+    if (
+      this.editorContent() === oldResolved ||
+      this.editorContent() === this.DEFAULT_DEMO_SUMMARY
+    ) {
+      this.addDemoForm
+        .get(this.DEMO_SUMMARY_FORM)
+        ?.setValue(newResolved, { emitEvent: true });
+    }
   }
   fetchAllAdminApplications() {
     this.errorMessage.update(() => '');
@@ -134,6 +183,7 @@ export class AdminAddNewDemoComponent implements OnInit {
     forkJoin({
       applications: this.adminService.fetchAllApplications(),
       organizationUnit: this.demoService.fetchAllOrganizations(),
+      appConfig: this.reservationService.getConfig(),
     }).subscribe({
       next: (res) => {
         this.errorMessage.update(() => '');
@@ -141,6 +191,20 @@ export class AdminAddNewDemoComponent implements OnInit {
         this.loaderService.hide();
         this.adminApplications.set(res.applications);
         this.organizationUnit.set(res.organizationUnit);
+        this.DEFAULT_DEMO_SUMMARY = res.appConfig.defaultDemoSummary || '';
+        const currentDemoId =
+          this.addDemoForm
+            .get(this.DEMO_ID_FORM)
+            ?.value?.toString() || '';
+        const resolved = this.DEFAULT_DEMO_SUMMARY.replaceAll(
+          '{demo_id}',
+          currentDemoId,
+        );
+        this.resolvedDefaultSummary.set(resolved);
+        this.addDemoForm
+          .get(this.DEMO_SUMMARY_FORM)
+          ?.setValue(resolved);
+        this.editorContent.set(resolved);
       },
       error: (error) => {
         this.loaderService.hide();
@@ -194,6 +258,19 @@ export class AdminAddNewDemoComponent implements OnInit {
     this.featureLicenseApp.update(() => isChecked);
   }
 
+  editor = new Editor();
+  toolbar: Toolbar = [
+    ['bold', 'italic', 'underline'],
+    ['bullet_list'],
+    ['link'],
+  ];
+
+  ngOnDestroy(): void {
+    this.editor.destroy();
+    this.summarySubscription?.unsubscribe();
+    this.demoIdSubscription?.unsubscribe();
+  }
+
   get appLinksFieldsPairs(): FormArray {
     return this.addDemoForm.get(this.APP_LINKS_ARRAY_FORM) as FormArray;
   }
@@ -241,6 +318,7 @@ export class AdminAddNewDemoComponent implements OnInit {
           url:
             control.get(this.APP_LINK_VALUE_FORM)?.value?.toString()?.trim() ||
             '',
+          is_clickable: control.get(this.IS_CLICKABLE_FORM)?.value || false,
         });
       }
     });
@@ -282,6 +360,18 @@ export class AdminAddNewDemoComponent implements OnInit {
           ?.value?.toString()
           ?.trim() || '',
       artifact_links: artifactsLinks,
+      demo_summary:
+        this.resolvedDefaultSummary() ===
+          this.addDemoForm.get(this.DEMO_SUMMARY_FORM)?.value?.toString() || ''
+          ? ''
+          : stripHtml(
+                this.addDemoForm
+                  .get(this.DEMO_SUMMARY_FORM)
+                  ?.value?.toString() || '',
+              ).length > 0
+            ? this.addDemoForm.get(this.DEMO_SUMMARY_FORM)?.value?.toString() ||
+              ''
+            : '',
     };
     this.demoService.createNewDemo(payload).subscribe({
       next: () => {
