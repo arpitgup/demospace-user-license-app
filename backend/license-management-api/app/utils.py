@@ -39,10 +39,16 @@ def provision_api_managed_licenses(reservation: Reservation):
         if app.license_type == ApplicationLicenseType.API_MANAGED
     ]
     for app in api_managed_apps:
-        box_service.provision_box_user(
-            user_email=reservation.user_email,
-            user_name=reservation.user_email,
-        )
+        if app.name.lower() == "box":
+            box_service.provision_box_user(
+                user_email=reservation.user_email,
+                user_name=reservation.user_email,
+            )
+        # Future API_MANAGED apps:
+        # elif app.name.lower() == "newapp":
+        #     newapp_service.provision_user(...)
+        else:
+            logger.warning(f"No provisioning handler for API_MANAGED app: {app.name}. Skipping.")
 
 
 def provision_app_licenses(reservation: Reservation):
@@ -74,7 +80,13 @@ def deprovision_api_managed_licenses(reservation: Reservation):
         if app.license_type == ApplicationLicenseType.API_MANAGED
     ]
     for app in api_managed_apps:
-        box_service.deprovision_box_user(user_email=reservation.user_email)
+        if app.name.lower() == "box":
+            box_service.deprovision_box_user(user_email=reservation.user_email)
+        # Future API_MANAGED apps:
+        # elif app.name.lower() == "newapp":
+        #     newapp_service.deprovision_user(...)
+        else:
+            logger.warning(f"No deprovisioning handler for API_MANAGED app: {app.name}. Skipping.")
 
 
 def deprovision_app_licenses(reservation: Reservation):
