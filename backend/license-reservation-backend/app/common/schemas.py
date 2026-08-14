@@ -195,8 +195,8 @@ class ApplicationCreateRequest(BaseModel):
     is_active: bool
     license_type: ApplicationLicenseType
     custom_SAML_attribute: Optional[str] = None
-    license_group: str
-    license_count: int    
+    license_group: Optional[str] = None
+    license_count: Optional[int] = None
 
 class ApplicationCreateResponse(BaseModel):
     id: int
