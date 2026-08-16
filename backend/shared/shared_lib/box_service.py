@@ -100,9 +100,14 @@ def provision_box_user(user_email: str, user_name: str):
                 logger.info(f"Box user {user_email} already exists and is active (ID: {existing_user.id}).")
                 return existing_user
 
-        # Create a new managed user
+        # Create a new managed user (exempt from login verification since
+        # the account is created programmatically for demo reservations)
         logger.info(f"Creating new Box managed user: {user_email}.")
-        new_user = client.create_user(name=user_name, login=user_email)
+        new_user = client.create_user(
+            name=user_name,
+            login=user_email,
+            is_exempt_from_login_verification=True,
+        )
         logger.info(f"Successfully created Box user {user_email} (ID: {new_user.id}).")
         return new_user
 
