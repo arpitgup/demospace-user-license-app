@@ -1,4 +1,6 @@
 import os
+import secrets
+import string
 
 from boxsdk import CCGAuth, Client
 from boxsdk.exception import BoxAPIException
@@ -15,7 +17,7 @@ def setup_box_client():
         - GCP_PROJECT_ID: GCP project containing the secrets.
         - BOX_CLIENT_ID_SECRET_NAME: Secret Manager secret name for the Box Client ID.
         - BOX_CLIENT_SECRET_SECRET_NAME: Secret Manager secret name for the Box Client Secret.
-        - BOX_ENTERPRISE_ID: The Box Enterprise ID.
+        - BOX_ENTERPRISE_ID_SECRET_NAME: Secret Manager secret name for the Box Enterprise ID.
     """
     project_id = os.getenv("GCP_PROJECT_ID")
     box_client_id_secret = os.getenv("BOX_CLIENT_ID_SECRET_NAME")
@@ -30,7 +32,7 @@ def setup_box_client():
         logger.error(
             "Box client configuration is incomplete. "
             "Ensure BOX_CLIENT_ID_SECRET_NAME, BOX_CLIENT_SECRET_SECRET_NAME, "
-            "and BOX_ENTERPRISE_ID environment variables are set correctly."
+            "and BOX_ENTERPRISE_ID_SECRET_NAME environment variables are set correctly."
         )
         raise ValueError("Incomplete Box client configuration.")
 
@@ -79,7 +81,8 @@ def provision_box_user(user_email: str, user_name: str):
     Provisions a managed user in Box.
 
     If a user with the given email already exists and is inactive, reactivates them.
-    If no user exists, creates a new managed user.
+    If no user exists, creates a new managed user with a random password so the
+    account is immediately activated (users authenticate via SSO, never use this password).
 
     Args:
         user_email: The email/login for the new Box user (matches reservation.user_email).
@@ -100,13 +103,23 @@ def provision_box_user(user_email: str, user_name: str):
                 logger.info(f"Box user {user_email} already exists and is active (ID: {existing_user.id}).")
                 return existing_user
 
-        # Create a new managed user (exempt from login verification since
-        # the account is created programmatically for demo reservations)
+        # Create a new managed user.
+        # A random password is set so the account is immediately activated
+        # and the user skips Box's email-confirmation/set-password flow.
+        # Since users authenticate via SSO, this password is never used.
         logger.info(f"Creating new Box managed user: {user_email}.")
+        random_password = ''.join(
+            secrets.choice(string.ascii_letters + string.digits + "!@#$%&*")
+            for _ in range(24)
+        )
         new_user = client.create_user(
             name=user_name,
             login=user_email,
+            is_platform_access_only=False,
+            is_exempt_from_device_limits=True,
             is_exempt_from_login_verification=True,
+            is_external_collab_restricted=False,
+            password=random_password,
         )
         logger.info(f"Successfully created Box user {user_email} (ID: {new_user.id}).")
         return new_user
