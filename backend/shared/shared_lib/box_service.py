@@ -8,8 +8,8 @@ from .utils import get_secret_value
 from . import admin_service
 
 
-# Google Workspace group for Box SSO access
-BOX_IDP_GROUP_EMAIL = "godemos-jira-3p-user-access-group@1987984870407.altostrat.com"
+# Google Workspace group for Box IDP access
+BOX_IDP_GROUP_EMAIL = "godemos-box-3p-user-access-group@1987984870407.altostrat.com"
 
 # The Box group users are added to during provisioning
 BOX_UNIVERSAL_DEMO_USER_GROUP_ID = "28386654218"
