@@ -7,7 +7,7 @@ COPY shared /app/shared
 # Installs any needed packages specified in requirements.txt.
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir /app/shared
-# Create a non-root user to run the applications
+# Create a non-root user to run the applications.
 RUN adduser --disabled-password --gecos "" myuser && \
     chown -R myuser:myuser /app
 # Copy the rest of the application's code to the working directory
