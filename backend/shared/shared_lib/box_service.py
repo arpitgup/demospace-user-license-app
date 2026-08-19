@@ -5,7 +5,11 @@ from boxsdk.exception import BoxAPIException
 from loguru import logger
 
 from .utils import get_secret_value
+from . import admin_service
 
+
+# Google Workspace group for Box SSO access
+BOX_IDP_GROUP_EMAIL = "godemos-jira-3p-user-access-group@1987984870407.altostrat.com"
 
 # The Box group users are added to during provisioning
 BOX_UNIVERSAL_DEMO_USER_GROUP_ID = "28386654218"
@@ -76,7 +80,7 @@ def _get_demo_group():
         return None
 
 
-def _add_user_to_group(user, group):
+def _add_user_to_box_group(user, group):
     """
     Adds a Box user to a Box group.
     Handles 409 Conflict gracefully if the user is already a member.
@@ -92,7 +96,7 @@ def _add_user_to_group(user, group):
             raise
 
 
-def _remove_user_from_group(user, group):
+def _remove_user_from_box_group(user, group):
     """
     Removes a Box user from a Box group by finding and deleting their membership.
     """
@@ -155,18 +159,21 @@ def provision_box_user(user_email: str, user_name: str):
                 logger.info(f"Reactivating inactive Box user {user_email} (ID: {existing_user.id}).")
                 updated_user = existing_user.update_info(data={"status": "active"})
                 logger.info(f"Successfully reactivated Box user {user_email}.")
-                _ensure_group_membership(updated_user)
+                _ensure_idp_group_membership(user_email)
+                _ensure_box_group_membership(updated_user)
                 return updated_user
             else:
                 logger.info(f"Box user {user_email} already exists and is active (ID: {existing_user.id}).")
-                _ensure_group_membership(existing_user)
+                _ensure_idp_group_membership(user_email)
+                _ensure_box_group_membership(existing_user)
                 return existing_user
 
         # Create a new managed user
         logger.info(f"Creating new Box managed user: {user_email}.")
         new_user = client.create_user(name=user_name, login=user_email)
         logger.info(f"Successfully created Box user {user_email} (ID: {new_user.id}).")
-        _ensure_group_membership(new_user)
+        _ensure_idp_group_membership(user_email)
+        _ensure_box_group_membership(new_user)
         return new_user
 
     except BoxAPIException as e:
@@ -180,11 +187,37 @@ def provision_box_user(user_email: str, user_name: str):
         raise
 
 
-def _ensure_group_membership(user):
-    """Adds the user to the demo group."""
+def _ensure_idp_group_membership(user_email: str):
+    """Adds the user to the Google Workspace IDP group for Box access."""
+    try:
+        admin_service.add_user_to_group(
+            user_email=user_email,
+            group_email=BOX_IDP_GROUP_EMAIL,
+        )
+        logger.info(f"[Box] Added {user_email} to IDP group '{BOX_IDP_GROUP_EMAIL}'.")
+    except Exception as e:
+        logger.error(f"[Box] Error adding {user_email} to IDP group: {e}")
+        raise
+
+
+def _remove_idp_group_membership(user_email: str):
+    """Removes the user from the Google Workspace IDP group for Box access."""
+    try:
+        admin_service.remove_user_from_group(
+            user_email=user_email,
+            group_email=BOX_IDP_GROUP_EMAIL,
+        )
+        logger.info(f"[Box] Removed {user_email} from IDP group '{BOX_IDP_GROUP_EMAIL}'.")
+    except Exception as e:
+        logger.error(f"[Box] Error removing {user_email} from IDP group: {e}")
+        raise
+
+
+def _ensure_box_group_membership(user):
+    """Adds the user to the Box Universal Demo Users group."""
     group = _get_demo_group()
     if group:
-        _add_user_to_group(user, group)
+        _add_user_to_box_group(user, group)
     else:
         logger.warning(f"[Box] Skipping group assignment — group ID '{BOX_UNIVERSAL_DEMO_USER_GROUP_ID}' not found.")
 
@@ -206,10 +239,11 @@ def deprovision_box_user(user_email: str):
             logger.warning(f"Cannot deprovision Box user {user_email}: user not found.")
             return
 
-        # Remove from demo group first
+        # Remove from IDP group first, then from Box group
+        _remove_idp_group_membership(user_email)
         group = _get_demo_group()
         if group:
-            _remove_user_from_group(existing_user, group)
+            _remove_user_from_box_group(existing_user, group)
 
         if existing_user.status == "inactive":
             logger.info(f"Box user {user_email} is already inactive. No action needed.")
