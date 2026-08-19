@@ -1,12 +1,14 @@
 import os
-import secrets
-import string
 
 from boxsdk import CCGAuth, Client
 from boxsdk.exception import BoxAPIException
 from loguru import logger
 
 from .utils import get_secret_value
+
+
+# The Box group users are added to during provisioning
+BOX_UNIVERSAL_DEMO_USER_GROUP_ID = "28386654218"
 
 
 def setup_box_client():
@@ -56,6 +58,61 @@ def _get_box_client():
     return _box_client
 
 
+# ---------------------------------------------------------------------------
+# Group helpers
+# ---------------------------------------------------------------------------
+
+def _get_demo_group():
+    """
+    Returns the Box demo group object by its ID.
+    """
+    client = _get_box_client()
+    try:
+        group = client.group(group_id=BOX_UNIVERSAL_DEMO_USER_GROUP_ID).get()
+        logger.info(f"[Box] Found group '{group.name}' (ID: {group.id}).")
+        return group
+    except BoxAPIException as e:
+        logger.error(f"[Box] Error looking up group ID '{BOX_UNIVERSAL_DEMO_USER_GROUP_ID}': {e}")
+        return None
+
+
+def _add_user_to_group(user, group):
+    """
+    Adds a Box user to a Box group.
+    Handles 409 Conflict gracefully if the user is already a member.
+    """
+    try:
+        group.add_member(user)
+        logger.info(f"[Box] Added user {user.login} to group '{group.name}'.")
+    except BoxAPIException as e:
+        if e.status == 409:
+            logger.info(f"[Box] User {user.login} is already a member of group '{group.name}'.")
+        else:
+            logger.error(f"[Box] Error adding user {user.login} to group '{group.name}': {e}")
+            raise
+
+
+def _remove_user_from_group(user, group):
+    """
+    Removes a Box user from a Box group by finding and deleting their membership.
+    """
+    try:
+        memberships = group.get_memberships()
+        for membership in memberships:
+            if membership.user["id"] == user.id:
+                membership.delete()
+                logger.info(f"[Box] Removed user {user.login} from group '{group.name}'.")
+                return
+        logger.info(f"[Box] User {user.login} is not a member of group '{group.name}'. No action needed.")
+    except BoxAPIException as e:
+        logger.error(f"[Box] Error removing user {user.login} from group '{group.name}': {e}")
+        raise
+
+
+# ---------------------------------------------------------------------------
+# Provision / Deprovision
+# ---------------------------------------------------------------------------
+
 def get_box_user_by_email(user_email: str):
     """
     Looks up a Box managed user by their login email.
@@ -78,11 +135,11 @@ def get_box_user_by_email(user_email: str):
 
 def provision_box_user(user_email: str, user_name: str):
     """
-    Provisions a managed user in Box.
+    Provisions a managed user in Box and adds them to the demo group.
 
-    If a user with the given email already exists and is inactive, reactivates them.
-    If no user exists, creates a new managed user with a random password so the
-    account is immediately activated (users authenticate via SSO, never use this password).
+    - If user exists and is inactive → reactivates and adds to group.
+    - If user exists and is active → ensures group membership.
+    - If no user exists → creates and adds to group.
 
     Args:
         user_email: The email/login for the new Box user (matches reservation.user_email).
@@ -98,30 +155,18 @@ def provision_box_user(user_email: str, user_name: str):
                 logger.info(f"Reactivating inactive Box user {user_email} (ID: {existing_user.id}).")
                 updated_user = existing_user.update_info(data={"status": "active"})
                 logger.info(f"Successfully reactivated Box user {user_email}.")
+                _ensure_group_membership(updated_user)
                 return updated_user
             else:
                 logger.info(f"Box user {user_email} already exists and is active (ID: {existing_user.id}).")
+                _ensure_group_membership(existing_user)
                 return existing_user
 
-        # Create a new managed user.
-        # A random password is set so the account is immediately activated
-        # and the user skips Box's email-confirmation/set-password flow.
-        # Since users authenticate via SSO, this password is never used.
+        # Create a new managed user
         logger.info(f"Creating new Box managed user: {user_email}.")
-        random_password = ''.join(
-            secrets.choice(string.ascii_letters + string.digits + "!@#$%&*")
-            for _ in range(24)
-        )
-        new_user = client.create_user(
-            name=user_name,
-            login=user_email,
-            is_platform_access_only=False,
-            is_exempt_from_device_limits=True,
-            is_exempt_from_login_verification=True,
-            is_external_collab_restricted=False,
-            password=random_password,
-        )
+        new_user = client.create_user(name=user_name, login=user_email)
         logger.info(f"Successfully created Box user {user_email} (ID: {new_user.id}).")
+        _ensure_group_membership(new_user)
         return new_user
 
     except BoxAPIException as e:
@@ -135,9 +180,19 @@ def provision_box_user(user_email: str, user_name: str):
         raise
 
 
+def _ensure_group_membership(user):
+    """Adds the user to the demo group."""
+    group = _get_demo_group()
+    if group:
+        _add_user_to_group(user, group)
+    else:
+        logger.warning(f"[Box] Skipping group assignment — group ID '{BOX_UNIVERSAL_DEMO_USER_GROUP_ID}' not found.")
+
+
 def deprovision_box_user(user_email: str):
     """
-    Deprovisions a Box user by setting their status to 'inactive'.
+    Deprovisions a Box user by removing them from the demo group
+    and setting their status to 'inactive'.
 
     This does NOT delete the user — it only deactivates them,
     preserving their data and content in Box.
@@ -150,6 +205,11 @@ def deprovision_box_user(user_email: str):
         if not existing_user:
             logger.warning(f"Cannot deprovision Box user {user_email}: user not found.")
             return
+
+        # Remove from demo group first
+        group = _get_demo_group()
+        if group:
+            _remove_user_from_group(existing_user, group)
 
         if existing_user.status == "inactive":
             logger.info(f"Box user {user_email} is already inactive. No action needed.")
