@@ -7,8 +7,9 @@ from loguru import logger
 from .utils import get_secret_value
 
 
-# The Box group users are added to during provisioning
-BOX_UNIVERSAL_DEMO_USER_GROUP_ID = "28386654218"
+# Box groups users are added to during provisioning
+BOX_DEMOUSER_READONLY_GROUP_ID = "28386654218"   # Universal-Demo-Users-Group (Read Only)
+BOX_DEMOUSER_READWRITE_GROUP_ID = "28408134467"  # Universal-Demo-Users-Group-Read/Write
 
 
 def setup_box_client():
@@ -62,17 +63,17 @@ def _get_box_client():
 # Group helpers
 # ---------------------------------------------------------------------------
 
-def _get_demo_group():
+def _get_box_group(group_id: str):
     """
-    Returns the Box demo group object by its ID.
+    Returns a Box group object by its ID.
     """
     client = _get_box_client()
     try:
-        group = client.group(group_id=BOX_UNIVERSAL_DEMO_USER_GROUP_ID).get()
+        group = client.group(group_id=group_id).get()
         logger.info(f"[Box] Found group '{group.name}' (ID: {group.id}).")
         return group
     except BoxAPIException as e:
-        logger.error(f"[Box] Error looking up group ID '{BOX_UNIVERSAL_DEMO_USER_GROUP_ID}': {e}")
+        logger.error(f"[Box] Error looking up group ID '{group_id}': {e}")
         return None
 
 
@@ -181,12 +182,13 @@ def provision_box_user(user_email: str, user_name: str):
 
 
 def _ensure_box_group_membership(user):
-    """Adds the user to the Box Universal Demo Users group."""
-    group = _get_demo_group()
-    if group:
-        _add_user_to_box_group(user, group)
-    else:
-        logger.warning(f"[Box] Skipping group assignment — group ID '{BOX_UNIVERSAL_DEMO_USER_GROUP_ID}' not found.")
+    """Adds the user to both Box demo groups (read-only and read/write)."""
+    for group_id in [BOX_DEMOUSER_READONLY_GROUP_ID, BOX_DEMOUSER_READWRITE_GROUP_ID]:
+        group = _get_box_group(group_id)
+        if group:
+            _add_user_to_box_group(user, group)
+        else:
+            logger.warning(f"[Box] Skipping group assignment — group ID '{group_id}' not found.")
 
 
 def deprovision_box_user(user_email: str):
@@ -206,10 +208,11 @@ def deprovision_box_user(user_email: str):
             logger.warning(f"Cannot deprovision Box user {user_email}: user not found.")
             return
 
-        # Remove from Box group
-        group = _get_demo_group()
-        if group:
-            _remove_user_from_box_group(existing_user, group)
+        # Remove from both Box groups
+        for group_id in [BOX_DEMOUSER_READONLY_GROUP_ID, BOX_DEMOUSER_READWRITE_GROUP_ID]:
+            group = _get_box_group(group_id)
+            if group:
+                _remove_user_from_box_group(existing_user, group)
 
         if existing_user.status == "inactive":
             logger.info(f"Box user {user_email} is already inactive. No action needed.")
