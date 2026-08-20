@@ -4,7 +4,7 @@ from boxsdk import CCGAuth, Client
 from boxsdk.exception import BoxAPIException
 from loguru import logger
 
-from .utils import get_secret_value
+from shared_lib.utils import get_secret_value
 
 
 # Box group users are added to during provisioning

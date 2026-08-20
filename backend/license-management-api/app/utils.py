@@ -2,7 +2,8 @@ from fastapi import Depends
 from shared_lib.dependencies import get_db
 from sqlalchemy.orm import Session
 from loguru import logger
-from shared_lib import admin_service, box_service
+from shared_lib import admin_service
+from shared_lib.thirdparty_services import box_service
 from shared_lib.db.models import Reservation, ApplicationLicenseType, Application, ApplicationDowntime
 from shared_lib.enums import DowntimeStatus
 
