@@ -3,6 +3,7 @@ from shared_lib.dependencies import get_db
 from sqlalchemy.orm import Session
 from loguru import logger
 from shared_lib import admin_service
+from shared_lib.thirdparty_services import box_service
 from shared_lib.db.models import Reservation, ApplicationLicenseType, Application, ApplicationDowntime
 from shared_lib.enums import DowntimeStatus
 
@@ -32,9 +33,29 @@ def provision_environment_licenses(reservation: Reservation):
         )
 
 
+def provision_api_managed_licenses(reservation: Reservation):
+    api_managed_apps = [
+        app
+        for app in reservation.applications
+        if app.license_type == ApplicationLicenseType.API_MANAGED
+    ]
+    for app in api_managed_apps:
+        if app.name.lower() == "box":
+            box_service.provision_box_user(
+                user_email=reservation.user_email,
+                user_name=reservation.user_email,
+            )
+        # Future API_MANAGED apps:
+        # elif app.name.lower() == "newapp":
+        #     newapp_service.provision_user(...)
+        else:
+            logger.warning(f"No provisioning handler for API_MANAGED app: {app.name}. Skipping.")
+
+
 def provision_app_licenses(reservation: Reservation):
     provision_subscription_licenses(reservation)
     provision_environment_licenses(reservation)
+    provision_api_managed_licenses(reservation)
 
 
 def deprovision_subscription_licenses(reservation: Reservation):
@@ -53,9 +74,26 @@ def deprovision_environment_licenses(reservation: Reservation):
         )
 
 
+def deprovision_api_managed_licenses(reservation: Reservation):
+    api_managed_apps = [
+        app
+        for app in reservation.applications
+        if app.license_type == ApplicationLicenseType.API_MANAGED
+    ]
+    for app in api_managed_apps:
+        if app.name.lower() == "box":
+            box_service.deprovision_box_user(user_email=reservation.user_email)
+        # Future API_MANAGED apps:
+        # elif app.name.lower() == "newapp":
+        #     newapp_service.deprovision_user(...)
+        else:
+            logger.warning(f"No deprovisioning handler for API_MANAGED app: {app.name}. Skipping.")
+
+
 def deprovision_app_licenses(reservation: Reservation):
     deprovision_subscription_licenses(reservation)
     deprovision_environment_licenses(reservation)
+    deprovision_api_managed_licenses(reservation)
 
 def deactivate_applications(downtime_id: int, db: Session = Depends(get_db)):
     """Deactivates applications associated with a downtime entry."""
