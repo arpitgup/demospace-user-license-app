@@ -21,6 +21,9 @@ triggers:
     _DB_PASSWORD_SECRET_NAME: "license-reservation-db-password"
     _DELEGATED_ADMIN: "arpitgup@1987984870407.altostrat.com"
     _ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME: "license-reservation-auth-sa-key"
+    _BOX_ENTERPRISE_ID_SECRET_NAME: "box-enterprise-id"
+    _BOX_CLIENT_ID_SECRET_NAME: "box-client-id"
+    _BOX_CLIENT_SECRET_SECRET_NAME: "box-client-secret"
 - name: godemos-licenseapp-backend-dev
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/backend-cloudbuild.yaml
@@ -158,6 +161,9 @@ triggers:
     _DB_PASSWORD_SECRET_NAME: "license-reservation-db-password-preprod"
     _DELEGATED_ADMIN: "arpitgup@1987984870407.altostrat.com"
     _ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME: "license-reservation-auth-sa-key"
+    _BOX_ENTERPRISE_ID_SECRET_NAME: "box-enterprise-id"
+    _BOX_CLIENT_ID_SECRET_NAME: "box-client-id"
+    _BOX_CLIENT_SECRET_SECRET_NAME: "box-client-secret"
 - name: godemos-licenseapp-backend-preprod
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/backend-cloudbuild.yaml
@@ -225,6 +231,9 @@ triggers:
     _DB_PASSWORD_SECRET_NAME: "license-reservation-db-password-prod"
     _DELEGATED_ADMIN: "arpitgup@1987984870407.altostrat.com"
     _ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME: "license-reservation-auth-sa-key"
+    _BOX_ENTERPRISE_ID_SECRET_NAME: "box-enterprise-id"
+    _BOX_CLIENT_ID_SECRET_NAME: "box-client-id"
+    _BOX_CLIENT_SECRET_SECRET_NAME: "box-client-secret"
 - name: godemos-licenseapp-backend-prod
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/backend-cloudbuild.yaml
