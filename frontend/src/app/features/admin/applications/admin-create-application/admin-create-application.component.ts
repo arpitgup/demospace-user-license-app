@@ -56,6 +56,7 @@ export class AdminCreateApplicationComponent implements OnInit {
   applicationTypeList: ApplicationType[] = [
     { id: AdminCreateApplicationEnums.ENVIRONMENT, name: 'Environment' },
     { id: AdminCreateApplicationEnums.SUBSCRIPTION, name: 'Subscription' },
+    { id: AdminCreateApplicationEnums.API_MANAGED, name: 'API Managed' },
   ];
 
   createApplicationForm: FormGroup = this.fb.group({
@@ -103,6 +104,19 @@ export class AdminCreateApplicationComponent implements OnInit {
           //     Validators.required,
           //     Validators.pattern('^[a-zA-Z]+$'),
           //   ]);
+        } else if (newValue === AdminCreateApplicationEnums.API_MANAGED) {
+          this.createApplicationForm
+            .get(this.PLATFORM_GROUP_EMAIL_FORM)
+            ?.setValidators([]);
+          this.createApplicationForm
+            .get(this.SAML_GROUP_NAME_FORM)
+            ?.setValidators([]);
+          this.createApplicationForm
+            .get(this.NUMBER_OF_LICENSES_FORM)
+            ?.setValidators([]);
+          this.createApplicationForm
+            .get(this.NUMBER_OF_LICENSES_FORM)
+            ?.updateValueAndValidity();
         }
         this.createApplicationForm
           .get(this.SAML_GROUP_NAME_FORM)

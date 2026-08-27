@@ -63,7 +63,7 @@ class Application(Base):
     license_type = Column(
         PGEnum(ApplicationLicenseType), default=ApplicationLicenseType.SUBSCRIPTION
     )
-    custom_SAML_attribute = Column(String, nullable=False)
+    custom_SAML_attribute = Column(String, nullable=True)
     license_group = Column(String, nullable=True)
     license_count = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))    

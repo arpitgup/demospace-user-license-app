@@ -254,12 +254,18 @@ def create_applications(
             custom_schema_created = create_custom_schema(custom_schema_name, ACCOUNT_CUSTOMERID)
             application_data['custom_SAML_attribute'] = custom_schema_name
 
-        elif req.license_group:
-            if not is_group_exists(req.license_group):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"{req.license_group} is not a valid group.",
-                )
+        elif req.license_type == ApplicationLicenseType.ENVIRONMENT:
+            if req.license_group:
+                if not is_group_exists(req.license_group):
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"{req.license_group} is not a valid group.",
+                    )
+
+        elif req.license_type == ApplicationLicenseType.API_MANAGED:
+            # API_MANAGED apps (e.g., Box) are managed directly via their own API.
+            # No SAML schema or group validation required.
+            logger.info(f"Creating API_MANAGED application: {req.name}. License managed via external API.")
 
         application_data['created_by'] = user_email
         new_application = Application(**application_data)
