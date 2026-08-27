@@ -10,6 +10,7 @@ class ReservationStatus(str, Enum):
 class ApplicationLicenseType(str, Enum):
     SUBSCRIPTION = "SUBSCRIPTION"
     ENVIRONMENT = "ENVIRONMENT"
+    API_MANAGED = "API_MANAGED"
 
 class DowntimeStatus(str, Enum):
     PENDING = "PENDING"

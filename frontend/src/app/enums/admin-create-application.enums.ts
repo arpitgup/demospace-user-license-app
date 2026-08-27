@@ -1,4 +1,5 @@
 export enum AdminCreateApplicationEnums {
   ENVIRONMENT = 'ENVIRONMENT',
   SUBSCRIPTION = 'SUBSCRIPTION',
+  API_MANAGED = 'API_MANAGED',
 }
