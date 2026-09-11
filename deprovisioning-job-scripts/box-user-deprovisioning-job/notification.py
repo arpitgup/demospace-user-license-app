@@ -5,6 +5,7 @@ Sends a summary HTML report to the admin group after each job run.
 """
 
 import base64
+import os
 from datetime import datetime, timezone
 from email.message import EmailMessage
 from typing import List
@@ -16,8 +17,7 @@ from shared_lib.email_service import get_email_service
 
 # --- Email Constants ---
 NOTIFICATION_SENDER_EMAIL = "no-reply@1987984870407.altostrat.com"
-PORTAL_ADMIN_GROUP_EMAIL = "agentspace-license-app-admin@1987984870407.altostrat.com"
-
+PORTAL_ADMIN_GROUP_EMAIL = "arpitgup@google.com, tasbirimam@google.com, simandi@google.com"
 
 def send_deprovisioning_summary_email(
     dry_run: bool,
