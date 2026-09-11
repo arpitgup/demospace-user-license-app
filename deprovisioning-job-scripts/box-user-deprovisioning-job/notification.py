@@ -5,7 +5,6 @@ Sends a summary HTML report to the admin group after each job run.
 """
 
 import base64
-import os
 from datetime import datetime, timezone
 from email.message import EmailMessage
 from typing import List
@@ -15,14 +14,19 @@ from loguru import logger
 from shared_lib.email_service import get_email_service
 
 
+# --- Email Constants ---
+NOTIFICATION_SENDER_EMAIL = "no-reply@1987984870407.altostrat.com"
+PORTAL_ADMIN_GROUP_EMAIL = "agentspace-license-app-admin@1987984870407.altostrat.com"
+
+
 def send_deprovisioning_summary_email(
     dry_run: bool,
     total_scanned: int,
     users_deleted: List[dict],
     users_kept: List[dict],
     errors: List[dict],
-    admin_email: str = None,
-    sender_email: str = None,
+    admin_email: str = PORTAL_ADMIN_GROUP_EMAIL,
+    sender_email: str = NOTIFICATION_SENDER_EMAIL,
 ):
     """
     Send a summary email to the admin group after a deprovisioning job run.
@@ -36,11 +40,6 @@ def send_deprovisioning_summary_email(
         admin_email: Recipient admin group email.
         sender_email: Sender email address.
     """
-    if not admin_email:
-        admin_email = os.getenv("PORTAL_ADMIN_GROUP_EMAIL")
-    if not sender_email:
-        sender_email = os.getenv("NOTIFICATION_SENDER_EMAIL", admin_email)
-
     if not admin_email:
         logger.warning(
             "No admin email configured. Skipping notification email."
