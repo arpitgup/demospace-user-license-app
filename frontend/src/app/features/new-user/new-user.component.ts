@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTabsModule } from '@angular/material/tabs';
 import {
   CHAT_SPACE_URL,
   DEMO_PAGE_URL,
@@ -12,7 +11,7 @@ import { AppInstructions } from '../../core/models/app-instructions.model';
 
 @Component({
   selector: 'app-new-user',
-  imports: [MatExpansionModule, MatIconModule, MatTabsModule],
+  imports: [MatExpansionModule, MatIconModule],
   templateUrl: './new-user.component.html',
   styleUrl: './new-user.component.scss',
 })

@@ -47,47 +47,40 @@
       display: block;
     }
 
-    .demo-app-tabs {
+    .instruction-text {
+      font-size: 1.05rem;
+      font-family: Roboto, sans-serif;
+      color: #333;
       margin-top: 0.5rem;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
 
-      .tab-content {
-        padding: 1.25rem 0.5rem;
+    .instruction-list {
+      margin: 0.75rem 0 1.25rem 0;
+      padding-left: 1.5rem;
 
-        .instruction-text {
-          font-size: 1.05rem;
-          font-family: Roboto, sans-serif;
-          color: #333;
-          margin-bottom: 1rem;
-          line-height: 1.5;
+      li {
+        font-size: 1rem;
+        font-family: Roboto, sans-serif;
+        color: #333;
+        line-height: 1.6;
+        margin-bottom: 0.75rem;
+
+        code {
+          background-color: #f1f3f4;
+          padding: 0.15rem 0.4rem;
+          border-radius: 4px;
+          font-family: monospace;
+          font-size: 0.95rem;
+          color: #1a73e8;
         }
 
-        .instruction-list {
-          margin: 0 0 1.25rem 0;
-          padding-left: 1.5rem;
-
-          li {
-            font-size: 1rem;
-            font-family: Roboto, sans-serif;
-            color: #333;
-            line-height: 1.6;
-            margin-bottom: 0.75rem;
-
-            code {
-              background-color: #f1f3f4;
-              padding: 0.15rem 0.4rem;
-              border-radius: 4px;
-              font-family: monospace;
-              font-size: 0.95rem;
-              color: #1a73e8;
-            }
-
-            .sub-note {
-              display: block;
-              font-style: italic;
-              color: #666;
-              margin-top: 0.25rem;
-            }
-          }
+        .sub-note {
+          display: block;
+          font-style: italic;
+          color: #666;
+          margin-top: 0.25rem;
         }
       }
     }
