@@ -90,30 +90,94 @@
   <mat-accordion class="panel-wrapper">
     <mat-expansion-panel>
       <mat-expansion-panel-header>
-        <mat-panel-title class="title">Access Demo App</mat-panel-title>
+        <mat-panel-title class="title">Open Demo Application</mat-panel-title>
       </mat-expansion-panel-header>
-      <img
-        src="assets/images/new_demo_user_profile.png"
-        alt="agentspace"
-        class="image-wrapper"
-      />
-      <div class="note-container">
-        <div class="note-wrapper">
-          <p>
-            NOTE: This is a sample image. Your application may look different
-            according to your demo.
-          </p>
-        </div>
-      </div>
-      <div class="title">
-        If applicable, open the demo drive link provided in your demo user’s
-        profile.
-      </div>
-      <img
-        src="assets/images/new_gmail_drive.png"
-        alt="agentspace"
-        class="image-wrapper"
-      />
+
+      <mat-tab-group class="demo-app-tabs">
+        <!-- Subtab 1: Copy GE App Link -->
+        <mat-tab label="Copy GE App Link">
+          <div class="tab-content">
+            <p class="instruction-text">
+              Copy the link of Gemini Enterprise Demo Application.
+            </p>
+            <img
+              [src]="geAppLinkImage"
+              alt="Gemini Enterprise Demo Application Link"
+              class="image-wrapper"
+            />
+          </div>
+        </mat-tab>
+
+        <!-- Subtab 2: For Mac & Windows -->
+        <mat-tab label="For Mac & Windows">
+          <div class="tab-content">
+            <ol class="instruction-list">
+              <li>Select <strong>“Work”</strong> profile from top right of Chrome browser.</li>
+              <li>
+                Select the profile you created under the <strong>“Other Chrome Profiles”</strong> section, e.g.,
+                <code>&#123;First Name&#125; (Neuravibe)</code>.
+              </li>
+              <li>This should open a new browser with your demo credentials.</li>
+              <li>Copy and paste the <strong>GE APP Link</strong>.</li>
+              <li>Save this location as a bookmark (<code>Command + d</code> on Mac or <code>Ctrl + d</code> on Windows).</li>
+              <li>Going forward you can now access demos by selecting your new profile.</li>
+            </ol>
+          </div>
+        </mat-tab>
+
+        <!-- Subtab 3: 403 Error Handling -->
+        <mat-tab label="403 Error Handling">
+          <div class="tab-content">
+            <ol class="instruction-list">
+              <li>Open a new browser window and paste the GE app link.</li>
+              <li>Make sure that you are logged in GE app url using the demospace account.</li>
+              <li>
+                If you see a <strong>403 error</strong>, it's most likely because Chrome takes a default account
+                (<code>ldap&#64;google.com</code>) to login. In such a case, select the profile icon in the bottom left
+                corner and select your demo user login credentials as shown in the picture below.
+              </li>
+              <li>
+                Save this location as a bookmark (<code>Ctrl + d</code> / <code>Command + d</code>).
+                <span class="sub-note">(Note: you might want to create a designated folder for this as well to manage your “Accounts”)</span>
+              </li>
+              <li>Going forward you can simply select the bookmark to access your demo.</li>
+            </ol>
+            <img
+              [src]="geAppErrorImage"
+              alt="403 Error Resolution"
+              class="image-wrapper"
+            />
+          </div>
+        </mat-tab>
+
+        <!-- Subtab 4: Access Demo App -->
+        <mat-tab label="Access demo app">
+          <div class="tab-content">
+            <img
+              src="assets/images/new_demo_user_profile.png"
+              alt="agentspace"
+              class="image-wrapper"
+            />
+            <div class="note-container">
+              <div class="note-wrapper">
+                <p>
+                  NOTE: This is a sample image. Your application may look different
+                  according to your demo.
+                </p>
+              </div>
+            </div>
+            <div class="title">
+              If applicable, open the demo drive link provided in your demo user’s
+              profile.
+            </div>
+            <img
+              src="assets/images/new_gmail_drive.png"
+              alt="agentspace"
+              class="image-wrapper"
+            />
+          </div>
+        </mat-tab>
+      </mat-tab-group>
     </mat-expansion-panel>
   </mat-accordion>
 
@@ -157,17 +221,16 @@
     </mat-expansion-panel>
   </mat-accordion>
 
-  <!-- <div class="note-container">
-    <div class="note-wrapper">
-      <mat-icon class="info-wrapper">info</mat-icon>
-      <p>
-        BEST practice: Create a Chrome Profile for your demo user. This way you
-        will be able to save your password and come back w/o having to remember
-        or regenerate your demo user password. For more see:
-        <a [href]="manageProfileLink" target="_blank" rel="noopener noreferrer"
-          >Manage Chrome with multiple profiles.</a
-        >
-      </p>
-    </div>
-  </div> -->
+  <div class="bottom-info-container">
+    <p>
+      Please refer to
+      <a
+        [href]="demoSpaceInfoLink"
+        target="_blank"
+        rel="noopener noreferrer"
+        ><b>go/demospace-info</b></a
+      >
+      for details.
+    </p>
+  </div>
 </div>

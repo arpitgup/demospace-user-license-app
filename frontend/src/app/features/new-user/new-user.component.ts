@@ -1,16 +1,18 @@
 import { Component } from '@angular/core';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTabsModule } from '@angular/material/tabs';
 import {
   CHAT_SPACE_URL,
   DEMO_PAGE_URL,
+  DEMOSPACEINFO_LINK,
   MANAGE_PROFILE_INSTRUCTIONS_URL,
 } from '../../shared/constants/links.contants';
 import { AppInstructions } from '../../core/models/app-instructions.model';
 
 @Component({
   selector: 'app-new-user',
-  imports: [MatExpansionModule, MatIconModule],
+  imports: [MatExpansionModule, MatIconModule, MatTabsModule],
   templateUrl: './new-user.component.html',
   styleUrl: './new-user.component.scss',
 })
@@ -18,6 +20,9 @@ export class NewUserComponent {
   manageProfileLink = MANAGE_PROFILE_INSTRUCTIONS_URL;
   demoPageUrl = DEMO_PAGE_URL;
   chatSpaceUrl = CHAT_SPACE_URL;
+  demoSpaceInfoLink = DEMOSPACEINFO_LINK;
+  geAppLinkImage = 'assets/images/ge_app_link.png';
+  geAppErrorImage = 'assets/images/ge_app_error.png';
   loginSteps: AppInstructions[] = [
     {
       id: 1,
