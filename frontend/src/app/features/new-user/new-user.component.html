@@ -95,9 +95,6 @@
           Copy the link of Gemini Enterprise Demo Application
         </mat-panel-title>
       </mat-expansion-panel-header>
-      <p class="instruction-text">
-        Copy the link of Gemini Enterprise Demo Application.
-      </p>
       <img
         [src]="geAppLinkImage"
         alt="Gemini Enterprise Demo Application Link"
@@ -136,17 +133,19 @@
           (<code>ldap&#64;google.com</code>) to login. In such a case, select the profile icon in the bottom left
           corner and select your demo user login credentials as shown in the picture below.
         </li>
-        <li>
-          Save this location as a bookmark (<code>Ctrl + d</code> / <code>Command + d</code>).
-          <span class="sub-note">(Note: you might want to create a designated folder for this as well to manage your “Accounts”)</span>
-        </li>
-        <li>Going forward you can simply select the bookmark to access your demo.</li>
       </ol>
       <img
         [src]="geAppErrorImage"
         alt="403 Error Resolution"
         class="image-wrapper"
       />
+      <ol class="instruction-list" start="4">
+        <li>
+          Save this location as a bookmark (<code>Ctrl + d</code> / <code>Command + d</code>).
+          <span class="sub-note">(Note: you might want to create a designated folder for this as well to manage your “Accounts”)</span>
+        </li>
+        <li>Going forward you can simply select the bookmark to access your demo.</li>
+      </ol>
     </mat-expansion-panel>
 
     <!-- Panel 4: Access demo app -->
