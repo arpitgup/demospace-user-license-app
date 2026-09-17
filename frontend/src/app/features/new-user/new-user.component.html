@@ -125,27 +125,63 @@
       <mat-expansion-panel-header>
         <mat-panel-title class="title">For Chromebook</mat-panel-title>
       </mat-expansion-panel-header>
-      <ol class="instruction-list">
-        <li>Open a new browser window and paste the GE app link.</li>
-        <li>Make sure that you are logged in GE app url using the demospace account.</li>
-        <li>
-          If you see a <strong>403 error</strong>, it's most likely because Chrome takes a default account
-          (<code>ldap&#64;google.com</code>) to login. In such a case, select the profile icon in the bottom left
-          corner and select your demo user login credentials as shown in the picture below.
-        </li>
-      </ol>
-      <img
-        [src]="geAppErrorImage"
-        alt="403 Error Resolution"
-        class="image-wrapper"
-      />
-      <ol class="instruction-list" start="4">
-        <li>
-          Save this location as a bookmark (<code>Ctrl + d</code> / <code>Command + d</code>).
-          <span class="sub-note">(Note: you might want to create a designated folder for this as well to manage your “Accounts”)</span>
-        </li>
-        <li>Going forward you can simply select the bookmark to access your demo.</li>
-      </ol>
+      <div class="carousel-container">
+        <div class="carousel-header">
+          <div class="slide-title-wrapper">
+            <span class="slide-counter">Step {{ currentChromebookSlide + 1 }} of {{ chromebookSlides.length }}</span>
+            <p class="slide-title">{{ chromebookSlides[currentChromebookSlide].title }}</p>
+          </div>
+          <div class="carousel-controls">
+            <button
+              type="button"
+              class="carousel-nav-btn"
+              (click)="prevChromebookSlide()"
+              aria-label="Previous step"
+            >
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            <span class="step-indicator-text">{{ currentChromebookSlide + 1 }} / {{ chromebookSlides.length }}</span>
+            <button
+              type="button"
+              class="carousel-nav-btn"
+              (click)="nextChromebookSlide()"
+              aria-label="Next step"
+            >
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="carousel-content">
+          <img
+            [src]="chromebookSlides[currentChromebookSlide].image"
+            [alt]="chromebookSlides[currentChromebookSlide].title"
+            class="image-wrapper"
+          />
+
+          @if (chromebookSlides[currentChromebookSlide].note) {
+            <div class="note-container">
+              <div class="note-wrapper">
+                <p>
+                  {{ chromebookSlides[currentChromebookSlide].note }}
+                </p>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="carousel-dots">
+          @for (slide of chromebookSlides; track slide.id; let i = $index) {
+            <button
+              type="button"
+              class="dot-btn"
+              [class.active]="i === currentChromebookSlide"
+              (click)="goToChromebookSlide(i)"
+              [attr.aria-label]="'Go to step ' + (i + 1)"
+            ></button>
+          }
+        </div>
+      </div>
     </mat-expansion-panel>
 
     <!-- Panel 4: Access demo app -->
