@@ -88,39 +88,71 @@
   <h4>4. Open Demo application in you demo user’s chrome profile</h4>
 
   <mat-accordion class="panel-wrapper">
-    <!-- Panel 1: Copy link of Gemini Enterprise Demo Application -->
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>
-        <mat-panel-title class="title">
-          Copy the link of Gemini Enterprise Demo Application
-        </mat-panel-title>
-      </mat-expansion-panel-header>
-      <img
-        [src]="geAppLinkImage"
-        alt="Gemini Enterprise Demo Application Link"
-        class="image-wrapper"
-      />
-    </mat-expansion-panel>
-
-    <!-- Panel 2: For Mac & Windows -->
+    <!-- Panel 1: For Mac & Windows -->
     <mat-expansion-panel>
       <mat-expansion-panel-header>
         <mat-panel-title class="title">For Mac & Windows</mat-panel-title>
       </mat-expansion-panel-header>
-      <ol class="instruction-list">
-        <li>Select <strong>“Work”</strong> profile from top right of Chrome browser.</li>
-        <li>
-          Select the profile you created under the <strong>“Other Chrome Profiles”</strong> section, e.g.,
-          <code>&#123;First Name&#125; (Neuravibe)</code>.
-        </li>
-        <li>This should open a new browser with your demo credentials.</li>
-        <li>Copy and paste the <strong>GE APP Link</strong>.</li>
-        <li>Save this location as a bookmark (<code>Command + d</code> on Mac or <code>Ctrl + d</code> on Windows).</li>
-        <li>Going forward you can now access demos by selecting your new profile.</li>
-      </ol>
+      <div class="carousel-container">
+        <div class="carousel-header">
+          <div class="slide-title-wrapper">
+            <span class="slide-counter">Step {{ currentMacWindowsSlide + 1 }} of {{ macWindowsSlides.length }}</span>
+            <p class="slide-title">{{ macWindowsSlides[currentMacWindowsSlide].title }}</p>
+          </div>
+          <div class="carousel-controls">
+            <button
+              type="button"
+              class="carousel-nav-btn"
+              (click)="prevMacWindowsSlide()"
+              aria-label="Previous step"
+            >
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            <span class="step-indicator-text">{{ currentMacWindowsSlide + 1 }} / {{ macWindowsSlides.length }}</span>
+            <button
+              type="button"
+              class="carousel-nav-btn"
+              (click)="nextMacWindowsSlide()"
+              aria-label="Next step"
+            >
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="carousel-content">
+          <img
+            [src]="macWindowsSlides[currentMacWindowsSlide].image"
+            [alt]="macWindowsSlides[currentMacWindowsSlide].title"
+            class="image-wrapper"
+          />
+
+          @if (macWindowsSlides[currentMacWindowsSlide].note) {
+            <div class="note-container">
+              <div class="note-wrapper">
+                <p>
+                  {{ macWindowsSlides[currentMacWindowsSlide].note }}
+                </p>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="carousel-dots">
+          @for (slide of macWindowsSlides; track slide.id; let i = $index) {
+            <button
+              type="button"
+              class="dot-btn"
+              [class.active]="i === currentMacWindowsSlide"
+              (click)="goToMacWindowsSlide(i)"
+              [attr.aria-label]="'Go to step ' + (i + 1)"
+            ></button>
+          }
+        </div>
+      </div>
     </mat-expansion-panel>
 
-    <!-- Panel 3: For Chromebook -->
+    <!-- Panel 2: For Chromebook -->
     <mat-expansion-panel>
       <mat-expansion-panel-header>
         <mat-panel-title class="title">For Chromebook</mat-panel-title>
@@ -182,35 +214,6 @@
           }
         </div>
       </div>
-    </mat-expansion-panel>
-
-    <!-- Panel 4: Access demo app -->
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>
-        <mat-panel-title class="title">Access demo app</mat-panel-title>
-      </mat-expansion-panel-header>
-      <img
-        src="assets/images/new_demo_user_profile.png"
-        alt="agentspace"
-        class="image-wrapper"
-      />
-      <div class="note-container">
-        <div class="note-wrapper">
-          <p>
-            NOTE: This is a sample image. Your application may look different
-            according to your demo.
-          </p>
-        </div>
-      </div>
-      <div class="title" style="margin-top: 1rem; margin-bottom: 0.5rem;">
-        If applicable, open the demo drive link provided in your demo user’s
-        profile.
-      </div>
-      <img
-        src="assets/images/new_gmail_drive.png"
-        alt="agentspace"
-        class="image-wrapper"
-      />
     </mat-expansion-panel>
   </mat-accordion>
 

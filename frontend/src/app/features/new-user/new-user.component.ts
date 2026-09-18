@@ -9,7 +9,7 @@ import {
 } from '../../shared/constants/links.contants';
 import { AppInstructions } from '../../core/models/app-instructions.model';
 
-export interface ChromebookSlide {
+export interface CarouselSlide {
   id: number;
   title: string;
   image: string;
@@ -30,9 +30,38 @@ export class NewUserComponent {
   geAppLinkImage = 'assets/images/ge_app_link.png';
   geAppErrorImage = 'assets/images/ge_app_error.png';
 
+  currentMacWindowsSlide = 0;
   currentChromebookSlide = 0;
 
-  chromebookSlides: ChromebookSlide[] = [
+  macWindowsSlides: CarouselSlide[] = [
+    {
+      id: 1,
+      title: '1. Copy the GE app link',
+      image: 'assets/images/ge_app_link.png',
+    },
+    {
+      id: 2,
+      title:
+        '2. Select “Work” profile from top right of Chrome browser. Select the profile you created under the “Other Chrome Profiles” section, e.g., {First Name} (Neuravibe). This should open a new browser with your demo credentials.',
+      image: 'assets/images/profile_ios.png',
+    },
+    {
+      id: 3,
+      title:
+        '3. Paste the GE APP Link. Save this location as a bookmark (Command + d / Ctrl + d). Going forward you can now access demos by selecting your new profile.',
+      image: 'assets/images/new_demo_user_profile.png',
+      note: 'NOTE: This is a sample image. Your application may look different according to your demo.',
+    },
+    {
+      id: 4,
+      title:
+        '4. If applicable, open the demo drive link provided in your demo user’s profile.',
+      image: 'assets/images/new_gmail_drive.png',
+      note: 'NOTE: This is a sample image. Your application may look different according to your demo.',
+    },
+  ];
+
+  chromebookSlides: CarouselSlide[] = [
     {
       id: 1,
       title: '1. Copy the GE app link',
@@ -65,6 +94,26 @@ export class NewUserComponent {
       note: 'NOTE: This is a sample image. Your application may look different according to your demo.',
     },
   ];
+
+  nextMacWindowsSlide(): void {
+    if (this.currentMacWindowsSlide < this.macWindowsSlides.length - 1) {
+      this.currentMacWindowsSlide++;
+    } else {
+      this.currentMacWindowsSlide = 0;
+    }
+  }
+
+  prevMacWindowsSlide(): void {
+    if (this.currentMacWindowsSlide > 0) {
+      this.currentMacWindowsSlide--;
+    } else {
+      this.currentMacWindowsSlide = this.macWindowsSlides.length - 1;
+    }
+  }
+
+  goToMacWindowsSlide(index: number): void {
+    this.currentMacWindowsSlide = index;
+  }
 
   nextChromebookSlide(): void {
     if (this.currentChromebookSlide < this.chromebookSlides.length - 1) {
