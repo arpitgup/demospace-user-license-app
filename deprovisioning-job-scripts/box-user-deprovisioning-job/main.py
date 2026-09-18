@@ -77,7 +77,7 @@ def get_box_application_id(db: Session) -> int:
 
 def get_protected_user_emails(
     db: Session, box_app_id: int, now: datetime
-) -> Set[str]:
+) -> dict:
     """
     Find user emails that have an upcoming Box reservation and should NOT be deleted.
 
@@ -92,14 +92,14 @@ def get_protected_user_emails(
         now: Current UTC timestamp.
 
     Returns:
-        A set of user_email strings that should be kept.
+        A dict mapping user_email -> reason string.
     """
     lookahead_cutoff = now + timedelta(hours=RESERVATION_LOOKAHEAD_HOURS)
 
     # Find reservations that are PENDING or ACTIVE, include the Box app,
     # haven't expired yet, and start within the next 24 hours
     protected_reservations = (
-        db.query(Reservation.user_email)
+        db.query(Reservation.user_email, Reservation.status)
         .join(
             reservation_applications_table,
             Reservation.id == reservation_applications_table.c.reservation_id,
@@ -112,11 +112,19 @@ def get_protected_user_emails(
             Reservation.end_time > now,
             Reservation.start_time < lookahead_cutoff,
         )
-        .distinct()
         .all()
     )
 
-    protected_emails = {row[0] for row in protected_reservations}
+    protected_emails = {}
+    for email, status in protected_reservations:
+        if email in protected_emails:
+            continue  # keep the first match
+        if status == ReservationStatus.ACTIVE:
+            reason = "Has an ACTIVE Box reservation"
+        else:
+            reason = "Has an upcoming PENDING Box reservation"
+        protected_emails[email] = reason
+
     logger.info(
         f"Found {len(protected_emails)} users with upcoming Box reservations "
         f"(protected from deletion)."
@@ -146,7 +154,7 @@ def classify_user(
     if user_login in protected_emails:
         return (
             "KEEP",
-            "Has upcoming or active Box reservation within 24 hours",
+            protected_emails[user_login],
         )
 
     # Check if user has any Box reservations at all
@@ -165,7 +173,7 @@ def classify_user(
 
     if not has_any_box_reservation:
         # Scenario 4: User exists in Box but has no reservations at all
-        return "DELETE", "No Box reservations found"
+        return "DELETE", "No Box reservations found and no future reservations booked"
 
     # User has Box reservations but none are upcoming/active
     # Check if latest reservation is COMPLETED
@@ -188,14 +196,14 @@ def classify_user(
         return (
             "DELETE",
             f"Latest Box reservation (ID: {latest_reservation.id}) is COMPLETED "
-            f"(ended: {latest_reservation.end_time.isoformat()})",
+            f"and no future reservations booked",
         )
 
     if latest_reservation and latest_reservation.status == ReservationStatus.CANCELLED:
         return (
             "DELETE",
             f"Latest Box reservation (ID: {latest_reservation.id}) is CANCELLED "
-            f"(ended: {latest_reservation.end_time.isoformat()})",
+            f"and no future reservations booked",
         )
 
     # Fallback: keep the user if status is uncertain

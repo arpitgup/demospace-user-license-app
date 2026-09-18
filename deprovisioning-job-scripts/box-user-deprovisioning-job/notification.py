@@ -17,7 +17,7 @@ from shared_lib.email_service import get_email_service
 
 # --- Email Constants ---
 NOTIFICATION_SENDER_EMAIL = "no-reply@1987984870407.altostrat.com"
-PORTAL_ADMIN_GROUP_EMAIL = "arpitgup@google.com, tasbirimam@google.com, simandi@google.com"
+PORTAL_ADMIN_GROUP_EMAIL = "arpitgup@google.com, tasbirimam@google.com, simandi@google.com, jagtars@google.com, sukruthananth@google.com"
 
 def send_deprovisioning_summary_email(
     dry_run: bool,
