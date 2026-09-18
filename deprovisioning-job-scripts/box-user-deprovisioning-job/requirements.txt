@@ -1,0 +1,7 @@
+boxsdk[jwt]==3.*
+loguru==0.7.3
+psycopg2-binary==2.9.*
+sqlalchemy==2.*
+google-cloud-secret-manager==2.*
+google-api-python-client==2.*
+google-auth==2.*
