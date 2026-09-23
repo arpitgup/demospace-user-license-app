@@ -1,0 +1,51 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    id: "Build"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        docker build -t "gcr.io/${_PROJECT_ID}/${_JOB_NAME}" -f "deprovisioning-job-scripts/box-user-deprovisioning-job/Dockerfile" .
+
+  - name: "gcr.io/cloud-builders/docker"
+    id: "Push"
+    args: ["push", "gcr.io/${_PROJECT_ID}/${_JOB_NAME}"]
+
+  - name: "gcr.io/cloud-builders/gcloud"
+    id: "Deploy Cloud Run Job"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        # Check if the Cloud Run Job already exists
+        if gcloud run jobs describe ${_JOB_NAME} --region=${_REGION} --project=${_PROJECT_ID} 2>/dev/null; then
+          echo "Updating existing Cloud Run Job..."
+          gcloud run jobs update ${_JOB_NAME} \
+            --image=gcr.io/${_PROJECT_ID}/${_JOB_NAME} \
+            --project=${_PROJECT_ID} \
+            --region=${_REGION} \
+            --vpc-connector=${_VPC_CONNECTOR_NAME} \
+            --set-env-vars=GCP_PROJECT_ID=${_PROJECT_ID},DRY_RUN=${_DRY_RUN},DB_USER=${_DB_USER},DB_HOST=${_DB_HOST},DB_PORT=${_DB_PORT},DB_NAME=${_DB_NAME},DB_PASSWORD_SECRET_NAME=${_DB_PASSWORD_SECRET_NAME},BOX_ENTERPRISE_ID_SECRET_NAME=${_BOX_ENTERPRISE_ID_SECRET_NAME},BOX_CLIENT_ID_SECRET_NAME=${_BOX_CLIENT_ID_SECRET_NAME},BOX_CLIENT_SECRET_SECRET_NAME=${_BOX_CLIENT_SECRET_SECRET_NAME},DELEGATED_ADMIN=${_DELEGATED_ADMIN},ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME=${_ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME} \
+            --max-retries=1 \
+            --task-timeout=600s
+        else
+          echo "Creating new Cloud Run Job..."
+          gcloud run jobs create ${_JOB_NAME} \
+            --image=gcr.io/${_PROJECT_ID}/${_JOB_NAME} \
+            --project=${_PROJECT_ID} \
+            --region=${_REGION} \
+            --vpc-connector=${_VPC_CONNECTOR_NAME} \
+            --set-env-vars=GCP_PROJECT_ID=${_PROJECT_ID},DRY_RUN=${_DRY_RUN},DB_USER=${_DB_USER},DB_HOST=${_DB_HOST},DB_PORT=${_DB_PORT},DB_NAME=${_DB_NAME},DB_PASSWORD_SECRET_NAME=${_DB_PASSWORD_SECRET_NAME},BOX_ENTERPRISE_ID_SECRET_NAME=${_BOX_ENTERPRISE_ID_SECRET_NAME},BOX_CLIENT_ID_SECRET_NAME=${_BOX_CLIENT_ID_SECRET_NAME},BOX_CLIENT_SECRET_SECRET_NAME=${_BOX_CLIENT_SECRET_SECRET_NAME},DELEGATED_ADMIN=${_DELEGATED_ADMIN},ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME=${_ADMIN_SERVICE_ACCOUNT_KEY_SECRET_NAME} \
+            --max-retries=1 \
+            --task-timeout=600s
+        fi
+
+images:
+  - "gcr.io/${_PROJECT_ID}/${_JOB_NAME}"
+
+substitutions:
+  _JOB_NAME: box-user-deprovisioning-job
+  _DRY_RUN: "true"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
