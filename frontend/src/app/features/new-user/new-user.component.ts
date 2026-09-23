@@ -64,20 +64,20 @@ export class NewUserComponent {
   chromebookSlides: CarouselSlide[] = [
     {
       id: 1,
-      title: '1. Copy the GE app link',
-      image: 'assets/images/ge_app_link.png',
+      title: '1. Click on the GE app link',
+      image: 'assets/images/ge_app_click_link.png',
     },
     {
       id: 2,
       title:
-        "2. Open a new browser window and paste the GE app link. If you see a 403 error, it's most likely because Chrome takes a default account (ldap@google.com) to login. In such a case, select the profile icon in the bottom left corner and select your demo user login credentials as shown in the picture below.",
-      image: 'assets/images/ge_app_error.png',
+        '2. The "Choose an account" screen will appear. Please select the demo user account: <ldap>@demospace.altostrat.com>. If the account is not listed, add it manually. For credentials, please refer back to step 1.',
+      image: 'assets/images/choose_account_ge_app.png',
     },
     {
       id: 3,
       title:
         '3. Now Access demo app. Save this location as a bookmark (Ctrl + d / Command + d). (Note: you might want to create a designated folder for this as well to manage your “Accounts”). Going forward you can simply select the bookmark to access your demo.',
-      image: 'assets/images/new_demo_user_profile.png',
+      image: 'assets/images/ge_app_new_home.png',
       note: 'NOTE: This is a sample image. Your application may look different according to your demo.',
     },
     {
