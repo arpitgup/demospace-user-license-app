@@ -42,7 +42,7 @@ export class NewUserComponent {
     {
       id: 2,
       title:
-        '2. Please click on "Add New Account."',
+        '2. Please click on "Use another account."',
       image: 'assets/images/choose_account_mac.png',
     },
     {
@@ -54,7 +54,7 @@ export class NewUserComponent {
     {
       id: 4,
       title:
-        '4. Now access demo app.Please make sure "Demospace User account" is selected. Save this location as a bookmark (Command + d / Ctrl + d). Going forward you can now access demos by selecting your new profile',
+        '4. Now access demo app. Please make sure "Demospace User account" is selected. Save this location as a bookmark (Command + d / Ctrl + d). Going forward you can now access demos by selecting your new profile',
       image: 'assets/images/ge_app_home_new.png',
             note: 'NOTE: This is a sample image. Your application may look different according to your demo.',
     },
@@ -82,7 +82,7 @@ export class NewUserComponent {
     {
       id: 3,
       title:
-        '3. Now access demo app.Please make sure "Demospace User account" is selected. Save this location as a bookmark (Ctrl + d / Command + d). (Note: you might want to create a designated folder for this as well to manage your “Accounts”). Going forward you can simply select the bookmark to access your demo.',
+        '3. Now access demo app. Please make sure "Demospace User account" is selected. Save this location as a bookmark (Ctrl + d / Command + d). (Note: you might want to create a designated folder for this as well to manage your “Accounts”). Going forward you can simply select the bookmark to access your demo.',
       image: 'assets/images/ge_app_home_new.png',
       note: 'NOTE: This is a sample image. Your application may look different according to your demo.',
     },
