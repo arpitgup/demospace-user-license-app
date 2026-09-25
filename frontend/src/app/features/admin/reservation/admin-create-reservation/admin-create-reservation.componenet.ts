@@ -319,7 +319,7 @@ export class AdminCreateReservationComponenet implements OnInit {
       const endTime = new Date(
         this.createReservationForm.get(this.END_TIME_FORM)?.value
       );
-      endTime.setHours(endTime.getHours(), 0);
+      endDate.setHours(endTime.getHours(), 0);
       this.endDateTime.set(endDate);
     } else {
       this.endDateTime.set(null);
