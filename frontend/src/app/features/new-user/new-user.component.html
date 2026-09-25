@@ -88,32 +88,132 @@
   <h4>4. Open Demo application in you demo user’s chrome profile</h4>
 
   <mat-accordion class="panel-wrapper">
+    <!-- Panel 1: For Mac & Windows -->
     <mat-expansion-panel>
       <mat-expansion-panel-header>
-        <mat-panel-title class="title">Access Demo App</mat-panel-title>
+        <mat-panel-title class="title">For Mac & Windows</mat-panel-title>
       </mat-expansion-panel-header>
-      <img
-        src="assets/images/new_demo_user_profile.png"
-        alt="agentspace"
-        class="image-wrapper"
-      />
-      <div class="note-container">
-        <div class="note-wrapper">
-          <p>
-            NOTE: This is a sample image. Your application may look different
-            according to your demo.
-          </p>
+      <div class="carousel-container">
+        <div class="carousel-header">
+          <div class="slide-title-wrapper">
+            <span class="slide-counter">Step {{ currentMacWindowsSlide + 1 }} of {{ macWindowsSlides.length }}</span>
+            <p class="slide-title">{{ macWindowsSlides[currentMacWindowsSlide].title }}</p>
+          </div>
+          <div class="carousel-controls">
+            <button
+              type="button"
+              class="carousel-nav-btn"
+              (click)="prevMacWindowsSlide()"
+              aria-label="Previous step"
+            >
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            <span class="step-indicator-text">{{ currentMacWindowsSlide + 1 }} / {{ macWindowsSlides.length }}</span>
+            <button
+              type="button"
+              class="carousel-nav-btn"
+              (click)="nextMacWindowsSlide()"
+              aria-label="Next step"
+            >
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="carousel-content">
+          <img
+            [src]="macWindowsSlides[currentMacWindowsSlide].image"
+            [alt]="macWindowsSlides[currentMacWindowsSlide].title"
+            class="image-wrapper"
+          />
+
+          @if (macWindowsSlides[currentMacWindowsSlide].note) {
+            <div class="note-container">
+              <div class="note-wrapper">
+                <p>
+                  {{ macWindowsSlides[currentMacWindowsSlide].note }}
+                </p>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="carousel-dots">
+          @for (slide of macWindowsSlides; track slide.id; let i = $index) {
+            <button
+              type="button"
+              class="dot-btn"
+              [class.active]="i === currentMacWindowsSlide"
+              (click)="goToMacWindowsSlide(i)"
+              [attr.aria-label]="'Go to step ' + (i + 1)"
+            ></button>
+          }
         </div>
       </div>
-      <div class="title">
-        If applicable, open the demo drive link provided in your demo user’s
-        profile.
+    </mat-expansion-panel>
+
+    <!-- Panel 2: For Chromebook -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title class="title">For Chromebook</mat-panel-title>
+      </mat-expansion-panel-header>
+      <div class="carousel-container">
+        <div class="carousel-header">
+          <div class="slide-title-wrapper">
+            <span class="slide-counter">Step {{ currentChromebookSlide + 1 }} of {{ chromebookSlides.length }}</span>
+            <p class="slide-title">{{ chromebookSlides[currentChromebookSlide].title }}</p>
+          </div>
+          <div class="carousel-controls">
+            <button
+              type="button"
+              class="carousel-nav-btn"
+              (click)="prevChromebookSlide()"
+              aria-label="Previous step"
+            >
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            <span class="step-indicator-text">{{ currentChromebookSlide + 1 }} / {{ chromebookSlides.length }}</span>
+            <button
+              type="button"
+              class="carousel-nav-btn"
+              (click)="nextChromebookSlide()"
+              aria-label="Next step"
+            >
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="carousel-content">
+          <img
+            [src]="chromebookSlides[currentChromebookSlide].image"
+            [alt]="chromebookSlides[currentChromebookSlide].title"
+            class="image-wrapper"
+          />
+
+          @if (chromebookSlides[currentChromebookSlide].note) {
+            <div class="note-container">
+              <div class="note-wrapper">
+                <p>
+                  {{ chromebookSlides[currentChromebookSlide].note }}
+                </p>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="carousel-dots">
+          @for (slide of chromebookSlides; track slide.id; let i = $index) {
+            <button
+              type="button"
+              class="dot-btn"
+              [class.active]="i === currentChromebookSlide"
+              (click)="goToChromebookSlide(i)"
+              [attr.aria-label]="'Go to step ' + (i + 1)"
+            ></button>
+          }
+        </div>
       </div>
-      <img
-        src="assets/images/new_gmail_drive.png"
-        alt="agentspace"
-        class="image-wrapper"
-      />
     </mat-expansion-panel>
   </mat-accordion>
 
@@ -157,17 +257,16 @@
     </mat-expansion-panel>
   </mat-accordion>
 
-  <!-- <div class="note-container">
-    <div class="note-wrapper">
-      <mat-icon class="info-wrapper">info</mat-icon>
-      <p>
-        BEST practice: Create a Chrome Profile for your demo user. This way you
-        will be able to save your password and come back w/o having to remember
-        or regenerate your demo user password. For more see:
-        <a [href]="manageProfileLink" target="_blank" rel="noopener noreferrer"
-          >Manage Chrome with multiple profiles.</a
-        >
-      </p>
-    </div>
-  </div> -->
+  <div class="bottom-info-container">
+    <p>
+      Please refer to
+      <a
+        [href]="demoSpaceInfoLink"
+        target="_blank"
+        rel="noopener noreferrer"
+        ><b>go/demospace-info</b></a
+      >
+      for details.
+    </p>
+  </div>
 </div>
