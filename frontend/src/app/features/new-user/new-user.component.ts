@@ -36,26 +36,32 @@ export class NewUserComponent {
   macWindowsSlides: CarouselSlide[] = [
     {
       id: 1,
-      title: '1. Copy the GE app link',
-      image: 'assets/images/ge_app_link.png',
+      title: '1. Click on  the GE app link',
+      image: 'assets/images/ge_app_click_link.png',
     },
     {
       id: 2,
       title:
-        '2. Select “Work” profile from top right of Chrome browser. Select the profile you created under the “Other Chrome Profiles” section, e.g., {First Name} (Neuravibe). This should open a new browser with your demo credentials.',
-      image: 'assets/images/profile_ios.png',
+        '2. Please click on "Add New Account."',
+      image: 'assets/images/choose_account_mac.png',
     },
     {
       id: 3,
       title:
-        '3. Paste the GE APP Link. Save this location as a bookmark (Command + d / Ctrl + d). Going forward you can now access demos by selecting your new profile.',
-      image: 'assets/images/new_demo_user_profile.png',
-      note: 'NOTE: This is a sample image. Your application may look different according to your demo.',
+        '3. Please enter the demospace user credentials from "Step 1"',
+      image: 'assets/images/demospace_mac.png',
     },
     {
       id: 4,
       title:
-        '4. If applicable, open the demo drive link provided in your demo user’s profile.',
+        '4. Now access demo app.Please make sure "Demospace User account" is selected. Save this location as a bookmark (Command + d / Ctrl + d). Going forward you can now access demos by selecting your new profile',
+      image: 'assets/images/ge_app_home_new.png',
+            note: 'NOTE: This is a sample image. Your application may look different according to your demo.',
+    },
+    {
+      id: 5,
+      title:
+        '5. If applicable, open the demo drive link provided in your demo user’s profile.',
       image: 'assets/images/new_gmail_drive.png',
       note: 'NOTE: This is a sample image. Your application may look different according to your demo.',
     },
@@ -76,8 +82,8 @@ export class NewUserComponent {
     {
       id: 3,
       title:
-        '3. Now Access demo app. Save this location as a bookmark (Ctrl + d / Command + d). (Note: you might want to create a designated folder for this as well to manage your “Accounts”). Going forward you can simply select the bookmark to access your demo.',
-      image: 'assets/images/ge_app_new_home.png',
+        '3. Now access demo app.Please make sure "Demospace User account" is selected. Save this location as a bookmark (Ctrl + d / Command + d). (Note: you might want to create a designated folder for this as well to manage your “Accounts”). Going forward you can simply select the bookmark to access your demo.',
+      image: 'assets/images/ge_app_home_new.png',
       note: 'NOTE: This is a sample image. Your application may look different according to your demo.',
     },
     {
