@@ -216,7 +216,7 @@ export class HomeComponent implements OnInit {
     if (type === this.menuItemsEnums.FILE_A_TICKET) {
       const feedbackUrl = `${BUGANIZER_URL}&title=UserApp%20Feedback%20:%20${
         this.demoDetails()?.demo_title?.replaceAll(' ', '%20') || ''
-      }&assignee=cloud-demo-platform-support@google.com&cc=${
+      }&assignee=cloud-demo-operations@google.com&cc=${
         this.userDetails()?.secondary_email
       }&customFields=1232889%3A${this.demoDetails()?.demo_id || ''}&parentIssueId=${this.demoDetails()?.parent_bug_id || ''}`;
       window.open(feedbackUrl, '_blank', 'noopener noreferrer');
