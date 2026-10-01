@@ -28,6 +28,7 @@ import {
   isSameDay,
 } from '../../../search-by-date/search-by-date.utils';
 import {
+  ADMIN_DEV_USER_RESERVATION_EMAIL_VALIDATION,
   ADMIN_USER_RESERVATION_EMAIL_VALIDATION,
   getLocalTimeZoneAbbreviation,
 } from '../../../../../utilities/utils';
@@ -102,6 +103,7 @@ export class AdminCreateReservationComponenet implements OnInit {
         Validators.required,
         Validators.email,
         Validators.pattern(ADMIN_USER_RESERVATION_EMAIL_VALIDATION),
+        Validators.pattern(ADMIN_DEV_USER_RESERVATION_EMAIL_VALIDATION),
       ],
     ],
     [this.START_DATE_FORM]: ['', Validators.required],
