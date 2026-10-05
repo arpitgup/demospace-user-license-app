@@ -278,6 +278,10 @@ export const ADMIN_USER_RESERVATION_EMAIL_VALIDATION: RegExp = new RegExp(
 export const ADMIN_DEV_USER_RESERVATION_EMAIL_VALIDATION: RegExp = new RegExp(
   `^[a-zA-Z0-9.-]+${DEV_EMAIL_DOMAIN}\\s*$`,
 );
+export const ADMIN_COMBINED_USER_RESERVATION_EMAIL_VALIDATION: RegExp =
+  new RegExp(
+    `^[a-zA-Z0-9.-]+(${EMAIL_DOMAIN}|${DEV_EMAIL_DOMAIN})\\s*$`,
+  );
 export const ADMIN_BOT_EMAIL_VALIDATION = new RegExp(
   `^[a-zA-Z0-9-.]+${DEV_EMAIL_DOMAIN}\\s*$`,
 );
