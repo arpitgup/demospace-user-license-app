@@ -1,7 +1,12 @@
+import {
+  VALIDATION_DEV_EMAIL_DOMAIN,
+  VALIDATION_EMAIL_DOMAIN,
+} from '../../../shared/constants/domain.constants';
+
 export const ReservationConstants = {
   ENTER_USER_DETAILS: 'Enter user Details',
   USER_EMAIL_ID: 'User Email Id',
-  EMAIL_NOT_VALID: 'Email not valid. Agentspace-demo-user email required',
+  EMAIL_NOT_VALID: `Email not valid. ${VALIDATION_EMAIL_DOMAIN} or ${VALIDATION_DEV_EMAIL_DOMAIN} email required`,
   SELECT_DATE_RANGE: 'Select Date Range',
   START_DATE: 'Start Date',
   START_TIME: 'START_TIME',
