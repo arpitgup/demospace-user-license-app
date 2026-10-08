@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from loguru import logger
 from shared_lib import admin_service
 from shared_lib.thirdparty_services import box_service
+from shared_lib.thirdparty_services import hubspot_service
 from shared_lib.db.models import Reservation, ApplicationLicenseType, Application, ApplicationDowntime
 from shared_lib.enums import DowntimeStatus
 
@@ -45,6 +46,11 @@ def provision_api_managed_licenses(reservation: Reservation):
                 user_email=reservation.user_email,
                 user_name=reservation.user_email,
             )
+        elif app.name.lower() == "hubspot":
+            hubspot_service.provision_hubspot_user(
+                user_email=reservation.user_email,
+                user_name=reservation.user_email,
+            )
         # Future API_MANAGED apps:
         # elif app.name.lower() == "newapp":
         #     newapp_service.provision_user(...)
@@ -83,6 +89,8 @@ def deprovision_api_managed_licenses(reservation: Reservation):
     for app in api_managed_apps:
         if app.name.lower() == "box":
             box_service.deprovision_box_user(user_email=reservation.user_email)
+        elif app.name.lower() == "hubspot":
+            hubspot_service.deprovision_hubspot_user(user_email=reservation.user_email)
         # Future API_MANAGED apps:
         # elif app.name.lower() == "newapp":
         #     newapp_service.deprovision_user(...)
