@@ -24,6 +24,7 @@ triggers:
     _BOX_ENTERPRISE_ID_SECRET_NAME: "box-enterprise-id"
     _BOX_CLIENT_ID_SECRET_NAME: "box-client-id"
     _BOX_CLIENT_SECRET_SECRET_NAME: "box-client-secret"
+    _HUBSPOT_ACCESS_TOKEN_SECRET_NAME: "hubspot_access_token"
 - name: godemos-licenseapp-backend-dev
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/backend-cloudbuild.yaml
@@ -94,6 +95,7 @@ triggers:
     _BOX_ENTERPRISE_ID_SECRET_NAME: "box-enterprise-id"
     _BOX_CLIENT_ID_SECRET_NAME: "box-client-id"
     _BOX_CLIENT_SECRET_SECRET_NAME: "box-client-secret"
+    _HUBSPOT_ACCESS_TOKEN_SECRET_NAME: "hubspot_access_token"
 - name: godemos-licenseapp-backend-test
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/backend-cloudbuild.yaml
@@ -164,6 +166,7 @@ triggers:
     _BOX_ENTERPRISE_ID_SECRET_NAME: "box-enterprise-id"
     _BOX_CLIENT_ID_SECRET_NAME: "box-client-id"
     _BOX_CLIENT_SECRET_SECRET_NAME: "box-client-secret"
+    _HUBSPOT_ACCESS_TOKEN_SECRET_NAME: "hubspot_access_token"
 - name: godemos-licenseapp-backend-preprod
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/backend-cloudbuild.yaml
@@ -234,6 +237,7 @@ triggers:
     _BOX_ENTERPRISE_ID_SECRET_NAME: "box-enterprise-id"
     _BOX_CLIENT_ID_SECRET_NAME: "box-client-id"
     _BOX_CLIENT_SECRET_SECRET_NAME: "box-client-secret"
+    _HUBSPOT_ACCESS_TOKEN_SECRET_NAME: "hubspot_access_token"
 - name: godemos-licenseapp-backend-prod
   project: sys-36807655692543323281329778
   configFilePath: .cloudbuild/backend-cloudbuild.yaml
