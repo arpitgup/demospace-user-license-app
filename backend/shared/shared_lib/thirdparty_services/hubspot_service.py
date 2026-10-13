@@ -30,7 +30,8 @@ from shared_lib.utils import get_secret_value
 HUBSPOT_API_BASE = "https://api.hubapi.com"
 
 # HubSpot team ID users are added to during provisioning
-HUBSPOT_DEMO_TEAM_ID = os.getenv("HUBSPOT_DEMO_TEAM_ID", "Universal_Demo_User_Team")
+# Universal_Demo_User_Team = 374539458
+HUBSPOT_DEMO_TEAM_ID = os.getenv("HUBSPOT_DEMO_TEAM_ID", "374539458")
 
 
 # ---------------------------------------------------------------------------
