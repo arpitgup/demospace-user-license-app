@@ -33,6 +33,10 @@ HUBSPOT_API_BASE = "https://api.hubapi.com"
 # Universal_Demo_User_Team = 374539458
 HUBSPOT_DEMO_TEAM_ID = os.getenv("HUBSPOT_DEMO_TEAM_ID", "374539458")
 
+# HubSpot role ID assigned to provisioned users
+# Universal_Demo_User_Team_permission_sets = 218585371
+HUBSPOT_DEMO_ROLE_ID = os.getenv("HUBSPOT_DEMO_ROLE_ID", "218585371")
+
 
 # ---------------------------------------------------------------------------
 # Auth helpers
@@ -214,21 +218,25 @@ def _delete_hubspot_user(user_id: str) -> bool:
 
 def _add_user_to_team(user_id: str, team_id: str) -> None:
     """
-    Adds a user to a HubSpot team by updating their primaryTeamId.
+    Adds a user to a HubSpot team and assigns the demo role.
 
-    Uses PUT /settings/v3/users/{userId} to set the user's team.
+    Uses PUT /settings/v3/users/{userId} to set the user's team and role.
     """
     headers = _get_headers()
     url = f"{HUBSPOT_API_BASE}/settings/v3/users/{user_id}"
+    role_id = HUBSPOT_DEMO_ROLE_ID
     payload = {
         "primaryTeamId": team_id,
     }
+    if role_id:
+        payload["roleId"] = role_id
 
     try:
         resp = requests.put(url, headers=headers, json=payload, timeout=30)
         resp.raise_for_status()
         logger.info(
-            f"[HubSpot] Added user ID {user_id} to team {team_id}."
+            f"[HubSpot] Added user ID {user_id} to team {team_id}"
+            f"{f' with role {role_id}' if role_id else ''}."
         )
     except requests.exceptions.HTTPError as e:
         logger.error(
