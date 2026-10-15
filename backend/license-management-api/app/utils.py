@@ -1,12 +1,21 @@
+from datetime import datetime, timedelta, timezone
+
 from fastapi import Depends
 from shared_lib.dependencies import get_db
 from sqlalchemy.orm import Session
+from sqlalchemy import and_, func
 from loguru import logger
 from shared_lib import admin_service
 from shared_lib.thirdparty_services import box_service
 from shared_lib.thirdparty_services import hubspot_service
-from shared_lib.db.models import Reservation, ApplicationLicenseType, Application, ApplicationDowntime
-from shared_lib.enums import DowntimeStatus
+from shared_lib.db.models import (
+    Reservation,
+    ApplicationLicenseType,
+    Application,
+    ApplicationDowntime,
+    reservation_applications_table,
+)
+from shared_lib.enums import ReservationStatus, DowntimeStatus
 
 
 def provision_subscription_licenses(reservation: Reservation):
@@ -80,7 +89,72 @@ def deprovision_environment_licenses(reservation: Reservation):
         )
 
 
-def deprovision_api_managed_licenses(reservation: Reservation):
+def _has_upcoming_hubspot_reservation(
+    current_reservation: Reservation, db: Session
+) -> bool:
+    """
+    Checks whether the user has another HubSpot reservation starting
+    within the next 24 hours (excluding the current reservation).
+
+    This covers:
+      - Back-to-back reservations (current one ending, next starting soon).
+      - Future reservations starting within 24h.
+
+    Returns True if such a reservation exists → caller should skip deletion.
+    """
+    now = datetime.now(timezone.utc)
+    window_end = now + timedelta(hours=24)
+
+    # Find the HubSpot application ID(s)
+    hubspot_app_ids = (
+        db.query(Application.id)
+        .filter(func.lower(Application.name) == "hubspot")
+        .all()
+    )
+    hubspot_app_ids = [aid for (aid,) in hubspot_app_ids]
+    if not hubspot_app_ids:
+        return False
+
+    # Look for any other reservation for the same user that:
+    #   - is not the current reservation
+    #   - includes a HubSpot application
+    #   - is PENDING or ACTIVE
+    #   - starts within the next 24 hours
+    upcoming = (
+        db.query(Reservation)
+        .join(
+            reservation_applications_table,
+            Reservation.id == reservation_applications_table.c.reservation_id,
+        )
+        .filter(
+            and_(
+                Reservation.id != current_reservation.id,
+                Reservation.user_email == current_reservation.user_email,
+                Reservation.status.in_(
+                    [ReservationStatus.PENDING, ReservationStatus.ACTIVE]
+                ),
+                Reservation.start_time <= window_end,
+                Reservation.end_time > now,
+                reservation_applications_table.c.application_id.in_(
+                    hubspot_app_ids
+                ),
+            )
+        )
+        .first()
+    )
+
+    if upcoming:
+        logger.info(
+            f"[HubSpot] User {current_reservation.user_email} has an upcoming "
+            f"HubSpot reservation (ID: {upcoming.id}, starts: {upcoming.start_time}). "
+            f"Skipping user deletion."
+        )
+        return True
+
+    return False
+
+
+def deprovision_api_managed_licenses(reservation: Reservation, db: Session = None):
     api_managed_apps = [
         app
         for app in reservation.applications
@@ -90,7 +164,16 @@ def deprovision_api_managed_licenses(reservation: Reservation):
         if app.name.lower() == "box":
             box_service.deprovision_box_user(user_email=reservation.user_email)
         elif app.name.lower() == "hubspot":
-            hubspot_service.deprovision_hubspot_user(user_email=reservation.user_email)
+            # Check for upcoming HubSpot reservations before deleting the user
+            if db and _has_upcoming_hubspot_reservation(reservation, db):
+                logger.info(
+                    f"[HubSpot] Deprovisioning skipped for {reservation.user_email} "
+                    f"— pending HubSpot reservation found. Marking as successful."
+                )
+            else:
+                hubspot_service.deprovision_hubspot_user(
+                    user_email=reservation.user_email
+                )
         # Future API_MANAGED apps:
         # elif app.name.lower() == "newapp":
         #     newapp_service.deprovision_user(...)
@@ -98,10 +181,10 @@ def deprovision_api_managed_licenses(reservation: Reservation):
             logger.warning(f"No deprovisioning handler for API_MANAGED app: {app.name}. Skipping.")
 
 
-def deprovision_app_licenses(reservation: Reservation):
+def deprovision_app_licenses(reservation: Reservation, db: Session = None):
     deprovision_subscription_licenses(reservation)
     deprovision_environment_licenses(reservation)
-    deprovision_api_managed_licenses(reservation)
+    deprovision_api_managed_licenses(reservation, db=db)
 
 def deactivate_applications(downtime_id: int, db: Session = Depends(get_db)):
     """Deactivates applications associated with a downtime entry."""
