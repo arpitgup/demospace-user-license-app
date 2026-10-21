@@ -299,6 +299,8 @@ class UserInGroupResponse(BaseModel):
 class CheckUserInWorkspaceResponse(BaseModel):
     """Generic schema for endpoints requiring only primary_email."""
     is_exist: Optional[bool] = None
+    is_suspended: Optional[bool] = None
+    was_reactivated: Optional[bool] = None
     primary_email: EmailStr
     secondary_email: EmailStr
     first_name: str

@@ -77,7 +77,7 @@ async def get_user_details(
     user_email: str = Depends(get_user_email),
     app_config: dict = Depends(get_app_config)
     ):
-    """Get user details from workspace API."""
+    """Get user details from workspace API. If user is suspended, reactivate them."""
     logger.info("Geting user details ---------")
     logger.info(user_email)
     primary_email = user_email
@@ -90,8 +90,21 @@ async def get_user_details(
                 status_code=status.HTTP_404_NOT_FOUND,
                 content={"detail": f"User {primary_email} does not exist in workspace."}
         )
+
+        # Check if the user is suspended (not Active) and reactivate
+        is_suspended = user_details.get("suspended", False)
+        was_reactivated = False
+        if is_suspended:
+            logger.info(f"User {primary_email} is suspended. Reactivating...")
+            admin_service.unsuspend_user(primary_email)
+            was_reactivated = True
+            is_suspended = False
+            logger.info(f"User {primary_email} has been reactivated successfully.")
+
         return CheckUserInWorkspaceResponse(
             is_exist=True,
+            is_suspended=is_suspended,
+            was_reactivated=was_reactivated,
             primary_email=user_details.get("primaryEmail", "NA"),
             secondary_email=user_details.get("emails", [{}])[0].get("address", "NA"),
             first_name=user_details.get("name", {}).get("givenName", "NA"),
