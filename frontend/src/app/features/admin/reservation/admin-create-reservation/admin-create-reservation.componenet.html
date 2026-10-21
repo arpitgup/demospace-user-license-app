@@ -14,6 +14,28 @@
 
     } @else{
     <mat-card class="card-wrapper">
+      <h4>Select Demo</h4>
+      <div class="demo-selector" (click)="openSelectDemoDialog()">
+        <span class="demo-placeholder">Select Demos</span>
+        <mat-icon class="demo-dropdown-icon">arrow_drop_down</mat-icon>
+      </div>
+      @if(selectedDemos().length > 0){
+      <div class="demo-chip-list">
+        @for(demo of selectedDemos(); track demo.demo_id){
+        <div class="demo-chip-wrapper selected">
+          <span class="tick-icon">&#10003;</span>
+          <span class="demo-chip-text">{{ demo.demo_title }}</span>
+          <button
+            class="demo-chip-remove"
+            (click)="$event.stopPropagation(); removeSelectedDemo(demo)"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        }
+      </div>
+      }
+      <mat-divider class="custom-divider"></mat-divider>
       <h4>Enter user Details</h4>
       <mat-form-field appearance="outline" class="custom-form-field">
         <mat-label>User Email Id</mat-label>

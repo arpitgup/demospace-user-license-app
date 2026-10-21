@@ -1,0 +1,79 @@
+<button mat-icon-button (click)="onCancel()" class="close-button">
+  <mat-icon>close</mat-icon>
+</button>
+<h2>Select Demos</h2>
+
+<mat-dialog-content>
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-icon matPrefix>search</mat-icon>
+    <mat-label>Search Demos</mat-label>
+    <input
+      matInput
+      placeholder="Search by demo ID or name..."
+      [(ngModel)]="searchQuery"
+      (ngModelChange)="onSearchChange()"
+    />
+    @if(searchQuery.length > 0){
+    <button matSuffix mat-icon-button (click)="clearSearch()">
+      <mat-icon>close</mat-icon>
+    </button>
+    }
+  </mat-form-field>
+
+  @if(isLoading){
+  <div class="loading-wrapper">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading demos...</p>
+  </div>
+  } @else if(errorMessage.length > 0){
+  <div class="error-wrapper">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <p>{{ errorMessage }}</p>
+    <button matButton class="retry-button" (click)="loadDemos()">
+      Retry
+    </button>
+  </div>
+  } @else {
+  <div class="demo-list">
+    @if(filteredDemos.length === 0){
+    <div class="no-results">
+      <mat-icon>search_off</mat-icon>
+      <p>No demos found</p>
+    </div>
+    } @for(demo of filteredDemos; track demo.demo_id){
+    <div
+      class="demo-item"
+      [class.selected]="isDemoSelected(demo)"
+      (click)="onToggleDemo(demo)"
+    >
+      <mat-checkbox
+        [checked]="isDemoSelected(demo)"
+        (click)="$event.stopPropagation()"
+        (change)="onToggleDemo(demo)"
+        color="primary"
+      ></mat-checkbox>
+      <div class="demo-info">
+        <span class="demo-id">{{ demo.demo_id }}</span>
+        <span class="demo-separator">-</span>
+        <span class="demo-name">{{ demo.demo_title }}</span>
+      </div>
+    </div>
+    }
+  </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions class="dialog-actions">
+  @if(getSelectedCount() > 0){
+  <span class="selected-count">{{ getSelectedCount() }} selected</span>
+  }
+  <button matButton class="cancel-button" (click)="onCancel()">Cancel</button>
+  <button
+    matButton
+    class="confirm-button"
+    [class.disabled]="getSelectedCount() === 0"
+    (click)="onConfirm()"
+  >
+    Done
+  </button>
+</mat-dialog-actions>

@@ -44,6 +44,8 @@ import { Application } from '../../../../core/models/application.model';
 import { SuccessDialog } from '../../../../shared/dialogs/success-dialog/success-dialog';
 import { AdminCreateReservationRequest } from '../../../../core/models/admin-create-reservation-request.model';
 import { ReservationConstants } from '../reservation.constants';
+import { DemoDetails } from '../../../../core/models/demo-details.model';
+import { SelectDemoDialog } from '../../../../shared/dialogs/select-demo-dialog/select-demo-dialog';
 
 @Component({
   selector: 'app-admin-create-reservation',
@@ -90,6 +92,7 @@ export class AdminCreateReservationComponenet implements OnInit {
   readonly endDateTime = signal<Date | null>(null);
   readonly isApplicationLoading = signal<boolean>(true);
   readonly applicationLoadingErrorMessage = signal<string>('');
+  readonly selectedDemos = signal<DemoDetails[]>([]);
   readonly loaderService = inject(LoaderService);
   readonly localTimeAbbrevation =
     getLocalTimeZoneAbbreviation(
@@ -415,5 +418,31 @@ export class AdminCreateReservationComponenet implements OnInit {
         message: errorMessage,
       },
     });
+  }
+
+  openSelectDemoDialog(): void {
+    const dialogRef = this.dialog.open(SelectDemoDialog, {
+      width: '40rem',
+      maxHeight: '90vh',
+      disableClose: false,
+      data: {
+        currentDemos: this.selectedDemos(),
+      },
+    });
+    dialogRef.afterClosed().subscribe((result: DemoDetails[] | null) => {
+      if (result) {
+        this.selectedDemos.set(result);
+      }
+    });
+  }
+
+  removeSelectedDemo(demo: DemoDetails): void {
+    this.selectedDemos.update((demos) =>
+      demos.filter((d) => d.demo_id !== demo.demo_id)
+    );
+  }
+
+  clearSelectedDemos(): void {
+    this.selectedDemos.set([]);
   }
 }
