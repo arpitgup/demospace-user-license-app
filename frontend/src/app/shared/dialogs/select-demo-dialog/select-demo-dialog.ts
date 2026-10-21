@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogModule,
@@ -32,6 +32,7 @@ import { DemoDetails } from '../../../core/models/demo-details.model';
 export class SelectDemoDialog implements OnInit {
   private dialogRef = inject(MatDialogRef<SelectDemoDialog>);
   private demoService = inject(DemoService);
+  private cdr = inject(ChangeDetectorRef);
   data = inject(MAT_DIALOG_DATA) as {
     currentDemos: DemoDetails[];
   };
@@ -65,11 +66,13 @@ export class SelectDemoDialog implements OnInit {
         );
         this.filteredDemos = [...this.allDemos];
         this.isLoading = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.isLoading = false;
         this.errorMessage =
           err.error?.detail || 'Failed to load demos. Please try again.';
+        this.cdr.markForCheck();
       },
     });
   }
@@ -104,6 +107,7 @@ export class SelectDemoDialog implements OnInit {
       this.selectedDemoIds.add(demo.demo_id);
       this.selectedDemosMap.set(demo.demo_id, demo);
     }
+    this.cdr.markForCheck();
   }
 
   getSelectedCount(): number {
