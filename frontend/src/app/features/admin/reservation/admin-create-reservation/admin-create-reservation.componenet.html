@@ -14,6 +14,22 @@
 
     } @else{
     <mat-card class="card-wrapper">
+      <h4>Enter user Details</h4>
+      <mat-form-field appearance="outline" class="custom-form-field">
+        <mat-label>User Email Id</mat-label>
+        <input
+          matInput
+          placeholder="User Email Id*"
+          [formControlName]="USER_EMAIL_FORM"
+        />
+        @if(createReservationForm.get(USER_EMAIL_FORM)?.hasError('pattern')&&
+        createReservationForm.get(USER_EMAIL_FORM)?.touched){
+        <mat-error
+          >{{ reservationConstants.EMAIL_NOT_VALID }}</mat-error
+        >
+        }
+      </mat-form-field>
+      <mat-divider class="custom-divider"></mat-divider>
       <h4>Select Demo</h4>
       <div class="demo-selector" (click)="openSelectDemoDialog()">
         <span class="demo-placeholder">Select Demos</span>
@@ -35,22 +51,9 @@
         }
       </div>
       }
-      <mat-divider class="custom-divider"></mat-divider>
-      <h4>Enter user Details</h4>
-      <mat-form-field appearance="outline" class="custom-form-field">
-        <mat-label>User Email Id</mat-label>
-        <input
-          matInput
-          placeholder="User Email Id*"
-          [formControlName]="USER_EMAIL_FORM"
-        />
-        @if(createReservationForm.get(USER_EMAIL_FORM)?.hasError('pattern')&&
-        createReservationForm.get(USER_EMAIL_FORM)?.touched){
-        <mat-error
-          >{{ reservationConstants.EMAIL_NOT_VALID }}</mat-error
-        >
-        }
-      </mat-form-field>
+      @if(demoSelectionError().length > 0){
+      <mat-error class="demo-error">{{ demoSelectionError() }}</mat-error>
+      }
       <mat-divider class="custom-divider"></mat-divider>
       <h4>Select Date Range</h4>
       <div class="date-wrapper">
@@ -175,7 +178,8 @@
           [class.disabled]="
             createReservationForm.invalid ||
             minDurationError().length > 0 ||
-            selectedApplications().trim().length <= 0
+            selectedApplications().trim().length <= 0 ||
+            selectedDemos().length === 0
           "
           (click)="onConfirmReservation()"
         >

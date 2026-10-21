@@ -147,12 +147,20 @@ class AdminCreateReservationRequest(CamelModel):
     start_time: datetime
     end_time: datetime
     candidate_user_email: str
+    group_emails: list[str]
 
     @model_validator(mode="after")
     def check_end_time(self):
         if self.start_time >= self.end_time:
             raise ValueError("Start time must be before end time.")
         return self
+
+    @field_validator("group_emails")
+    @classmethod
+    def check_group_emails(cls, v):
+        if not v or len(v) == 0:
+            raise ValueError("At least one demo must be selected.")
+        return v
 
     _convert_to_utc = field_validator("start_time", "end_time")(convert_to_utc)
 

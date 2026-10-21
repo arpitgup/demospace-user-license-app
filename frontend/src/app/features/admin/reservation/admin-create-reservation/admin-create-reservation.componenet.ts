@@ -93,6 +93,7 @@ export class AdminCreateReservationComponenet implements OnInit {
   readonly isApplicationLoading = signal<boolean>(true);
   readonly applicationLoadingErrorMessage = signal<string>('');
   readonly selectedDemos = signal<DemoDetails[]>([]);
+  readonly demoSelectionError = signal<string>('');
   readonly loaderService = inject(LoaderService);
   readonly localTimeAbbrevation =
     getLocalTimeZoneAbbreviation(
@@ -334,6 +335,10 @@ export class AdminCreateReservationComponenet implements OnInit {
     this.getAllUserApplications();
   }
   onConfirmReservation() {
+    if (this.selectedDemos().length === 0) {
+      this.demoSelectionError.set('Please select at least one demo');
+      return;
+    }
     if (
       this.createReservationForm.invalid ||
       this.minDurationError().length > 0 ||
@@ -371,6 +376,9 @@ export class AdminCreateReservationComponenet implements OnInit {
       endTime: endDateTime.toISOString(),
       candidateUserEmail: this.createReservationForm.get(this.USER_EMAIL_FORM)
         ?.value?.trim(),
+      groupEmails: this.selectedDemos()
+        .map((demo) => demo.demo_user_group_email)
+        .filter((email) => !!email),
     };
     this.adminService.createReservationByAdmin(request).subscribe({
       next: () => {
@@ -432,6 +440,9 @@ export class AdminCreateReservationComponenet implements OnInit {
     dialogRef.afterClosed().subscribe((result: DemoDetails[] | null) => {
       if (result) {
         this.selectedDemos.set(result);
+        if (result.length > 0) {
+          this.demoSelectionError.set('');
+        }
       }
     });
   }
