@@ -69,7 +69,7 @@ def deprovision_licenses(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Cannot deprovision licenses as reservation is in '{original_status.value}' state.",
         )
-    deprovision_app_licenses(reservation)
+    deprovision_app_licenses(reservation, db=db)
     if original_status == ReservationStatus.ACTIVE:
         reservation.status = ReservationStatus.COMPLETED        
     elif original_status == ReservationStatus.CANCELLED:        

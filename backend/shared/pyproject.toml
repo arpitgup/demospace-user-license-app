@@ -14,5 +14,6 @@ dependencies = [
     "cachetools==5.5.*",
     "loguru==0.7.3",
     "psycopg2-binary==2.9.*",
+    "requests==2.*",
     "sqlalchemy==2.*",
 ]
