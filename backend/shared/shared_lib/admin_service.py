@@ -286,6 +286,22 @@ def update_user_profile_with_new_info(user_email, updated_user_info):
         logger.error(f"An unexpected error occurred during user profile update: {e}")
         raise e
 
+def unsuspend_user(user_email: str):
+    """
+    Reactivates a suspended Google Workspace user by setting suspended to False.
+    Returns the updated user profile.
+    """
+    try:
+        logger.info(f"Reactivating suspended user {user_email}.")
+        updated_profile = admin_service.users().patch(
+            userKey=user_email, body={"suspended": False}
+        ).execute()
+        logger.info(f"Successfully reactivated user {user_email}.")
+        return updated_profile
+    except Exception as e:
+        logger.error(f"Error occurred while reactivating user {user_email}: {e}")
+        raise e
+
 def get_organization_units(customerId='C03ff1ejf'):
     """
     Retrieves a list of all organizational units for an account.
