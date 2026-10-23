@@ -1,5 +1,7 @@
 export interface UserDetails {
   is_exist: boolean;
+  is_suspended?: boolean;
+  was_reactivated?: boolean;
   primary_email: string;
   secondary_email: string;
   first_name: string;
@@ -11,7 +13,6 @@ export interface UserDetails {
   orgUnitPath: string;
   demoName: string;
   managerEmail: string;
-  password?:string;
-  employeeID?:string;
-
+  password?: string;
+  employeeID?: string;
 }
