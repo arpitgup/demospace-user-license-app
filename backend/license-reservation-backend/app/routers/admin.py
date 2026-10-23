@@ -20,7 +20,7 @@ from shared_lib.db.models import (
 from shared_lib.dependencies import get_user_email, get_db, get_app_config
 from typing import List, Optional
 from shared_lib.enums import DowntimeStatus, DemoOnboardingStatus
-from shared_lib.admin_service import create_custom_schema, is_group_exists, get_user, get_organization_units, create_organization_unit
+from shared_lib.admin_service import create_custom_schema, is_group_exists, get_user, get_organization_units, create_organization_unit, add_user_to_group
 from ..common.constants import ACCOUNT_CUSTOMERID, RESERVATION_EMAIL_SENDER, BOOKED_RESERVATION_EMAIL_CONTENT
 from ..common.schemas import (
     ApplicationWithLicenseGroupOut,
@@ -483,6 +483,15 @@ def get_all_reservations(
     )
 
 
+def _add_user_to_group_safe(user_email: str, group_email: str):
+    """Safely adds a user to a group. Logs errors but does not raise."""
+    try:
+        add_user_to_group(user_email, group_email)
+        logger.info(f"Successfully added {user_email} to group {group_email} as part of reservation.")
+    except Exception as e:
+        logger.error(f"Failed to add {user_email} to group {group_email}: {e}")
+
+
 @router.post(
     "/reservations",
     response_model=ReservationOut
@@ -627,6 +636,15 @@ def create_reservation(
             subject="Your Agentspace License Reservation Confirmation",
             email_content=format_email_for_reservation(BOOKED_RESERVATION_EMAIL_CONTENT, new_reservation)
         )
+
+        # Add user to demo group(s) if group emails are provided
+        if req.group_emails:
+            for group_email in req.group_emails:
+                background_tasks.add_task(
+                    _add_user_to_group_safe,
+                    candidate_useremail,
+                    group_email,
+                )
 
     except IntegrityError as e:
         db.rollback()
