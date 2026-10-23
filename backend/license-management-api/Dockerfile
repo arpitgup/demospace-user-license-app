@@ -4,7 +4,7 @@ WORKDIR /app
 # Copy the dependency files to working directory.
 COPY license-management-api/requirements.txt /app/requirements.txt
 COPY shared /app/shared
-# Installs any needed packages specified in requirements.txt.
+# Installs any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir /app/shared
 # Create a non-root user to run the applications
