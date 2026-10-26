@@ -175,7 +175,7 @@ export class UpdateDemoDialog implements OnInit, OnDestroy {
             [this.APP_LINK_TITLE_FORM]: [item.title, Validators.required],
             [this.APP_LINK_VALUE_FORM]: [
               item.url,
-              [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
+              [Validators.required],
             ],
             [this.IS_CLICKABLE_FORM]: [item.is_clickable || false],
           }),
