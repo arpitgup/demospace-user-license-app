@@ -30,6 +30,112 @@
         margin: 0;
         margin-bottom: 2rem;
       }
+      .demo-selector {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.875rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid rgba(0, 0, 0, 0.38);
+        cursor: pointer;
+        transition: border-color 0.2s ease;
+        min-height: 1.5rem;
+        background: #fff;
+
+        &:hover {
+          border-color: rgba(0, 0, 0, 0.87);
+        }
+
+        .demo-placeholder {
+          color: rgba(0, 0, 0, 0.42);
+          font-family: Roboto;
+          font-size: 1rem;
+          font-weight: 400;
+        }
+
+        .demo-dropdown-icon {
+          color: rgba(0, 0, 0, 0.54);
+          flex-shrink: 0;
+        }
+      }
+
+      .demo-chip-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1.5rem;
+
+        .demo-chip-wrapper {
+          @include flex-center;
+          display: inline-flex;
+          padding-top: 0.5rem;
+          padding-bottom: 0.5rem;
+          padding-left: 0.5rem;
+          padding-right: 0.75rem;
+          flex-shrink: 0;
+          border-radius: 1.5625rem;
+          background: rgba(66, 133, 244, 0.2);
+
+          .demo-chip-text {
+            color: rgba(66, 133, 244, 0.7);
+            font-family: Roboto;
+            font-size: 1.125rem;
+            font-style: normal;
+            font-weight: 500;
+            line-height: 1.95rem;
+          }
+
+          .tick-icon {
+            font-family: Roboto;
+            font-size: 2rem;
+            font-style: normal;
+            font-weight: 500;
+            line-height: 1.95rem;
+            text-align: center;
+            visibility: hidden;
+            color: #fff;
+            margin-right: 0.2rem;
+          }
+
+          .demo-chip-remove {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 0.4rem;
+            border-radius: 50%;
+
+            mat-icon {
+              font-size: 1.125rem;
+              width: 1.125rem;
+              height: 1.125rem;
+              color: rgba(255, 255, 255, 0.8);
+            }
+          }
+
+          &.selected {
+            border-radius: 1.5625rem;
+            background: #4285f4;
+
+            .demo-chip-text {
+              color: #fff;
+            }
+
+            .tick-icon {
+              visibility: visible;
+            }
+          }
+        }
+      }
+      .demo-error {
+        display: block;
+        margin-top: 0.75rem;
+        font-family: Roboto;
+        font-size: 0.875rem;
+      }
       .sized-box {
         margin-bottom: 1rem;
       }

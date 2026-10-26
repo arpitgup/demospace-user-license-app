@@ -136,7 +136,7 @@ export class AdminAddNewDemoComponent implements OnInit, OnDestroy {
       [this.APP_LINK_TITLE_FORM]: ['', Validators.required],
       [this.APP_LINK_VALUE_FORM]: [
         '',
-        [Validators.required, Validators.pattern(DEMO_URL_VALIDATION)],
+        [Validators.required],
       ],
       [this.IS_CLICKABLE_FORM]: [false],
     });

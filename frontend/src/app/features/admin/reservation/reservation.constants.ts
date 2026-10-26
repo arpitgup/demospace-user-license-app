@@ -4,6 +4,7 @@ import {
 } from '../../../shared/constants/domain.constants';
 
 export const ReservationConstants = {
+  SELECT_DEMO: 'Select Demo',
   ENTER_USER_DETAILS: 'Enter user Details',
   USER_EMAIL_ID: 'User Email Id',
   EMAIL_NOT_VALID: `Email not valid. ${VALIDATION_EMAIL_DOMAIN} or ${VALIDATION_DEV_EMAIL_DOMAIN} email required`,

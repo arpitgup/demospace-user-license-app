@@ -30,6 +30,31 @@
         }
       </mat-form-field>
       <mat-divider class="custom-divider"></mat-divider>
+      <h4>Select Demo</h4>
+      <div class="demo-selector" (click)="openSelectDemoDialog()">
+        <span class="demo-placeholder">Select Demos</span>
+        <mat-icon class="demo-dropdown-icon">arrow_drop_down</mat-icon>
+      </div>
+      @if(selectedDemos().length > 0){
+      <div class="demo-chip-list">
+        @for(demo of selectedDemos(); track demo.demo_id){
+        <div class="demo-chip-wrapper selected">
+          <span class="tick-icon">&#10003;</span>
+          <span class="demo-chip-text">{{ demo.demo_title }}</span>
+          <button
+            class="demo-chip-remove"
+            (click)="$event.stopPropagation(); removeSelectedDemo(demo)"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        }
+      </div>
+      }
+      @if(demoSelectionError().length > 0){
+      <mat-error class="demo-error">{{ demoSelectionError() }}</mat-error>
+      }
+      <mat-divider class="custom-divider"></mat-divider>
       <h4>Select Date Range</h4>
       <div class="date-wrapper">
         <mat-form-field appearance="outline" class="custom-date-picker">
@@ -153,7 +178,8 @@
           [class.disabled]="
             createReservationForm.invalid ||
             minDurationError().length > 0 ||
-            selectedApplications().trim().length <= 0
+            selectedApplications().trim().length <= 0 ||
+            selectedDemos().length === 0
           "
           (click)="onConfirmReservation()"
         >

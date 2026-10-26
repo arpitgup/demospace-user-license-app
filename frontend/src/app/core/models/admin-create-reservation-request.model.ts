@@ -4,4 +4,5 @@ export interface AdminCreateReservationRequest {
   startTime: string;
   endTime: string;
   candidateUserEmail: string;
+  groupEmails: string[];
 }
